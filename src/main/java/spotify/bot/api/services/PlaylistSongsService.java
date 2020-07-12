@@ -1,7 +1,5 @@
 package spotify.bot.api.services;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +9,12 @@ import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.model_objects.specification.PlaylistTrack;
 import com.wrapper.spotify.model_objects.specification.Track;
 
 import spotify.bot.api.SpotifyCall;
+import spotify.bot.util.BotUtils;
 
 @Service
 public class PlaylistSongsService {
@@ -37,7 +35,7 @@ public class PlaylistSongsService {
 	 * @param songs
 	 * @return
 	 */
-	public void addSongsToPlaylistById(String playlistId, List<Track> tracks) throws SpotifyWebApiException, IOException, InterruptedException, SQLException {
+	public void addSongsToPlaylistById(String playlistId, List<Track> tracks) {
 		if (!tracks.isEmpty()) {
 			boolean playlistHasCapacity = circularPlaylistFitting(playlistId, tracks.size());
 			if (playlistHasCapacity) {
@@ -47,7 +45,7 @@ public class PlaylistSongsService {
 						json.add(TRACK_PREFIX + s.getId());
 					}
 					SpotifyCall.execute(spotifyApi.addTracksToPlaylist(playlistId, json).position(TOP_OF_PLAYLIST));
-					Thread.sleep(PLAYLIST_ADDITION_COOLDOWN);
+					BotUtils.sneakySleep(PLAYLIST_ADDITION_COOLDOWN);
 				}
 			}
 		}
@@ -61,7 +59,7 @@ public class PlaylistSongsService {
 	 * @param songsToAddCount
 	 * @return true on success, false if playlist is full and can't be cleared
 	 */
-	private boolean circularPlaylistFitting(String playlistId, int songsToAddCount) throws SpotifyWebApiException, IOException, InterruptedException, SQLException {
+	private boolean circularPlaylistFitting(String playlistId, int songsToAddCount) {
 		Playlist p = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 		final int currentPlaylistCount = p.getTracks().getTotal();
 		if (currentPlaylistCount + songsToAddCount > PLAYLIST_SIZE_LIMIT) {
@@ -81,7 +79,7 @@ public class PlaylistSongsService {
 	 * @param currentPlaylistCount
 	 * @param songsToAddCount
 	 */
-	private void deleteSongsFromBottomOnLimit(String playlistId, int currentPlaylistCount, int songsToAddCount) throws SpotifyWebApiException, IOException, InterruptedException {
+	private void deleteSongsFromBottomOnLimit(String playlistId, int currentPlaylistCount, int songsToAddCount) {
 		int totalSongsToDeleteCount = currentPlaylistCount + songsToAddCount - PLAYLIST_SIZE_LIMIT;
 		boolean repeat = totalSongsToDeleteCount > PLAYLIST_ADD_LIMIT;
 		int songsToDeleteCount = repeat ? PLAYLIST_ADD_LIMIT : totalSongsToDeleteCount;

@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
 
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.AlbumGroup;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
 
+import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.config.Config;
 
@@ -36,9 +36,10 @@ public class AlbumService {
 	 * @param followedArtists
 	 * @param albumGroups
 	 * @return
+	 * @throws IOException 
+	 * @throws SQLException 
 	 */
-	public List<AlbumSimplified> getAllAlbumsOfArtists(List<String> followedArtists)
-		throws IOException, SQLException, SpotifyWebApiException, InterruptedException {
+	public List<AlbumSimplified> getAllAlbumsOfArtists(List<String> followedArtists) throws SQLException, IOException {
 		Collection<AlbumGroup> enabledAlbumGroups = Arrays.asList(AlbumGroup.values());
 		List<AlbumSimplified> allAlbums = getAlbumsOfArtists(followedArtists, enabledAlbumGroups);
 		return allAlbums;
@@ -49,8 +50,10 @@ public class AlbumService {
 	 * 
 	 * @param artists
 	 * @return
+	 * @throws IOException 
+	 * @throws SQLException 
 	 */
-	private List<AlbumSimplified> getAlbumsOfArtists(List<String> artists, Collection<AlbumGroup> enabledAlbumGroups) throws SpotifyWebApiException, IOException, InterruptedException, SQLException {
+	private List<AlbumSimplified> getAlbumsOfArtists(List<String> artists, Collection<AlbumGroup> enabledAlbumGroups) throws SQLException, IOException {
 		String albumGroupString = createAlbumGroupString(enabledAlbumGroups);
 		List<AlbumSimplified> albums = new ArrayList<>();
 		for (String a : artists) {
@@ -80,8 +83,11 @@ public class AlbumService {
 	 * @param artistId
 	 * @param albumGroup
 	 * @return
+	 * @throws IOException
+	 * @throws SQLException
+	 * @throws BotException
 	 */
-	private List<AlbumSimplified> getAlbumIdsOfSingleArtist(String artistId, String albumGroups) throws SpotifyWebApiException, IOException, InterruptedException, SQLException {
+	private List<AlbumSimplified> getAlbumIdsOfSingleArtist(String artistId, String albumGroups) throws SQLException, IOException {
 		List<AlbumSimplified> albumsOfCurrentArtist = SpotifyCall.executePaging(spotifyApi
 			.getArtistsAlbums(artistId)
 			.market(config.getSpotifyApiConfig().getMarket())

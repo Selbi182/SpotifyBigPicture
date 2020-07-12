@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.SpotifyHttpManager;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 
 import spotify.bot.config.Config;
 
@@ -26,7 +25,7 @@ public class SpotifyApiWrapper {
 	 * @return the API instance
 	 */
 	@Bean
-	SpotifyApi spotifyApi() throws SpotifyWebApiException, InterruptedException, IOException, SQLException {
+	SpotifyApi spotifyApi() throws IOException, SQLException {
 		SpotifyApi spotifyApi = new SpotifyApi.Builder()
 			.setClientId(config.getSpotifyApiConfig().getClientId())
 			.setClientSecret(config.getSpotifyApiConfig().getClientSecret())

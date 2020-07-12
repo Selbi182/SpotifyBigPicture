@@ -43,7 +43,7 @@ public class DiscoveryDatabase {
 	private Connection connection;
 
 	@PostConstruct
-	private void init() throws IOException, SQLException {
+	private void init() throws IOException {
 		File setDbFilePath = null;
 
 		File alternateDatabaseFilepath = Main.getAlternateDatabaseFilePath();
@@ -101,7 +101,7 @@ public class DiscoveryDatabase {
 	/**
 	 * Fetch the single-row result set of the given table
 	 */
-	ResultSet selectSingle(String tableName) throws SQLException, IOException {
+	ResultSet selectSingle(String tableName) throws SQLException {
 		ResultSet rs = createStatement().executeQuery(String.format(SINGLE_SELECT_QUERY_MASK, tableName));
 		return rs;
 	}

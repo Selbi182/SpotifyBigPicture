@@ -1,6 +1,5 @@
 package spotify.bot.config.database;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -33,7 +32,7 @@ public class DatabaseService {
 	////////////////////////
 	// READ
 
-	public SpotifyApiConfig getSpotifyApiConfig() throws SQLException, IOException {
+	public SpotifyApiConfig getSpotifyApiConfig() throws SQLException {
 		ResultSet db = database.selectSingle(DBConstants.TABLE_SPOTIFY_API);
 		SpotifyApiConfig spotifyApiConfig = new SpotifyApiConfig();
 		spotifyApiConfig.setClientId(db.getString(DBConstants.COL_CLIENT_ID));

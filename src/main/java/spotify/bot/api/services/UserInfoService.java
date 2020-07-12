@@ -1,7 +1,5 @@
 package spotify.bot.api.services;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.ModelObjectType;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.Artist;
 
 import spotify.bot.api.SpotifyCall;
@@ -33,7 +30,7 @@ public class UserInfoService {
 	 * 
 	 * @return
 	 */
-	public List<String> getFollowedArtistsIds() throws IOException, SQLException, SpotifyWebApiException, InterruptedException {
+	public List<String> getFollowedArtistsIds() {
 		List<Artist> followedArtists = SpotifyCall.executePaging(spotifyApi
 			.getUsersFollowedArtists(ModelObjectType.ARTIST)
 			.limit(MAX_FOLLOWED_ARTIST_FETCH_LIMIT));

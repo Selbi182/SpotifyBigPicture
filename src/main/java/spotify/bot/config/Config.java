@@ -34,7 +34,7 @@ public class Config {
 	 * @param accessToken
 	 * @param refreshToken
 	 */
-	public void updateTokens(String accessToken, String refreshToken) throws IOException, SQLException {
+	public void updateTokens(String accessToken, String refreshToken) throws SQLException {
 		spotifyApiConfig.setAccessToken(accessToken);
 		spotifyApiConfig.setRefreshToken(refreshToken);
 		databaseService.updateTokens(accessToken, refreshToken);
@@ -47,6 +47,8 @@ public class Config {
 	 * Retuns the bot configuration. May be created if not present.
 	 * 
 	 * @return
+	 * @throws IOException 
+	 * @throws SQLException 
 	 */
 	public SpotifyApiConfig getSpotifyApiConfig() throws SQLException, IOException {
 		if (spotifyApiConfig == null) {

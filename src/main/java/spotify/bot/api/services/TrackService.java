@@ -1,7 +1,5 @@
 package spotify.bot.api.services;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
 import com.wrapper.spotify.model_objects.specification.AudioFeatures;
 import com.wrapper.spotify.model_objects.specification.TrackSimplified;
@@ -39,7 +36,7 @@ public class TrackService {
 	 * @param albums
 	 * @return
 	 */
-	public List<AlbumTrackPair> getTracksOfAlbums(List<AlbumSimplified> albums) throws IOException, SQLException {
+	public List<AlbumTrackPair> getTracksOfAlbums(List<AlbumSimplified> albums) {
 		List<AlbumTrackPair> atps = new ArrayList<>();
 		albums.parallelStream().forEach(a -> {
 			atps.add(getTracksOfSingleAlbum(a));
@@ -70,14 +67,9 @@ public class TrackService {
 	 * @return
 	 */
 	public List<AudioFeatures> getAudioFeatures(List<TrackSimplified> tracks) {
-		try {
-			String[] trackIds = tracks.stream().map(TrackSimplified::getId).toArray(String[]::new);
-			AudioFeatures[] audioFeatures;
-			audioFeatures = SpotifyCall.execute(spotifyApi.getAudioFeaturesForSeveralTracks(trackIds));
-			return Arrays.asList(audioFeatures);
-		} catch (SpotifyWebApiException | IOException | InterruptedException e) {
-			log.stackTrace(e);
-		}
-		return null;
+		String[] trackIds = tracks.stream().map(TrackSimplified::getId).toArray(String[]::new);
+		AudioFeatures[] audioFeatures;
+		audioFeatures = SpotifyCall.execute(spotifyApi.getAudioFeaturesForSeveralTracks(trackIds));
+		return Arrays.asList(audioFeatures);
 	}
 }

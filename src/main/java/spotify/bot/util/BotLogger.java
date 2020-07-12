@@ -45,7 +45,7 @@ public class BotLogger {
 	private Logger log;
 
 	@PostConstruct
-	private void init() throws SecurityException, IOException {
+	private void init() throws SecurityException {
 		this.log = LoggerFactory.getLogger(BotLogger.class);
 	}
 

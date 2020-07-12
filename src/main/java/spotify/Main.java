@@ -1,6 +1,7 @@
 package spotify;
 
 import java.io.File;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -8,13 +9,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import spotify.bot.api.SpotifyApiAuthorization;
 import spotify.bot.api.events.LoggedInEvent;
 import spotify.bot.util.BotLogger;
+import spotify.sketchpads.Sketchpad;
 
+@EnableScheduling
 @RestController
 @SpringBootApplication
 public class Main {
@@ -46,7 +51,7 @@ public class Main {
 	///////////////////////////////
 
 	@Autowired
-	private Sketchpad sketchpad;
+	private List<? extends Sketchpad> sketchpads;
 
 	@Autowired
 	private SpotifyApiAuthorization authorization;
@@ -62,14 +67,18 @@ public class Main {
 		sketch();
 	}
 
+	@Scheduled(cron = "0 1 * * * *")
 	@GetMapping("/sketch")
 	public ResponseEntity<String> sketch() {
 		if (authorization.isLoggedIn()) {
 			log.info("Starting sketch...");
 			try {
-				sketchpad.sketch();
-				log.info("Sketch done!");
-				log.printLine();
+				for (Sketchpad sp : sketchpads) {
+					sp.sketch();
+					log.info("Sketch done!");
+					log.printLine();
+				}
+				log.info("All sketches done!");
 				return new ResponseEntity<>("Sketch done!", HttpStatus.OK);
 			} catch (Exception e) {
 				log.info("Exception thrown during sketch:");
