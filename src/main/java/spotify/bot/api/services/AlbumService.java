@@ -90,7 +90,7 @@ public class AlbumService {
 	private List<AlbumSimplified> getAlbumIdsOfSingleArtist(String artistId, String albumGroups) throws SQLException, IOException {
 		List<AlbumSimplified> albumsOfCurrentArtist = SpotifyCall.executePaging(spotifyApi
 			.getArtistsAlbums(artistId)
-			.market(config.getSpotifyApiConfig().getMarket())
+			.market(config.spotifyBotConfig().getMarket())
 			.limit(MAX_ALBUM_FETCH_LIMIT)
 			.album_type(albumGroups));
 		return albumsOfCurrentArtist;

@@ -44,3 +44,4 @@ templates/READY
 
 # Sketchpads
 src/main/java/spotify/sketchpads/impl/
+spotifybot.properties

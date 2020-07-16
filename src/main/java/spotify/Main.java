@@ -24,14 +24,14 @@ import spotify.sketchpads.Sketchpad;
 @SpringBootApplication
 public class Main {
 
-	private static File alternateDatabaseFile = null;
+	private static File alternateProperties = null;
 
 	/**
 	 * Return the alternate file path was given for the SQLite database that was
 	 * given as parameter. <code>null</code> if none was given.
 	 */
 	public static File getAlternateDatabaseFilePath() {
-		return alternateDatabaseFile;
+		return alternateProperties;
 	}
 
 	/**
@@ -43,7 +43,7 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		if (args.length > 0) {
-			alternateDatabaseFile = new File(args[0]);
+			alternateProperties = new File(args[0]);
 		}
 		SpringApplication.run(Main.class, args);
 	}

@@ -132,7 +132,7 @@ public class SpotifyApiAuthorization {
 	 * @throws IOException
 	 */
 	@RequestMapping(LOGIN_CALLBACK_URI)
-	private ResponseEntity<String> loginCallback(@RequestParam String code) throws SQLException {
+	private ResponseEntity<String> loginCallback(@RequestParam String code) {
 		AuthorizationCodeCredentials acc = SpotifyCall.execute(spotifyApi.authorizationCode(code));
 		updateTokens(acc);
 		lock.release();
@@ -157,7 +157,7 @@ public class SpotifyApiAuthorization {
 	/**
 	 * Store the access and refresh tokens in the database
 	 */
-	private void updateTokens(AuthorizationCodeCredentials acc) throws SQLException {
+	private void updateTokens(AuthorizationCodeCredentials acc) {
 		String accessToken = spotifyApi.getAccessToken();
 		if (acc.getAccessToken() != null) {
 			accessToken = acc.getAccessToken();

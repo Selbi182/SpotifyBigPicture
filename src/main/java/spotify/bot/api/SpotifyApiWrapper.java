@@ -1,8 +1,5 @@
 package spotify.bot.api;
 
-import java.io.IOException;
-import java.sql.SQLException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,14 +22,14 @@ public class SpotifyApiWrapper {
 	 * @return the API instance
 	 */
 	@Bean
-	SpotifyApi spotifyApi() throws IOException, SQLException {
+	SpotifyApi spotifyApi() {
 		SpotifyApi spotifyApi = new SpotifyApi.Builder()
-			.setClientId(config.getSpotifyApiConfig().getClientId())
-			.setClientSecret(config.getSpotifyApiConfig().getClientSecret())
+			.setClientId(config.spotifyBotConfig().getClientId())
+			.setClientSecret(config.spotifyBotConfig().getClientSecret())
 			.setRedirectUri(SpotifyHttpManager.makeUri(SpotifyApiAuthorization.LOGIN_CALLBACK_URI))
 			.build();
-		spotifyApi.setAccessToken(config.getSpotifyApiConfig().getAccessToken());
-		spotifyApi.setRefreshToken(config.getSpotifyApiConfig().getRefreshToken());
+		spotifyApi.setAccessToken(config.spotifyBotConfig().getAccessToken());
+		spotifyApi.setRefreshToken(config.spotifyBotConfig().getRefreshToken());
 		return spotifyApi;
 	}
 }

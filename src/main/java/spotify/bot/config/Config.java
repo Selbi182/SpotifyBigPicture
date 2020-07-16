@@ -1,30 +1,36 @@
 package spotify.bot.config;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import spotify.bot.config.database.DatabaseService;
-import spotify.bot.config.dto.SpotifyApiConfig;
+import com.neovisionaries.i18n.CountryCode;
 
 @Configuration
 public class Config {
 
-	@Autowired
-	private DatabaseService databaseService;
+	private static final String MARKET = "market";
+	private static final String REFRESH_TOKEN = "refresh_token";
+	private static final String ACCESS_TOKEN = "access_token";
+	private static final String CLIENT_SECRET = "client_secret";
+	private static final String CLIENT_ID = "client_id";
 
-	private SpotifyApiConfig spotifyApiConfig;
+	private static final String PROPERTIES_FILE = "./spotifybot.properties";
+
+	private SpotifyBotConfig spotifyApiConfig;
 
 	/**
 	 * Sets up or refreshes the configuration for the Spotify bot from the database
 	 */
 	@PostConstruct
-	private void init() throws SQLException, IOException {
-		this.spotifyApiConfig = getSpotifyApiConfig();
+	private void init() {
+		this.spotifyApiConfig = spotifyBotConfig();
 	}
 
 	/**
@@ -33,27 +39,106 @@ public class Config {
 	 * 
 	 * @param accessToken
 	 * @param refreshToken
+	 * @throws IOException
 	 */
-	public void updateTokens(String accessToken, String refreshToken) throws SQLException {
+	public void updateTokens(String accessToken, String refreshToken) {
 		spotifyApiConfig.setAccessToken(accessToken);
 		spotifyApiConfig.setRefreshToken(refreshToken);
-		databaseService.updateTokens(accessToken, refreshToken);
+
+		spotifyApiProperties().setProperty(ACCESS_TOKEN, accessToken);
+		spotifyApiProperties().setProperty(REFRESH_TOKEN, refreshToken);
 	}
 
 	////////////////////
 	// CONFIG DTOS
 
+	@Bean
+	public Properties spotifyApiProperties() {
+		try {
+			FileReader reader = new FileReader(PROPERTIES_FILE);
+			Properties properties = new Properties();
+			properties.load(reader);
+			return properties;
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("Failed to read " + PROPERTIES_FILE + ". Exiting!");
+			System.exit(1);
+			return null;
+		}
+	}
+
 	/**
-	 * Retuns the bot configuration. May be created if not present.
+	 * Returns the bot configuration. May be created if not present.
 	 * 
 	 * @return
-	 * @throws IOException 
-	 * @throws SQLException 
+	 * @throws IOException
+	 * @throws SQLException
 	 */
-	public SpotifyApiConfig getSpotifyApiConfig() throws SQLException, IOException {
-		if (spotifyApiConfig == null) {
-			spotifyApiConfig = databaseService.getSpotifyApiConfig();
+	@Bean
+	public SpotifyBotConfig spotifyBotConfig() {
+		Properties properties = spotifyApiProperties();
+
+		SpotifyBotConfig config = new SpotifyBotConfig();
+		config.setClientId(properties.getProperty(CLIENT_ID));
+		config.setClientSecret(properties.getProperty(CLIENT_SECRET));
+		config.setAccessToken(properties.getProperty(ACCESS_TOKEN));
+		config.setRefreshToken(properties.getProperty(REFRESH_TOKEN));
+		config.setMarket(CountryCode.valueOf(properties.getProperty(MARKET)));
+
+		return config;
+	}
+
+	public class SpotifyBotConfig {
+		private String clientId;
+		private String clientSecret;
+		private String accessToken;
+		private String refreshToken;
+		private CountryCode market;
+
+		public String getClientId() {
+			return clientId;
 		}
-		return spotifyApiConfig;
+
+		public void setClientId(String clientId) {
+			this.clientId = clientId;
+		}
+
+		public String getClientSecret() {
+			return clientSecret;
+		}
+
+		public void setClientSecret(String clientSecret) {
+			this.clientSecret = clientSecret;
+		}
+
+		public String getAccessToken() {
+			return accessToken;
+		}
+
+		public void setAccessToken(String accessToken) {
+			this.accessToken = accessToken;
+		}
+
+		public String getRefreshToken() {
+			return refreshToken;
+		}
+
+		public void setRefreshToken(String refreshToken) {
+			this.refreshToken = refreshToken;
+		}
+
+		public CountryCode getMarket() {
+			return market;
+		}
+
+		public void setMarket(CountryCode market) {
+			this.market = market;
+		}
+
+		@Override
+		public String toString() {
+			return "SpotifyBotConfig [clientId=" + clientId + ", clientSecret=" + clientSecret + ", accessToken=" + accessToken + ", refreshToken=" + refreshToken + ", market=" + market + "]";
+		}
+
 	}
 }

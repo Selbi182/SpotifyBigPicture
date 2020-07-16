@@ -36,7 +36,6 @@ dependencies {
 	    exclude module: "slf4j-simple"
     }
     
-    implementation 'org.xerial:sqlite-jdbc:3.30.1'
     implementation 'com.google.guava:guava:29.0-jre'
     implementation 'org.springframework.boot:spring-boot-starter-web:2.2.6.RELEASE'
     
