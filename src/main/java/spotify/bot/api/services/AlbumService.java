@@ -1,7 +1,6 @@
 package spotify.bot.api.services;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,9 +36,8 @@ public class AlbumService {
 	 * @param albumGroups
 	 * @return
 	 * @throws IOException 
-	 * @throws SQLException 
 	 */
-	public List<AlbumSimplified> getAllAlbumsOfArtists(List<String> followedArtists) throws SQLException, IOException {
+	public List<AlbumSimplified> getAllAlbumsOfArtists(List<String> followedArtists) throws IOException {
 		Collection<AlbumGroup> enabledAlbumGroups = Arrays.asList(AlbumGroup.values());
 		List<AlbumSimplified> allAlbums = getAlbumsOfArtists(followedArtists, enabledAlbumGroups);
 		return allAlbums;
@@ -51,9 +49,8 @@ public class AlbumService {
 	 * @param artists
 	 * @return
 	 * @throws IOException 
-	 * @throws SQLException 
 	 */
-	private List<AlbumSimplified> getAlbumsOfArtists(List<String> artists, Collection<AlbumGroup> enabledAlbumGroups) throws SQLException, IOException {
+	private List<AlbumSimplified> getAlbumsOfArtists(List<String> artists, Collection<AlbumGroup> enabledAlbumGroups) throws IOException {
 		String albumGroupString = createAlbumGroupString(enabledAlbumGroups);
 		List<AlbumSimplified> albums = new ArrayList<>();
 		for (String a : artists) {
@@ -84,10 +81,9 @@ public class AlbumService {
 	 * @param albumGroup
 	 * @return
 	 * @throws IOException
-	 * @throws SQLException
 	 * @throws BotException
 	 */
-	private List<AlbumSimplified> getAlbumIdsOfSingleArtist(String artistId, String albumGroups) throws SQLException, IOException {
+	private List<AlbumSimplified> getAlbumIdsOfSingleArtist(String artistId, String albumGroups) throws IOException {
 		List<AlbumSimplified> albumsOfCurrentArtist = SpotifyCall.executePaging(spotifyApi
 			.getArtistsAlbums(artistId)
 			.market(config.spotifyBotConfig().getMarket())

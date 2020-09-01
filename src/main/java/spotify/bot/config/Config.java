@@ -1,8 +1,8 @@
 package spotify.bot.config;
 
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
@@ -26,7 +26,7 @@ public class Config {
 	private SpotifyBotConfig spotifyApiConfig;
 
 	/**
-	 * Sets up or refreshes the configuration for the Spotify bot from the database
+	 * Sets up or refreshes the configuration for the Spotify bot from the settings
 	 */
 	@PostConstruct
 	private void init() {
@@ -35,18 +35,20 @@ public class Config {
 
 	/**
 	 * Update the access and refresh tokens, both in the config object as well as
-	 * the database
+	 * the settings
 	 * 
 	 * @param accessToken
 	 * @param refreshToken
+	 * @throws  
 	 * @throws IOException
 	 */
-	public void updateTokens(String accessToken, String refreshToken) {
+	public void updateTokens(String accessToken, String refreshToken) throws IOException {
 		spotifyApiConfig.setAccessToken(accessToken);
 		spotifyApiConfig.setRefreshToken(refreshToken);
 
 		spotifyApiProperties().setProperty(ACCESS_TOKEN, accessToken);
 		spotifyApiProperties().setProperty(REFRESH_TOKEN, refreshToken);
+		spotifyApiProperties().store(new FileOutputStream(PROPERTIES_FILE), null);
 	}
 
 	////////////////////
@@ -72,7 +74,6 @@ public class Config {
 	 * 
 	 * @return
 	 * @throws IOException
-	 * @throws SQLException
 	 */
 	@Bean
 	public SpotifyBotConfig spotifyBotConfig() {

@@ -41,7 +41,4 @@ templates/READY
 /database.db
 /spring.log
 /application.properties
-
-# Sketchpads
-src/main/java/spotify/sketchpads/impl/
 spotifybot.properties

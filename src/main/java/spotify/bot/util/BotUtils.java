@@ -4,6 +4,7 @@ import java.io.File;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -167,5 +168,20 @@ public final class BotUtils {
 			return file.toPath().normalize().toFile();
 		}
 		return null;
+	}
+
+	/**
+	 * Adds all the items of the given (primitive) array to the specified List, if
+	 * and only if the item array is not null and contains at least one item.
+	 * 
+	 * @param <T>    the shared class type
+	 * @param source the items to add
+	 * @param target the target list
+	 */
+	public static <T> void addToListIfNotBlank(T[] source, List<T> target) {
+		if (source != null && source.length > 0) {
+			List<T> asList = Arrays.asList(source);
+			target.addAll(asList);
+		}
 	}
 }

@@ -2,7 +2,6 @@ package spotify.bot.api;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hc.core5.http.ParseException;
@@ -56,8 +55,8 @@ public class SpotifyCall {
 			long sleepMs = (timeout * RETRY_TIMEOUT_429) + RETRY_TIMEOUT_429;
 			BotUtils.sneakySleep(sleepMs);
 		} catch (SpotifyWebApiException | RuntimeException e) {
-			e.printStackTrace();
 			BotUtils.sneakySleep(RETRY_TIMEOUT_GENERIC_ERROR);
+			e.printStackTrace();
 		}
 		return execute(requestBuilder);
 	}
@@ -79,7 +78,7 @@ public class SpotifyCall {
 				pagingRequestBuilder.offset(paging.getOffset() + paging.getLimit());
 			}
 			paging = execute(pagingRequestBuilder);
-			resultList.addAll(Arrays.asList(paging.getItems()));
+			BotUtils.addToListIfNotBlank(paging.getItems(), resultList);
 		} while (paging.getNext() != null);
 		return resultList;
 	}
@@ -109,8 +108,9 @@ public class SpotifyCall {
 				}
 			}
 			paging = execute(pagingRequestBuilder);
-			resultList.addAll(Arrays.asList(paging.getItems()));
+			BotUtils.addToListIfNotBlank(paging.getItems(), resultList);
 		} while (paging.getNext() != null);
 		return resultList;
 	}
 }
+	

@@ -40,7 +40,7 @@ public class BotLogger {
 	private final static int MAX_LINE_LENGTH = 160;
 	private final static String ELLIPSIS = "...";
 	private final static String DROPPED_SYMBOL = "x";
-	private final static String LINE_SYMBOL = "-";
+	private final static char LINE_SYMBOL = '-';
 
 	private Logger log;
 
@@ -56,30 +56,58 @@ public class BotLogger {
 	 * Log a debug message
 	 */
 	public void debug(String message) {
-		log.debug(truncateToEllipsis(message));
+		debug(message, true);
 	}
 
 	/**
 	 * Log an info message
 	 */
 	public void info(String message) {
-		log.info(truncateToEllipsis(message));
+		info(message, true);
 	}
 
 	/**
 	 * Log a warning message
 	 */
 	public void warning(String message) {
-		log.warn(truncateToEllipsis(message));
+		warning(message, true);
 	}
 
 	/**
 	 * Log an error message
 	 */
 	public void error(String message) {
-		log.error(truncateToEllipsis(message));
+		error(message, true);
 	}
-
+	
+	/**
+	 * Log a debug message, optionally truncate
+	 */
+	public void debug(String message, boolean truncate) {
+		log.debug(truncate ? truncateToEllipsis(message) : message);
+	}
+	
+	/**
+	 * Log an info message, optionally truncate
+	 */
+	public void info(String message, boolean truncate) {
+		log.info(truncate ? truncateToEllipsis(message) : message);
+	}
+	
+	/**
+	 * Log a warning message, optionally truncate
+	 */
+	public void warning(String message, boolean truncate) {
+		log.warn(truncate ? truncateToEllipsis(message) : message);
+	}
+	
+	/**
+	 * Log an error message, optionally truncate
+	 */
+	public void error(String message, boolean truncate) {
+		log.error(truncate ? truncateToEllipsis(message) : message);
+	}
+	
 	/**
 	 * Chop off the message if it exceeds the maximum line length of 160 characters
 	 * 
@@ -97,7 +125,14 @@ public class BotLogger {
 	 * Print a line of hyphens (----) as INFO-level log message
 	 */
 	public void printLine() {
-		info(Strings.repeat(LINE_SYMBOL, MAX_LINE_LENGTH - ELLIPSIS.length()));
+		printLine(LINE_SYMBOL);
+	}
+	/**
+	 * 
+	 * Print a line of the given char as INFO-level log message
+	 */
+	public void printLine(char character) {
+		info(Strings.repeat(String.valueOf(character), MAX_LINE_LENGTH - ELLIPSIS.length()));
 	}
 
 	///////////////////////
