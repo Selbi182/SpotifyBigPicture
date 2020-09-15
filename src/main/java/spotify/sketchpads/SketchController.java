@@ -72,12 +72,14 @@ public class SketchController {
 			try {
 				ready.set(false);
 				for (Sketchpad sp : sketchpads) {
-					long startTime = System.currentTimeMillis();
-					if (sp.sketch()) {
-						long timeTaken = System.currentTimeMillis() - startTime;
-						String sketchpadName = sp.getClass().getSimpleName();
-						log.info(sketchpadName + " completed in: " + timeTaken + "ms");
-						log.printLine();
+					if (sp.enabled()) {
+						long startTime = System.currentTimeMillis();
+						if (sp.sketch()) {
+							long timeTaken = System.currentTimeMillis() - startTime;
+							String sketchpadName = sp.getClass().getSimpleName();
+							log.info(sketchpadName + " completed in: " + timeTaken + "ms");
+							log.printLine();
+						}						
 					}
 				}
 				return new ResponseEntity<>("Sketches done!", HttpStatus.OK);

@@ -25,4 +25,14 @@ public interface Sketchpad {
 	public default int order() {
 		return 0;
 	}
+
+	/**
+	 * Manually set the state of a sketchpad, e.g. if you want to disable it if it's
+	 * broken.
+	 * 
+	 * @return if the sketchpad is enabled, default tru
+	 */
+	public default boolean enabled() {
+		return true;
+	}
 }

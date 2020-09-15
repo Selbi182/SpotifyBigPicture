@@ -44,7 +44,8 @@ public class TheLesserMess implements Sketchpad {
 
 	@Override
 	public boolean sketch() throws Exception {
-		List<PlaylistTrack> euphonicMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_EUPHONIC_MESS);
+		List<PlaylistTrack> euphonicMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_EUPHONIC_MESS);		
+		
 		List<SavedTrack> savedTracks = utils.getSavedSongs();
 		List<PlaylistTrack> lesserMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_LESSER_MESS);
 
