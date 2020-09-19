@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.wrapper.spotify.model_objects.specification.PlaylistTrack;
 import com.wrapper.spotify.model_objects.specification.Track;
@@ -21,7 +20,6 @@ import spotify.sketchpads.util.SketchConst;
  * because Spotify doesn't have a feature to sort playlists by manual position.
  */
 @Component
-@RestController
 public class AscendingEuphonicMess implements Sketchpad {
 
 	@Autowired

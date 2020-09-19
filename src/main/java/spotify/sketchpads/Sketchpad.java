@@ -5,6 +5,11 @@ package spotify.sketchpads;
  * handler.
  */
 public interface Sketchpad {
+	enum RuntimeState {
+		ENABLED,
+		DISABLED,
+		SOLO
+	}
 
 	/**
 	 * 
@@ -28,11 +33,29 @@ public interface Sketchpad {
 
 	/**
 	 * Manually set the state of a sketchpad, e.g. if you want to disable it if it's
-	 * broken.
+	 * broken or if you want to run it solo.
 	 * 
-	 * @return if the sketchpad is enabled, default tru
+	 * @return the state of the sketchpad (enbaled, disabled, solo), default enabled
 	 */
-	public default boolean enabled() {
-		return true;
+	public default RuntimeState runtimeState() {
+		return RuntimeState.ENABLED;
+	}
+
+	/**
+	 * Check if the sketchpad is runnbale
+	 * 
+	 * @return true if it's not disabled
+	 */
+	public default boolean isEnabled() {
+		return !runtimeState().equals(RuntimeState.DISABLED);
+	}
+
+	/**
+	 * Return the name of this sketchpad (per default, the class name)
+	 * 
+	 * @return the name
+	 */
+	public default String name() {
+		return this.getClass().getSimpleName();
 	}
 }

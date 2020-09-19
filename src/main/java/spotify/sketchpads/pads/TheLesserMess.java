@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.base.Supplier;
 import com.wrapper.spotify.model_objects.specification.PlaylistTrack;
@@ -31,7 +30,6 @@ import spotify.sketchpads.util.SketchConst;
  * duplicates and remastered version.
  */
 @Component
-@RestController
 public class TheLesserMess implements Sketchpad {
 
 	@Autowired

@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import com.wrapper.spotify.enums.AlbumGroup;
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
+import com.wrapper.spotify.model_objects.specification.Track;
 
 public final class BotUtils {
 
@@ -111,7 +112,7 @@ public final class BotUtils {
 	}
 
 	/**
-	 * Build a readable String for dropped AlbumSimplified
+	 * Build a readable String for an AlbumSimplified
 	 * 
 	 * @param as
 	 * @return
@@ -122,6 +123,18 @@ public final class BotUtils {
 			joinArtists(as.getArtists()),
 			as.getName(),
 			as.getReleaseDate());
+	}
+	
+	/**
+	 * Build a readable String for a Track
+	 * 
+	 * @param as
+	 * @return
+	 */
+	public static String formatTrack(Track t) {
+		return String.format("%s - %s",
+			joinArtists(t.getArtists()),
+			t.getName());
 	}
 
 	/**

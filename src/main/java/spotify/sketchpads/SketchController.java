@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import spotify.bot.api.SpotifyApiAuthorization;
 import spotify.bot.api.events.LoggedInEvent;
 import spotify.bot.util.BotLogger;
+import spotify.sketchpads.Sketchpad.RuntimeState;
 
 @EnableScheduling
 @RestController
@@ -40,7 +42,19 @@ public class SketchController {
 		// Sort sketchpads
 		Collections.sort(sketchpads, Comparator
 			.comparing(Sketchpad::order)
-			.thenComparing((sk1, sk2) -> sk1.getClass().getSimpleName().compareTo(sk2.getClass().getSimpleName())));
+			.thenComparing(Sketchpad::name));
+
+		// Filter potential solo sketchpad
+		List<? extends Sketchpad> solo = sketchpads.stream()
+			.filter(sketchpad -> sketchpad.runtimeState().equals(RuntimeState.SOLO))
+			.collect(Collectors.toList());
+		if (solo.size() == 1) {
+			sketchpads = solo;
+			log.info("SOLO Sketchpad: " + solo.get(0).name());
+		} else if (solo.size() > 1) {
+			String sketchpadNames = solo.stream().map(Sketchpad::name).collect(Collectors.joining(", "));
+			throw new IllegalStateException("Can only have 1 solo sketchpad! Found SOLO state for: " + sketchpadNames);
+		}
 
 		// Set ready
 		ready.set(true);
@@ -61,7 +75,7 @@ public class SketchController {
 
 	/**
 	 * Main sketch controller, accessed by calling {@code /sketch} and automatically
-	 * executed at every 18th and 48th minute of an hour (arbitraly chosen to not
+	 * executed at every 18th and 48th minute of an hour (arbitrarily chosen to not
 	 * conflict with other round-hour crons).
 	 */
 	@Scheduled(cron = "0 18,48 * * * *")
@@ -72,14 +86,14 @@ public class SketchController {
 			try {
 				ready.set(false);
 				for (Sketchpad sp : sketchpads) {
-					if (sp.enabled()) {
+					if (sp.isEnabled()) {
 						long startTime = System.currentTimeMillis();
 						if (sp.sketch()) {
 							long timeTaken = System.currentTimeMillis() - startTime;
-							String sketchpadName = sp.getClass().getSimpleName();
+							String sketchpadName = sp.name();
 							log.info(sketchpadName + " completed in: " + timeTaken + "ms");
 							log.printLine();
-						}						
+						}
 					}
 				}
 				return new ResponseEntity<>("Sketches done!", HttpStatus.OK);
