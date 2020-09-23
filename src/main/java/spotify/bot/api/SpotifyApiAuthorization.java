@@ -89,7 +89,7 @@ public class SpotifyApiAuthorization {
 			Desktop.getDesktop().browse(uri);
 		} catch (IOException | HeadlessException e) {
 			log.warning("Couldn't open browser window. Please login at this URL:");
-			log.warning(uri.toString(), false);
+			log.warning(uri.toString());
 		}
 		try {
 			lock.tryAcquire(LOGIN_TIMEOUT, TimeUnit.MINUTES);

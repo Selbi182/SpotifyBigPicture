@@ -43,6 +43,10 @@ public class SketchCommons {
 
 	@PostConstruct
 	private void init() {
+		rebuildCaches();
+	}
+	
+	public void rebuildCaches() {
 		CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder()
 			.expireAfterWrite(CACHE_TIMEOUT_MINUTES, TimeUnit.MINUTES);
 
