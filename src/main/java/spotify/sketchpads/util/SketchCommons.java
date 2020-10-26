@@ -80,7 +80,7 @@ public class SketchCommons {
 	}
 
 	private List<PlaylistTrack> getPlaylistTracksReal(String id) {
-		List<PlaylistTrack> playlistTracks = SpotifyCall.executePaging(spotifyApi.getPlaylistsTracks(id));
+		List<PlaylistTrack> playlistTracks = SpotifyCall.executePaging(spotifyApi.getPlaylistsItems(id));
 		return playlistTracks;
 	}
 
@@ -95,14 +95,14 @@ public class SketchCommons {
 	public void addToPlaylist(String playlistId, List<String> allUris) {
 		for (List<String> uris : Lists.partition(allUris, SketchConst.PLAYLIST_ADD_LIMIT)) {
 			String[] urisArray = uris.toArray(String[]::new);
-			SpotifyCall.execute(spotifyApi.addTracksToPlaylist(playlistId, urisArray));
+			SpotifyCall.execute(spotifyApi.addItemsToPlaylist(playlistId, urisArray));
 			BotUtils.sneakySleep(1000);
 		}
 		invalidatePlaylist(playlistId);
 	}
 
 	public void reorderPlaylistTracks(String playlistId, int count, int bottom) {
-		SpotifyCall.execute(spotifyApi.reorderPlaylistsTracks(playlistId, bottom, 0).range_length(count));
+		SpotifyCall.execute(spotifyApi.reorderPlaylistsItems(playlistId, bottom, 0).range_length(count));
 		invalidatePlaylist(playlistId);
 	}
 
@@ -113,12 +113,12 @@ public class SketchCommons {
 				for (PlaylistTrack pt : pts) {
 					if (!pt.getIsLocal()) {
 						JsonObject jo = new JsonObject();
-						jo.addProperty("uri", pt.getTrack().getUri());
+						jo.addProperty("uri", ((Track) pt.getTrack()).getUri());
 						jsonArray.add(jo);
 					}
 				}
 
-				SpotifyCall.execute(spotifyApi.removeTracksFromPlaylist(playlistId, jsonArray));
+				SpotifyCall.execute(spotifyApi.removeItemsFromPlaylist(playlistId, jsonArray));
 			}
 			invalidatePlaylist(playlistId);
 		}
@@ -136,16 +136,16 @@ public class SketchCommons {
 			.toLowerCase()
 			.replaceAll("\\s+", "")
 			.replaceAll("\\W+", "");
-
+		
 		String track = t.getName()
 			.toLowerCase()
 			.replaceAll(",", " ")
 			.replaceAll("bonus track", "")
+			.replaceAll("\\d{4}.*", "")
+			.replaceAll("remaster.*", "")
 			.replaceAll("\\(.+\\)", "")
 			.replaceAll("\\s+", "")
 			.replaceAll("\\W+", "");
-		// .replaceAll("\\W+.*$", ""); // Remove anything past a special sign such as "-
-		// Remastered"
 
 		String compound = artist + "_" + track;
 		return compound;
@@ -154,7 +154,7 @@ public class SketchCommons {
 	public void printMostCommonArtists(List<PlaylistTrack> playlistTracks) {
 		Map<String, List<PlaylistTrack>> byArtist = new HashMap<>();
 		for (PlaylistTrack pt : playlistTracks) {
-			String artist = pt.getTrack().getArtists()[0].getName();
+			String artist = ((Track) pt.getTrack()).getArtists()[0].getName();
 			if (!byArtist.containsKey(artist)) {
 				byArtist.put(artist, new ArrayList<>());
 			}
@@ -171,12 +171,12 @@ public class SketchCommons {
 		});
 
 		for (List<PlaylistTrack> lpt : pts) {
-			String artist = lpt.get(0).getTrack().getArtists()[0].getName();
+			String artist = ((Track) lpt.get(0).getTrack()).getArtists()[0].getName();
 			int songs = 0;
 			int millis = 0;
 			for (PlaylistTrack lptpt : lpt) {
 				songs++;
-				millis += lptpt.getTrack().getDurationMs();
+				millis += ((Track) lptpt.getTrack()).getDurationMs();
 			}
 
 			int minutes = (int) Math.round(((double) millis) / 1000.0 / 60.0);

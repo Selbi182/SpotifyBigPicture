@@ -1,4 +1,4 @@
-package spotify.sketchpads.pads;
+package spotify.sketchpads.pads.info;
 
 import java.util.Comparator;
 import java.util.List;
@@ -36,6 +36,7 @@ public class PrintEuphonicMessPopularSongs implements Sketchpad {
 
 		euphonicMessPlaylistTracks.stream()
 			.map(PlaylistTrack::getTrack)
+			.map(Track.class::cast)
 			.sorted(comparator)
 			.map(track -> String.format("[%03d] %s", track.getPopularity(), BotUtils.formatTrack(track)))
 			.forEach(System.out::println);

@@ -56,6 +56,7 @@ public class AscendingEuphonicMess implements Sketchpad {
 		return playlistTracks.stream()
 			.filter(pt -> !pt.getIsLocal())
 			.map(PlaylistTrack::getTrack)
+			.map(Track.class::cast)
 			.map(Track::getUri)
 			.collect(Collectors.toList());
 	}

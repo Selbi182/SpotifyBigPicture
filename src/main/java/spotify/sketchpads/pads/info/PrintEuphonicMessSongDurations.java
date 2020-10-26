@@ -1,4 +1,4 @@
-package spotify.sketchpads.pads;
+package spotify.sketchpads.pads.info;
 
 import java.util.List;
 
@@ -29,6 +29,7 @@ public class PrintEuphonicMessSongDurations implements Sketchpad {
 
 		euphonicMessPlaylistTracks.stream()
 			.map(PlaylistTrack::getTrack)
+			.map(Track.class::cast)
 			.map(Track::getDurationMs)
 			.sorted()
 			.map(ms -> Math.round(((ms / 1000.0) / 60.0) * 100.0) / 100.0)

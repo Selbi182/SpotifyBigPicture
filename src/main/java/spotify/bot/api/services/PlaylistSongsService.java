@@ -44,7 +44,7 @@ public class PlaylistSongsService {
 					for (Track s : partition) {
 						json.add(TRACK_PREFIX + s.getId());
 					}
-					SpotifyCall.execute(spotifyApi.addTracksToPlaylist(playlistId, json).position(TOP_OF_PLAYLIST));
+					SpotifyCall.execute(spotifyApi.addItemsToPlaylist(playlistId, json).position(TOP_OF_PLAYLIST));
 					BotUtils.sneakySleep(PLAYLIST_ADDITION_COOLDOWN);
 				}
 			}
@@ -85,19 +85,19 @@ public class PlaylistSongsService {
 		int songsToDeleteCount = repeat ? PLAYLIST_ADD_LIMIT : totalSongsToDeleteCount;
 		final int offset = currentPlaylistCount - songsToDeleteCount;
 
-		List<PlaylistTrack> tracksToDelete = SpotifyCall.executePaging(spotifyApi.getPlaylistsTracks(playlistId).offset(offset).limit(PLAYLIST_ADD_LIMIT));
+		List<PlaylistTrack> tracksToDelete = SpotifyCall.executePaging(spotifyApi.getPlaylistsItems(playlistId).offset(offset).limit(PLAYLIST_ADD_LIMIT));
 
 		JsonArray json = new JsonArray();
 		for (int i = 0; i < tracksToDelete.size(); i++) {
 			JsonObject object = new JsonObject();
-			object.addProperty("uri", TRACK_PREFIX + tracksToDelete.get(i).getTrack().getId());
+			object.addProperty("uri", TRACK_PREFIX + ((Playlist) tracksToDelete.get(i).getTrack()).getId());
 			JsonArray positions = new JsonArray();
 			positions.add(currentPlaylistCount - songsToDeleteCount + i);
 			object.add("positions", positions);
 			json.add(object);
 		}
 
-		SpotifyCall.execute(spotifyApi.removeTracksFromPlaylist(playlistId, json));
+		SpotifyCall.execute(spotifyApi.removeItemsFromPlaylist(playlistId, json));
 
 		// Repeat if more than 100 songs have to be added/deleted (should rarely happen,
 		// so a recursion will be slow, but it'll do the job)

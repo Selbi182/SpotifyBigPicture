@@ -32,9 +32,7 @@ repositories {
 }
 
 dependencies {
-    implementation('se.michaelthelin.spotify:spotify-web-api-java:5.0.4') {
-	    exclude module: "slf4j-simple"
-    }
+    implementation('se.michaelthelin.spotify:spotify-web-api-java:6.4.0')
     
     implementation 'com.google.guava:guava:29.0-jre'
     implementation 'org.springframework.boot:spring-boot-starter-web:2.2.6.RELEASE'

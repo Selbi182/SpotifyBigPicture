@@ -36,33 +36,37 @@ public class TheLesserMess implements Sketchpad {
 	private SketchCommons utils;
 
 	@Override
+	public RuntimeState runtimeState() {
+		return RuntimeState.ENABLED;
+	}
+
+	@Override
 	public int order() {
 		return Integer.MIN_VALUE; // Basically the whole reason this exists, so naturally it goes first
 	}
 
 	@Override
 	public boolean sketch() throws Exception {
-		List<PlaylistTrack> euphonicMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_EUPHONIC_MESS);		
-		
+		List<PlaylistTrack> euphonicMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_EUPHONIC_MESS);
+
 		List<SavedTrack> savedTracks = utils.getSavedSongs();
 		List<PlaylistTrack> lesserMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_LESSER_MESS);
 
 		// Find Lesser Mess songs
 		Set<String> uniqueSongIdentifiesFromTheEuphonicMess = new HashSet<>();
 		for (PlaylistTrack pt : euphonicMessPlaylistTracks) {
-			String uniqueSongIdentifier = utils.uniquePlaylistIdentifier(pt.getTrack());
+			String uniqueSongIdentifier = utils.uniquePlaylistIdentifier((Track) pt.getTrack());
 			uniqueSongIdentifiesFromTheEuphonicMess.add(uniqueSongIdentifier);
 		}
 		Map<String, SavedTrack> filteredSongs = new HashMap<>();
 
-		savedTracks.forEach(s -> {
-			if (!s.getTrack().getName().toLowerCase().contains("remaster")) {
-				String uniqueSongIdentifier = utils.uniquePlaylistIdentifier(s.getTrack());
-				if (!uniqueSongIdentifiesFromTheEuphonicMess.contains(uniqueSongIdentifier)) {
-					filteredSongs.put(uniqueSongIdentifier, s);
-				}
+		for (SavedTrack s : savedTracks) {
+			String uniqueSongIdentifier = utils.uniquePlaylistIdentifier(s.getTrack());
+			if (!uniqueSongIdentifiesFromTheEuphonicMess.contains(uniqueSongIdentifier)) {
+				filteredSongs.put(uniqueSongIdentifier, s);
 			}
-		});
+		}
+
 		List<SavedTrack> savedSongs = new ArrayList<SavedTrack>(filteredSongs.values());
 
 		// Abort if nothing new was found (with short circuit)

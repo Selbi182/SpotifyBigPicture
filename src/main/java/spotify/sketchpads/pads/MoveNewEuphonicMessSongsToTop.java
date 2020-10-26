@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.wrapper.spotify.model_objects.specification.PlaylistTrack;
+import com.wrapper.spotify.model_objects.specification.Track;
 
 import spotify.sketchpads.Sketchpad;
 import spotify.sketchpads.util.SketchCommons;
@@ -35,7 +36,7 @@ public class MoveNewEuphonicMessSongsToTop implements Sketchpad {
 		int count = 0;
 		int bottom = -1;
 		for (int i = euphonicMessPlaylistTracks.size() - 1; i > 0; i--) {
-			if (euphonicMessPlaylistTracks.get(i).getTrack().getId().equals(SketchConst.AUF_GUTE_FREUNDE)) {
+			if (((Track) euphonicMessPlaylistTracks.get(i).getTrack()).getId().equals(SketchConst.AUF_GUTE_FREUNDE)) {
 				bottom = i + 1;
 				break;
 			}
