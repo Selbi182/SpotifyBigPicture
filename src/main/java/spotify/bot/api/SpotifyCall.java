@@ -21,6 +21,7 @@ public class SpotifyCall {
 
 	private final static long RETRY_TIMEOUT_429 = 1000;
 	private final static long RETRY_TIMEOUT_GENERIC_ERROR = 60 * 1000;
+	private final static int MAX_ATTEMPTS = 10;
 
 	/**
 	 * Utility class
@@ -41,6 +42,15 @@ public class SpotifyCall {
 	 * @return the single result item
 	 */
 	public static <T, BT extends Builder<T, ?>> T execute(IRequest.Builder<T, BT> requestBuilder) {
+		return execute(requestBuilder, 0);
+	}
+	
+	private static <T, BT extends Builder<T, ?>> T execute(IRequest.Builder<T, BT> requestBuilder, int attempt) {
+		if (attempt >= MAX_ATTEMPTS) {
+			// Some deadlock happened, kill the app (and restart it externally)
+			System.exit(182);
+		}
+		
 		try {
 			IRequest<T> builtRequest = requestBuilder.build();
 			try {
@@ -58,7 +68,7 @@ public class SpotifyCall {
 			BotUtils.sneakySleep(RETRY_TIMEOUT_GENERIC_ERROR);
 			e.printStackTrace();
 		}
-		return execute(requestBuilder);
+		return execute(requestBuilder, attempt + 1);
 	}
 
 	/**
