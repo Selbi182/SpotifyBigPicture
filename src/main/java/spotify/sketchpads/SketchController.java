@@ -73,8 +73,7 @@ public class SketchController {
 	@EventListener(LoggedInEvent.class)
 	private void sketchpadLog() {
 		log.printLine();
-		log.info("Spotify API sketchpad is ready!");
-		log.printLine();
+		log.info("Sketchpad successfully started/restarted!");
 
 		sketch(true);
 	}
@@ -109,7 +108,6 @@ public class SketchController {
 							long timeTaken = System.currentTimeMillis() - startTime;
 							String sketchpadName = sp.name();
 							log.info(sketchpadName + " completed in: " + timeTaken + "ms");
-							log.printLine();
 						}
 					}
 				}
@@ -117,7 +115,6 @@ public class SketchController {
 			} catch (Exception e) {
 				log.info("Exception thrown during sketch:");
 				log.stackTrace(e);
-				log.printLine();
 				return new ResponseEntity<>("Exception thrown during sketch: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 			} finally {
 				ready.set(true);

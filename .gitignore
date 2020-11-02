@@ -42,3 +42,4 @@ templates/READY
 /spring.log
 /application.properties
 spotifybot.properties
+log.txt

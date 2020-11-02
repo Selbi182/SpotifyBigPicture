@@ -1,5 +1,7 @@
 package spotify.sketchpads.pads.info;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.model_objects.specification.Album;
 import com.wrapper.spotify.model_objects.specification.PlaylistTrack;
@@ -26,38 +29,41 @@ public class PrintEuphonicMessOpeners implements Sketchpad {
 
 	@Autowired
 	private SketchCommons utils;
-	
+
 	@Autowired
 	private SpotifyApi spotifyApi;
 
 	@Override
 	public RuntimeState runtimeState() {
-		return RuntimeState.ENABLED;
+		return RuntimeState.DISABLED;
 	}
 
 	@Override
 	public boolean sketch() throws Exception {
 		List<PlaylistTrack> euphonicMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_EUPHONIC_MESS);
-		
+
 		ImmutableSet.Builder<String> albumIds = ImmutableSet.builder();
 		for (PlaylistTrack pt : euphonicMessPlaylistTracks) {
 			String id = ((Track) pt.getTrack()).getAlbum().getId();
 			if (id != null) {
-				albumIds.add(id);				
+				albumIds.add(id);
 			}
 		}
-		String[] array = albumIds.build().toArray(new String[0]);
-		
-		Album[] execute = SpotifyCall.execute(spotifyApi.getSeveralAlbums(array));
-		
+
+		List<Album> allAlbums = new ArrayList<>();
+		for (List<String> partition : Iterables.partition(albumIds.build(), 20)) {
+			Album[] execute = SpotifyCall.execute(spotifyApi.getSeveralAlbums(partition.toArray(String[]::new)));
+			allAlbums.addAll(Arrays.asList(execute));
+		}
+
 		Map<String, List<TrackSimplified>> trackIdToAlbum = new HashMap<>();
-		for (Album a : execute) {			
+		for (Album a : allAlbums) {
 			List<TrackSimplified> tracks = SpotifyCall.executePaging(spotifyApi.getAlbumsTracks(a.getId()));
 			for (TrackSimplified ts : tracks) {
 				trackIdToAlbum.put(ts.getId(), tracks);
 			}
 		}
-		
+
 		print(euphonicMessPlaylistTracks, trackIdToAlbum);
 		return true;
 	}
@@ -79,7 +85,7 @@ public class PrintEuphonicMessOpeners implements Sketchpad {
 			}
 		}
 		System.out.println("bruh");
-		
+
 	}
 
 }
