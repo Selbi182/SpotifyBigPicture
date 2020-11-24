@@ -8,12 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Supplier;
 import com.wrapper.spotify.model_objects.specification.PlaylistTrack;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
 import com.wrapper.spotify.model_objects.specification.Track;
@@ -67,20 +65,6 @@ public class TheLesserMess implements Sketchpad {
 		}
 		List<SavedTrack> lesserMessNew = new ArrayList<>(filteredSongs.values());
 
-		// Abort if nothing new was found (with short circuit)
-		if (lesserMessOld.size() == lesserMessNew.size()) {
-			Supplier<Stream<String>> savedIdsSupplier = () -> lesserMessNew.stream()
-				.map(SavedTrack::getTrack)
-				.map(Track::getId);
-
-			Set<String> previousLesserMess = savedIdsSupplier.get().collect(Collectors.toSet());
-
-			boolean isIdentical = savedIdsSupplier.get().allMatch(s -> previousLesserMess.contains(s));
-			if (isIdentical) {
-				return false;
-			}
-		}
-
 		// Order the songs by inverted addition date
 		lesserMessNew.sort(Comparator.comparing(SavedTrack::getAddedAt).reversed());
 
@@ -90,17 +74,21 @@ public class TheLesserMess implements Sketchpad {
 			.collect(Collectors.toSet());
 		lesserMessNew.removeIf(s -> lesserMessOldIds.contains(s.getTrack().getId()));
 
-		// Add the new songs to the playlist
-		List<String> newUris = lesserMessNew.stream()
-			.map(SavedTrack::getTrack)
-			.map(Track::getUri)
-			.collect(Collectors.toList());
-		utils.addToPlaylist(SketchConst.THE_LESSER_MESS, newUris);
+		// Add new songs if anything is left
+		if (!lesserMessNew.isEmpty()) {
+			// Add to playlist
+			List<String> newUris = lesserMessNew.stream()
+				.map(SavedTrack::getTrack)
+				.map(Track::getUri)
+				.collect(Collectors.toList());
+			utils.addToPlaylist(SketchConst.THE_LESSER_MESS, newUris);
 
-		// Due to API limitations, playlist additions can only be made to the bottom,
-		// reorder these new tracks to be on the top now
-		utils.reorderPlaylistTracksToTop(SketchConst.THE_LESSER_MESS, lesserMessOld.size(), newUris.size());
+			// Due to API limitations, playlist additions can only be made to the bottom,
+			// reorder these new tracks to be on the top now
+			utils.reorderPlaylistTracksToTop(SketchConst.THE_LESSER_MESS, lesserMessOld.size(), newUris.size());
 
-		return true;
+			return true;
+		}
+		return false;
 	}
 }
