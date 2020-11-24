@@ -101,8 +101,8 @@ public class SketchCommons {
 		invalidatePlaylist(playlistId);
 	}
 
-	public void reorderPlaylistTracks(String playlistId, int count, int bottom) {
-		SpotifyCall.execute(spotifyApi.reorderPlaylistsItems(playlistId, bottom, 0).range_length(count));
+	public void reorderPlaylistTracksToTop(String playlistId, int rangeStart, int count) {
+		SpotifyCall.execute(spotifyApi.reorderPlaylistsItems(playlistId, rangeStart, 0).range_length(count));
 		invalidatePlaylist(playlistId);
 	}
 
@@ -143,7 +143,9 @@ public class SketchCommons {
 			.replaceAll("bonus track", "")
 			.replaceAll("\\d{4}.*", "")
 			.replaceAll("remaster.*", "")
-			.replaceAll("\\(.+\\)", "")
+			.replaceAll("feat.*", "")
+//			.replaceAll("\\(.+\\)", "")
+//			.replaceAll("\\-.*", "")
 			.replaceAll("\\s+", "")
 			.replaceAll("\\W+", "");
 

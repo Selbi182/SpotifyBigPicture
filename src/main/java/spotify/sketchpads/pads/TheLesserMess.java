@@ -42,36 +42,34 @@ public class TheLesserMess implements Sketchpad {
 
 	@Override
 	public int order() {
-		return Integer.MIN_VALUE; // Basically the whole reason this exists, so naturally it goes first
+		return Integer.MIN_VALUE; // Basically the whole reason this project exists, so naturally it goes first
 	}
 
 	@Override
 	public boolean sketch() throws Exception {
-		List<PlaylistTrack> euphonicMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_EUPHONIC_MESS);
-
+		List<PlaylistTrack> euphonicMess = utils.getPlaylistTracks(SketchConst.THE_EUPHONIC_MESS);
 		List<SavedTrack> savedTracks = utils.getSavedSongs();
-		List<PlaylistTrack> lesserMessPlaylistTracks = utils.getPlaylistTracks(SketchConst.THE_LESSER_MESS);
+		List<PlaylistTrack> lesserMessOld = utils.getPlaylistTracks(SketchConst.THE_LESSER_MESS);
 
 		// Find Lesser Mess songs
-		Set<String> uniqueSongIdentifiesFromTheEuphonicMess = new HashSet<>();
-		for (PlaylistTrack pt : euphonicMessPlaylistTracks) {
+		Set<String> uniqueSongsIdsFromTheEuphonicMess = new HashSet<>();
+		for (PlaylistTrack pt : euphonicMess) {
 			String uniqueSongIdentifier = utils.uniquePlaylistIdentifier((Track) pt.getTrack());
-			uniqueSongIdentifiesFromTheEuphonicMess.add(uniqueSongIdentifier);
+			uniqueSongsIdsFromTheEuphonicMess.add(uniqueSongIdentifier);
 		}
-		Map<String, SavedTrack> filteredSongs = new HashMap<>();
 
+		Map<String, SavedTrack> filteredSongs = new HashMap<>();
 		for (SavedTrack s : savedTracks) {
 			String uniqueSongIdentifier = utils.uniquePlaylistIdentifier(s.getTrack());
-			if (!uniqueSongIdentifiesFromTheEuphonicMess.contains(uniqueSongIdentifier)) {
+			if (!uniqueSongsIdsFromTheEuphonicMess.contains(uniqueSongIdentifier)) {
 				filteredSongs.put(uniqueSongIdentifier, s);
 			}
 		}
-
-		List<SavedTrack> savedSongs = new ArrayList<SavedTrack>(filteredSongs.values());
+		List<SavedTrack> lesserMessNew = new ArrayList<>(filteredSongs.values());
 
 		// Abort if nothing new was found (with short circuit)
-		if (lesserMessPlaylistTracks.size() == savedSongs.size()) {
-			Supplier<Stream<String>> savedIdsSupplier = () -> savedSongs.stream()
+		if (lesserMessOld.size() == lesserMessNew.size()) {
+			Supplier<Stream<String>> savedIdsSupplier = () -> lesserMessNew.stream()
 				.map(SavedTrack::getTrack)
 				.map(Track::getId);
 
@@ -84,17 +82,24 @@ public class TheLesserMess implements Sketchpad {
 		}
 
 		// Order the songs by inverted addition date
-		savedSongs.sort(Comparator.comparing(SavedTrack::getAddedAt).reversed());
+		lesserMessNew.sort(Comparator.comparing(SavedTrack::getAddedAt).reversed());
 
-		// Clear previous playlist
-		utils.clearPlaylist(SketchConst.THE_LESSER_MESS, lesserMessPlaylistTracks);
+		// Remove any song that's already in the playlist
+		Set<String> lesserMessOldIds = lesserMessOld.stream()
+			.map(s -> ((Track) s.getTrack()).getId())
+			.collect(Collectors.toSet());
+		lesserMessNew.removeIf(s -> lesserMessOldIds.contains(s.getTrack().getId()));
 
-		// Add the songs to playlist
-		List<String> allUris = savedSongs.stream()
+		// Add the new songs to the playlist
+		List<String> newUris = lesserMessNew.stream()
 			.map(SavedTrack::getTrack)
 			.map(Track::getUri)
 			.collect(Collectors.toList());
-		utils.addToPlaylist(SketchConst.THE_LESSER_MESS, allUris);
+		utils.addToPlaylist(SketchConst.THE_LESSER_MESS, newUris);
+
+		// Due to API limitations, playlist additions can only be made to the bottom,
+		// reorder these new tracks to be on the top now
+		utils.reorderPlaylistTracksToTop(SketchConst.THE_LESSER_MESS, lesserMessOld.size(), newUris.size());
 
 		return true;
 	}

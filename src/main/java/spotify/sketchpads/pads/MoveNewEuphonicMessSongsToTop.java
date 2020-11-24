@@ -44,7 +44,7 @@ public class MoveNewEuphonicMessSongsToTop implements Sketchpad {
 		}
 
 		if (count > 0) {
-			utils.reorderPlaylistTracks(SketchConst.THE_EUPHONIC_MESS, count, bottom);
+			utils.reorderPlaylistTracksToTop(SketchConst.THE_EUPHONIC_MESS, bottom, count);
 			return true;
 		}
 		return false;
