@@ -70,7 +70,7 @@ public class TheLesserMess implements Sketchpad {
 
 		// Remove any song that's already in the playlist
 		Set<String> lesserMessOldIds = lesserMessOld.stream()
-			.map(s -> ((Track) s.getTrack()).getId())
+			.map(s -> s.getTrack().getId())
 			.collect(Collectors.toSet());
 		lesserMessNew.removeIf(s -> lesserMessOldIds.contains(s.getTrack().getId()));
 

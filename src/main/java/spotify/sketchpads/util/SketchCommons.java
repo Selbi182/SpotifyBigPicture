@@ -113,7 +113,7 @@ public class SketchCommons {
 				for (PlaylistTrack pt : pts) {
 					if (!pt.getIsLocal()) {
 						JsonObject jo = new JsonObject();
-						jo.addProperty("uri", ((Track) pt.getTrack()).getUri());
+						jo.addProperty("uri", pt.getTrack().getUri());
 						jsonArray.add(jo);
 					}
 				}
