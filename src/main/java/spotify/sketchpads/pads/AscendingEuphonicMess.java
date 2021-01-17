@@ -45,7 +45,8 @@ public class AscendingEuphonicMess implements Sketchpad {
 		// of songs remained unchanged (e.g. one song added, one removed), but since
 		// that happens so rarely and this sketchpad is rather niche, this'll do.
 		if (euphonicMessAscendingPlaylistTracks.size() != invertedSongs.size()) {
-			utils.clearPlaylist(SketchConst.THE_EUPHONIC_MESS_ASCENDING, euphonicMessAscendingPlaylistTracks);
+			// Clear the whole thing and rebuild it, cause it's easier lol
+			utils.removeTracksFromPlaylist(SketchConst.THE_EUPHONIC_MESS_ASCENDING, euphonicMessAscendingPlaylistTracks);
 			utils.addToPlaylist(SketchConst.THE_EUPHONIC_MESS_ASCENDING, invertedSongs);
 			return true;
 		}

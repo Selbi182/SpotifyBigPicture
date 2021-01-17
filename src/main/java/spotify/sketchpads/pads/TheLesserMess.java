@@ -1,13 +1,18 @@
 package spotify.sketchpads.pads;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,8 +29,8 @@ import spotify.sketchpads.util.SketchConst;
  * Picks out all the songs marked as "saved track" and then matches them against
  * all the songs in The Euphonic Mess. Any saved track that does not appear in
  * that playlist is considered a "good but not good enough" song that should get
- * put into an extra playlist called "The Lesser Mess". Tries to remove to
- * duplicates and remastered version.
+ * put into an extra playlist called "The Lesser Mess". Tries to remove any
+ * duplicates or remastered versions.
  */
 @Component
 public class TheLesserMess implements Sketchpad {
@@ -49,7 +54,16 @@ public class TheLesserMess implements Sketchpad {
 		List<SavedTrack> savedTracks = utils.getSavedSongs();
 		List<PlaylistTrack> lesserMessOld = utils.getPlaylistTracks(SketchConst.THE_LESSER_MESS);
 
-		// Find Lesser Mess songs
+		List<SavedTrack> lesserMessNew = lesserMessCandidates(euphonicMess, savedTracks);
+
+		removeBlacklistedSongs(lesserMessNew);
+		removeAlreadyAddedSongs(lesserMessOld, lesserMessNew);
+
+		return addNewLesserMessSongsToPlaylist(lesserMessOld, lesserMessNew);
+	}
+
+	// Find Lesser Mess songs
+	private List<SavedTrack> lesserMessCandidates(List<PlaylistTrack> euphonicMess, List<SavedTrack> savedTracks) {
 		Set<String> uniqueSongsIdsFromTheEuphonicMess = new HashSet<>();
 		for (PlaylistTrack pt : euphonicMess) {
 			String uniqueSongIdentifier = utils.uniquePlaylistIdentifier((Track) pt.getTrack());
@@ -64,18 +78,39 @@ public class TheLesserMess implements Sketchpad {
 			}
 		}
 		List<SavedTrack> lesserMessNew = new ArrayList<>(filteredSongs.values());
+		return lesserMessNew;
+	}
 
-		// Order the songs by inverted addition date
-		lesserMessNew.sort(Comparator.comparing(SavedTrack::getAddedAt).reversed());
+	// Remove blacklisted songs
+	private void removeBlacklistedSongs(List<SavedTrack> lesserMessNew) {
+		File blacklistFile = new File("./blacklist.txt");
+		if (blacklistFile.canRead()) {
+			try (Stream<String> lines = Files.lines(blacklistFile.toPath())) {
+				Set<String> blacklistedFiles = lines
+					.filter(Objects::nonNull)
+					.collect(Collectors.toSet());
+				lesserMessNew.removeIf(s -> blacklistedFiles.contains(s.getTrack().getId()));
+			} catch (IOException e) {
+				System.out.println("Found blacklist.txt file but couldn't read it. No songs will be treated as blacklisted!");
+				e.printStackTrace();
+			}
+		}
+	}
 
-		// Remove any song that's already in the playlist
+	// Remove any song that's already in the playlist
+	private void removeAlreadyAddedSongs(List<PlaylistTrack> lesserMessOld, List<SavedTrack> lesserMessNew) {
 		Set<String> lesserMessOldIds = lesserMessOld.stream()
 			.map(s -> s.getTrack().getId())
 			.collect(Collectors.toSet());
 		lesserMessNew.removeIf(s -> lesserMessOldIds.contains(s.getTrack().getId()));
+	}
 
-		// Add new songs if anything is left
+	// Add new songs if any were found to playlist
+	private boolean addNewLesserMessSongsToPlaylist(List<PlaylistTrack> lesserMessOld, List<SavedTrack> lesserMessNew) {
 		if (!lesserMessNew.isEmpty()) {
+			// Order the songs by inverted addition date
+			lesserMessNew.sort(Comparator.comparing(SavedTrack::getAddedAt).reversed());
+
 			// Add to playlist
 			List<String> newUris = lesserMessNew.stream()
 				.map(SavedTrack::getTrack)

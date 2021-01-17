@@ -39,7 +39,7 @@ public class SketchCommons {
 	private LoadingCache<String, List<PlaylistTrack>> playlistCache;
 	private Supplier<List<SavedTrack>> savedTrackCache;
 
-	private final static int CACHE_TIMEOUT_MINUTES = 10; // just enough to avoid repeated heavily repeated calls
+	private final static int CACHE_TIMEOUT_MINUTES = 4; // just enough to avoid heavily repeated calls
 
 	@PostConstruct
 	private void init() {
@@ -106,9 +106,9 @@ public class SketchCommons {
 		invalidatePlaylist(playlistId);
 	}
 
-	public void clearPlaylist(String playlistId, List<PlaylistTrack> playlistTracks) {
-		if (!playlistTracks.isEmpty()) {
-			for (List<PlaylistTrack> pts : Lists.partition(playlistTracks, SketchConst.PLAYLIST_ADD_LIMIT)) {
+	public void removeTracksFromPlaylist(String playlistId, List<PlaylistTrack> playlistTracksToRemove) {
+		if (!playlistTracksToRemove.isEmpty()) {
+			for (List<PlaylistTrack> pts : Lists.partition(playlistTracksToRemove, SketchConst.PLAYLIST_ADD_LIMIT)) {
 				JsonArray jsonArray = new JsonArray();
 				for (PlaylistTrack pt : pts) {
 					if (!pt.getIsLocal()) {
@@ -117,7 +117,6 @@ public class SketchCommons {
 						jsonArray.add(jo);
 					}
 				}
-
 				SpotifyCall.execute(spotifyApi.removeItemsFromPlaylist(playlistId, jsonArray));
 			}
 			invalidatePlaylist(playlistId);

@@ -79,10 +79,10 @@ public class SketchController {
 	}
 
 	/**
-	 * Automatically executed at every 18th and 48th minute of an hour (arbitrarily
-	 * chosen to not conflict with other round-hour crons).
+	 * Automatically executed every ten minutes (ending with 8, arbitrarily chosen
+	 * to not conflict with other round-hour crons).
 	 */
-	@Scheduled(cron = "0 18,48 * * * *")
+	@Scheduled(cron = "0 8,18,28,38,48,58 * * * *")
 	private void scheduledSketch() {
 		sketch(true);
 	}
