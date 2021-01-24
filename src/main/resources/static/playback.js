@@ -1,16 +1,21 @@
 var firstRequestDone = false;
 var currentData;
-const UPDATE_INTERVAL = 1000;
+var backgroundEffects;
 
+const UPDATE_INTERVAL = 1000;
 setInterval(() => updatePlaybackDataAsync(false), UPDATE_INTERVAL);
 setInterval(() => updatePlaybackDataAsync(true), UPDATE_INTERVAL * 10);
 
 function updatePlaybackDataAsync(force) {
     try {
         let url = "/playbackinfo";
+        if (!firstRequestDone) {
+            this.backgroundEffects = getComputedStyle(document.getElementById("background-img")).getPropertyValue("--background-effects");
+        }
         if (force || !firstRequestDone) {
             url += "?full=true";
             firstRequestDone = true;
+            console.log(backgroundEffects);
         }
         fetch(url)
           .then(response => response.json())
@@ -25,7 +30,10 @@ function setDisplayData(data) {
     if (data != null && data.timeCurrent >= 0) {        
         if (!data.partial) {
             this.currentData = data;
-            document.documentElement.style.setProperty("--img", "url(" + data.image + ")");
+            
+            let img = "url(" + data.image + ")";
+            document.getElementById("cover-img").style.backgroundImage = img;
+            document.getElementById("background-img").style.background = backgroundEffects + ", " + img;
             
             document.getElementById("album").innerHTML = data.album + " (" + data.release + ")";
             document.getElementById("artist").innerHTML = data.artist;
@@ -45,7 +53,7 @@ function setDisplayData(data) {
         document.getElementById("time-current").innerHTML = formattedCurrentTime;
         document.getElementById("time-total").innerHTML = formattedTotalTime;
         
-        document.documentElement.style.setProperty("--progress", calcProgress(data.timeCurrent, currentData.timeTotal));
+        document.getElementById("progress-current").style.width = calcProgress(data.timeCurrent, currentData.timeTotal);
         
         document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`;
     }
