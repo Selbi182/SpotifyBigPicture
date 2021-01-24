@@ -3,8 +3,10 @@ package spotify.playback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.wrapper.spotify.enums.ModelObjectType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import com.wrapper.spotify.model_objects.specification.Image;
+import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.model_objects.specification.Track;
 
 import spotify.bot.api.SpotifyCall;
@@ -19,10 +21,13 @@ import spotify.sketchpads.util.SketchCommons;
 @Component
 public class PlaybackInfoComponent {
 
+	private final static String PLAYLIST_PREFIX = "https://api.spotify.com/v1/playlists/";
+
 	@Autowired
 	private SketchCommons utils;
 
 	private CurrentPlaybackInfoFull currentSongPlaybackInfo;
+	private String contextString = "";
 
 	public CurrentPlaybackInfo getCurrentPlaybackInfo(boolean forceFull) throws Exception {
 		CurrentlyPlayingContext info = SpotifyCall.execute(utils.getSpotifyApi().getInformationAboutUsersCurrentPlayback());
@@ -32,21 +37,25 @@ public class PlaybackInfoComponent {
 			if (forceFull || hasMajorChange) {
 				Track track = (Track) info.getItem();
 
-				boolean paused = !info.getIs_playing();
-				boolean shuffle = info.getShuffle_state();
-				String repeat = info.getRepeat_state();
-				String device = info.getDevice().getName();
+				CurrentPlaybackInfoFull currentPlaybackInfoFull = CurrentPlaybackInfoFull.builder()
+					.paused(!info.getIs_playing())
+					.shuffle(info.getShuffle_state())
+					.repeat(info.getRepeat_state())
+					.playlist(getPlaylistName(info))
+					.device(info.getDevice().getName())
 
-				String id = track.getId();
-				String artist = BotUtils.joinArtists(track.getArtists());
-				String title = track.getName();
-				String album = track.getAlbum().getName();
-				String release = track.getAlbum().getReleaseDate().substring(0, 4);
-				String image = findLargestImage(track.getAlbum().getImages());
+					.id(track.getId())
+					.artist(BotUtils.joinArtists(track.getArtists()))
+					.title(track.getName())
+					.album(track.getAlbum().getName())
+					.release(track.getAlbum().getReleaseDate().substring(0, 4))
+					.image(findLargestImage(track.getAlbum().getImages()))
 
-				int timeTotal = track.getDurationMs();
+					.timeCurrent(timeCurrent)
+					.timeTotal(track.getDurationMs())
 
-				CurrentPlaybackInfoFull currentPlaybackInfoFull = new CurrentPlaybackInfoFull(paused, shuffle, repeat, device, id, artist, title, album, release, image, timeCurrent, timeTotal);
+					.build();
+
 				this.currentSongPlaybackInfo = currentPlaybackInfoFull;
 				return currentPlaybackInfoFull;
 			} else {
@@ -57,11 +66,24 @@ public class PlaybackInfoComponent {
 		return CurrentPlaybackInfo.EMPTY;
 	}
 
-	/*
-	 * TODO: - Display next/prev songs - Properly display playlist - Properly center
-	 * pause and only one setting (shuffle/repeat) - Fix 1 second innaccuracies -
-	 * Transition effect when changing songs
+	/**
+	 * TODO:
+	 * - Display next/prev songs (if possible)
+	 * - Properly center pause when only one setting is selected (shuffle/repeat)
+	 * - Fix delay on Raspi
 	 */
+
+	private String getPlaylistName(CurrentlyPlayingContext info) {
+		if (info.getContext() != null && ModelObjectType.PLAYLIST.equals(info.getContext().getType()) && !info.getContext().toString().equals(contextString)) {
+			this.contextString = info.getContext().toString();
+			String uri = info.getContext().getHref().replace(PLAYLIST_PREFIX, "");
+			Playlist contextPlaylist = SpotifyCall.execute(utils.getSpotifyApi().getPlaylist(uri));
+			if (contextPlaylist != null) {
+				return contextPlaylist.getName();
+			}
+		}
+		return currentSongPlaybackInfo != null ? currentSongPlaybackInfo.getPlaylist() : "";
+	}
 
 	private boolean hasMajorChange(CurrentlyPlayingContext info) {
 		if (this.currentSongPlaybackInfo == null) {
@@ -72,7 +94,8 @@ public class PlaybackInfoComponent {
 			|| info.getIs_playing().equals(currentSongPlaybackInfo.isPaused())
 			|| !info.getShuffle_state().equals(currentSongPlaybackInfo.isShuffle())
 			|| !info.getRepeat_state().equals(currentSongPlaybackInfo.getRepeat())
-			|| !info.getDevice().getName().equals(currentSongPlaybackInfo.getDevice()));
+			|| !info.getDevice().getName().equals(currentSongPlaybackInfo.getDevice())
+			|| !info.getContext().toString().equals(contextString));
 	}
 
 	private String findLargestImage(Image[] images) {
@@ -87,7 +110,7 @@ public class PlaybackInfoComponent {
 
 	public static class CurrentPlaybackInfo {
 		public final static CurrentPlaybackInfo EMPTY = new CurrentPlaybackInfo(-1);
-		
+
 		private final int timeCurrent;
 
 		public CurrentPlaybackInfo(int timeCurrent) {
@@ -104,36 +127,40 @@ public class PlaybackInfoComponent {
 	}
 
 	public static class CurrentPlaybackInfoFull extends CurrentPlaybackInfo {
-		private final boolean paused;
-		private final boolean shuffle;
-		private final String repeat;
-		private final String device;
+		private boolean paused;
+		private boolean shuffle;
+		private String repeat;
+		private String device;
+		private String playlist;
+		private String id;
+		private String artist;
+		private String title;
+		private String album;
+		private String release;
+		private String image;
+		private int timeTotal;
 
-		private final String id;
-		private final String artist;
-		private final String title;
-		private final String album;
-		private final String release;
-		private final String image;
-
-		private final int timeTotal;
-
-		public CurrentPlaybackInfoFull(boolean paused, boolean shuffle, String repeat, String device, String id,
-			String artist, String title, String album, String release, String image, int timeCurrent, int timeTotal) {
-			super(timeCurrent);
-			this.paused = paused;
-			this.shuffle = shuffle;
-			this.repeat = repeat;
-			this.device = device;
-			this.id = id;
-			this.artist = artist;
-			this.title = title;
-			this.album = album;
-			this.release = release;
-			this.image = image;
-			this.timeTotal = timeTotal;
+		private CurrentPlaybackInfoFull(Builder builder) {
+			super(builder.timeCurrent);
+			this.paused = builder.paused;
+			this.shuffle = builder.shuffle;
+			this.repeat = builder.repeat;
+			this.device = builder.device;
+			this.playlist = builder.playlist;
+			this.id = builder.id;
+			this.artist = builder.artist;
+			this.title = builder.title;
+			this.album = builder.album;
+			this.release = builder.release;
+			this.image = builder.image;
+			this.timeTotal = builder.timeTotal;
 		}
 
+		public static CurrentPlaybackInfoFull.Builder builder() {
+			return new Builder();
+		}
+
+		@Override
 		public boolean isPartial() {
 			return false;
 		}
@@ -142,48 +169,182 @@ public class PlaybackInfoComponent {
 			return paused;
 		}
 
+		public void setPaused(boolean paused) {
+			this.paused = paused;
+		}
+
 		public boolean isShuffle() {
 			return shuffle;
+		}
+
+		public void setShuffle(boolean shuffle) {
+			this.shuffle = shuffle;
 		}
 
 		public String getRepeat() {
 			return repeat;
 		}
 
+		public void setRepeat(String repeat) {
+			this.repeat = repeat;
+		}
+
 		public String getDevice() {
 			return device;
+		}
+
+		public void setDevice(String device) {
+			this.device = device;
+		}
+
+		public String getPlaylist() {
+			return playlist;
+		}
+
+		public void setPlaylist(String playlist) {
+			this.playlist = playlist;
 		}
 
 		public String getId() {
 			return id;
 		}
 
+		public void setId(String id) {
+			this.id = id;
+		}
+
 		public String getArtist() {
 			return artist;
+		}
+
+		public void setArtist(String artist) {
+			this.artist = artist;
 		}
 
 		public String getTitle() {
 			return title;
 		}
 
+		public void setTitle(String title) {
+			this.title = title;
+		}
+
 		public String getAlbum() {
 			return album;
+		}
+
+		public void setAlbum(String album) {
+			this.album = album;
 		}
 
 		public String getRelease() {
 			return release;
 		}
 
+		public void setRelease(String release) {
+			this.release = release;
+		}
+
 		public String getImage() {
 			return image;
 		}
 
-		public int getTimeCurrent() {
-			return super.timeCurrent;
+		public void setImage(String image) {
+			this.image = image;
 		}
 
 		public int getTimeTotal() {
 			return timeTotal;
 		}
+
+		public void setTimeTotal(int timeTotal) {
+			this.timeTotal = timeTotal;
+		}
+
+		public static class Builder {
+			private boolean paused;
+			private boolean shuffle;
+			private String repeat;
+			private String device;
+			private String playlist;
+			private String id;
+			private String artist;
+			private String title;
+			private String album;
+			private String release;
+			private String image;
+			private int timeCurrent;
+			private int timeTotal;
+
+			public Builder paused(boolean paused) {
+				this.paused = paused;
+				return Builder.this;
+			}
+
+			public Builder shuffle(boolean shuffle) {
+				this.shuffle = shuffle;
+				return Builder.this;
+			}
+
+			public Builder repeat(String repeat) {
+				this.repeat = repeat;
+				return Builder.this;
+			}
+
+			public Builder device(String device) {
+				this.device = device;
+				return Builder.this;
+			}
+
+			public Builder playlist(String playlist) {
+				this.playlist = playlist;
+				return Builder.this;
+			}
+
+			public Builder id(String id) {
+				this.id = id;
+				return Builder.this;
+			}
+
+			public Builder artist(String artist) {
+				this.artist = artist;
+				return Builder.this;
+			}
+
+			public Builder title(String title) {
+				this.title = title;
+				return Builder.this;
+			}
+
+			public Builder album(String album) {
+				this.album = album;
+				return Builder.this;
+			}
+
+			public Builder release(String release) {
+				this.release = release;
+				return Builder.this;
+			}
+
+			public Builder image(String image) {
+				this.image = image;
+				return Builder.this;
+			}
+
+			public Builder timeCurrent(int timeCurrent) {
+				this.timeCurrent = timeCurrent;
+				return Builder.this;
+			}
+
+			public Builder timeTotal(int timeTotal) {
+				this.timeTotal = timeTotal;
+				return Builder.this;
+			}
+
+			public CurrentPlaybackInfoFull build() {
+				return new CurrentPlaybackInfoFull(this);
+			}
+		}
 	}
+
 }

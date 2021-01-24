@@ -7,6 +7,15 @@
     display: none !important;
 }
 
+.invisible {
+    visibility: hidden !important;
+}
+
+@font-face {
+    font-family: myFirstFont;
+    src: url(Gotham Medium Regular.ttf);
+}
+
 body {
     margin: 0;
     overflow: hidden;
@@ -14,12 +23,13 @@ body {
 
     text-align: center;
     color: var(--color-main);
-    font-family: "Gotham Medium", "Gadugi", sans-serif;
+    font-family: myFirstFont, sans-serif;
     margin: 0;
     width: 100vw;
     height: 100vh;
     text-shadow: 4px 4px 8px black;
     white-space: nowrap;
+    cursor: none;
 
     --color-main: #fff;
     --color-secondary: #ddd;
@@ -136,14 +146,30 @@ body {
     opacity: 1;
 }
 
-#playlist {
-    float:left;
+#meta-left {
+    float: left;
     margin-left: 5vw;
-    font-size: 2vh;
+    font-size: 1vw;
+    text-align: left;
+}
+
+#meta-right {
+    float: right;
+    margin-right: 5vw;
+    font-size: 1vw;
+    text-align: left;
+}
+
+#logo {
+    width: 5vw;
+    opacity: 0.5;
+}
+
+#playlist {
+    opacity: 0.8;
 }
 
 #device {
-    float:right;
-    margin-right: 5vw;
-    font-size: 2vh;
+    margin-top: 1vh;
+    opacity: 0.5;
 }

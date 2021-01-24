@@ -30,20 +30,24 @@ function setDisplayData(data) {
             document.getElementById("album").innerHTML = data.album + " (" + data.release + ")";
             document.getElementById("artist").innerHTML = data.artist;
             document.getElementById("title").innerHTML = data.title;
-            document.getElementById("time-total").innerHTML = formatTime(data.timeTotal);
             
             showHide(document.getElementById("pause"), data.paused);
             showHide(document.getElementById("shuffle"), data.shuffle);
             showHide(document.getElementById("repeat"), data.repeat == "context");
             showHide(document.getElementById("repeat-one"), data.repeat == "track");
             
-            // document.getElementById("playlist").innerHTML = data.playlist;
-            // document.getElementById("device").innerHTML = data.device;
+            document.getElementById("playlist").innerHTML = data.playlist;
+            document.getElementById("device").innerHTML = data.device;
         }
-        document.getElementById("time-current").innerHTML = formatTime(data.timeCurrent);
+        let formattedCurrentTime = (currentData.timeTotal > 60 * 60 * 1000 ? "0:" : "") + formatTime(data.timeCurrent, false);
+        let formattedTotalTime = formatTime(currentData.timeTotal, true);
+        
+        document.getElementById("time-current").innerHTML = formattedCurrentTime;
+        document.getElementById("time-total").innerHTML = formattedTotalTime;
+        
         document.documentElement.style.setProperty("--progress", calcProgress(data.timeCurrent, currentData.timeTotal));
         
-        document.title = `[${formatTime(data.timeCurrent)}/${formatTime(currentData.timeTotal)}] ${currentData.artist} – ${currentData.title}`;
+        document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`;
     }
 }
 
@@ -55,8 +59,9 @@ function showHide(elem, state) {
     }
 }
 
-function formatTime(s) {
-    var ms = Math.floor(s / 1000);
+function formatTime(s, roundType) {
+    var baseMs = s / 1000;
+    var ms = roundType ? Math.ceil(baseMs) : Math.floor(baseMs);
     s = Math.floor((s - ms) / 1000);
     var secs = s % 60;
     s = (s - secs) / 60;
