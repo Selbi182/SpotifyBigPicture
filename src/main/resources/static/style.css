@@ -12,7 +12,7 @@
 }
 
 @font-face {
-    font-family: myFirstFont;
+    font-family: gotham;
     src: url(Gotham Medium Regular.ttf);
 }
 
@@ -23,7 +23,7 @@ body {
 
     text-align: center;
     color: var(--color-main);
-    font-family: myFirstFont, sans-serif;
+    font-family: "Gotham Medium", gotham, sans-serif;
     margin: 0;
     width: 100vw;
     height: 100vh;
