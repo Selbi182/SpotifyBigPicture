@@ -65,7 +65,7 @@ body {
 
 #cover {
     margin-top: 5vh;
-    margin-bottom: 1vh;
+    margin-bottom: 3vh;
 }
 
 #cover > div {
@@ -81,12 +81,14 @@ body {
 }
 
 #title {
-    font-size: 6vh;
+    font-size: 5vh;
+    margin-bottom: 0.5vh;
 }
 
 #artist {
-    font-size: 3.5vh;
+    font-size: 3vh;
     color: var(--color-secondary);
+    margin-bottom: 0.5vh;
 }
 
 #album {
@@ -148,14 +150,14 @@ body {
 
 #meta-left {
     float: left;
-    margin-left: 5vw;
-    font-size: 1vw;
+    margin-left: 4vw;
+    font-size: 1.1vw;
     text-align: left;
 }
 
 #meta-right {
     float: right;
-    margin-right: 5vw;
+    margin-right: 4vw;
     font-size: 1vw;
     text-align: left;
 }
