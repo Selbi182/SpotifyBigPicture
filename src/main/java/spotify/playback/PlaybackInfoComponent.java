@@ -26,7 +26,7 @@ public class PlaybackInfoComponent {
 
 	public CurrentPlaybackInfo getCurrentPlaybackInfo(boolean forceFull) throws Exception {
 		CurrentlyPlayingContext info = SpotifyCall.execute(utils.getSpotifyApi().getInformationAboutUsersCurrentPlayback());
-		if (info.getItem() != null && info.getItem() instanceof Track) {
+		if (info != null && info.getItem() != null && info.getItem() instanceof Track) {
 			boolean hasMajorChange = hasMajorChange(info);
 			int timeCurrent = info.getProgress_ms();
 			if (forceFull || hasMajorChange) {
@@ -54,8 +54,14 @@ public class PlaybackInfoComponent {
 			}
 
 		}
-		return null;
+		return CurrentPlaybackInfo.EMPTY;
 	}
+
+	/*
+	 * TODO: - Display next/prev songs - Properly display playlist - Properly center
+	 * pause and only one setting (shuffle/repeat) - Fix 1 second innaccuracies -
+	 * Transition effect when changing songs
+	 */
 
 	private boolean hasMajorChange(CurrentlyPlayingContext info) {
 		if (this.currentSongPlaybackInfo == null) {
@@ -79,7 +85,9 @@ public class PlaybackInfoComponent {
 		return largest.getUrl();
 	}
 
-	public class CurrentPlaybackInfo {
+	public static class CurrentPlaybackInfo {
+		public final static CurrentPlaybackInfo EMPTY = new CurrentPlaybackInfo(-1);
+		
 		private final int timeCurrent;
 
 		public CurrentPlaybackInfo(int timeCurrent) {
@@ -95,7 +103,7 @@ public class PlaybackInfoComponent {
 		}
 	}
 
-	public class CurrentPlaybackInfoFull extends CurrentPlaybackInfo {
+	public static class CurrentPlaybackInfoFull extends CurrentPlaybackInfo {
 		private final boolean paused;
 		private final boolean shuffle;
 		private final String repeat;

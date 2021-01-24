@@ -1,0 +1,149 @@
+:root {
+    --img: gray;
+    --progress: 0.00%;
+}
+
+.hidden {
+    display: none !important;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: black;
+
+    text-align: center;
+    color: var(--color-main);
+    font-family: "Gotham Medium", "Gadugi", sans-serif;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    text-shadow: 4px 4px 8px black;
+    white-space: nowrap;
+
+    --color-main: #fff;
+    --color-secondary: #ddd;
+}
+
+#background {
+    z-index: -10;
+    position: absolute;
+    transform: scale(1.5);
+}
+
+#background > div {
+    background: 
+        radial-gradient(circle, transparent 0%, black 100%),
+        linear-gradient(to bottom, transparent 0%, black 100%),
+        linear-gradient(to bottom, transparent 0%, black 100%),
+        var(--img);
+    background-position: center center;
+    background-blend-mode: multiply;
+    background-size: cover;
+    width: 100vw;
+    height: 100vh;
+    filter: blur(10px);
+}
+
+#content {
+    text-align: center;
+    color: var(--color-main);
+    margin: 1vw;
+    width: 98vw;
+    height: 100vh;
+}
+
+#cover {
+    margin-top: 5vh;
+    margin-bottom: 1vh;
+}
+
+#cover > div {
+    margin-left: auto;
+    margin-right: auto;
+    background: var(--img);
+    background-size: cover;
+    box-shadow: 0px 0px 48px black;
+    height: 64vh;
+    width: 64vh;
+    max-height: 64vw;
+    max-width: 64vw;
+}
+
+#title {
+    font-size: 6vh;
+}
+
+#artist {
+    font-size: 3.5vh;
+    color: var(--color-secondary);
+}
+
+#album {
+    margin-top: 0.5em;
+    font-size: 2vh;
+    color: var(--color-secondary);
+    opacity: 0.6;
+}
+
+#progress-box {
+    margin-top: 3vh;
+    width: 90vw;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 0.8;
+}
+
+#progress-box > #progress-bg {
+    background: rgba(64,64,64, 0.8);
+    margin: auto;
+    margin-bottom: 1vh;
+}
+
+#progress-current {
+    width: var(--progress);
+    background-color: var(--color-main);
+    height: 0.5vh;
+}
+
+#time-current {
+    font-size: 4vh;
+    color: var(--color-secondary);
+    float: left;
+}
+
+#time-total {
+    font-size: 4vh;
+    color: var(--color-secondary);
+    float: right;
+}
+
+#info-symbols {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+#info-symbols > img {
+    height: 4vh;
+    opacity: 0.5;
+    margin: 1vh;
+    vertical-align: middle;
+}
+
+#info-symbols > img#pause {
+    height: 8vh;
+    opacity: 1;
+}
+
+#playlist {
+    float:left;
+    margin-left: 5vw;
+    font-size: 2vh;
+}
+
+#device {
+    float:right;
+    margin-right: 5vw;
+    font-size: 2vh;
+}

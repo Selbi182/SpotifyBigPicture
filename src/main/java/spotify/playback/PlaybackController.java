@@ -19,6 +19,7 @@ public class PlaybackController {
 	 */
 	@GetMapping("/playbackinfo")
 	public ResponseEntity<CurrentPlaybackInfo> playbackInfo(@RequestParam(defaultValue = "false") boolean full) throws Exception {
-		return ResponseEntity.ok(currentPlaybackInfo.getCurrentPlaybackInfo(Boolean.valueOf(full).booleanValue()));
+		CurrentPlaybackInfo info = currentPlaybackInfo.getCurrentPlaybackInfo(full);
+		return ResponseEntity.ok(info);	
 	}
 }
