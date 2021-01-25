@@ -8,6 +8,7 @@ import org.apache.hc.core5.http.ParseException;
 
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.exceptions.detailed.TooManyRequestsException;
+import com.wrapper.spotify.exceptions.detailed.UnauthorizedException;
 import com.wrapper.spotify.model_objects.specification.Paging;
 import com.wrapper.spotify.model_objects.specification.PagingCursorbased;
 import com.wrapper.spotify.requests.IRequest;
@@ -19,6 +20,8 @@ import spotify.bot.util.BotUtils;
 
 public class SpotifyCall {
 
+	static SpotifyApiAuthorization spotifyApiAuthorization;
+	
 	private final static long RETRY_TIMEOUT_429 = 1000;
 	private final static long RETRY_TIMEOUT_GENERIC_ERROR = 60 * 1000;
 	private final static int MAX_ATTEMPTS = 10;
@@ -60,6 +63,8 @@ public class SpotifyCall {
 				e.printStackTrace();
 				throw new BotException(e);
 			}
+		} catch (UnauthorizedException e) {
+			spotifyApiAuthorization.refresh();
 		} catch (TooManyRequestsException e) {
 			int timeout = e.getRetryAfter();
 			long sleepMs = (timeout * RETRY_TIMEOUT_429) + RETRY_TIMEOUT_429;

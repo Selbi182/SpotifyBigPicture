@@ -75,8 +75,6 @@ public class PlaybackInfoComponent {
 
 	/**
 	 * TODO:
-	 * - Observer pattern (SSE/Flux)
-	 * - Fix lost updates on Raspi for new songs
 	 * - Display volume on change
 	 * - Display next/prev songs (if possible)
 	 * - Properly center pause when only one setting is selected (shuffle/repeat)
@@ -135,10 +133,6 @@ public class PlaybackInfoComponent {
 
 		public int getTimeCurrent() {
 			return timeCurrent;
-		}
-		
-		public static boolean notEmpty(CurrentPlaybackInfo info) {
-			return !EMPTY.equals(info);
 		}
 	}
 

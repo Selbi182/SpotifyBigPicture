@@ -11,6 +11,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,6 +52,11 @@ public class SpotifyApiAuthorization {
 
 	@Autowired
 	private ApplicationEventPublisher applicationEventPublisher;
+	
+	@PostConstruct
+	private void initSpotifyCall() {
+		SpotifyCall.spotifyApiAuthorization = this;
+	}
 
 	/////////////////////
 

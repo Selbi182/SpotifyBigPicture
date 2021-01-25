@@ -5,67 +5,72 @@ var backgroundEffects;
 
 const DEFAULT_IMAGE = "img/idle.png";
 const DEFAULT_BACKGROUND = "img/gradient.png";
+const PROGRESS_BAR_UPDATE_MS = 1000;
 
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
-	console.log("load");
     this.backgroundEffects = getComputedStyle(document.getElementById("background-img")).getPropertyValue("--background-effects");
     
     fetch("/playbackinfo?full=true")
       .then(response => response.json())
       .then(data => {
-        console.log("first");
       	setDisplayData(data);
-      	startFlux();
+      	//startFlux();
+      	startAutoTimer();
       })
       .catch(ex => {});
 }
 
 function startFlux() {
-	console.log("flux");
 	const flux = new EventSource("/playbackinfoflux");
 	flux.onmessage = function(event) {
 		let data = event.data;
 		let json = JSON.parse(data);
-		console.log(json);
 		setDisplayData(json);
 	};
+	flux.onerror = function(e) {
+		console.log("lost connection");
+    	flux.close();
+    	setIdle();
+    	startFlux();
+    };
+}
+
+var autoTimeEnabled = false;
+
+function startAutoTimer() {
+	if (!autoTimeEnabled) {
+		autoTimeEnabled = true;
+		
+		// TODO this is a dirty patch because Flux doesn't work yet... fml
+		setInterval(() => {
+		   fetch("/playbackinfo?full=true")
+		      .then(response => response.json())
+		      .then(data => {
+		      	setDisplayData(data);
+				console.debug(data);
+		      })
+		      .catch(ex => {});
+		}, 2 * 1000);
+		
+		setInterval(() => {
+			if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
+				currentData.timeCurrent = Math.min(currentData.timeCurrent + PROGRESS_BAR_UPDATE_MS, currentData.timeTotal);
+				setDisplayData(currentData);
+			}
+		}, PROGRESS_BAR_UPDATE_MS);	
+	}
 }
 
 function setDisplayData(data) {
     if (data != null) {
-    	if (data.timeCurrent < 0) {
-    		if (!idle) {
-    			this,idle = true;
-    			this.currentData = null;
-	            
-	            document.getElementById("artwork-img").src = DEFAULT_IMAGE;
-	            document.getElementById("background-img").style.background = DEFAULT_BACKGROUND;
-	            
-	            document.getElementById("album").innerHTML = "&nbsp;";
-	            document.getElementById("artist").innerHTML = "&nbsp;";
-	            document.getElementById("title").innerHTML = "&nbsp;";
-	            
-	            showHide(document.getElementById("pause"), true);
-	            showHide(document.getElementById("shuffle"), false);
-	            showHide(document.getElementById("repeat"), false);
-	            showHide(document.getElementById("repeat-one"), false);
-	            
-	            document.getElementById("playlist").innerHTML = null;
-	            document.getElementById("device").innerHTML = "Idle";
-	            
-		        document.getElementById("time-current").innerHTML = "00:00";
-		        document.getElementById("time-total").innerHTML = "00:00";
-		        
-		        document.getElementById("progress-current").style.width = null;
-		        
-		        document.title = "Spotify Player";
-    		}
-    	} else {
+    	if (data.timeCurrent >= 0) {
     		this.idle = false;
+    		if (this.currentData == null || !data.partial) {
+            	this.currentData = data;
+    		}
 	        if (!data.partial) {
-            this.currentData = data;
 	            if (data.image != null) {
 		            document.getElementById("artwork-img").src = data.image;
 		            document.getElementById("background-img").style.background = backgroundEffects + ", url(" + data.image + ")";
@@ -93,10 +98,40 @@ function setDisplayData(data) {
 	        document.getElementById("time-total").innerHTML = formattedTotalTime;
 	        
 	        document.getElementById("progress-current").style.width = calcProgress(data.timeCurrent, currentData.timeTotal);
+	        this.currentData.timeCurrent = data.timeCurrent;
 	        
 	        document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`;
+	        return;
         }
     }
+    setIdle();
+}
+
+function setIdle()  {
+    this.idle = true;
+    this.currentData = null;
+    
+    document.getElementById("artwork-img").src = DEFAULT_IMAGE;
+    document.getElementById("background-img").style.background = "url(" + DEFAULT_BACKGROUND + ")";
+    
+    document.getElementById("album").innerHTML = "&nbsp;";
+    document.getElementById("artist").innerHTML = "&nbsp;";
+    document.getElementById("title").innerHTML = "&nbsp;";
+    
+    showHide(document.getElementById("pause"), true);
+    showHide(document.getElementById("shuffle"), false);
+    showHide(document.getElementById("repeat"), false);
+    showHide(document.getElementById("repeat-one"), false);
+    
+    document.getElementById("playlist").innerHTML = null;
+    document.getElementById("device").innerHTML = "Idle";
+    
+    document.getElementById("time-current").innerHTML = "00:00";
+    document.getElementById("time-total").innerHTML = "00:00";
+    
+    document.getElementById("progress-current").style.width = null;
+    
+    document.title = "Spotify Player";
 }
 
 function showHide(elem, state) {
@@ -122,7 +157,7 @@ function formatTime(s, roundType) {
 }
 
 function calcProgress(current, total) {
-    return ((current / total) * 100) + "%";
+    return Math.min(100, ((current / total) * 100)) + "%";
 }
 
 document.addEventListener("click", toggleMouse);
