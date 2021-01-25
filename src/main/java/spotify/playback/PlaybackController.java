@@ -32,7 +32,7 @@ public class PlaybackController {
 		return currentPlaybackInfo.getCurrentPlaybackInfo(full);
 	}
 
-	//@GetMapping("/playbackinfoflux")
+	@GetMapping("/playbackinfoflux")
 	public SseEmitter getNewNotification() {
 		SseEmitter emitter = new SseEmitter();
 		emitter.onCompletion(() -> this.emitters.remove(emitter));
