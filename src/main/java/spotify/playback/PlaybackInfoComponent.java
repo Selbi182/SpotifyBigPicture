@@ -29,12 +29,12 @@ public class PlaybackInfoComponent {
 	private CurrentPlaybackInfoFull currentSongPlaybackInfo;
 	private String contextString = "";
 
-	public CurrentPlaybackInfo getCurrentPlaybackInfo(boolean forceFull) throws Exception {
+	public CurrentPlaybackInfo getCurrentPlaybackInfo(boolean full) {
 		CurrentlyPlayingContext info = SpotifyCall.execute(utils.getSpotifyApi().getInformationAboutUsersCurrentPlayback());
 		if (info != null && info.getItem() != null && info.getItem() instanceof Track) {
 			boolean hasMajorChange = hasMajorChange(info);
 			int timeCurrent = info.getProgress_ms();
-			if (forceFull || hasMajorChange) {
+			if (full || hasMajorChange) {
 				Track track = (Track) info.getItem();
 
 				CurrentPlaybackInfoFull currentPlaybackInfoFull = CurrentPlaybackInfoFull.builder()
@@ -48,7 +48,7 @@ public class PlaybackInfoComponent {
 					.artist(BotUtils.joinArtists(track.getArtists()))
 					.title(track.getName())
 					.album(track.getAlbum().getName())
-					.release(track.getAlbum().getReleaseDate().substring(0, 4))
+					.release(getReleaseDateString(track))
 					.image(findLargestImage(track.getAlbum().getImages()))
 
 					.timeCurrent(timeCurrent)
@@ -66,11 +66,21 @@ public class PlaybackInfoComponent {
 		return CurrentPlaybackInfo.EMPTY;
 	}
 
+	private String getReleaseDateString(Track track) {
+		if (track.getAlbum().getReleaseDate() != null) {
+			return track.getAlbum().getReleaseDate().substring(0, 4);			
+		}
+		return "LOCAL";
+	}
+
 	/**
 	 * TODO:
+	 * - Observer pattern (SSE/Flux)
 	 * - Fix lost updates on Raspi for new songs
+	 * - Display volume on change
 	 * - Display next/prev songs (if possible)
 	 * - Properly center pause when only one setting is selected (shuffle/repeat)
+	 * - Smooth transition effect between songs
 	 */
 
 	private String getPlaylistName(CurrentlyPlayingContext info) {
@@ -90,12 +100,14 @@ public class PlaybackInfoComponent {
 			return true;
 		}
 		Track track = (Track) info.getItem();
-		return (!track.getId().equals(currentSongPlaybackInfo.getId())
+		return track == null
+			|| track.getId() == null
+			|| !track.getId().equals(currentSongPlaybackInfo.getId())
 			|| info.getIs_playing().equals(currentSongPlaybackInfo.isPaused())
 			|| !info.getShuffle_state().equals(currentSongPlaybackInfo.isShuffle())
 			|| !info.getRepeat_state().equals(currentSongPlaybackInfo.getRepeat())
 			|| !info.getDevice().getName().equals(currentSongPlaybackInfo.getDevice())
-			|| (info.getContext() != null && !info.getContext().toString().equals(contextString)));
+			|| (info.getContext() != null && !info.getContext().toString().equals(contextString));
 	}
 
 	private String findLargestImage(Image[] images) {
@@ -105,7 +117,7 @@ public class PlaybackInfoComponent {
 				largest = img;
 			}
 		}
-		return largest.getUrl();
+		return largest != null ? largest.getUrl() : null;
 	}
 
 	public static class CurrentPlaybackInfo {
@@ -123,6 +135,10 @@ public class PlaybackInfoComponent {
 
 		public int getTimeCurrent() {
 			return timeCurrent;
+		}
+		
+		public static boolean notEmpty(CurrentPlaybackInfo info) {
+			return !EMPTY.equals(info);
 		}
 	}
 

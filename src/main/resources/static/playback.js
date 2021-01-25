@@ -1,60 +1,101 @@
+var idle = false;
 var firstRequestDone = false;
 var currentData;
 var backgroundEffects;
 
-const UPDATE_INTERVAL = 1000;
-setInterval(() => updatePlaybackDataAsync(true), UPDATE_INTERVAL);
-//setInterval(() => updatePlaybackDataAsync(true), UPDATE_INTERVAL * 10);
+const DEFAULT_IMAGE = "img/idle.png";
+const DEFAULT_BACKGROUND = "img/gradient.png";
 
-function updatePlaybackDataAsync(force) {
-    try {
-        let url = "/playbackinfo";
-        if (!firstRequestDone) {
-            this.backgroundEffects = getComputedStyle(document.getElementById("background-img")).getPropertyValue("--background-effects");
-        }
-        if (force || !firstRequestDone) {
-            url += "?full=true";
-            firstRequestDone = true;
-        }
-        fetch(url)
-          .then(response => response.json())
-          .then(data => setDisplayData(data))
-          .catch(ex => {});
-    } catch (ex) {
-        console.log(ex);
-    }
+window.addEventListener('load', entryPoint);
+
+function entryPoint() {
+	console.log("load");
+    this.backgroundEffects = getComputedStyle(document.getElementById("background-img")).getPropertyValue("--background-effects");
+    
+    fetch("/playbackinfo?full=true")
+      .then(response => response.json())
+      .then(data => {
+        console.log("first");
+      	setDisplayData(data);
+      	startFlux();
+      })
+      .catch(ex => {});
+}
+
+function startFlux() {
+	console.log("flux");
+	const flux = new EventSource("/playbackinfoflux");
+	flux.onmessage = function(event) {
+		let data = event.data;
+		let json = JSON.parse(data);
+		console.log(json);
+		setDisplayData(json);
+	};
 }
 
 function setDisplayData(data) {
-    if (data != null && data.timeCurrent >= 0) {        
-        if (!data.partial) {
+    if (data != null) {
+    	if (data.timeCurrent < 0) {
+    		if (!idle) {
+    			this,idle = true;
+    			this.currentData = null;
+	            
+	            document.getElementById("artwork-img").src = DEFAULT_IMAGE;
+	            document.getElementById("background-img").style.background = DEFAULT_BACKGROUND;
+	            
+	            document.getElementById("album").innerHTML = "&nbsp;";
+	            document.getElementById("artist").innerHTML = "&nbsp;";
+	            document.getElementById("title").innerHTML = "&nbsp;";
+	            
+	            showHide(document.getElementById("pause"), true);
+	            showHide(document.getElementById("shuffle"), false);
+	            showHide(document.getElementById("repeat"), false);
+	            showHide(document.getElementById("repeat-one"), false);
+	            
+	            document.getElementById("playlist").innerHTML = null;
+	            document.getElementById("device").innerHTML = "Idle";
+	            
+		        document.getElementById("time-current").innerHTML = "00:00";
+		        document.getElementById("time-total").innerHTML = "00:00";
+		        
+		        document.getElementById("progress-current").style.width = null;
+		        
+		        document.title = "Spotify Player";
+    		}
+    	} else {
+    		this.idle = false;
+	        if (!data.partial) {
             this.currentData = data;
-            
-            let img = "url(" + data.image + ")";
-            document.getElementById("cover-img").style.backgroundImage = img;
-            document.getElementById("background-img").style.background = backgroundEffects + ", " + img;
-            
-            document.getElementById("album").innerHTML = data.album + " (" + data.release + ")";
-            document.getElementById("artist").innerHTML = data.artist;
-            document.getElementById("title").innerHTML = data.title;
-            
-            showHide(document.getElementById("pause"), data.paused);
-            showHide(document.getElementById("shuffle"), data.shuffle);
-            showHide(document.getElementById("repeat"), data.repeat == "context");
-            showHide(document.getElementById("repeat-one"), data.repeat == "track");
-            
-            document.getElementById("playlist").innerHTML = data.playlist;
-            document.getElementById("device").innerHTML = data.device;
+	            if (data.image != null) {
+		            document.getElementById("artwork-img").src = data.image;
+		            document.getElementById("background-img").style.background = backgroundEffects + ", url(" + data.image + ")";
+		        } else {
+		            document.getElementById("artwork-img").src = DEFAULT_IMAGE;
+		            document.getElementById("background-img").style.background = backgroundEffects + ", url(" + DEFAULT_BACKGROUND + ")";
+		        }
+	            
+	            document.getElementById("album").innerHTML = data.album + " (" + data.release + ")";
+	            document.getElementById("artist").innerHTML = data.artist;
+	            document.getElementById("title").innerHTML = data.title;
+	            
+	            showHide(document.getElementById("pause"), data.paused);
+	            showHide(document.getElementById("shuffle"), data.shuffle);
+	            showHide(document.getElementById("repeat"), data.repeat == "context");
+	            showHide(document.getElementById("repeat-one"), data.repeat == "track");
+	            
+	            document.getElementById("playlist").innerHTML = data.playlist;
+	            document.getElementById("device").innerHTML = data.device;
+	        }
+	        let formattedCurrentTime = (currentData.timeTotal > 60 * 60 * 1000 ? "0:" : "") + formatTime(data.timeCurrent, false);
+	        let formattedTotalTime = formatTime(currentData.timeTotal, true);
+	        
+	        document.getElementById("time-current").innerHTML = formattedCurrentTime;
+	        document.getElementById("time-total").innerHTML = formattedTotalTime;
+	        
+	        document.getElementById("progress-current").style.width = calcProgress(data.timeCurrent, currentData.timeTotal);
+	        
+	        document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`;
         }
-        let formattedCurrentTime = (currentData.timeTotal > 60 * 60 * 1000 ? "0:" : "") + formatTime(data.timeCurrent, false);
-        let formattedTotalTime = formatTime(currentData.timeTotal, true);
-        
-        document.getElementById("time-current").innerHTML = formattedCurrentTime;
-        document.getElementById("time-total").innerHTML = formattedTotalTime;
-        
-        document.getElementById("progress-current").style.width = calcProgress(data.timeCurrent, currentData.timeTotal);
-        
-        document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`;
     }
 }
 
@@ -83,3 +124,13 @@ function formatTime(s, roundType) {
 function calcProgress(current, total) {
     return ((current / total) * 100) + "%";
 }
+
+document.addEventListener("click", toggleMouse);
+function toggleMouse() {
+    let state = document.querySelector("body").style.cursor;
+    if (state == "none") {
+    	document.querySelector("body").style.cursor = "default";
+    } else {
+    	document.querySelector("body").style.cursor = "none";
+    }
+};

@@ -41,7 +41,7 @@ body {
         linear-gradient(to bottom, transparent 0%, black 100%),
         linear-gradient(to bottom, transparent 0%, black 100%);
         
-    background: url(gradient.png);
+    background: url(img/gradient.png);
     background-position: center center !important;
     background-blend-mode: multiply;
     background-size: cover !important;
@@ -58,21 +58,28 @@ body {
     height: 100vh;
 }
 
-#cover {
+#artwork {
     margin-top: 5vh;
     margin-bottom: 3vh;
+    height: var(--img-size);
+    width: auto;
+    --img-size: 64vh;
+    --img-max-size: 64vw;
 }
 
-#cover > #cover-img {
+#artwork > #artwork-img {
     margin-left: auto;
     margin-right: auto;
     background: gray;
     background-size: cover;
     box-shadow: 0px 0px 48px black;
-    height: 64vh;
-    width: 64vh;
-    max-height: 64vw;
-    max-width: 64vw;
+    height: var(--img-size);
+    width: auto;
+    max-height: var(--img-max-size);
+    max-width: var(--img-max-size);
+    position: absolute;
+    left: 0;
+    right: 0;
 }
 
 #title {
@@ -150,6 +157,15 @@ body {
     text-align: left;
 }
 
+#meta-left > #playlist {
+    opacity: 0.8;
+}
+
+#meta-left > #device {
+    margin-top: 1vh;
+    opacity: 0.5;
+}
+
 #meta-right {
     float: right;
     margin-right: 4vw;
@@ -157,16 +173,7 @@ body {
     text-align: left;
 }
 
-#logo {
+#meta-right > #logo {
     width: 5vw;
-    opacity: 0.5;
-}
-
-#playlist {
-    opacity: 0.8;
-}
-
-#device {
-    margin-top: 1vh;
     opacity: 0.5;
 }
