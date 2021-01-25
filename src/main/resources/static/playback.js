@@ -15,7 +15,6 @@ function updatePlaybackDataAsync(force) {
         if (force || !firstRequestDone) {
             url += "?full=true";
             firstRequestDone = true;
-            console.log(backgroundEffects);
         }
         fetch(url)
           .then(response => response.json())
