@@ -3,8 +3,8 @@ var currentData;
 var backgroundEffects;
 
 const UPDATE_INTERVAL = 1000;
-setInterval(() => updatePlaybackDataAsync(false), UPDATE_INTERVAL);
-setInterval(() => updatePlaybackDataAsync(true), UPDATE_INTERVAL * 10);
+setInterval(() => updatePlaybackDataAsync(true), UPDATE_INTERVAL);
+//setInterval(() => updatePlaybackDataAsync(true), UPDATE_INTERVAL * 10);
 
 function updatePlaybackDataAsync(force) {
     try {

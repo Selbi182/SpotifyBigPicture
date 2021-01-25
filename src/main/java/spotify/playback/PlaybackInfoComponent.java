@@ -68,9 +68,9 @@ public class PlaybackInfoComponent {
 
 	/**
 	 * TODO:
+	 * - Fix lost updates on Raspi for new songs
 	 * - Display next/prev songs (if possible)
 	 * - Properly center pause when only one setting is selected (shuffle/repeat)
-	 * - Fix delay on Raspi
 	 */
 
 	private String getPlaylistName(CurrentlyPlayingContext info) {
@@ -95,7 +95,7 @@ public class PlaybackInfoComponent {
 			|| !info.getShuffle_state().equals(currentSongPlaybackInfo.isShuffle())
 			|| !info.getRepeat_state().equals(currentSongPlaybackInfo.getRepeat())
 			|| !info.getDevice().getName().equals(currentSongPlaybackInfo.getDevice())
-			|| !info.getContext().toString().equals(contextString));
+			|| (info.getContext() != null && !info.getContext().toString().equals(contextString)));
 	}
 
 	private String findLargestImage(Image[] images) {
