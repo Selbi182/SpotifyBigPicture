@@ -22,7 +22,7 @@ function entryPoint() {
 }
 
 function singleRequest() {
-    fetch("/playbackinfo")
+    fetch("/playbackinfo?full=true")
       .then(response => response.json())
       .then(data => setDisplayData(data))
       .catch(ex => console.debug(ex));
@@ -33,7 +33,12 @@ function startFlux() {
 	flux.onmessage = function(event) {
 		let data = event.data;
 		let json = JSON.parse(data);
-		setDisplayData(json);
+		if (this.currentData == null && json.partial) {
+			singleRequest();
+			return;
+		} else {
+			setDisplayData(json);
+		}
 	};
 	flux.onerror = function(e) {
     	flux.close();
