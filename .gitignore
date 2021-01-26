@@ -40,6 +40,5 @@ bin/
 templates/READY
 /database.db
 /spring.log
-/application.properties
 spotifybot.properties
 log.txt

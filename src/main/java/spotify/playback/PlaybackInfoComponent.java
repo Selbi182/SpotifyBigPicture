@@ -1,5 +1,7 @@
 package spotify.playback;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +30,11 @@ public class PlaybackInfoComponent {
 
 	private CurrentPlaybackInfoFull currentSongPlaybackInfo;
 	private String contextString = "";
+	
+	@PostConstruct
+	private void init() {
+		getCurrentPlaybackInfo(true);
+	}
 
 	public CurrentPlaybackInfo getCurrentPlaybackInfo(boolean full) {
 		CurrentlyPlayingContext info = SpotifyCall.execute(utils.getSpotifyApi().getInformationAboutUsersCurrentPlayback());
@@ -120,6 +127,7 @@ public class PlaybackInfoComponent {
 
 	public static class CurrentPlaybackInfo {
 		public final static CurrentPlaybackInfo EMPTY = new CurrentPlaybackInfo(-1);
+		public final static CurrentPlaybackInfo EMPTY_2 = new CurrentPlaybackInfo(-2);
 
 		private final int timeCurrent;
 

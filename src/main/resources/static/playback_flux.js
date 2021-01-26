@@ -11,15 +11,21 @@ window.addEventListener('load', entryPoint);
 
 function entryPoint() {
     this.backgroundEffects = getComputedStyle(document.getElementById("background-img")).getPropertyValue("--background-effects");
-    
-    fetch("/playbackinfo?full=true")
+  fetch("/playbackinfo?full=true")
       .then(response => response.json())
       .then(data => {
       	setDisplayData(data);
-      	//startFlux();
+      	startFlux();
       	startAutoTimer();
       })
-      .catch(ex => {});
+      .catch(ex => console.debug(ex));
+}
+
+function singleRequest() {
+    fetch("/playbackinfo")
+      .then(response => response.json())
+      .then(data => setDisplayData(data))
+      .catch(ex => console.debug(ex));
 }
 
 function startFlux() {
@@ -30,9 +36,8 @@ function startFlux() {
 		setDisplayData(json);
 	};
 	flux.onerror = function(e) {
-		console.log("lost connection");
     	flux.close();
-    	setIdle();
+    	singleRequest();
     	startFlux();
     };
 }
@@ -41,29 +46,18 @@ var autoTimeEnabled = false;
 
 function startAutoTimer() {
 	if (!autoTimeEnabled) {
-		autoTimeEnabled = true;
-		
-		// TODO this is a dirty patch because Flux doesn't work yet... fml
-		setInterval(() => {
-		   fetch("/playbackinfo?full=true")
-		      .then(response => response.json())
-		      .then(data => {
-		      	setDisplayData(data);
-				console.debug(data);
-		      })
-		      .catch(ex => {});
-		}, 2 * 1000);
-		
+		autoTimeEnabled = true;		
 		setInterval(() => {
 			if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
 				currentData.timeCurrent = Math.min(currentData.timeCurrent + PROGRESS_BAR_UPDATE_MS, currentData.timeTotal);
-				setDisplayData(currentData);
+				updateProgress(currentData);
 			}
 		}, PROGRESS_BAR_UPDATE_MS);	
 	}
 }
 
 function setDisplayData(data) {
+	//console.debug(data);
     if (data != null) {
     	if (data.timeCurrent >= 0) {
     		this.idle = false;
@@ -91,20 +85,24 @@ function setDisplayData(data) {
 	            document.getElementById("playlist").innerHTML = data.playlist;
 	            document.getElementById("device").innerHTML = data.device;
 	        }
-	        let formattedCurrentTime = (currentData.timeTotal > 60 * 60 * 1000 ? "0:" : "") + formatTime(data.timeCurrent, false);
-	        let formattedTotalTime = formatTime(currentData.timeTotal, true);
-	        
-	        document.getElementById("time-current").innerHTML = formattedCurrentTime;
-	        document.getElementById("time-total").innerHTML = formattedTotalTime;
-	        
-	        document.getElementById("progress-current").style.width = calcProgress(data.timeCurrent, currentData.timeTotal);
-	        this.currentData.timeCurrent = data.timeCurrent;
-	        
-	        document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`;
+	  		updateProgress(data);
 	        return;
         }
     }
     setIdle();
+}
+
+function updateProgress(data) {
+    let formattedCurrentTime = (currentData.timeTotal > 60 * 60 * 1000 ? "0:" : "") + formatTime(data.timeCurrent, false);
+	let formattedTotalTime = formatTime(currentData.timeTotal, true);
+	
+	document.getElementById("time-current").innerHTML = formattedCurrentTime;
+	document.getElementById("time-total").innerHTML = formattedTotalTime;
+	
+	document.getElementById("progress-current").style.width = calcProgress(data.timeCurrent, currentData.timeTotal);
+	this.currentData.timeCurrent = data.timeCurrent;
+	
+	document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`;
 }
 
 function setIdle()  {

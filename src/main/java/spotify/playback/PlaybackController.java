@@ -17,7 +17,7 @@ import spotify.playback.PlaybackInfoComponent.CurrentPlaybackInfoFull;
 @RestController
 public class PlaybackController {
 
-	private static final long INTERVAL_MS = 1000;
+	private static final long INTERVAL_MS = 1 * 1000;
 	private static final long TOLERANCE_MS = 2 * 1000;
 
 	@Autowired
@@ -36,7 +36,9 @@ public class PlaybackController {
 	public SseEmitter getNewNotification() {
 		SseEmitter emitter = new SseEmitter();
 		emitter.onCompletion(() -> this.emitters.remove(emitter));
-		emitter.onError(e -> emitter.complete());
+		emitter.onError(e -> {
+			emitter.complete();
+		});
 		this.emitters.add(emitter);
 		return emitter;
 	}
@@ -45,7 +47,7 @@ public class PlaybackController {
 	private void fetchCurrentPlaybackInfoAndPublish() {
 		if (!emitters.isEmpty()) {
 			CurrentPlaybackInfo info = getCurrentPlaybackInfo();
-			if (info != null) {
+			if (info != null && !CurrentPlaybackInfo.EMPTY_2.equals(info)) {
 				List<SseEmitter> deadEmitters = new ArrayList<>();
 				this.emitters.forEach(emitter -> {
 					try {
@@ -71,7 +73,7 @@ public class PlaybackController {
 					return info;
 				}
 			}
-			return null;
+			return CurrentPlaybackInfo.EMPTY_2;
 		} finally {
 			this.previousMs = info.getTimeCurrent();
 		}
