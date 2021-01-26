@@ -5,8 +5,12 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.enums.ModelObjectType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
+import com.wrapper.spotify.model_objects.specification.Album;
+import com.wrapper.spotify.model_objects.specification.Artist;
+import com.wrapper.spotify.model_objects.specification.Context;
 import com.wrapper.spotify.model_objects.specification.Image;
 import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.model_objects.specification.Track;
@@ -24,6 +28,8 @@ import spotify.sketchpads.util.SketchCommons;
 public class PlaybackInfoComponent {
 
 	private final static String PLAYLIST_PREFIX = "https://api.spotify.com/v1/playlists/";
+	private final static String ALBUM_PREFIX = "https://api.spotify.com/v1/albums/";
+	private final static String ARTIST_PREFIX = "https://api.spotify.com/v1/artists/";
 
 	@Autowired
 	private SketchCommons utils;
@@ -88,12 +94,35 @@ public class PlaybackInfoComponent {
 	 */
 
 	private String getPlaylistName(CurrentlyPlayingContext info) {
-		if (info.getContext() != null && ModelObjectType.PLAYLIST.equals(info.getContext().getType()) && !info.getContext().toString().equals(contextString)) {
-			this.contextString = info.getContext().toString();
-			String uri = info.getContext().getHref().replace(PLAYLIST_PREFIX, "");
-			Playlist contextPlaylist = SpotifyCall.execute(utils.getSpotifyApi().getPlaylist(uri));
-			if (contextPlaylist != null) {
-				return contextPlaylist.getName();
+		Context context = info.getContext();
+		if (context != null && info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK) && !context.toString().equals(contextString) ) {
+			ModelObjectType type = context.getType();
+			switch (type) {
+				case PLAYLIST:
+					this.contextString = context.toString();
+					String playlistId = context.getHref().replace(PLAYLIST_PREFIX, "");
+					Playlist contextPlaylist = SpotifyCall.execute(utils.getSpotifyApi().getPlaylist(playlistId));
+					if (contextPlaylist != null) {
+						return contextPlaylist.getName();
+					}
+					break;
+				case ARTIST:
+					this.contextString = context.toString();
+					String artistId = context.getHref().replace(ARTIST_PREFIX, "");
+					Artist contextArtist = SpotifyCall.execute(utils.getSpotifyApi().getArtist(artistId));
+					if (contextArtist != null) {
+						return contextArtist.getName();
+					}
+					break;
+				case ALBUM:
+					this.contextString = context.toString();
+					String albumId = context.getHref().replace(ALBUM_PREFIX, "");
+					Album contextAlbum = SpotifyCall.execute(utils.getSpotifyApi().getAlbum(albumId));
+					if (contextAlbum != null) {
+						return contextAlbum.getName();
+					}
+					break;
+				default:
 			}
 		}
 		return currentSongPlaybackInfo != null ? currentSongPlaybackInfo.getPlaylist() : "";
@@ -126,7 +155,6 @@ public class PlaybackInfoComponent {
 
 	public static class CurrentPlaybackInfo {
 		public final static CurrentPlaybackInfo EMPTY = new CurrentPlaybackInfo(-1);
-		public final static CurrentPlaybackInfo EMPTY_2 = new CurrentPlaybackInfo(-2);
 
 		private final int timeCurrent;
 

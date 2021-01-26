@@ -3,7 +3,7 @@ var firstRequestDone = false;
 var currentData;
 
 const DEFAULT_IMAGE = 'img/idle.png';
-const DEFAULT_BACKGROUND = 'url(img/gradient_transparent.png)';
+const DEFAULT_BACKGROUND = 'url(img/gradient.png)';
 const PROGRESS_BAR_UPDATE_MS = 250;
 
 window.addEventListener('load', entryPoint);
@@ -26,24 +26,39 @@ function singleRequest() {
       .catch(ex => console.debug(ex));
 }
 
+var flux;
 function startFlux() {
-	const flux = new EventSource("/playbackinfoflux");
-	flux.onmessage = function(event) {
-		let data = event.data;
-		let json = JSON.parse(data);
-		if (this.currentData == null && json.partial) {
+	try {
+		flux = new EventSource("/playbackinfoflux");
+		flux.onopen = () => {
 			singleRequest();
-			return;
-		} else {
-			setDisplayData(json);
-		}
-	};
-	flux.onerror = function(e) {
-    	flux.close();
-    	singleRequest();
-    	startFlux();
-    };
+		};
+		flux.onmessage = (event) => {
+			let data = event.data;
+			try {
+				let json = JSON.parse(data);
+				if (this.currentData == null && json.partial) {
+					singleRequest();
+				} else {
+					setDisplayData(json);
+				}	
+			} catch (ex) {
+				console.debug(ex);
+				console.debug(data);
+			}
+			
+		};
+		flux.onerror = (e) => handleFluxError(e, flux);
+	} catch (e) {
+		handleFluxError(e, flux);
+	}
 }
+
+function handleFluxError(e, flux) {
+	flux.close();
+	singleRequest();
+	startFlux();
+};
 
 var autoTimeEnabled = false;
 
@@ -58,11 +73,14 @@ function startAutoTimer() {
 		}, PROGRESS_BAR_UPDATE_MS);	
 	}
 }
+
 var preloadImg;
 var preloadImgDisplayTimeout;
 function setDisplayData(data) {
-	// console.debug(data);
-    if (data != null) {
+	console.debug(data);
+    if (data == null) {
+    	setIdle();
+    } else {
     	if (data.timeCurrent >= 0) {
     		this.idle = false;
     		if (this.currentData == null || !data.partial) {
@@ -105,10 +123,8 @@ function setDisplayData(data) {
 	            document.getElementById("device").innerHTML = data.device;
 	        }
 	  		updateProgress(data);
-	        return;
         }
     }
-    setIdle();
 }
 
 function updateProgress(data) {
