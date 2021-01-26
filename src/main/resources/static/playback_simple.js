@@ -16,7 +16,7 @@ function entryPoint() {
       .then(response => response.json())
       .then(data => {
       	setDisplayData(data);
-      	//startFlux();
+      	// startFlux();
       	startAutoTimer();
       })
       .catch(ex => {});

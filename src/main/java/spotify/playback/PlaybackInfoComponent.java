@@ -85,7 +85,6 @@ public class PlaybackInfoComponent {
 	 * - Display volume on change
 	 * - Display next/prev songs (if possible)
 	 * - Properly center pause when only one setting is selected (shuffle/repeat)
-	 * - Smooth transition effect between songs
 	 */
 
 	private String getPlaylistName(CurrentlyPlayingContext info) {

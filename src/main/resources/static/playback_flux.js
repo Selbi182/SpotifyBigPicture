@@ -1,16 +1,14 @@
 var idle = false;
 var firstRequestDone = false;
 var currentData;
-var backgroundEffects;
 
-const DEFAULT_IMAGE = "img/idle.png";
-const DEFAULT_BACKGROUND = "img/gradient.png";
-const PROGRESS_BAR_UPDATE_MS = 1000;
+const DEFAULT_IMAGE = 'img/idle.png';
+const DEFAULT_BACKGROUND = 'url(img/gradient_transparent.png)';
+const PROGRESS_BAR_UPDATE_MS = 250;
 
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
-    this.backgroundEffects = getComputedStyle(document.getElementById("background-img")).getPropertyValue("--background-effects");
   fetch("/playbackinfo?full=true")
       .then(response => response.json())
       .then(data => {
@@ -60,9 +58,10 @@ function startAutoTimer() {
 		}, PROGRESS_BAR_UPDATE_MS);	
 	}
 }
-
+var preloadImg;
+var preloadImgDisplayTimeout;
 function setDisplayData(data) {
-	//console.debug(data);
+	// console.debug(data);
     if (data != null) {
     	if (data.timeCurrent >= 0) {
     		this.idle = false;
@@ -71,11 +70,26 @@ function setDisplayData(data) {
     		}
 	        if (!data.partial) {
 	            if (data.image != null) {
-		            document.getElementById("artwork-img").src = data.image;
-		            document.getElementById("background-img").style.background = backgroundEffects + ", url(" + data.image + ")";
+	            	let oldImg = document.getElementById("artwork-img").src;
+	            	if (oldImg != data.image) {
+	            		clearTimeout(preloadImgDisplayTimeout);
+	            		preloadImg = new Image();
+	            		preloadImg.onload = () => {
+	            			preloadImgDisplayTimeout = setTimeout(() => {
+	            				let img = preloadImg.src;
+			            		document.getElementById("artwork-img").src = img;
+				            	document.getElementById("background-img").style.background = DEFAULT_BACKGROUND + ", url(" + img + ")";
+				            	document.getElementById("artwork-img").style.opacity = "1";
+	            				document.getElementById("background-img").style.opacity = "1";
+	            			}, 1000);
+	            		}
+	            		preloadImg.src = data.image;
+	            		document.getElementById("artwork-img").style.opacity = "0";
+	            		document.getElementById("background-img").style.opacity = "0";
+	            	}
 		        } else {
 		            document.getElementById("artwork-img").src = DEFAULT_IMAGE;
-		            document.getElementById("background-img").style.background = backgroundEffects + ", url(" + DEFAULT_BACKGROUND + ")";
+		            document.getElementById("background-img").style.background = DEFAULT_BACKGROUND;
 		        }
 	            
 	            document.getElementById("album").innerHTML = data.album + " (" + data.release + ")";
@@ -115,7 +129,7 @@ function setIdle()  {
     this.currentData = null;
     
     document.getElementById("artwork-img").src = DEFAULT_IMAGE;
-    document.getElementById("background-img").style.background = "url(" + DEFAULT_BACKGROUND + ")";
+    document.getElementById("background-img").style.background = DEFAULT_BACKGROUND;
     
     document.getElementById("album").innerHTML = "&nbsp;";
     document.getElementById("artist").innerHTML = "&nbsp;";
@@ -163,12 +177,12 @@ function calcProgress(current, total) {
     return Math.min(100, ((current / total) * 100)) + "%";
 }
 
-document.addEventListener("click", toggleMouse);
-function toggleMouse() {
-    let state = document.querySelector("body").style.cursor;
-    if (state == "none") {
-    	document.querySelector("body").style.cursor = "default";
-    } else {
-    	document.querySelector("body").style.cursor = "none";
-    }
+document.addEventListener("mousemove", hideCursorAfterTimeout);
+var cursorTimeout;
+function hideCursorAfterTimeout() {
+	document.querySelector("body").style.cursor = "default";
+	clearTimeout(cursorTimeout);
+	cursorTimeout = setTimeout(() => {
+		document.querySelector("body").style.cursor = "none"
+	}, 500);
 };
