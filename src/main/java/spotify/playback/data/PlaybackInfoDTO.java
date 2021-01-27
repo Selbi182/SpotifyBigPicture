@@ -1,4 +1,4 @@
-package spotify.playback;
+package spotify.playback.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -9,8 +9,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * frontend. Any field can be null to indicate no change.
  */
 @JsonInclude(Include.NON_NULL)
-public class PlaybackInfo {
-	public final static PlaybackInfo EMPTY = new PlaybackInfo();
+public class PlaybackInfoDTO {
+	public final static PlaybackInfoDTO EMPTY = new PlaybackInfoDTO();
 
 	private Boolean paused;
 	private Boolean shuffle;
@@ -25,10 +25,10 @@ public class PlaybackInfo {
 	private Integer timeCurrent;
 	private Integer timeTotal;
 
-	protected PlaybackInfo() {
+	protected PlaybackInfoDTO() {
 	}
 
-	private PlaybackInfo(Builder builder) {
+	private PlaybackInfoDTO(Builder builder) {
 		this.paused = builder.paused;
 		this.shuffle = builder.shuffle;
 		this.repeat = builder.repeat;
@@ -43,7 +43,7 @@ public class PlaybackInfo {
 		this.timeTotal = builder.timeTotal;
 	}
 
-	public static PlaybackInfo.Builder builder() {
+	public static PlaybackInfoDTO.Builder builder() {
 		return new Builder();
 	}
 
@@ -175,7 +175,7 @@ public class PlaybackInfo {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PlaybackInfo other = (PlaybackInfo) obj;
+		PlaybackInfoDTO other = (PlaybackInfoDTO) obj;
 		if (album == null) {
 			if (other.album != null)
 				return false;
@@ -313,8 +313,8 @@ public class PlaybackInfo {
 			return Builder.this;
 		}
 
-		public PlaybackInfo build() {
-			return new PlaybackInfo(this);
+		public PlaybackInfoDTO build() {
+			return new PlaybackInfoDTO(this);
 		}
 	}
 }

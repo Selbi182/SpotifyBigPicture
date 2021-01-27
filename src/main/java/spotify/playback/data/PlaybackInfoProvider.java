@@ -1,4 +1,4 @@
-package spotify.playback;
+package spotify.playback.data;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -9,100 +9,98 @@ import com.wrapper.spotify.model_objects.specification.Track;
 
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
-
+import spotify.playback.data.help.PlaybackInfoUtils;
 
 @Component
-public class PlaybackInfoComponent {
-	
+public class PlaybackInfoProvider {
+
 	@Autowired
 	private SpotifyApi spotifyApi;
 
-	private PlaybackInfo previous;
+	private PlaybackInfoDTO previous;
 
 	private String previousContextString;
 
-	public PlaybackInfo getCurrentPlaybackInfo(boolean full) {
+	public PlaybackInfoDTO getCurrentPlaybackInfo(boolean full) {
 		if (previous == null) {
 			full = true;
 		}
 		CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
 		if (info != null && info.getItem() != null && info.getItem() instanceof Track) {
-			PlaybackInfo currentPlaybackInfo = buildInfo(info, full);
+			PlaybackInfoDTO currentPlaybackInfo = buildInfo(info, full);
 			if (full) {
 				this.previous = currentPlaybackInfo;
 				return currentPlaybackInfo;
 			} else {
-				PlaybackInfo changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
+				PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
 				return changedInfos;
 			}
 		}
-		return PlaybackInfo.EMPTY;
+		return PlaybackInfoDTO.EMPTY;
 	}
 
-	private PlaybackInfo findInfoDifferencesAndUpdateCurrent(PlaybackInfo current) {
-		PlaybackInfo differences = new PlaybackInfo();
-		
-		if (!previous.isPaused().equals(current.isPaused())) {
-			differences.setPaused(current.isPaused());
-			this.previous.setPaused(current.isPaused());
+	private PlaybackInfoDTO findInfoDifferencesAndUpdateCurrent(PlaybackInfoDTO current) {
+		PlaybackInfoDTO differences = new PlaybackInfoDTO();
+
+		if (previous.getImage() == null || !previous.getImage().equals(current.getImage())) {
+			differences.setImage(current.getImage());
+			this.previous.setImage(current.getImage());
 		}
-		
-		if (!previous.isShuffle().equals(current.isShuffle())) {
-			differences.setShuffle(current.isShuffle());
-			this.previous.setShuffle(current.isShuffle());
-		}
-		
-		if (!previous.getRepeat().equals(current.getRepeat())) {
-			differences.setRepeat(current.getRepeat());
-			this.previous.setRepeat(current.getRepeat());
-		}
-		
-		if (!previous.getDevice().equals(current.getDevice())) {
-			differences.setDevice(current.getDevice());
-			this.previous.setDevice(current.getDevice());
-		}
-		
-		if (!previous.getArtist().equals(current.getArtist())) {
-			differences.setArtist(current.getArtist());
-			this.previous.setArtist(current.getArtist());
-		}
-		
+
 		if (!previous.getTitle().equals(current.getTitle())) {
 			differences.setTitle(current.getTitle());
 			this.previous.setTitle(current.getTitle());
 		}
-		
+		if (!previous.getArtist().equals(current.getArtist())) {
+			differences.setArtist(current.getArtist());
+			this.previous.setArtist(current.getArtist());
+		}
 		if (!previous.getAlbum().equals(current.getAlbum())) {
 			differences.setAlbum(current.getAlbum());
 			this.previous.setAlbum(current.getAlbum());
 		}
-		
 		if (!previous.getRelease().equals(current.getRelease())) {
 			differences.setRelease(current.getRelease());
 			this.previous.setRelease(current.getRelease());
 		}
-		
+
+		if (previous.getPlaylist() == null || !previous.getPlaylist().equals(current.getPlaylist())) {
+			differences.setPlaylist(current.getPlaylist());
+			this.previous.setPlaylist(current.getPlaylist());
+		}
+		if (!previous.getDevice().equals(current.getDevice())) {
+			differences.setDevice(current.getDevice());
+			this.previous.setDevice(current.getDevice());
+		}
+
+		if (!previous.isPaused().equals(current.isPaused())) {
+			differences.setPaused(current.isPaused());
+			this.previous.setPaused(current.isPaused());
+		}
+		if (!previous.isShuffle().equals(current.isShuffle())) {
+			differences.setShuffle(current.isShuffle());
+			this.previous.setShuffle(current.isShuffle());
+		}
+		if (!previous.getRepeat().equals(current.getRepeat())) {
+			differences.setRepeat(current.getRepeat());
+			this.previous.setRepeat(current.getRepeat());
+		}
+
 		if (!PlaybackInfoUtils.isWithinEstimatedProgressMs(previous, current)) {
 			differences.setTimeCurrent(current.getTimeCurrent());
 		}
 		this.previous.setTimeCurrent(current.getTimeCurrent()); // always update
-		
+
 		if (!previous.getTimeTotal().equals(current.getTimeTotal())) {
 			differences.setTimeTotal(current.getTimeTotal());
 			this.previous.setTimeTotal(current.getTimeTotal());
 		}
-		
-		if (!previous.getImage().equals(current.getImage())) {
-			differences.setImage(current.getImage());
-			this.previous.setImage(current.getImage());
-		}
-		
 		return differences;
 	}
 
-	private PlaybackInfo buildInfo(CurrentlyPlayingContext info, boolean forceContextCheck) {
+	private PlaybackInfoDTO buildInfo(CurrentlyPlayingContext info, boolean forceContextCheck) {
 		Track track = (Track) info.getItem();
-		PlaybackInfo currentPlaybackInfoFull = PlaybackInfo.builder()
+		PlaybackInfoDTO currentPlaybackInfoFull = PlaybackInfoDTO.builder()
 			.paused(!info.getIs_playing())
 			.shuffle(info.getShuffle_state())
 			.repeat(info.getRepeat_state())
@@ -121,5 +119,5 @@ public class PlaybackInfoComponent {
 			.build();
 		this.previousContextString = info.getContext().toString();
 		return currentPlaybackInfoFull;
-	}	
+	}
 }

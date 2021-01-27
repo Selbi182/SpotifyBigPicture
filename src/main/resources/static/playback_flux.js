@@ -76,7 +76,7 @@ function setDisplayData(changes) {
 		let album = 'album' in changes ? changes.album : currentData.album;
 		let release = 'release' in changes ? changes.release : currentData.release;
 		if (release && release.length > 0) {
-			//release = "(" + release ")";
+			release = "(" + release + ")";
 		}
 	    document.getElementById("album").innerHTML = album + " " + release;
 	}
@@ -250,56 +250,4 @@ function setIdle()  {
     };
 
     setDisplayData(idleDisplayData);
-}
-
-///////////////////////////////
-
-function setDisplayDataOld(data) {
-    if (data == null) {
-    	setIdle();
-    } else {
-    	if (data.timeCurrent >= 0) {
-    		this.idle = false;
-    		if (this.currentData == null || !data.partial) {
-            	this.currentData = data;
-    		}
-	        if (!data.partial) {
-	            if (data.image != null) {
-	            	let oldImg = document.getElementById("artwork-img").src;
-	            	if (oldImg != data.image) {
-	            		clearTimeout(preloadImgDisplayTimeout);
-	            		preloadImg = new Image();
-	            		preloadImg.onload = () => {
-	            			preloadImgDisplayTimeout = setTimeout(() => {
-	            				let img = preloadImg.src;
-			            		document.getElementById("artwork-img").src = img;
-				            	document.getElementById("background-img").style.background = DEFAULT_BACKGROUND + ", url(" + img + ")";
-				            	document.getElementById("artwork-img").style.opacity = "1";
-	            				document.getElementById("background-img").style.opacity = "1";
-	            			}, 1000);
-	            		}
-	            		preloadImg.src = data.image;
-	            		document.getElementById("artwork-img").style.opacity = "0";
-	            		document.getElementById("background-img").style.opacity = "0";
-	            	}
-		        } else {
-		            document.getElementById("artwork-img").src = DEFAULT_IMAGE;
-		            document.getElementById("background-img").style.background = DEFAULT_BACKGROUND;
-		        }
-	            
-	            document.getElementById("album").innerHTML = data.album + " (" + data.release + ")";
-	            document.getElementById("artist").innerHTML = data.artist;
-	            document.getElementById("title").innerHTML = data.title;
-	            
-	            showHide(document.getElementById("pause"), data.paused);
-	            showHide(document.getElementById("shuffle"), data.shuffle);
-	            showHide(document.getElementById("repeat"), data.repeat == "context");
-	            showHide(document.getElementById("repeat-one"), data.repeat == "track");
-	            
-	            document.getElementById("playlist").innerHTML = data.playlist;
-	            document.getElementById("device").innerHTML = data.device;
-	        }
-	  		updateProgress(data);
-        }
-    }
 }

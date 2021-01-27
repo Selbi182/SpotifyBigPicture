@@ -1,4 +1,4 @@
-package spotify.playback;
+package spotify.playback.data.help;
 
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.CurrentlyPlayingType;
@@ -12,14 +12,9 @@ import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.model_objects.specification.Track;
 
 import spotify.bot.api.SpotifyCall;
+import spotify.playback.data.PlaybackInfoDTO;
 
 public class PlaybackInfoUtils {
-
-	private final static String PLAYLIST_PREFIX = "https://api.spotify.com/v1/playlists/";
-	private final static String ALBUM_PREFIX = "https://api.spotify.com/v1/albums/";
-	private final static String ARTIST_PREFIX = "https://api.spotify.com/v1/artists/";
-
-	private static final long ESTIMATED_PROGRESS_TOLERANCE_MS = 2 * 1000;
 
 	/**
 	 * Get the year of the currently playing's release date (which is in ISO format,
@@ -28,7 +23,7 @@ public class PlaybackInfoUtils {
 	 * @param track the track
 	 * @return the year, "LOCAL" if no year was found
 	 */
-	protected static String findReleaseYear(Track track) {
+	public static String findReleaseYear(Track track) {
 		if (track.getAlbum().getReleaseDate() != null) {
 			return track.getAlbum().getReleaseDate().substring(0, 4);
 		}
@@ -44,27 +39,27 @@ public class PlaybackInfoUtils {
 	 * @param spotifyApi the api accessor to use
 	 * @return a String of the current context, null if none was found
 	 */
-	protected static String findContextName(CurrentlyPlayingContext info, String previous, SpotifyApi spotifyApi) {
+	public static String findContextName(CurrentlyPlayingContext info, String previous, SpotifyApi spotifyApi) {
 		Context context = info.getContext();
 		if (context != null && !context.toString().equals(previous) && info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
 			ModelObjectType type = context.getType();
 			switch (type) {
 				case PLAYLIST:
-					String playlistId = context.getHref().replace(PLAYLIST_PREFIX, "");
+					String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
 					Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 					if (contextPlaylist != null) {
 						return contextPlaylist.getName();
 					}
 					break;
 				case ARTIST:
-					String artistId = context.getHref().replace(ARTIST_PREFIX, "");
+					String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
 					Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
 					if (contextArtist != null) {
 						return contextArtist.getName();
 					}
 					break;
 				case ALBUM:
-					String albumId = context.getHref().replace(ALBUM_PREFIX, "");
+					String albumId = context.getHref().replace(PlaybackInfoConstants.ALBUM_PREFIX, "");
 					Album contextAlbum = SpotifyCall.execute(spotifyApi.getAlbum(albumId));
 					if (contextAlbum != null) {
 						return contextAlbum.getName();
@@ -84,7 +79,7 @@ public class PlaybackInfoUtils {
 	 * @param images to check
 	 * @return URL of the largest image, null if no image was given
 	 */
-	protected static String findLargestImage(Image[] images) {
+	public static String findLargestImage(Image[] images) {
 		Image largest = null;
 		for (Image img : images) {
 			if (largest == null || (img.getWidth() * img.getHeight()) > (largest.getWidth() * largest.getHeight())) {
@@ -102,9 +97,9 @@ public class PlaybackInfoUtils {
 	 * @param current the current info
 	 * @return true if it's within tolerance
 	 */
-	protected static boolean isWithinEstimatedProgressMs(PlaybackInfo previous, PlaybackInfo current) {
-		int expectedProgressMs = previous.getTimeCurrent() + PlaybackController.INTERVAL_MS;
+	public static boolean isWithinEstimatedProgressMs(PlaybackInfoDTO previous, PlaybackInfoDTO current) {
+		int expectedProgressMs = previous.getTimeCurrent() + PlaybackInfoConstants.INTERVAL_MS;
 		int actualProgressMs = current.getTimeCurrent();
-		return Math.abs(expectedProgressMs - actualProgressMs) < ESTIMATED_PROGRESS_TOLERANCE_MS;
+		return Math.abs(expectedProgressMs - actualProgressMs) < PlaybackInfoConstants.ESTIMATED_PROGRESS_TOLERANCE_MS;
 	}
 }

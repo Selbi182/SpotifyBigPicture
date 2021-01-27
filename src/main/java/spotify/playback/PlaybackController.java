@@ -10,17 +10,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import spotify.playback.data.PlaybackInfoDTO;
+import spotify.playback.data.PlaybackInfoProvider;
+import spotify.playback.data.help.PlaybackInfoConstants;
+
 @EnableScheduling
 @RestController
 public class PlaybackController {
 
-	protected static final int INTERVAL_MS = 1000;
-	private static final int HEARTBEAT_MS = 25 * 1000;
-
 	private static boolean newDataSinceLastHeartbeat = false;
 
 	@Autowired
-	private PlaybackInfoComponent currentPlaybackInfo;
+	private PlaybackInfoProvider currentPlaybackInfo;
 
 	private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
@@ -31,7 +32,7 @@ public class PlaybackController {
 	 * @return the playback info
 	 */
 	@GetMapping("/playbackinfo")
-	public PlaybackInfo playbackInfo(@RequestParam(defaultValue = "false") boolean full) {
+	public PlaybackInfoDTO playbackInfo(@RequestParam(defaultValue = "false") boolean full) {
 		return currentPlaybackInfo.getCurrentPlaybackInfo(full);
 	}
 
@@ -54,10 +55,10 @@ public class PlaybackController {
 	 * Poll the Spotify API for changed playback info and set it to the listeners if
 	 * anything was changed
 	 */
-	@Scheduled(fixedRate = INTERVAL_MS)
+	@Scheduled(initialDelay = PlaybackInfoConstants.INTERVAL_MS, fixedRate = PlaybackInfoConstants.INTERVAL_MS)
 	private void fetchCurrentPlaybackInfoAndPublish() {
 		if (isAnyoneListening()) {
-			PlaybackInfo info = playbackInfo(false);
+			PlaybackInfoDTO info = playbackInfo(false);
 			if (info != null && !info.isEmpty()) {
 				newDataSinceLastHeartbeat = true;
 				sseSend(info);
@@ -69,15 +70,15 @@ public class PlaybackController {
 	 * Send empty data to indicate the stream is still alive (otherwise some
 	 * browsers might automatically timeout)
 	 */
-	@Scheduled(initialDelay = HEARTBEAT_MS, fixedRate = HEARTBEAT_MS)
+	@Scheduled(initialDelay = PlaybackInfoConstants.HEARTBEAT_MS, fixedRate = PlaybackInfoConstants.HEARTBEAT_MS)
 	private void sendHeartbeat() {
 		if (!newDataSinceLastHeartbeat) {
-			sseSend(PlaybackInfo.EMPTY);
+			sseSend(PlaybackInfoDTO.EMPTY);
 		}
 		newDataSinceLastHeartbeat = false;
 	}
 
-	private void sseSend(PlaybackInfo info) {
+	private void sseSend(PlaybackInfoDTO info) {
 		if (isAnyoneListening()) {
 			for (SseEmitter emitter : emitters) {
 				try {
