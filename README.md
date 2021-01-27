@@ -1,5 +1,3 @@
-![Banner](https://i.imgur.com/MkS2cLj.png)
-
 # Spotify Playback Info
 
 A Spring Boot–based bot that automatically checks for your currently played Song on Spotify and displays it in a beautiful fullscreen browser page!
