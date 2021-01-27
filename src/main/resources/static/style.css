@@ -37,7 +37,7 @@ body {
 }
 
 #background > #background-img {
-    background: white url(img/gradient_transparent.png);
+    background: url(img/gradient.png);
     background-position: center center !important;
     background-blend-mode: multiply;
     background-size: cover !important;

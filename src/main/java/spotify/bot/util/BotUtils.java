@@ -39,6 +39,7 @@ public final class BotUtils {
 	 */
 	public static void sneakySleep(long millis) {
 		try {
+			System.out.println("Doing a sneaky sleep: " + millis);
 			Thread.sleep(millis);
 		} catch (InterruptedException e) {
 			e.printStackTrace();

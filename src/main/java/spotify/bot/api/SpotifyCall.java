@@ -51,7 +51,12 @@ public class SpotifyCall {
 	private static <T, BT extends Builder<T, ?>> T execute(IRequest.Builder<T, BT> requestBuilder, int attempt) {
 		if (attempt >= MAX_ATTEMPTS) {
 			// Some deadlock happened, kill the app (and restart it externally)
-			System.exit(182);
+			try {
+				throw new IllegalStateException("Killing app due to deadlock - 182");				
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+				System.exit(182);
+			}
 		}
 		
 		try {
@@ -69,6 +74,7 @@ public class SpotifyCall {
 			int timeout = e.getRetryAfter();
 			long sleepMs = (timeout * RETRY_TIMEOUT_429) + RETRY_TIMEOUT_429;
 			BotUtils.sneakySleep(sleepMs);
+			e.printStackTrace();
 		} catch (SpotifyWebApiException | RuntimeException e) {
 			BotUtils.sneakySleep(RETRY_TIMEOUT_GENERIC_ERROR);
 			e.printStackTrace();

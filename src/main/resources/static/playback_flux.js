@@ -1,83 +1,260 @@
-var idle = false;
-var firstRequestDone = false;
-var currentData;
+var currentData = {};
+var idle = true;
 
-const DEFAULT_IMAGE = 'img/idle.png';
-const DEFAULT_BACKGROUND = 'url(img/gradient.png)';
-const PROGRESS_BAR_UPDATE_MS = 250;
 
-window.addEventListener('load', entryPoint);
+///////////////////////////////
+// WEB STUFF
+///////////////////////////////
 
-function entryPoint() {
-  fetch("/playbackinfo?full=true")
-      .then(response => response.json())
-      .then(data => {
-      	setDisplayData(data);
-      	startFlux();
-      	startAutoTimer();
-      })
-      .catch(ex => console.debug(ex));
-}
+const FLUX_URL = "/playbackinfoflux";
+const FULL_INFO_URL = "/playbackinfo?full=true";
 
-function singleRequest() {
-    fetch("/playbackinfo?full=true")
-      .then(response => response.json())
-      .then(data => setDisplayData(data))
-      .catch(ex => console.debug(ex));
+window.addEventListener('load', init);
+
+function init() {
+  fetch(FULL_INFO_URL)
+	 .then(response => response.json())
+	 .then(json => processJson(json))
+     .catch(ex => console.debug(ex));
 }
 
 var flux;
 function startFlux() {
-	try {
-		flux = new EventSource("/playbackinfoflux");
-		flux.onopen = () => {
-			singleRequest();
-		};
-		flux.onmessage = (event) => {
-			let data = event.data;
-			try {
+	if (!flux) {
+		try {
+			flux = new EventSource(FLUX_URL);
+			flux.onmessage = (event) => {
+				let data = event.data;
 				let json = JSON.parse(data);
-				if (this.currentData == null && json.partial) {
-					singleRequest();
-				} else {
-					setDisplayData(json);
-				}	
-			} catch (ex) {
-				console.debug(ex);
-				console.debug(data);
+				processJson(json);
+			};
+			flux.onerror = (e) => handleFluxError(e, flux);
+		} catch (e) {
+			handleFluxError(e, flux);		
+		}
+	}
+}
+
+function processJson(json) {
+	if (Object.entries(json).length > 0) {
+		if (idle) {
+			idle = false;
+			startFlux();
+			init();
+		} else {
+			setDisplayData(json);
+			for (let prop in json) {
+				currentData[prop] = json[prop];
 			}
-			
-		};
-		flux.onerror = (e) => handleFluxError(e, flux);
-	} catch (e) {
-		handleFluxError(e, flux);
+			startTimers();
+		}
 	}
 }
 
 function handleFluxError(e, flux) {
 	flux.close();
-	singleRequest();
+	init();
 	startFlux();
 };
 
-var autoTimeEnabled = false;
 
-function startAutoTimer() {
-	if (!autoTimeEnabled) {
-		autoTimeEnabled = true;		
-		setInterval(() => {
-			if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
-				currentData.timeCurrent = Math.min(currentData.timeCurrent + PROGRESS_BAR_UPDATE_MS, currentData.timeTotal);
-				updateProgress(currentData);
-			}
-		}, PROGRESS_BAR_UPDATE_MS);	
+///////////////////////////////
+// MAIN DISPLAY STUFF
+///////////////////////////////
+
+function setDisplayData(changes) {
+	console.debug(changes);
+	
+	// Main Info
+	if ('title' in changes) {
+	    document.getElementById("title").innerHTML = changes.title;
+	}
+	if ('artist' in changes) {
+	    document.getElementById("artist").innerHTML = changes.artist;
+	}
+	if ('album' in changes || 'release' in changes) {
+		let album = 'album' in changes ? changes.album : currentData.album;
+		let release = 'release' in changes ? changes.release : currentData.release;
+		if (release && release.length > 0) {
+			//release = "(" + release ")";
+		}
+	    document.getElementById("album").innerHTML = album + " " + release;
+	}
+	
+	// Top Left
+	if ('playlist' in changes) {
+		document.getElementById("playlist").innerHTML = changes.playlist;
+	}
+	if ('device' in changes) {
+	    document.getElementById("device").innerHTML = changes.device;
+	}
+	
+	// Time
+	if ('timeCurrent' in changes || 'timeTotal' in changes) {
+  		updateProgress(changes);
+	}	
+	
+	// States
+	if ('paused' in changes) {
+        showHide(document.getElementById("pause"), changes.paused);		
+	}
+	if ('shuffle' in changes) {
+	    showHide(document.getElementById("shuffle"), changes.shuffle);
+	}
+	if ('repeat' in changes) {
+	    showHide(document.getElementById("repeat"), changes.repeat == "context");
+	    showHide(document.getElementById("repeat-one"), changes.repeat == "track");
+	}
+	
+	// Image
+	if ('image' in changes) {
+		changeImage(changes.image);
 	}
 }
 
+function showHide(elem, state) {
+    if (state) {
+        elem.classList.remove("hidden");
+    } else {
+        elem.classList.add("hidden");
+    }
+}
+
+
+///////////////////////////////
+// COVER ART
+///////////////////////////////
+
+const IMAGE_TRANSITION_MS = 1 * 1000;
+
+const DEFAULT_IMAGE = 'img/idle.png';
+const DEFAULT_BACKGROUND = 'url(img/gradient.png)';
+
 var preloadImg;
-var preloadImgDisplayTimeout;
-function setDisplayData(data) {
-	console.debug(data);
+var newImageFadeIn;
+
+function changeImage(newImage) {
+	let oldImg = document.getElementById("artwork-img").src;
+	if (oldImg != newImage) {
+		clearTimeout(newImageFadeIn);
+		
+		preloadImg = new Image();
+		preloadImg.onload = () => {
+			newImageFadeIn = setTimeout(() => {
+				let img = preloadImg.src;
+        		document.getElementById("artwork-img").src = img;
+        		
+        		let background = DEFAULT_BACKGROUND + ", url(" + img + ")";
+        		if (img.endsWith(DEFAULT_IMAGE)) {
+        			background = DEFAULT_BACKGROUND;
+        		}
+            	document.getElementById("background-img").style.background = background;
+            	
+            	document.getElementById("artwork-img").style.opacity = "1";
+				document.getElementById("background-img").style.opacity = "1";
+			}, IMAGE_TRANSITION_MS);
+		}
+		preloadImg.src = newImage;
+		
+		document.getElementById("artwork-img").style.opacity = "0";
+		document.getElementById("background-img").style.opacity = "0";
+	}
+}
+
+
+///////////////////////////////
+// PROGRESS
+///////////////////////////////
+
+function updateProgress(changes) {
+	let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
+	let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
+	
+    let formattedCurrentTime = (total > 60 * 60 * 1000 ? "0:" : "") + formatTime(current, false); // TODO proper 1h
+	let formattedTotalTime = formatTime(total, true);
+	
+	document.getElementById("time-current").innerHTML = formattedCurrentTime;
+	document.getElementById("time-total").innerHTML = formattedTotalTime;
+	
+	document.getElementById("progress-current").style.width = Math.min(100, ((current / total) * 100)) + "%";
+	
+	//document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`; // TODO fix
+}
+
+function formatTime(s, roundType) {
+    var baseMs = s / 1000;
+    var ms = roundType ? Math.ceil(baseMs) : Math.floor(baseMs);
+    s = Math.floor((s - ms) / 1000);
+    var secs = s % 60;
+    s = (s - secs) / 60;
+    var mins = s % 60;
+    var hrs = (s - mins) / 60;
+    if (hrs > 0) {
+        return hrs + ':' + mins.toString().padStart(2, '0')  + ':' + secs.toString().padStart(2, '0');    
+    }
+    return mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+}
+
+
+///////////////////////////////
+// TIMERS
+///////////////////////////////
+
+const PROGRESS_BAR_UPDATE_MS = 250;
+const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+
+var autoTimer;
+var idleTimeout;
+
+function startTimers() {
+	clearTimers();
+	autoTimer = setInterval(() => advanceProgressBar(), PROGRESS_BAR_UPDATE_MS);
+	idleTimeout = setTimeout(() => setIdle(), IDLE_TIMEOUT_MS);
+	this.idle = false;
+}
+
+function clearTimers() {
+	clearInterval(autoTimer);
+	clearTimeout(idleTimeout);
+}
+
+
+function advanceProgressBar() {
+	if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
+		currentData.timeCurrent = Math.min(currentData.timeCurrent + PROGRESS_BAR_UPDATE_MS, currentData.timeTotal);
+		updateProgress(currentData);
+	}
+}
+
+function setIdle()  {
+	this.idle = true;
+	clearTimers();
+
+    let idleDisplayData = {
+    	title: "&nbsp;",
+    	artist: "&nbsp;",
+    	album: "&nbsp;",
+    	release: "&nbsp;",
+    	
+    	playlist: "&nbsp;",
+    	device: "&nbsp;",
+    	
+		pause: true,
+    	shuffle: false,
+    	repeat: null,
+    	
+    	timeCurrent: 0,
+    	timeTotal: 1, // to avoid NaN
+    	
+    	image: DEFAULT_IMAGE
+    };
+
+    setDisplayData(idleDisplayData);
+}
+
+///////////////////////////////
+
+function setDisplayDataOld(data) {
     if (data == null) {
     	setIdle();
     } else {
@@ -126,79 +303,3 @@ function setDisplayData(data) {
         }
     }
 }
-
-function updateProgress(data) {
-    let formattedCurrentTime = (currentData.timeTotal > 60 * 60 * 1000 ? "0:" : "") + formatTime(data.timeCurrent, false);
-	let formattedTotalTime = formatTime(currentData.timeTotal, true);
-	
-	document.getElementById("time-current").innerHTML = formattedCurrentTime;
-	document.getElementById("time-total").innerHTML = formattedTotalTime;
-	
-	document.getElementById("progress-current").style.width = calcProgress(data.timeCurrent, currentData.timeTotal);
-	this.currentData.timeCurrent = data.timeCurrent;
-	
-	document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`;
-}
-
-function setIdle()  {
-    this.idle = true;
-    this.currentData = null;
-    
-    document.getElementById("artwork-img").src = DEFAULT_IMAGE;
-    document.getElementById("background-img").style.background = DEFAULT_BACKGROUND;
-    
-    document.getElementById("album").innerHTML = "&nbsp;";
-    document.getElementById("artist").innerHTML = "&nbsp;";
-    document.getElementById("title").innerHTML = "&nbsp;";
-    
-    showHide(document.getElementById("pause"), true);
-    showHide(document.getElementById("shuffle"), false);
-    showHide(document.getElementById("repeat"), false);
-    showHide(document.getElementById("repeat-one"), false);
-    
-    document.getElementById("playlist").innerHTML = null;
-    document.getElementById("device").innerHTML = "Idle";
-    
-    document.getElementById("time-current").innerHTML = "00:00";
-    document.getElementById("time-total").innerHTML = "00:00";
-    
-    document.getElementById("progress-current").style.width = null;
-    
-    document.title = "Spotify Player";
-}
-
-function showHide(elem, state) {
-    if (state) {
-        elem.classList.remove("hidden");
-    } else {
-        elem.classList.add("hidden");
-    }
-}
-
-function formatTime(s, roundType) {
-    var baseMs = s / 1000;
-    var ms = roundType ? Math.ceil(baseMs) : Math.floor(baseMs);
-    s = Math.floor((s - ms) / 1000);
-    var secs = s % 60;
-    s = (s - secs) / 60;
-    var mins = s % 60;
-    var hrs = (s - mins) / 60;
-    if (hrs > 0) {
-        return hrs + ':' + mins.toString().padStart(2, '0')  + ':' + secs.toString().padStart(2, '0');    
-    }
-    return mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
-}
-
-function calcProgress(current, total) {
-    return Math.min(100, ((current / total) * 100)) + "%";
-}
-
-document.addEventListener("mousemove", hideCursorAfterTimeout);
-var cursorTimeout;
-function hideCursorAfterTimeout() {
-	document.querySelector("body").style.cursor = "default";
-	clearTimeout(cursorTimeout);
-	cursorTimeout = setTimeout(() => {
-		document.querySelector("body").style.cursor = "none"
-	}, 500);
-};

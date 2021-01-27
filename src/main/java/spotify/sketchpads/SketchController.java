@@ -75,7 +75,7 @@ public class SketchController {
 		log.printLine();
 		log.info("Sketchpad successfully started/restarted!");
 
-		sketch(true);
+		// sketch(true); // TODO disabled for playback
 	}
 
 	/**
