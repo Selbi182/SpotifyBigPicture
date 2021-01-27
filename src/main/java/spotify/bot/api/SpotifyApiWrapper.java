@@ -39,7 +39,7 @@ public class SpotifyApiWrapper {
 	
 	private URI generateRedirectUri() {
 		String localhost = "http://localhost:";
-		int port = 8080; // TODO find the proper port
+		int port = 8183; // TODO find the proper port
 		String loginCallbackUri = SpotifyApiAuthorization.LOGIN_CALLBACK_URI;
 		return SpotifyHttpManager.makeUri(localhost + port + loginCallbackUri);
 	}

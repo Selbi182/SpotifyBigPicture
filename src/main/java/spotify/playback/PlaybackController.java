@@ -3,12 +3,14 @@ package spotify.playback;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+@EnableScheduling
 @RestController
 public class PlaybackController {
 
@@ -67,7 +69,7 @@ public class PlaybackController {
 	 * Send empty data to indicate the stream is still alive (otherwise some
 	 * browsers might automatically timeout)
 	 */
-	@Scheduled(fixedRate = HEARTBEAT_MS)
+	@Scheduled(initialDelay = HEARTBEAT_MS, fixedRate = HEARTBEAT_MS)
 	private void sendHeartbeat() {
 		if (!newDataSinceLastHeartbeat) {
 			sseSend(PlaybackInfo.EMPTY);

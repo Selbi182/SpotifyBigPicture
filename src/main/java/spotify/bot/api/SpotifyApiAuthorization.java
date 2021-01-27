@@ -37,7 +37,7 @@ public class SpotifyApiAuthorization {
 
 	protected final static String LOGIN_CALLBACK_URI = "/login-callback";
 
-	private final static String SCOPES = "user-follow-read playlist-modify-private";
+	private final static String SCOPES = "user-read-playback-position user-read-playback-state";
 
 	private static final long LOGIN_TIMEOUT = 10;
 
@@ -96,7 +96,7 @@ public class SpotifyApiAuthorization {
 			Desktop.getDesktop().browse(uri);
 		} catch (IOException | HeadlessException e) {
 			log.warning("Couldn't open browser window. Please login at this URL:");
-			log.warning(uri.toString());
+			System.out.println(uri.toString());
 		}
 		try {
 			lock.tryAcquire(LOGIN_TIMEOUT, TimeUnit.MINUTES);

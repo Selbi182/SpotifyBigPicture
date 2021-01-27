@@ -1,7 +1,5 @@
 package spotify.playback;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,30 +20,11 @@ public class PlaybackInfoComponent {
 	private PlaybackInfo previous;
 
 	private String previousContextString;
-	
-	/**
-	 * Get the full info once on startup
-	 */
-	@PostConstruct
-	private void init() {
-		getCurrentPlaybackInfo(true);
-	}
-
-	/**
-	 * TODO:
-	 * - Display volume on change
-	 * - Display next/prev songs (if possible)
-	 * - Properly center pause when only one setting is selected (shuffle/repeat)
-	 * - Shrink heartbeat to null
-	 * - Alternate high performance render mode for Raspi
-	 * - Fix scaled background messing with the size
-	 * - Fix small shadow shortly going missing during transition
-	 * - True partial updates
-	 * - Extract playback into own project (fork)
-	 * - Fix 182 on very first launch
-	 */
 
 	public PlaybackInfo getCurrentPlaybackInfo(boolean full) {
+		if (previous == null) {
+			full = true;
+		}
 		CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
 		if (info != null && info.getItem() != null && info.getItem() instanceof Track) {
 			PlaybackInfo currentPlaybackInfo = buildInfo(info, full);
@@ -142,26 +121,5 @@ public class PlaybackInfoComponent {
 			.build();
 		this.previousContextString = info.getContext().toString();
 		return currentPlaybackInfoFull;
-	}
-
-
-	
-//	private boolean hasMajorChange(CurrentlyPlayingContext info) {
-//		if (this.currentSongPlaybackInfo == null) {
-//			return true;
-//		}
-//		Track track = (Track) info.getItem();
-//		return track == null
-//			|| track.getId() == null
-//			|| !track.getId().equals(currentSongPlaybackInfo.getId())
-//			|| info.getIs_playing().equals(currentSongPlaybackInfo.isPaused())
-//			|| !info.getShuffle_state().equals(currentSongPlaybackInfo.isShuffle())
-//			|| !info.getRepeat_state().equals(currentSongPlaybackInfo.getRepeat())
-//			|| !info.getDevice().getName().equals(currentSongPlaybackInfo.getDevice())
-//			|| (info.getContext() != null && !info.getContext().toString().equals(contextString));
-//	}
-//
-//
-
-	
+	}	
 }

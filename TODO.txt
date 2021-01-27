@@ -1,0 +1,10 @@
+TODO:
+ - Display volume on change
+ - Display next/prev songs (if possible)
+ - Properly center pause when only one setting is selected (shuffle/repeat)
+ - Shrink heartbeat to null
+ - Alternate high performance render mode for Raspi
+ - Fix scaled background messing with the size
+ - Fix small shadow shortly going missing during transition
+ - True partial updates
+ - Fix 182 on very first launch

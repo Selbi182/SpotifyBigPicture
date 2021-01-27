@@ -12,7 +12,7 @@ apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 
 jar {
-    baseName = 'SpotifyApiSketchpad'
+    baseName = 'SpotifyPlaybackInfo'
     version = '1.0'
     
     manifest {
