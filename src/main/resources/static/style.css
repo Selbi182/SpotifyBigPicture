@@ -33,7 +33,6 @@ body {
 #background {
     z-index: -10;
     position: absolute;
-    transform: scale(1.5);
 }
 
 #background > #background-img {
@@ -43,7 +42,9 @@ body {
     background-size: cover !important;
     width: 100vw;
     height: 100vh;
+    
     filter: blur(10px);
+    transform: scale(1.5);
     
     transition: opacity 1s;
 }

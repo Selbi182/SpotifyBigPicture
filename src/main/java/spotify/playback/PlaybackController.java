@@ -84,6 +84,7 @@ public class PlaybackController {
 				try {
 					emitter.send(info);
 				} catch (Exception e) {
+					emitter.complete();
 					removeDeadEmitter(emitter);
 				}
 			}

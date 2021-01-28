@@ -1,5 +1,5 @@
 var currentData = {};
-var idle = true;
+var idle = false;
 
 
 ///////////////////////////////
@@ -9,28 +9,45 @@ var idle = true;
 const FLUX_URL = "/playbackinfoflux";
 const FULL_INFO_URL = "/playbackinfo?full=true";
 
-window.addEventListener('load', init);
+window.addEventListener('load', startFlux);
 
-function init() {
-  fetch(FULL_INFO_URL)
-	 .then(response => response.json())
-	 .then(json => processJson(json))
-     .catch(ex => console.debug(ex));
+function singleRequest() {
+	fetch(FULL_INFO_URL)
+		 .then(response => response.json())
+		 .then(json => processJson(json))
+	     .catch(ex => {
+			error("Single request", ex);
+	 		singleRequest();
+	     });
 }
 
 var flux;
 function startFlux() {
-	if (!flux) {
+	if (!flux || flux.readyState === 2) {
 		try {
 			flux = new EventSource(FLUX_URL);
-			flux.onmessage = (event) => {
-				let data = event.data;
-				let json = JSON.parse(data);
-				processJson(json);
+			flux.onopen = () => {
+				singleRequest();
+				createHeartbeatTimeout();
 			};
-			flux.onerror = (e) => handleFluxError(e, flux);
-		} catch (e) {
-			handleFluxError(e, flux);		
+			flux.onmessage = (event) => {
+				try {
+					createHeartbeatTimeout();
+					let data = event.data;
+					let json = JSON.parse(data);
+					processJson(json);					
+				} catch (ex) {
+					error("Flux onmessage", ex);
+					startFlux();
+				}
+			};
+			flux.onerror = (ex) => {
+				error("Flux onerror", ex);
+				startFlux();
+			};
+		} catch (ex) {
+			error("Flux creation", ex);
+			startFlux();
 		}
 	}
 }
@@ -38,9 +55,7 @@ function startFlux() {
 function processJson(json) {
 	if (Object.entries(json).length > 0) {
 		if (idle) {
-			idle = false;
 			startFlux();
-			init();
 		} else {
 			setDisplayData(json);
 			for (let prop in json) {
@@ -51,11 +66,20 @@ function processJson(json) {
 	}
 }
 
-function handleFluxError(e, flux) {
-	flux.close();
-	init();
-	startFlux();
-};
+const HEARTBEAT_TIMEOUT_MS = 60 * 1000;
+var heartbeatTimeout;
+function createHeartbeatTimeout() {
+	clearTimeout(heartbeatTimeout);
+	heartbeatTimeout = setTimeout(() => {
+		console.error("Heartbeat receive timeout");
+		startFlux();
+	}, HEARTBEAT_TIMEOUT_MS);
+}
+
+function error(text, ex) {
+	console.error(text);
+	console.error(ex);
+}
 
 
 ///////////////////////////////
@@ -170,7 +194,7 @@ function updateProgress(changes) {
 	let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
 	let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
 	
-    let formattedCurrentTime = (total > 60 * 60 * 1000 ? "0:" : "") + formatTime(current, false); // TODO proper 1h
+	let formattedCurrentTime = (total > 60 * 60 * 1000 ? "0:" : "") + formatTime(current, false); // TODO proper 1h
 	let formattedTotalTime = formatTime(total, true);
 	
 	document.getElementById("time-current").innerHTML = formattedCurrentTime;
