@@ -1,180 +1,214 @@
 .hidden {
-    display: none !important;
+	display: none !important;
 }
 
 .invisible {
-    visibility: hidden !important;
+	visibility: hidden !important;
 }
 
 @font-face {
-    font-family: gotham;
-    src: url(Gotham Medium Regular.ttf);
+	font-family: gotham;
+	src: url(Gotham Medium Regular.ttf);
 }
 
-body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
-
-    text-align: center;
-    color: var(--color-main);
-    font-family: "Gotham Medium", gotham, sans-serif;
-    margin: 0;
-    width: 100vw;
-    height: 100vh;
-    text-shadow: 4px 4px 8px black;
-    white-space: nowrap;
-    cursor: none;
-
-    --color-main: #fff;
-    --color-secondary: #ddd;
+html, body {
+	margin: 0;
+	overflow: hidden;
+	background: black;
+	color: var(--color-main);
+	font-family: "Gotham Medium", gotham, sans-serif;
+	margin: 0;
+	width: 100%;
+	height: 100%;
+	text-shadow: 4px 4px 8px black;
+	cursor: none;
+	
+	--color-main: #fff;
+	--color-secondary: #ddd;
 }
 
 #background {
-    z-index: -10;
-    position: absolute;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	overflow: hidden;
 }
 
-#background > #background-img {
-    background: url(img/gradient.png);
-    background-position: center center !important;
-    background-blend-mode: multiply;
-    background-size: cover !important;
-    width: 100vw;
-    height: 100vh;
-    
-    filter: blur(10px);
-    transform: scale(1.5);
-    
-    transition: opacity 1s;
-}
-
-#content {
-    text-align: center;
-    color: var(--color-main);
-    margin: 1vw;
-    width: 98vw;
-    height: 100vh;
-}
-
-#artwork {
-    margin-top: 5vh;
-    margin-bottom: 3vh;
-    height: var(--img-size);
-    width: auto;
-    --img-size: 64vh;
-    --img-max-size: 64vw;
-}
-
-#artwork > #artwork-img, #artwork > #artwork-img-preload {
-    margin-left: auto;
-    margin-right: auto;
-    background: gray;
-    background-size: cover;
-    box-shadow: 0px 0px 48px black;
-    height: var(--img-size);
-    width: auto;
-    max-height: var(--img-max-size);
-    max-width: var(--img-max-size);
-    position: absolute;
-    left: 0;
-    right: 0;
-    
+#background-img {
+	background: url(img/idle.png);
+	background-size: cover !important;
+	background-blend-mode: multiply;
+	filter: blur(10px);
+	transform: scale(1.5);
+	width: 100%;
+	height: 100%;
 	transition: opacity 1s;
 }
 
-#title {
-    font-size: 5vh;
-    margin-bottom: 0.5vh;
+#content, #top-info, #center-info, #bottom-info, #time, #info-symbols {
+	display: flex;
 }
 
-#artist {
-    font-size: 3vh;
-    color: var(--color-secondary);
-    margin-bottom: 0.5vh;
+#content {
+	flex-direction: column;
+	justify-items: space-between;
+	height: 100%;
+	padding-left: 4vw;
+	padding-right: 4vw;
+	padding-top: 4vh;
+	padding-bottom: 4vh;
+	box-sizing: border-box;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	position: absolute;
 }
 
-#album {
-    margin-top: 0.5em;
-    font-size: 2vh;
-    color: var(--color-secondary);
-    opacity: 0.6;
-}
-
-#progress-box {
-    margin-top: 3vh;
-    width: 90vw;
-    margin-left: auto;
-    margin-right: auto;
-    opacity: 0.8;
-}
-
-#progress-box > #progress-bg {
-    background: rgba(64,64,64, 0.8);
-    margin: auto;
-    margin-bottom: 1vh;
-}
-
-#progress-current {
-    width: 0;
-    background-color: var(--color-main);
-    height: 0.5vh;
-}
-
-#time-current {
-    font-size: 4vh;
-    color: var(--color-secondary);
-    float: left;
-}
-
-#time-total {
-    font-size: 4vh;
-    color: var(--color-secondary);
-    float: right;
-}
-
-#info-symbols {
-    position: absolute;
-    left: 0;
-    right: 0;
-}
-
-#info-symbols > img {
-    height: 4vh;
-    opacity: 0.5;
-    margin: 1vh;
-    vertical-align: middle;
-}
-
-#info-symbols > img#pause {
-    height: 8vh;
-    opacity: 1;
+#top-info {
+	flex-grow: 1;
+	flex-direction: row;
 }
 
 #meta-left {
-    float: left;
-    margin-left: 4vw;
-    font-size: 1.1vw;
-    text-align: left;
+	flex: 1;
+	order: 1;
+	text-align: left;
+	font-size: 2vh;
+	word-break: break-all;
 }
 
 #meta-left > #playlist {
-    opacity: 0.8;
+	opacity: 0.8;
 }
 
 #meta-left > #device {
-    margin-top: 1vh;
-    opacity: 0.5;
+	margin-top: 1vh;
+	opacity: 0.5;
 }
 
 #meta-right {
-    float: right;
-    margin-right: 4vw;
-    font-size: 1vw;
-    text-align: left;
+	flex: 1;
+	order: 3;
+	text-align: right;
 }
 
-#meta-right > #logo {
-    width: 5vw;
-    opacity: 0.5;
+#logo {
+	height: 5vw;
+	background: url("img/symbols/spotify.png") right no-repeat;
+	background-size: contain;
+}
+
+#artwork {
+	flex: 3;
+	order: 2;
+	text-align: center;
+}
+
+#artwork > #artwork-img {
+	transition: opacity 1s;
+	background-repeat: no-repeat !important;
+	background-position: center !important;
+	background-size: contain !important;
+	background: url(img/idle.png);
+	width: auto;
+	height: 100%;
+	filter: drop-shadow(0px 0px 48px black);
+	transition: opacity 1s;
+}
+
+#artwork  > #pause {
+	background: url("img/symbols/pause-circle-solid.png");
+}
+
+#center-info {
+	align-items: center;
+	text-align: center;
+	flex-direction: column;
+	padding: 2vh;
+}
+
+#title {
+	font-size: 5vh;
+	margin-bottom: 0.5vh;
+}
+
+#artist {
+	font-size: 3vh;
+	color: var(--color-secondary);
+	margin-bottom: 0.5vh;
+}
+
+#album {
+	margin-top: 0.5em;
+	font-size: 2vh;
+	color: var(--color-secondary);
+	opacity: 0.6;
+}
+
+#bottom-info {
+	align-items: center;
+	flex-direction: column;
+}
+
+#progress {
+	background: rgba(64, 64, 64, 0.8);
+	width: 100%;
+	margin: 1em;
+}
+
+#progress-current {
+	background-color: var(--color-main);
+	height: 0.5vh;
+	width: 27%;
+}
+
+#time {
+	flex-direction: row;
+	width: 100%;
+	justify-content: space-between;
+}
+
+#time-current {
+	flex: 1;
+	text-align: left;
+	order: 1;
+	font-size: 4vh;
+	color: var(--color-secondary);
+}
+
+#time-total {
+	flex: 1;
+	text-align: right;
+	order: 3;
+	font-size: 4vh;
+	color: var(--color-secondary);
+}
+
+#info-symbols {
+	flex: 1;
+	justify-content: center;
+	flex-direction: row;
+	align-items: center;
+	order: 2;
+}
+
+#info-symbols > div {
+	margin: 1em;
+	height: 100%;
+	background-size: contain !important;
+	background-repeat: no-repeat !important;
+	width: 4vh; /* TODO make better */
+}
+
+#info-symbols > #shuffle {
+	background: url("img/symbols/shuffle.png");
+}
+
+#info-symbols > #repeat {
+	background: url("img/symbols/repeat.png");
+}
+
+#info-symbols > #repeat.once {
+	background: url("img/symbols/repeat-once.png");
 }

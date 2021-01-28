@@ -117,7 +117,7 @@ public class PlaybackInfoProvider {
 			.timeTotal(track.getDurationMs())
 
 			.build();
-		this.previousContextString = info.getContext().toString();
+		this.previousContextString = info.getContext() != null ? info.getContext().toString() : null;
 		return currentPlaybackInfoFull;
 	}
 }

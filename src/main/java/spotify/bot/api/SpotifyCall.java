@@ -24,8 +24,7 @@ public class SpotifyCall {
 	
 	private final static long RETRY_TIMEOUT_429 = 1000;
 	private final static long RETRY_TIMEOUT_GENERIC_ERROR = 60 * 1000;
-	private final static int MAX_ATTEMPTS = 10;
-
+	private final static int MAX_ATTEMPS = 10;
 	/**
 	 * Utility class
 	 */
@@ -49,16 +48,9 @@ public class SpotifyCall {
 	}
 	
 	private static <T, BT extends Builder<T, ?>> T execute(IRequest.Builder<T, BT> requestBuilder, int attempt) {
-		if (attempt >= MAX_ATTEMPTS) {
-			// Some deadlock happened, kill the app (and restart it externally)
-			try {
-				throw new IllegalStateException("Killing app due to deadlock - 182");				
-			} catch (IllegalStateException e) {
-				e.printStackTrace();
-				System.exit(182);
-			}
+		if (attempt > MAX_ATTEMPS) {
+			return null;
 		}
-		
 		try {
 			IRequest<T> builtRequest = requestBuilder.build();
 			try {
@@ -72,12 +64,13 @@ public class SpotifyCall {
 			spotifyApiAuthorization.refresh();
 		} catch (TooManyRequestsException e) {
 			int timeout = e.getRetryAfter();
-			long sleepMs = (timeout * RETRY_TIMEOUT_429) + RETRY_TIMEOUT_429;
+			long sleepMs = (timeout * RETRY_TIMEOUT_429 * attempt) + RETRY_TIMEOUT_429;
+			System.out.println("Too many requests, sleeping for " + sleepMs + "ms (attempt " + attempt + ")");
 			BotUtils.sneakySleep(sleepMs);
-			e.printStackTrace();
 		} catch (SpotifyWebApiException | RuntimeException e) {
-			BotUtils.sneakySleep(RETRY_TIMEOUT_GENERIC_ERROR);
 			e.printStackTrace();
+			System.out.println("Generic server error, sleeping for " + RETRY_TIMEOUT_GENERIC_ERROR + "ms (" + attempt + ")");
+			BotUtils.sneakySleep(RETRY_TIMEOUT_GENERIC_ERROR);
 		}
 		return execute(requestBuilder, attempt + 1);
 	}

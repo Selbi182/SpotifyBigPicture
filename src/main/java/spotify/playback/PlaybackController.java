@@ -1,8 +1,11 @@
 package spotify.playback;
 
+import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +27,12 @@ public class PlaybackController {
 	private PlaybackInfoProvider currentPlaybackInfo;
 
 	private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
-
+	
+	@EventListener(ApplicationReadyEvent.class)
+	private void done() {
+		System.out.println("Spotify Playback Info ready!");
+	}
+	
 	/**
 	 * Get the current playback info as a single request
 	 * 
@@ -41,12 +49,14 @@ public class PlaybackController {
 	 * (observer pattern)
 	 * 
 	 * @return the emitter
+	 * @throws IOException 
 	 */
 	@GetMapping("/playbackinfoflux")
-	public SseEmitter getNewNotification() {
+	public SseEmitter getNewNotification() throws IOException {
 		SseEmitter emitter = new SseEmitter();
 		emitter.onError(e -> emitter.complete());
 		emitter.onCompletion(() -> removeDeadEmitter(emitter));
+		emitter.send(PlaybackInfoDTO.EMPTY);
 		this.emitters.add(emitter);
 		return emitter;
 	}
@@ -56,7 +66,7 @@ public class PlaybackController {
 	 * anything was changed
 	 */
 	@Scheduled(initialDelay = PlaybackInfoConstants.INTERVAL_MS, fixedRate = PlaybackInfoConstants.INTERVAL_MS)
-	private void fetchCurrentPlaybackInfoAndPublish() {
+	private synchronized void fetchCurrentPlaybackInfoAndPublish() {
 		if (isAnyoneListening()) {
 			PlaybackInfoDTO info = playbackInfo(false);
 			if (info != null && !info.isEmpty()) {

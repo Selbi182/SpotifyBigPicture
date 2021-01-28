@@ -9,7 +9,15 @@ var idle = false;
 const FLUX_URL = "/playbackinfoflux";
 const FULL_INFO_URL = "/playbackinfo?full=true";
 
-window.addEventListener('load', startFlux);
+window.addEventListener('load', init);
+
+function init() {
+	console.log("Init");	
+	singleRequest();	
+	closeFlux();
+	startFlux();	
+	createHeartbeatTimeout();
+}
 
 function singleRequest() {
 	fetch(FULL_INFO_URL)
@@ -17,52 +25,55 @@ function singleRequest() {
 		 .then(json => processJson(json))
 	     .catch(ex => {
 			error("Single request", ex);
-	 		singleRequest();
+			setTimeout(singleRequest, 1000);
 	     });
 }
 
 var flux;
 function startFlux() {
-	if (!flux || flux.readyState === 2) {
-		try {
-			flux = new EventSource(FLUX_URL);
-			flux.onopen = () => {
-				singleRequest();
+	try {
+		flux = new EventSource(FLUX_URL);
+		flux.onopen = () => console.info("Flux connected!");
+		flux.onmessage = (event) => {
+			try {
 				createHeartbeatTimeout();
-			};
-			flux.onmessage = (event) => {
-				try {
-					createHeartbeatTimeout();
+				if (idle) {
+					singleRequest();
+				} else {
 					let data = event.data;
 					let json = JSON.parse(data);
 					processJson(json);					
-				} catch (ex) {
-					error("Flux onmessage", ex);
-					startFlux();
 				}
-			};
-			flux.onerror = (ex) => {
-				error("Flux onerror", ex);
+			} catch (ex) {
+				error("Flux onmessage", ex);
 				startFlux();
-			};
-		} catch (ex) {
-			error("Flux creation", ex);
+			}
+		};
+		flux.onerror = (ex) => {
+			error("Flux onerror", ex);
 			startFlux();
-		}
+		};
+	} catch (ex) {
+		error("Flux creation", ex);
+		startFlux();
 	}
 }
 
+function closeFlux() {
+	if (flux) {
+		flux.close();
+	}
+}
+
+window.addEventListener('beforeunload', closeFlux);
+
 function processJson(json) {
 	if (Object.entries(json).length > 0) {
-		if (idle) {
-			startFlux();
-		} else {
-			setDisplayData(json);
-			for (let prop in json) {
-				currentData[prop] = json[prop];
-			}
-			startTimers();
+		setDisplayData(json);
+		for (let prop in json) {
+			currentData[prop] = json[prop];
 		}
+		startTimers();
 	}
 }
 
@@ -71,8 +82,8 @@ var heartbeatTimeout;
 function createHeartbeatTimeout() {
 	clearTimeout(heartbeatTimeout);
 	heartbeatTimeout = setTimeout(() => {
-		console.error("Heartbeat receive timeout");
-		startFlux();
+		console.error("Heartbeat timeout");
+		init();
 	}, HEARTBEAT_TIMEOUT_MS);
 }
 
@@ -119,20 +130,28 @@ function setDisplayData(changes) {
 	}	
 	
 	// States
-	if ('paused' in changes) {
-        showHide(document.getElementById("pause"), changes.paused);		
-	}
 	if ('shuffle' in changes) {
 	    showHide(document.getElementById("shuffle"), changes.shuffle);
 	}
 	if ('repeat' in changes) {
-	    showHide(document.getElementById("repeat"), changes.repeat == "context");
-	    showHide(document.getElementById("repeat-one"), changes.repeat == "track");
+		let repeat = document.getElementById("repeat");
+	    showHide(repeat, changes.repeat != "off");
+	    if (changes.repeat == "track") {
+	    	repeat.classList.add("once");
+        } else {
+        	repeat.classList.remove("once");
+        }
 	}
 	
 	// Image
 	if ('image' in changes) {
-		changeImage(changes.image);
+		changeImage(changes.image, changes.paused);
+	} else if ('release' in changes && changes.release == "LOCAL") {
+		changeImage(DEFAULT_IMAGE, changes.paused);
+	}
+	if ('paused' in changes) {
+		let artwork = document.getElementById("artwork-img");
+		displayPaused(artwork, artwork.style.backgroundImage, changes.paused);
 	}
 }
 
@@ -153,26 +172,22 @@ const IMAGE_TRANSITION_MS = 1 * 1000;
 
 const DEFAULT_IMAGE = 'img/idle.png';
 const DEFAULT_BACKGROUND = 'url(img/gradient.png)';
+const PAUSE_OVERLAY = 'url(img/symbols/pause.png)';
 
 var preloadImg;
 var newImageFadeIn;
 
 function changeImage(newImage) {
-	let oldImg = document.getElementById("artwork-img").src;
+	let oldImg = extractUrl(document.getElementById("artwork").style.backgroundImage);
 	if (oldImg != newImage) {
 		clearTimeout(newImageFadeIn);
-		
 		preloadImg = new Image();
 		preloadImg.onload = () => {
 			newImageFadeIn = setTimeout(() => {
-				let img = preloadImg.src;
-        		document.getElementById("artwork-img").src = img;
+				let img = makeUrl(preloadImg.src);
+        		document.getElementById("artwork-img").style.backgroundImage = displayPaused(document.getElementById("artwork-img"), img, currentData.paused);
         		
-        		let background = DEFAULT_BACKGROUND + ", url(" + img + ")";
-        		if (img.endsWith(DEFAULT_IMAGE)) {
-        			background = DEFAULT_BACKGROUND;
-        		}
-            	document.getElementById("background-img").style.background = background;
+            	document.getElementById("background-img").style.background = DEFAULT_BACKGROUND + ", " + img;
             	
             	document.getElementById("artwork-img").style.opacity = "1";
 				document.getElementById("background-img").style.opacity = "1";
@@ -185,6 +200,21 @@ function changeImage(newImage) {
 	}
 }
 
+function displayPaused(elem, img, paused) {
+	if (paused) {
+		elem.style.backgroundImage = PAUSE_OVERLAY + ", " + img;
+	} else {
+		elem.style.backgroundImage = img.split(",").slice(-1)[0].trim();
+	}
+}
+
+function extractUrl(url) {
+	return url.slice(4, -1).replace(/"/g, "");
+}
+
+function makeUrl(url) {
+    return "url(" + url + ")";
+}
 
 ///////////////////////////////
 // PROGRESS
@@ -242,7 +272,6 @@ function clearTimers() {
 	clearTimeout(idleTimeout);
 }
 
-
 function advanceProgressBar() {
 	if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
 		currentData.timeCurrent = Math.min(currentData.timeCurrent + PROGRESS_BAR_UPDATE_MS, currentData.timeTotal);
@@ -258,7 +287,7 @@ function setIdle()  {
     	title: "&nbsp;",
     	artist: "&nbsp;",
     	album: "&nbsp;",
-    	release: "&nbsp;",
+    	release: "",
     	
     	playlist: "&nbsp;",
     	device: "&nbsp;",
