@@ -63,7 +63,7 @@ public class SpotifyCall {
 			System.out.println("Too many requests, sleeping for " + sleepMs + "ms (attempt " + attempt + ")");
 			BotUtils.sneakySleep(sleepMs);
 		} catch (IllegalStateException e) {
-			// TODO workaround for "Connection pool shut down"
+			// TODO improve this workaround for "Connection pool shut down"
 			System.exit(182);
 		} catch (SpotifyWebApiException | RuntimeException e) {
 			e.printStackTrace();

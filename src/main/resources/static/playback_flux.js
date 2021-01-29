@@ -119,12 +119,15 @@ function setDisplayData(changes) {
 	    document.getElementById("album").innerHTML = album + " " + release;
 	}
 	
-	// Top Left
+	// Meta Info
 	if ('playlist' in changes) {
 		document.getElementById("playlist").innerHTML = changes.playlist;
 	}
 	if ('device' in changes) {
 	    document.getElementById("device").innerHTML = changes.device;
+	}
+	if ('volume' in changes) {
+		updateVolume(changes.volume);
 	}
 	
 	// Time
@@ -158,57 +161,67 @@ function setDisplayData(changes) {
 	}
 }
 
-function showHide(elem, state) {
-    if (state) {
+function showHide(elem, show) {
+    if (show) {
         elem.classList.remove("hidden");
     } else {
         elem.classList.add("hidden");
     }
 }
 
-
-///////////////////////////////
-// COVER ART
-///////////////////////////////
+const HIDE_VOLUME_TIMEOUT_MS = 3 * 1000;
+var volumeTimeout;
+function updateVolume(volume) {
+	if (volume != null && volume !== currentData.volume) {
+		let volumeBox = document.getElementById("volume");
+		showHide(volumeBox, true);
+		clearTimeout(volumeTimeout);
+		volumeTimeout = setTimeout(() => showHide(volumeBox, false), HIDE_VOLUME_TIMEOUT_MS);
+		
+		document.getElementById("volume-current").style.height = volume + "%";
+	}
+}
 
 const IMAGE_TRANSITION_MS = 1 * 1000;
 
 const DEFAULT_IMAGE = 'img/idle.png';
-const DEFAULT_BACKGROUND = 'url(img/gradient.png)';
-const PAUSE_OVERLAY = 'url(img/symbols/pause.png)';
+const DEFAULT_BACKGROUND = 'img/gradient.png';
+const PAUSE_OVERLAY = 'img/symbols/pause.png';
 
 var preloadImg;
 var newImageFadeIn;
 
 function changeImage(newImage) {
-	let oldImg = extractUrl(document.getElementById("artwork-img").style.backgroundImage);
-	if (oldImg != newImage) {
+	let oldImg = document.getElementById("artwork-img").style.backgroundImage;
+	if (!oldImg.includes(newImage)) {
 		clearTimeout(newImageFadeIn);
 		preloadImg = new Image();
 		preloadImg.onload = () => {
 			newImageFadeIn = setTimeout(() => {
 				let img = makeUrl(preloadImg.src);
-        		document.getElementById("artwork-img").style.backgroundImage = displayPaused(document.getElementById("artwork-img"), img, currentData.paused);
-        		
-            	document.getElementById("background-img").style.background = DEFAULT_BACKGROUND + ", " + img;
-            	
-            	document.getElementById("artwork-img").style.opacity = "1";
-				document.getElementById("background-img").style.opacity = "1";
+        		document.getElementById("artwork-img").style.backgroundImage = displayPaused(document.getElementById("artwork-img"), img, currentData.paused);        		
+            	document.getElementById("background-img").style.background = makeUrl(DEFAULT_BACKGROUND) + ", " + img;
+        		setArtworkOpacity("1");
 			}, IMAGE_TRANSITION_MS);
 		}
 		preloadImg.src = newImage;
-		
-		document.getElementById("artwork-img").style.opacity = "0";
-		document.getElementById("background-img").style.opacity = "0";
+		setArtworkOpacity("0");
 	}
 }
 
 function displayPaused(elem, img, paused) {
 	if (paused) {
-		elem.style.backgroundImage = PAUSE_OVERLAY + ", " + img;
+		if (!elem.style.backgroundImage.includes(PAUSE_OVERLAY)) {
+			elem.style.backgroundImage = makeUrl(PAUSE_OVERLAY) + ", " + img;
+		}
 	} else {
 		elem.style.backgroundImage = img.split(",").slice(-1)[0].trim();
 	}
+}
+
+function setArtworkOpacity(value) {
+	document.getElementById("artwork-img").style.opacity = value;
+	document.getElementById("background-img").style.opacity = value;
 }
 
 function extractUrl(url) {
@@ -217,6 +230,15 @@ function extractUrl(url) {
 
 function makeUrl(url) {
     return "url(" + url + ")";
+}
+
+window.addEventListener('load', setLiteMode);
+function setLiteMode() {
+	const urlParams = new URLSearchParams(window.location.search);
+	if (urlParams.get("lite") != null) {
+		document.getElementById("artwork-img").style.transition = "unset";
+		document.getElementById("background-img").style.transition = "unset";
+	}
 }
 
 ///////////////////////////////
@@ -234,8 +256,6 @@ function updateProgress(changes) {
 	document.getElementById("time-total").innerHTML = formattedTotalTime;
 	
 	document.getElementById("progress-current").style.width = Math.min(100, ((current / total) * 100)) + "%";
-	
-	//document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} – ${currentData.title}`; // TODO fix
 }
 
 function formatTime(s, roundType) {

@@ -93,6 +93,11 @@ public class PlaybackInfoProvider {
 			differences.setDevice(current.getDevice());
 			this.previous.setDevice(current.getDevice());
 		}
+		if (!previous.getVolume().equals(current.getVolume())) {
+			differences.setType(Type.DATA);
+			differences.setVolume(current.getVolume());
+			this.previous.setVolume(current.getVolume());
+		}
 
 		if (!previous.isPaused().equals(current.isPaused())) {
 			differences.setType(Type.DATA);
@@ -132,6 +137,7 @@ public class PlaybackInfoProvider {
 			.repeat(info.getRepeat_state())
 			.playlist(findContextName(info))
 			.device(info.getDevice().getName())
+			.volume(info.getDevice().getVolume_percent())
 
 			.artist(BotUtils.joinArtists(track.getArtists()))
 			.title(track.getName())

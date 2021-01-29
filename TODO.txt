@@ -3,10 +3,7 @@
 ========
 
 Features:
-- Display volume on change
 - Display next/prev songs (if possible)
 
 Stability:
 - Reconnecting the Flux still doesn't work properly on the Raspi...
-- Alternate high performance render mode for Raspi (basically no transitions)
-- Fix 182 on very first launch

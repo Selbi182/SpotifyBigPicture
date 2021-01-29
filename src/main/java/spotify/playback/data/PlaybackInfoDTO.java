@@ -26,6 +26,7 @@ public class PlaybackInfoDTO {
 	private Boolean shuffle;
 	private String repeat;
 	private String device;
+	private Integer volume;
 	private String playlist;
 	private String artist;
 	private String title;
@@ -48,6 +49,7 @@ public class PlaybackInfoDTO {
 		this.shuffle = builder.shuffle;
 		this.repeat = builder.repeat;
 		this.device = builder.device;
+		this.volume = builder.volume;
 		this.playlist = builder.playlist;
 		this.artist = builder.artist;
 		this.title = builder.title;
@@ -107,6 +109,14 @@ public class PlaybackInfoDTO {
 		this.device = device;
 	}
 
+	public Integer getVolume() {
+		return volume;
+	}
+	
+	public void setVolume(Integer volume) {
+		this.volume = volume;
+	}
+	
 	public String getPlaylist() {
 		return playlist;
 	}
@@ -176,6 +186,7 @@ public class PlaybackInfoDTO {
 		private Boolean shuffle;
 		private String repeat;
 		private String device;
+		private Integer volume;
 		private String playlist;
 		private String artist;
 		private String title;
@@ -202,6 +213,11 @@ public class PlaybackInfoDTO {
 
 		public Builder device(String device) {
 			this.device = device;
+			return Builder.this;
+		}
+		
+		public Builder volume(Integer volume) {
+			this.volume = volume;
 			return Builder.this;
 		}
 
