@@ -221,11 +221,9 @@ function displayPaused(elem, img, paused) {
 }
 
 window.addEventListener('load', setLiteMode);
-var liteMode = false;
 function setLiteMode() {
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.get("lite") != null) {
-		liteMode = true;
 		document.getElementById("artwork-img").style.transition = "unset";
 		document.getElementById("background-img").style.transition = "unset";
 		setImageTransitionMs = 0;
@@ -233,10 +231,8 @@ function setLiteMode() {
 }
 
 function setArtworkOpacity(value) {
-	if (!liteMode) {
-		document.getElementById("artwork-img").style.opacity = value;
-		document.getElementById("background-img").style.opacity = value;
-	}
+	document.getElementById("artwork-img").style.opacity = value;
+	document.getElementById("background-img").style.opacity = value;
 }
 
 function extractUrl(url) {
@@ -256,8 +252,9 @@ function updateProgress(changes) {
 	let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
 	let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
 	
-	let formattedCurrentTime = (total > 60 * 60 * 1000 ? "0:" : "") + formatTime(current, false); // TODO proper 1h
-	let formattedTotalTime = formatTime(total, true);
+	let formattedTime = formatTime(current, total)
+	let formattedCurrentTime = formattedTime.current;
+	let formattedTotalTime = formattedTime.total;
 	
 	document.getElementById("time-current").innerHTML = formattedCurrentTime;
 	document.getElementById("time-total").innerHTML = formattedTotalTime;
@@ -265,18 +262,41 @@ function updateProgress(changes) {
 	document.getElementById("progress-current").style.width = Math.min(100, ((current / total) * 100)) + "%";
 }
 
-function formatTime(s, roundType) {
-    var baseMs = s / 1000;
-    var ms = roundType ? Math.ceil(baseMs) : Math.floor(baseMs);
-    s = Math.floor((s - ms) / 1000);
-    var secs = s % 60;
-    s = (s - secs) / 60;
-    var mins = s % 60;
-    var hrs = (s - mins) / 60;
-    if (hrs > 0) {
-        return hrs + ':' + mins.toString().padStart(2, '0')  + ':' + secs.toString().padStart(2, '0');    
-    }
-    return mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+function formatTime(current, total) {
+	let currentHMS = calcHMS(current);
+	let totalHMS = calcHMS(total);
+	
+	let formattedCurrent, formattedTotal;
+	if (totalHMS.hours > 0) {
+		formattedCurrent = `${currentHMS.hours}:${pad2(currentHMS.minutes)}:${pad2(currentHMS.seconds)}`;
+		formattedTotal   = `${totalHMS.hours}:${pad2(totalHMS.minutes)}:${pad2(totalHMS.seconds)}`;
+	} else if (totalHMS.minutes >= 10) {
+		formattedCurrent = `${pad2(currentHMS.minutes)}:${pad2(currentHMS.seconds)}`;
+		formattedTotal   = `${pad2(totalHMS.minutes)}:${pad2(totalHMS.seconds)}`;
+	} else {
+		formattedCurrent = `${currentHMS.minutes}:${pad2(currentHMS.seconds)}`;
+		formattedTotal   = `${totalHMS.minutes}:${pad2(totalHMS.seconds)}`;
+	}
+	
+	return {
+		current: formattedCurrent,
+		total: formattedTotal
+	};
+}
+
+function calcHMS(ms) {
+	let s = Math.floor(ms / 1000) % 60;
+	let m = Math.floor((Math.floor(ms / 1000)) / 60) % 60;
+	let h = Math.floor((Math.floor((Math.floor(ms / 1000)) / 60)) / 60);
+	return {
+		hours: h,
+		minutes: m,
+		seconds: s
+	};
+}
+
+function pad2(time) {
+	return time.toString().padStart(2, '0');
 }
 
 

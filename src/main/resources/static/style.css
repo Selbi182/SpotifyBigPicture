@@ -211,7 +211,7 @@ html, body {
 	height: 100%;
 	background-size: contain !important;
 	background-repeat: no-repeat !important;
-	width: 4vh; /* TODO make better */
+	width: 4vh;
 }
 
 #info-symbols > #shuffle {

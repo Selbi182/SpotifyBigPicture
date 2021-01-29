@@ -54,7 +54,7 @@ public class PlaybackController {
 		SseEmitter emitter = new SseEmitter();
 		emitter.onError(e -> emitter.complete());
 		emitter.onCompletion(() -> removeDeadEmitter(emitter));
-		emitter.send(PlaybackInfoDTO.HEARTBEAT);
+		emitter.send(playbackInfo(true));
 		this.emitters.add(emitter);
 		return emitter;
 	}
