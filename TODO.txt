@@ -2,8 +2,6 @@
 = TODO =
 ========
 
-Features:
-- Display next/prev songs (if possible)
-
 Stability:
 - Reconnecting the Flux still doesn't work properly on the Raspi...
+- Wrong artwork gets displayed from time to time

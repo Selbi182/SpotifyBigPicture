@@ -183,6 +183,7 @@ function updateVolume(volume) {
 }
 
 const IMAGE_TRANSITION_MS = 1 * 1000;
+var setImageTransitionMs = IMAGE_TRANSITION_MS;
 
 const DEFAULT_IMAGE = 'img/idle.png';
 const DEFAULT_BACKGROUND = 'img/gradient.png';
@@ -202,7 +203,7 @@ function changeImage(newImage) {
         		document.getElementById("artwork-img").style.backgroundImage = displayPaused(document.getElementById("artwork-img"), img, currentData.paused);        		
             	document.getElementById("background-img").style.background = makeUrl(DEFAULT_BACKGROUND) + ", " + img;
         		setArtworkOpacity("1");
-			}, IMAGE_TRANSITION_MS);
+			}, setImageTransitionMs);
 		}
 		preloadImg.src = newImage;
 		setArtworkOpacity("0");
@@ -219,9 +220,23 @@ function displayPaused(elem, img, paused) {
 	}
 }
 
+window.addEventListener('load', setLiteMode);
+var liteMode = false;
+function setLiteMode() {
+	const urlParams = new URLSearchParams(window.location.search);
+	if (urlParams.get("lite") != null) {
+		liteMode = true;
+		document.getElementById("artwork-img").style.transition = "unset";
+		document.getElementById("background-img").style.transition = "unset";
+		setImageTransitionMs = 0;
+	}
+}
+
 function setArtworkOpacity(value) {
-	document.getElementById("artwork-img").style.opacity = value;
-	document.getElementById("background-img").style.opacity = value;
+	if (!liteMode) {
+		document.getElementById("artwork-img").style.opacity = value;
+		document.getElementById("background-img").style.opacity = value;
+	}
 }
 
 function extractUrl(url) {
@@ -232,14 +247,6 @@ function makeUrl(url) {
     return "url(" + url + ")";
 }
 
-window.addEventListener('load', setLiteMode);
-function setLiteMode() {
-	const urlParams = new URLSearchParams(window.location.search);
-	if (urlParams.get("lite") != null) {
-		document.getElementById("artwork-img").style.transition = "unset";
-		document.getElementById("background-img").style.transition = "unset";
-	}
-}
 
 ///////////////////////////////
 // PROGRESS
