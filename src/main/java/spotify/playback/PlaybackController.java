@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import spotify.bot.api.events.LoggedInEvent;
 import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.help.PlaybackInfoConstants;
@@ -21,18 +21,16 @@ import spotify.playback.data.help.PlaybackInfoConstants;
 @RestController
 public class PlaybackController {
 
-	private static boolean newDataSinceLastHeartbeat = false;
-
 	@Autowired
 	private PlaybackInfoProvider currentPlaybackInfo;
 
 	private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
-	
-	@EventListener(ApplicationReadyEvent.class)
-	private void done() {
+
+	@EventListener(LoggedInEvent.class)
+	private void ready() {
 		System.out.println("Spotify Playback Info ready!");
 	}
-	
+
 	/**
 	 * Get the current playback info as a single request
 	 * 
@@ -49,14 +47,14 @@ public class PlaybackController {
 	 * (observer pattern)
 	 * 
 	 * @return the emitter
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@GetMapping("/playbackinfoflux")
 	public SseEmitter getNewNotification() throws IOException {
 		SseEmitter emitter = new SseEmitter();
 		emitter.onError(e -> emitter.complete());
 		emitter.onCompletion(() -> removeDeadEmitter(emitter));
-		emitter.send(PlaybackInfoDTO.EMPTY);
+		emitter.send(PlaybackInfoDTO.HEARTBEAT);
 		this.emitters.add(emitter);
 		return emitter;
 	}
@@ -66,11 +64,10 @@ public class PlaybackController {
 	 * anything was changed
 	 */
 	@Scheduled(initialDelay = PlaybackInfoConstants.INTERVAL_MS, fixedRate = PlaybackInfoConstants.INTERVAL_MS)
-	private synchronized void fetchCurrentPlaybackInfoAndPublish() {
+	private void fetchCurrentPlaybackInfoAndPublish() {
 		if (isAnyoneListening()) {
 			PlaybackInfoDTO info = playbackInfo(false);
 			if (info != null && !info.isEmpty()) {
-				newDataSinceLastHeartbeat = true;
 				sseSend(info);
 			}
 		}
@@ -82,10 +79,7 @@ public class PlaybackController {
 	 */
 	@Scheduled(initialDelay = PlaybackInfoConstants.HEARTBEAT_MS, fixedRate = PlaybackInfoConstants.HEARTBEAT_MS)
 	private void sendHeartbeat() {
-		if (!newDataSinceLastHeartbeat) {
-			sseSend(PlaybackInfoDTO.EMPTY);
-		}
-		newDataSinceLastHeartbeat = false;
+		sseSend(PlaybackInfoDTO.HEARTBEAT);
 	}
 
 	private void sseSend(PlaybackInfoDTO info) {

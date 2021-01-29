@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wrapper.spotify.SpotifyApi;
+import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials;
 
 import spotify.bot.api.events.LoggedInEvent;
@@ -88,21 +89,25 @@ public class SpotifyApiAuthorization {
 	 * @param api
 	 */
 	private void authenticate() {
-		URI uri = SpotifyCall.execute(spotifyApi.authorizationCodeUri().scope(SCOPES));
 		try {
-			if (!Desktop.isDesktopSupported()) {
-				throw new HeadlessException();
+			URI uri = SpotifyCall.execute(spotifyApi.authorizationCodeUri().scope(SCOPES));
+			try {
+				if (!Desktop.isDesktopSupported()) {
+					throw new HeadlessException();
+				}
+				Desktop.getDesktop().browse(uri);
+			} catch (IOException | HeadlessException e) {
+				log.warning("Couldn't open browser window. Please login at this URL:");
+				System.out.println(uri.toString());
 			}
-			Desktop.getDesktop().browse(uri);
-		} catch (IOException | HeadlessException e) {
-			log.warning("Couldn't open browser window. Please login at this URL:");
-			System.out.println(uri.toString());
-		}
-		try {
-			lock.tryAcquire(LOGIN_TIMEOUT, TimeUnit.MINUTES);
-		} catch (InterruptedException e) {
-			log.error("Login timeout! Shutting down application in case of a Spotify Web API anomaly!");
-			System.exit(1);
+			try {
+				lock.tryAcquire(LOGIN_TIMEOUT, TimeUnit.MINUTES);
+			} catch (InterruptedException e) {
+				log.error("Login timeout! Shutting down application in case of a Spotify Web API anomaly!");
+				System.exit(1);
+			}
+		} catch (SpotifyWebApiException e) {
+			System.exit(182);
 		}
 	}
 
@@ -111,11 +116,12 @@ public class SpotifyApiAuthorization {
 	 * 
 	 * @param code
 	 * @return
+	 * @throws SpotifyWebApiException 
 	 * @throws BotException
 	 * @throws IOException
 	 */
 	@RequestMapping(LOGIN_CALLBACK_URI)
-	private ResponseEntity<String> loginCallback(@RequestParam String code) {
+	private ResponseEntity<String> loginCallback(@RequestParam String code) throws SpotifyWebApiException {
 		AuthorizationCodeCredentials acc = SpotifyCall.execute(spotifyApi.authorizationCode(code));
 		updateTokens(acc);
 		lock.release();

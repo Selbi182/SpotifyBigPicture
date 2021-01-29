@@ -8,6 +8,7 @@ var idle = false;
 
 const FLUX_URL = "/playbackinfoflux";
 const FULL_INFO_URL = "/playbackinfo?full=true";
+const RETRY_TIMEOUT_MS = 5 * 1000;
 
 window.addEventListener('load', init);
 
@@ -24,39 +25,42 @@ function singleRequest() {
 		 .then(response => response.json())
 		 .then(json => processJson(json))
 	     .catch(ex => {
-			error("Single request", ex);
-			setTimeout(singleRequest, 1000);
+	    	console.error("Single request", ex);
+			setTimeout(singleRequest, RETRY_TIMEOUT_MS);
 	     });
 }
 
 var flux;
 function startFlux() {
-	try {
-		flux = new EventSource(FLUX_URL);
-		flux.onopen = () => console.info("Flux connected!");
-		flux.onmessage = (event) => {
-			try {
-				createHeartbeatTimeout();
-				if (idle) {
-					singleRequest();
-				} else {
-					let data = event.data;
-					let json = JSON.parse(data);
-					processJson(json);					
+	setTimeout(() => {
+		try {
+			closeFlux();
+			flux = new EventSource(FLUX_URL);
+			flux.onopen = () => console.info("Flux connected!");
+			flux.onmessage = (event) => {
+				try {
+					createHeartbeatTimeout();
+					if (idle) {
+						singleRequest();
+					} else {
+						let data = event.data;
+						let json = JSON.parse(data);
+						processJson(json);					
+					}
+				} catch (ex) {
+					console.error("Flux onmessage", ex);
+					startFlux();
 				}
-			} catch (ex) {
-				error("Flux onmessage", ex);
+			};
+			flux.onerror = (ex) => {
+				console.error("Flux onerror", ex);
 				startFlux();
-			}
-		};
-		flux.onerror = (ex) => {
-			error("Flux onerror", ex);
+			};
+		} catch (ex) {
+			console.error("Flux creation", ex);
 			startFlux();
-		};
-	} catch (ex) {
-		error("Flux creation", ex);
-		startFlux();
-	}
+		}
+	}, RETRY_TIMEOUT_MS);
 }
 
 function closeFlux() {
@@ -67,13 +71,17 @@ function closeFlux() {
 
 window.addEventListener('beforeunload', closeFlux);
 
+window.onfocus = () => singleRequest();
+
 function processJson(json) {
-	if (Object.entries(json).length > 0) {
+	if (json.type == "DATA") {
 		setDisplayData(json);
 		for (let prop in json) {
 			currentData[prop] = json[prop];
 		}
 		startTimers();
+	} else if (json.type == "IDLE") {
+		setIdle();
 	}
 }
 
@@ -83,15 +91,10 @@ function createHeartbeatTimeout() {
 	clearTimeout(heartbeatTimeout);
 	heartbeatTimeout = setTimeout(() => {
 		console.error("Heartbeat timeout");
+		setIdle();
 		init();
 	}, HEARTBEAT_TIMEOUT_MS);
 }
-
-function error(text, ex) {
-	console.error(text);
-	console.error(ex);
-}
-
 
 ///////////////////////////////
 // MAIN DISPLAY STUFF
@@ -178,7 +181,7 @@ var preloadImg;
 var newImageFadeIn;
 
 function changeImage(newImage) {
-	let oldImg = extractUrl(document.getElementById("artwork").style.backgroundImage);
+	let oldImg = extractUrl(document.getElementById("artwork-img").style.backgroundImage);
 	if (oldImg != newImage) {
 		clearTimeout(newImageFadeIn);
 		preloadImg = new Image();

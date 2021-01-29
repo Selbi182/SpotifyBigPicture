@@ -10,8 +10,18 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 @JsonInclude(Include.NON_NULL)
 public class PlaybackInfoDTO {
-	public final static PlaybackInfoDTO EMPTY = new PlaybackInfoDTO();
+	public static final PlaybackInfoDTO EMPTY = new PlaybackInfoDTO(Type.EMTPY);
+	public static final PlaybackInfoDTO HEARTBEAT = new PlaybackInfoDTO(Type.HEARTBEAT);
+	public static final PlaybackInfoDTO IDLE = new PlaybackInfoDTO(Type.IDLE);
+	
+	enum Type {
+		EMTPY,
+		HEARTBEAT,
+		IDLE,
+		DATA
+	}
 
+	private Type type;
 	private Boolean paused;
 	private Boolean shuffle;
 	private String repeat;
@@ -27,8 +37,13 @@ public class PlaybackInfoDTO {
 
 	protected PlaybackInfoDTO() {
 	}
+	
+	protected PlaybackInfoDTO(Type type) {
+		this.type = type;
+	}
 
 	private PlaybackInfoDTO(Builder builder) {
+		this.type = Type.DATA;
 		this.paused = builder.paused;
 		this.shuffle = builder.shuffle;
 		this.repeat = builder.repeat;
@@ -46,12 +61,20 @@ public class PlaybackInfoDTO {
 	public static PlaybackInfoDTO.Builder builder() {
 		return new Builder();
 	}
-
+	
 	@JsonIgnore
 	public boolean isEmpty() {
-		return this.equals(EMPTY);
+		return getType().equals(Type.EMTPY);
+	}
+	
+	public Type getType() {
+		return type;
 	}
 
+	public void setType(Type type) {
+		this.type = type;
+	}
+	
 	public Boolean isPaused() {
 		return paused;
 	}
@@ -148,97 +171,6 @@ public class PlaybackInfoDTO {
 		this.timeTotal = timeTotal;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((album == null) ? 0 : album.hashCode());
-		result = prime * result + ((artist == null) ? 0 : artist.hashCode());
-		result = prime * result + ((device == null) ? 0 : device.hashCode());
-		result = prime * result + ((image == null) ? 0 : image.hashCode());
-		result = prime * result + ((paused == null) ? 0 : paused.hashCode());
-		result = prime * result + ((playlist == null) ? 0 : playlist.hashCode());
-		result = prime * result + ((release == null) ? 0 : release.hashCode());
-		result = prime * result + ((repeat == null) ? 0 : repeat.hashCode());
-		result = prime * result + ((shuffle == null) ? 0 : shuffle.hashCode());
-		result = prime * result + ((timeCurrent == null) ? 0 : timeCurrent.hashCode());
-		result = prime * result + ((timeTotal == null) ? 0 : timeTotal.hashCode());
-		result = prime * result + ((title == null) ? 0 : title.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PlaybackInfoDTO other = (PlaybackInfoDTO) obj;
-		if (album == null) {
-			if (other.album != null)
-				return false;
-		} else if (!album.equals(other.album))
-			return false;
-		if (artist == null) {
-			if (other.artist != null)
-				return false;
-		} else if (!artist.equals(other.artist))
-			return false;
-		if (device == null) {
-			if (other.device != null)
-				return false;
-		} else if (!device.equals(other.device))
-			return false;
-		if (image == null) {
-			if (other.image != null)
-				return false;
-		} else if (!image.equals(other.image))
-			return false;
-		if (paused == null) {
-			if (other.paused != null)
-				return false;
-		} else if (!paused.equals(other.paused))
-			return false;
-		if (playlist == null) {
-			if (other.playlist != null)
-				return false;
-		} else if (!playlist.equals(other.playlist))
-			return false;
-		if (release == null) {
-			if (other.release != null)
-				return false;
-		} else if (!release.equals(other.release))
-			return false;
-		if (repeat == null) {
-			if (other.repeat != null)
-				return false;
-		} else if (!repeat.equals(other.repeat))
-			return false;
-		if (shuffle == null) {
-			if (other.shuffle != null)
-				return false;
-		} else if (!shuffle.equals(other.shuffle))
-			return false;
-		if (timeCurrent == null) {
-			if (other.timeCurrent != null)
-				return false;
-		} else if (!timeCurrent.equals(other.timeCurrent))
-			return false;
-		if (timeTotal == null) {
-			if (other.timeTotal != null)
-				return false;
-		} else if (!timeTotal.equals(other.timeTotal))
-			return false;
-		if (title == null) {
-			if (other.title != null)
-				return false;
-		} else if (!title.equals(other.title))
-			return false;
-		return true;
-	}
-
 	public static class Builder {
 		private Boolean paused;
 		private Boolean shuffle;
@@ -252,7 +184,7 @@ public class PlaybackInfoDTO {
 		private String image;
 		private Integer timeCurrent;
 		private Integer timeTotal;
-
+		
 		public Builder paused(Boolean paused) {
 			this.paused = paused;
 			return Builder.this;
