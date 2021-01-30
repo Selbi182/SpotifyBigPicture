@@ -13,7 +13,7 @@ const RETRY_TIMEOUT_MS = 5 * 1000;
 window.addEventListener('load', init);
 
 function init() {
-	console.log("Init");	
+	console.info("Init");	
 	singleRequest();	
 	closeFlux();
 	startFlux();	
@@ -198,12 +198,20 @@ function changeImage(newImage) {
 	if (!oldImg.includes(newImage)) {
 		clearTimeout(newImageFadeIn);
 		preloadImg = new Image();
+		preloadImg.crossOrigin = "Anonymous";
 		preloadImg.onload = () => {
 			newImageFadeIn = setTimeout(() => {
+				setArtworkOpacity("1");
+				
 				let img = makeUrl(preloadImg.src);
-        		document.getElementById("artwork-img").style.backgroundImage = img;        		
-            	document.getElementById("background-img").style.background = makeUrl(DEFAULT_BACKGROUND) + ", " + img;
-        		setArtworkOpacity("1");
+				document.getElementById("artwork-img").style.backgroundImage = img;
+				
+				let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
+				if (!img.includes(DEFAULT_IMAGE)) {
+					let dominantColor = getDominantImageColor(preloadImg);
+					backgroundUrl += `, rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, ${dominantColor[3]}) ${img}`;
+				}
+				document.getElementById("background-img").style.background = backgroundUrl;					
 			}, setImageTransitionMs);
 		}
 		preloadImg.src = newImage;
@@ -232,6 +240,62 @@ function extractUrl(url) {
 
 function makeUrl(url) {
     return "url(" + url + ")";
+}
+
+
+var colorThief;
+window.addEventListener('load', () => {
+	colorThief = new ColorThief();	
+});
+
+const PALETTE_SAMPLE_SIZE = 6;
+const OVERLAY_MIN_ALPHA = 0.1;
+const OVERLAY_MAX_ALPHA = 0.9;
+function getDominantImageColor(img) {
+	try {
+		if (colorThief) {
+			let palette = colorThief.getPalette(img, PALETTE_SAMPLE_SIZE);
+			
+			let dominant;
+			let prevColorfulness = 0;
+			let avgColorfulness = 0;
+			for (let color of palette) {
+				let currentColorfulness = colorfulness(color[0], color[1], color[2]);
+				avgColorfulness += currentColorfulness;
+				if (currentColorfulness >= prevColorfulness) {
+					dominant = color;
+					prevColorfulness = currentColorfulness;
+				}
+			}
+			
+			if (dominant) {
+				let r = dominant[0];
+				let g = dominant[1];
+				let b = dominant[2];
+				
+				// Basically, the more colorful the picture as a whole is,
+				// the more visible the overlay will be
+				console.log(avgColorfulness);
+				let tmpAlpha = 2 * (avgColorfulness / palette.length);
+				let alpha = Math.max(OVERLAY_MIN_ALPHA, Math.min(OVERLAY_MAX_ALPHA, tmpAlpha));
+				
+				return [r, g, b, alpha];
+			}			
+		}
+		throw "Found no dominant color";
+	} catch (ex) {
+		console.error(ex);
+		return [0, 0, 0, OVERLAY_MIN_ALPHA];
+	}
+}
+
+function colorfulness(r, g, b) {
+	// Rough implementation of Colorfulness Index defined by Hasler and Suesstrunk
+	// -> https://infoscience.epfl.ch/record/33994/files/HaslerS03.pdf (p. 5+6)
+	let rg = Math.abs(r - g);
+	let yb = Math.abs((0.5 * (r + g)) - b);
+	let meanRoot = Math.sqrt(Math.pow(rg, 2) + Math.pow(yb, 2));	
+	return meanRoot / 255;
 }
 
 

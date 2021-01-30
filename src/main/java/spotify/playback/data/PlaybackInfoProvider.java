@@ -1,5 +1,7 @@
 package spotify.playback.data;
 
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,60 +58,60 @@ public class PlaybackInfoProvider {
 	private PlaybackInfoDTO findInfoDifferencesAndUpdateCurrent(PlaybackInfoDTO current) {
 		PlaybackInfoDTO differences = new PlaybackInfoDTO(Type.EMTPY);
 
-		if (previous.getImage() == null || !previous.getImage().equals(current.getImage())) {
+		if (!Objects.equals(previous.getImage(), current.getImage())) { // (previous.getImage() == null && current.getImage() != null) || !previous.getImage().equals(current.getImage())) {
 			differences.setType(Type.DATA);
 			differences.setImage(current.getImage());
 			this.previous.setImage(current.getImage());
 		}
 		
-		if (!previous.getTitle().equals(current.getTitle())) {
+		if (!Objects.equals(previous.getTitle(), current.getTitle())) {
 			differences.setType(Type.DATA);
 			differences.setTitle(current.getTitle());
 			this.previous.setTitle(current.getTitle());
 		}
-		if (!previous.getArtist().equals(current.getArtist())) {
+		if (!Objects.equals(previous.getArtist(), current.getArtist())) {
 			differences.setType(Type.DATA);
 			differences.setArtist(current.getArtist());
 			this.previous.setArtist(current.getArtist());
 		}
-		if (!previous.getAlbum().equals(current.getAlbum())) {
+		if (!Objects.equals(previous.getAlbum(), current.getAlbum())) {
 			differences.setType(Type.DATA);
 			differences.setAlbum(current.getAlbum());
 			this.previous.setAlbum(current.getAlbum());
 		}
-		if (!previous.getRelease().equals(current.getRelease())) {
+		if (!Objects.equals(previous.getRelease(), current.getRelease())) {
 			differences.setType(Type.DATA);
 			differences.setRelease(current.getRelease());
 			this.previous.setRelease(current.getRelease());
 		}
 
-		if (!previous.getPlaylist().equals(current.getPlaylist())) {
+		if (!Objects.equals(previous.getPlaylist(), current.getPlaylist())) {
 			differences.setType(Type.DATA);
 			differences.setPlaylist(current.getPlaylist());
 			this.previous.setPlaylist(current.getPlaylist());
 		}
-		if (!previous.getDevice().equals(current.getDevice())) {
+		if (!Objects.equals(previous.getDevice(), current.getDevice())) {
 			differences.setType(Type.DATA);
 			differences.setDevice(current.getDevice());
 			this.previous.setDevice(current.getDevice());
 		}
-		if (!previous.getVolume().equals(current.getVolume())) {
+		if (!Objects.equals(previous.getVolume(), current.getVolume())) {
 			differences.setType(Type.DATA);
 			differences.setVolume(current.getVolume());
 			this.previous.setVolume(current.getVolume());
 		}
 
-		if (!previous.isPaused().equals(current.isPaused())) {
+		if (!Objects.equals(previous.isPaused(), current.isPaused())) {
 			differences.setType(Type.DATA);
 			differences.setPaused(current.isPaused());
 			this.previous.setPaused(current.isPaused());
 		}
-		if (!previous.isShuffle().equals(current.isShuffle())) {
+		if (!Objects.equals(previous.isShuffle(), current.isShuffle())) {
 			differences.setType(Type.DATA);
 			differences.setShuffle(current.isShuffle());
 			this.previous.setShuffle(current.isShuffle());
 		}
-		if (!previous.getRepeat().equals(current.getRepeat())) {
+		if (!Objects.equals(previous.getRepeat(), current.getRepeat())) {
 			differences.setType(Type.DATA);
 			differences.setRepeat(current.getRepeat());
 			this.previous.setRepeat(current.getRepeat());
@@ -121,7 +123,7 @@ public class PlaybackInfoProvider {
 		}
 		this.previous.setTimeCurrent(current.getTimeCurrent()); // always update
 
-		if (!previous.getTimeTotal().equals(current.getTimeTotal())) {
+		if (!Objects.equals(previous.getTimeTotal(), current.getTimeTotal())) {
 			differences.setType(Type.DATA);
 			differences.setTimeTotal(current.getTimeTotal());
 			this.previous.setTimeTotal(current.getTimeTotal());
