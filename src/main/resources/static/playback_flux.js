@@ -90,8 +90,11 @@ var heartbeatTimeout;
 function createHeartbeatTimeout() {
 	clearTimeout(heartbeatTimeout);
 	heartbeatTimeout = setTimeout(() => {
-		console.error("Heartbeat timeout");
-		setIdle();
+		console.error("Heartbeat timeout")
+		
+		// Commented out to pretend the song is still playing, it usually reconnects after a few seconds anyway
+		// setIdle();
+		
 		init();
 	}, HEARTBEAT_TIMEOUT_MS);
 }
@@ -131,6 +134,9 @@ function setDisplayData(changes) {
 	}
 	
 	// Time
+	if ('paused' in changes) {
+	    showHide(document.getElementById("pause"), changes.paused);
+	}
 	if ('timeCurrent' in changes || 'timeTotal' in changes) {
   		updateProgress(changes);
 	}	
@@ -151,13 +157,9 @@ function setDisplayData(changes) {
 	
 	// Image
 	if ('image' in changes) {
-		changeImage(changes.image, changes.paused);
+		changeImage(changes.image);
 	} else if ('release' in changes && changes.release == "LOCAL") {
-		changeImage(DEFAULT_IMAGE, changes.paused);
-	}
-	if ('paused' in changes) {
-		let artwork = document.getElementById("artwork-img");
-		displayPaused(artwork, artwork.style.backgroundImage, changes.paused);
+		changeImage(DEFAULT_IMAGE);
 	}
 }
 
@@ -187,7 +189,6 @@ var setImageTransitionMs = IMAGE_TRANSITION_MS;
 
 const DEFAULT_IMAGE = 'img/idle.png';
 const DEFAULT_BACKGROUND = 'img/gradient.png';
-const PAUSE_OVERLAY = 'img/symbols/pause.png';
 
 var preloadImg;
 var newImageFadeIn;
@@ -200,23 +201,13 @@ function changeImage(newImage) {
 		preloadImg.onload = () => {
 			newImageFadeIn = setTimeout(() => {
 				let img = makeUrl(preloadImg.src);
-        		document.getElementById("artwork-img").style.backgroundImage = displayPaused(document.getElementById("artwork-img"), img, currentData.paused);        		
+        		document.getElementById("artwork-img").style.backgroundImage = img;        		
             	document.getElementById("background-img").style.background = makeUrl(DEFAULT_BACKGROUND) + ", " + img;
         		setArtworkOpacity("1");
 			}, setImageTransitionMs);
 		}
 		preloadImg.src = newImage;
 		setArtworkOpacity("0");
-	}
-}
-
-function displayPaused(elem, img, paused) {
-	if (paused) {
-		if (!elem.style.backgroundImage.includes(PAUSE_OVERLAY)) {
-			elem.style.backgroundImage = makeUrl(PAUSE_OVERLAY) + ", " + img;
-		}
-	} else {
-		elem.style.backgroundImage = img.split(",").slice(-1)[0].trim();
 	}
 }
 
@@ -266,16 +257,18 @@ function formatTime(current, total) {
 	let currentHMS = calcHMS(current);
 	let totalHMS = calcHMS(total);
 	
-	let formattedCurrent, formattedTotal;
-	if (totalHMS.hours > 0) {
-		formattedCurrent = `${currentHMS.hours}:${pad2(currentHMS.minutes)}:${pad2(currentHMS.seconds)}`;
-		formattedTotal   = `${totalHMS.hours}:${pad2(totalHMS.minutes)}:${pad2(totalHMS.seconds)}`;
-	} else if (totalHMS.minutes >= 10) {
-		formattedCurrent = `${pad2(currentHMS.minutes)}:${pad2(currentHMS.seconds)}`;
-		formattedTotal   = `${pad2(totalHMS.minutes)}:${pad2(totalHMS.seconds)}`;
+	let formattedCurrent = `${pad2(currentHMS.seconds)}`;
+    let formattedTotal   = `${pad2(totalHMS.seconds)}`;
+	if (totalHMS.minutes >= 10) {
+		formattedCurrent = `${pad2(currentHMS.minutes)}:${formattedCurrent}`;
+		formattedTotal   = `${pad2(totalHMS.minutes)}:${formattedTotal}`;
+		if (totalHMS.hours > 0) {
+			formattedCurrent = `${currentHMS.hours}:${formattedCurrent}`;
+			formattedTotal   = `${totalHMS.hours}:${formattedTotal}`;
+		}
 	} else {
-		formattedCurrent = `${currentHMS.minutes}:${pad2(currentHMS.seconds)}`;
-		formattedTotal   = `${totalHMS.minutes}:${pad2(totalHMS.seconds)}`;
+		formattedCurrent = `${currentHMS.minutes}:${formattedCurrent}`;
+		formattedTotal   = `${totalHMS.minutes}:${formattedTotal}`;
 	}
 	
 	return {
@@ -330,27 +323,30 @@ function advanceProgressBar() {
 }
 
 function setIdle()  {
-	this.idle = true;
-	clearTimers();
-
-    let idleDisplayData = {
-    	title: "&nbsp;",
-    	artist: "&nbsp;",
-    	album: "&nbsp;",
-    	release: "",
-    	
-    	playlist: "&nbsp;",
-    	device: "&nbsp;",
-    	
-		pause: true,
-    	shuffle: false,
-    	repeat: null,
-    	
-    	timeCurrent: 0,
-    	timeTotal: 1, // to avoid NaN
-    	
-    	image: DEFAULT_IMAGE
-    };
-
-    setDisplayData(idleDisplayData);
+	if (!idle) {
+		this.idle = true;
+		clearTimers();
+		
+		let idleDisplayData = {
+				type: "IDLE",
+				
+				title: "&nbsp;",
+				artist: "&nbsp;",
+				album: "&nbsp;",
+				release: "",
+				
+				playlist: "&nbsp;",
+				device: "&nbsp;",
+				
+				pause: true,
+				shuffle: false,
+				repeat: null,
+				
+				timeCurrent: 0,
+				timeTotal: 0, // to avoid NaN
+				
+				image: DEFAULT_IMAGE
+		};
+	    setDisplayData(idleDisplayData);
+	}
 }

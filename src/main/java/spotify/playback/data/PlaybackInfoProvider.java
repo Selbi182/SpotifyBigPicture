@@ -46,10 +46,10 @@ public class PlaybackInfoProvider {
 					return changedInfos;
 				}
 			}
-			return PlaybackInfoDTO.EMPTY;
+			return PlaybackInfoDTO.IDLE;
 		} catch (SpotifyWebApiException e) {
 			e.printStackTrace();
-			return PlaybackInfoDTO.IDLE;
+			return PlaybackInfoDTO.EMPTY;
 		}
 	}
 
