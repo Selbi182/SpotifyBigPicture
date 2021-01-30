@@ -13,24 +13,25 @@ const RETRY_TIMEOUT_MS = 5 * 1000;
 window.addEventListener('load', init);
 
 function init() {
-	console.info("Init");	
-	singleRequest();	
+	console.info("Init");
+	singleRequest();
 	closeFlux();
-	startFlux();	
+	startFlux();
 	createHeartbeatTimeout();
 }
 
 function singleRequest() {
 	fetch(FULL_INFO_URL)
-		 .then(response => response.json())
-		 .then(json => processJson(json))
-	     .catch(ex => {
-	    	console.error("Single request", ex);
+		.then(response => response.json())
+		.then(json => processJson(json))
+		.catch(ex => {
+			console.error("Single request", ex);
 			setTimeout(singleRequest, RETRY_TIMEOUT_MS);
-	     });
+		});
 }
 
 var flux;
+
 function startFlux() {
 	setTimeout(() => {
 		try {
@@ -45,7 +46,7 @@ function startFlux() {
 					} else {
 						let data = event.data;
 						let json = JSON.parse(data);
-						processJson(json);					
+						processJson(json);
 					}
 				} catch (ex) {
 					console.error("Flux onmessage", ex);
@@ -87,14 +88,15 @@ function processJson(json) {
 
 const HEARTBEAT_TIMEOUT_MS = 60 * 1000;
 var heartbeatTimeout;
+
 function createHeartbeatTimeout() {
 	clearTimeout(heartbeatTimeout);
 	heartbeatTimeout = setTimeout(() => {
 		console.error("Heartbeat timeout")
-		
+
 		// Commented out to pretend the song is still playing, it usually reconnects after a few seconds anyway
 		// setIdle();
-		
+
 		init();
 	}, HEARTBEAT_TIMEOUT_MS);
 }
@@ -105,13 +107,13 @@ function createHeartbeatTimeout() {
 
 function setDisplayData(changes) {
 	console.debug(changes);
-	
+
 	// Main Info
 	if ('title' in changes) {
-	    document.getElementById("title").innerHTML = changes.title;
+		document.getElementById("title").innerHTML = changes.title;
 	}
 	if ('artist' in changes) {
-	    document.getElementById("artist").innerHTML = changes.artist;
+		document.getElementById("artist").innerHTML = changes.artist;
 	}
 	if ('album' in changes || 'release' in changes) {
 		let album = 'album' in changes ? changes.album : currentData.album;
@@ -119,42 +121,42 @@ function setDisplayData(changes) {
 		if (release && release.length > 0) {
 			release = "(" + release + ")";
 		}
-	    document.getElementById("album").innerHTML = album + " " + release;
+		document.getElementById("album").innerHTML = album + " " + release;
 	}
-	
+
 	// Meta Info
 	if ('playlist' in changes) {
 		document.getElementById("playlist").innerHTML = changes.playlist;
 	}
 	if ('device' in changes) {
-	    document.getElementById("device").innerHTML = changes.device;
+		document.getElementById("device").innerHTML = changes.device;
 	}
 	if ('volume' in changes) {
 		updateVolume(changes.volume);
 	}
-	
+
 	// Time
 	if ('paused' in changes) {
-	    showHide(document.getElementById("pause"), changes.paused);
+		showHide(document.getElementById("pause"), changes.paused);
 	}
 	if ('timeCurrent' in changes || 'timeTotal' in changes) {
-  		updateProgress(changes);
-	}	
-	
+		updateProgress(changes);
+	}
+
 	// States
 	if ('shuffle' in changes) {
-	    showHide(document.getElementById("shuffle"), changes.shuffle);
+		showHide(document.getElementById("shuffle"), changes.shuffle);
 	}
 	if ('repeat' in changes) {
 		let repeat = document.getElementById("repeat");
-	    showHide(repeat, changes.repeat != "off");
-	    if (changes.repeat == "track") {
-	    	repeat.classList.add("once");
-        } else {
-        	repeat.classList.remove("once");
-        }
+		showHide(repeat, changes.repeat != "off");
+		if (changes.repeat == "track") {
+			repeat.classList.add("once");
+		} else {
+			repeat.classList.remove("once");
+		}
 	}
-	
+
 	// Image
 	if ('image' in changes) {
 		changeImage(changes.image);
@@ -164,22 +166,23 @@ function setDisplayData(changes) {
 }
 
 function showHide(elem, show) {
-    if (show) {
-        elem.classList.remove("hidden");
-    } else {
-        elem.classList.add("hidden");
-    }
+	if (show) {
+		elem.classList.remove("hidden");
+	} else {
+		elem.classList.add("hidden");
+	}
 }
 
 const HIDE_VOLUME_TIMEOUT_MS = 3 * 1000;
 var volumeTimeout;
+
 function updateVolume(volume) {
 	if (volume != null && volume !== currentData.volume) {
 		let volumeBox = document.getElementById("volume");
 		showHide(volumeBox, true);
 		clearTimeout(volumeTimeout);
 		volumeTimeout = setTimeout(() => showHide(volumeBox, false), HIDE_VOLUME_TIMEOUT_MS);
-		
+
 		document.getElementById("volume-current").style.height = volume + "%";
 	}
 }
@@ -202,16 +205,16 @@ function changeImage(newImage) {
 		preloadImg.onload = () => {
 			newImageFadeIn = setTimeout(() => {
 				setArtworkOpacity("1");
-				
+
 				let img = makeUrl(preloadImg.src);
 				document.getElementById("artwork-img").style.backgroundImage = img;
-				
+
 				let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
 				if (!img.includes(DEFAULT_IMAGE)) {
 					let dominantColor = getDominantImageColor(preloadImg);
 					backgroundUrl += `, rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, ${dominantColor[3]}) ${img}`;
 				}
-				document.getElementById("background-img").style.background = backgroundUrl;					
+				document.getElementById("background-img").style.background = backgroundUrl;
 			}, setImageTransitionMs);
 		}
 		preloadImg.src = newImage;
@@ -220,6 +223,7 @@ function changeImage(newImage) {
 }
 
 window.addEventListener('load', setLiteMode);
+
 function setLiteMode() {
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.get("lite") != null) {
@@ -239,23 +243,24 @@ function extractUrl(url) {
 }
 
 function makeUrl(url) {
-    return "url(" + url + ")";
+	return "url(" + url + ")";
 }
 
 
 var colorThief;
 window.addEventListener('load', () => {
-	colorThief = new ColorThief();	
+	colorThief = new ColorThief();
 });
 
 const PALETTE_SAMPLE_SIZE = 6;
 const OVERLAY_MIN_ALPHA = 0.1;
 const OVERLAY_MAX_ALPHA = 0.9;
+
 function getDominantImageColor(img) {
 	try {
 		if (colorThief) {
 			let palette = colorThief.getPalette(img, PALETTE_SAMPLE_SIZE);
-			
+
 			let dominant;
 			let prevColorfulness = 0;
 			let avgColorfulness = 0;
@@ -267,20 +272,19 @@ function getDominantImageColor(img) {
 					prevColorfulness = currentColorfulness;
 				}
 			}
-			
+
 			if (dominant) {
 				let r = dominant[0];
 				let g = dominant[1];
 				let b = dominant[2];
-				
+
 				// Basically, the more colorful the picture as a whole is,
 				// the more visible the overlay will be
-				console.log(avgColorfulness);
 				let tmpAlpha = 2 * (avgColorfulness / palette.length);
 				let alpha = Math.max(OVERLAY_MIN_ALPHA, Math.min(OVERLAY_MAX_ALPHA, tmpAlpha));
-				
+
 				return [r, g, b, alpha];
-			}			
+			}
 		}
 		throw "Found no dominant color";
 	} catch (ex) {
@@ -294,7 +298,7 @@ function colorfulness(r, g, b) {
 	// -> https://infoscience.epfl.ch/record/33994/files/HaslerS03.pdf (p. 5+6)
 	let rg = Math.abs(r - g);
 	let yb = Math.abs((0.5 * (r + g)) - b);
-	let meanRoot = Math.sqrt(Math.pow(rg, 2) + Math.pow(yb, 2));	
+	let meanRoot = Math.sqrt(Math.pow(rg, 2) + Math.pow(yb, 2));
 	return meanRoot / 255;
 }
 
@@ -306,35 +310,35 @@ function colorfulness(r, g, b) {
 function updateProgress(changes) {
 	let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
 	let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
-	
+
 	let formattedTime = formatTime(current, total)
 	let formattedCurrentTime = formattedTime.current;
 	let formattedTotalTime = formattedTime.total;
-	
+
 	document.getElementById("time-current").innerHTML = formattedCurrentTime;
 	document.getElementById("time-total").innerHTML = formattedTotalTime;
-	
+
 	document.getElementById("progress-current").style.width = Math.min(100, ((current / total) * 100)) + "%";
 }
 
 function formatTime(current, total) {
 	let currentHMS = calcHMS(current);
 	let totalHMS = calcHMS(total);
-	
+
 	let formattedCurrent = `${pad2(currentHMS.seconds)}`;
-    let formattedTotal   = `${pad2(totalHMS.seconds)}`;
+	let formattedTotal = `${pad2(totalHMS.seconds)}`;
 	if (totalHMS.minutes >= 10) {
 		formattedCurrent = `${pad2(currentHMS.minutes)}:${formattedCurrent}`;
-		formattedTotal   = `${pad2(totalHMS.minutes)}:${formattedTotal}`;
+		formattedTotal = `${pad2(totalHMS.minutes)}:${formattedTotal}`;
 		if (totalHMS.hours > 0) {
 			formattedCurrent = `${currentHMS.hours}:${formattedCurrent}`;
-			formattedTotal   = `${totalHMS.hours}:${formattedTotal}`;
+			formattedTotal = `${totalHMS.hours}:${formattedTotal}`;
 		}
 	} else {
 		formattedCurrent = `${currentHMS.minutes}:${formattedCurrent}`;
-		formattedTotal   = `${totalHMS.minutes}:${formattedTotal}`;
+		formattedTotal = `${totalHMS.minutes}:${formattedTotal}`;
 	}
-	
+
 	return {
 		current: formattedCurrent,
 		total: formattedTotal
@@ -386,31 +390,31 @@ function advanceProgressBar() {
 	}
 }
 
-function setIdle()  {
+function setIdle() {
 	if (!idle) {
 		this.idle = true;
 		clearTimers();
-		
+
 		let idleDisplayData = {
-				type: "IDLE",
-				
-				title: "&nbsp;",
-				artist: "&nbsp;",
-				album: "&nbsp;",
-				release: "",
-				
-				playlist: "&nbsp;",
-				device: "&nbsp;",
-				
-				pause: true,
-				shuffle: false,
-				repeat: null,
-				
-				timeCurrent: 0,
-				timeTotal: 0, // to avoid NaN
-				
-				image: DEFAULT_IMAGE
+			type: "IDLE",
+
+			title: "&nbsp;",
+			artist: "&nbsp;",
+			album: "&nbsp;",
+			release: "",
+
+			playlist: "&nbsp;",
+			device: "&nbsp;",
+
+			pause: true,
+			shuffle: false,
+			repeat: null,
+
+			timeCurrent: 0,
+			timeTotal: 0, // to avoid NaN
+
+			image: DEFAULT_IMAGE
 		};
-	    setDisplayData(idleDisplayData);
+		setDisplayData(idleDisplayData);
 	}
 }
