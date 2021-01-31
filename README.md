@@ -32,7 +32,8 @@ The display will automatically enter an idle mode if no Spotify device has been 
 
 ### Smooth Transitions
 
-![Transitions](https://s2.gifyu.com/images/playback-fading.md.gif)
+![Transitions](https://s2.gifyu.com/images/playback-fading.gif)
+(If the GIF doesn't play, [click here](https://s2.gifyu.com/images/playback-fading.gif))
 
 Smoothly fadeout and in from one song's artwork to the next!
 
