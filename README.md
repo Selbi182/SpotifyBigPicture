@@ -26,14 +26,13 @@ An interface that regularily checks for your current playback status on Spotify 
 
 ### Idle Mode
 
-The display will automatically enter an idle mode if no Spotify device has been playing music for a while.
-
 ![Idle Mode](https://i.imgur.com/js9NlQk.png)
+
+The display will automatically enter an idle mode if no Spotify device has been playing music for a while.
 
 ### Smooth Transitions
 
-![Transitions](https://s2.gifyu.com/images/playback-fading.gif)
-(If the GIF doesn't play, [click here](https://s2.gifyu.com/images/playback-fading.gif))
+![Transitions](https://s2.gifyu.com/images/playback-fading40aaa708d859e2ff.gif)
 
 Smoothly fadeout and in from one song's artwork to the next!
 
