@@ -1,6 +1,8 @@
 # Spotify Playback Info
 
-An interface that checks for your current playback status on Spotify and displays the information in a beautiful little browser page. Best used in full-screen, such as on a TV!
+An interface that checks for your current playback status on Spotify and displays the information in a beautiful little browser page.
+
+You might want to use this over [Spotify's own (rather underwhelming) full-screen mode](https://i.imgur.com/dvreOAX.jpg), or you can use it for your TV/media-streamer to give [that outdated, low-resolution OSD](https://i.imgur.com/lNfCcrW.jpg) a fresh paintjob!
 
 ## Some Examples
 
