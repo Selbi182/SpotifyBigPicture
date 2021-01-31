@@ -10,8 +10,8 @@
 }
 
 @font-face {
-	font-family: gotham;
-	src: url(Gotham Medium Regular.ttf);
+	font-family: "Gotham";
+	src: url("Gotham Medium Regular.ttf");
 }
 
 html, body {
@@ -19,7 +19,7 @@ html, body {
 	overflow: hidden;
 	background: black;
 	color: var(--color-primary);
-	font-family: "Gotham Medium", gotham, sans-serif;
+	font-family: "Gotham", sans-serif;
 	width: 100%;
 	height: 100%;
 	text-shadow: 4px 4px 8px black;
@@ -31,6 +31,9 @@ html, body {
 	--color-quaternary: rgba(64, 64, 64, 0.2);
 }
 
+* {
+	/* border: 1px solid blue; */
+}
 
 /* BACKGROUND */
 
@@ -209,17 +212,6 @@ html, body {
 	order: 3;
 }
 
-#pause {
-	background: url("img/symbols/pause.png");
-	margin-right: 1em;
-	height: 100%;
-	background-size: contain !important;
-	background-repeat: no-repeat !important;
-	background-position: center center !important;
-	width: 4vh;
-	opacity: 0.9;
-}
-
 #time {
 	flex-direction: row;
 	width: 100%;
@@ -256,6 +248,12 @@ html, body {
 
 #info-symbols > #shuffle {
 	background: url("img/symbols/shuffle.png");
+}
+
+
+#info-symbols > #pause {
+	background: url("img/symbols/pause.png");
+	opacity: 0.9;
 }
 
 #info-symbols > #repeat {

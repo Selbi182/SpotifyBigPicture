@@ -2,8 +2,5 @@
 = TODO =
 ========
 
-Design:
-- Accurate autotimer using system time
-
 Stability:
 - Reconnecting the Flux still doesn't work properly on the Raspi...

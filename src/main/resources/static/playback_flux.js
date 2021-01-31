@@ -136,20 +136,22 @@ function setDisplayData(changes) {
 	}
 
 	// Time
-	if ('paused' in changes) {
-		showHide(document.getElementById("pause"), changes.paused);
-	}
 	if ('timeCurrent' in changes || 'timeTotal' in changes) {
 		updateProgress(changes);
 	}
 
 	// States
-	if ('shuffle' in changes) {
-		showHide(document.getElementById("shuffle"), changes.shuffle);
+	if ('paused' in changes || 'shuffle' in changes || 'repeat' in changes) {
+		let paused = changes.paused != null ? changes.paused : currentData.paused;
+		let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
+		let repeat = changes.repeat != null ? changes.repeat : currentData.repeat;
+
+		showHide(document.getElementById("pause"), paused, paused);
+		showHide(document.getElementById("shuffle"), shuffle, paused);
+		showHide(document.getElementById("repeat"), repeat != "off", paused);
 	}
 	if ('repeat' in changes) {
 		let repeat = document.getElementById("repeat");
-		showHide(repeat, changes.repeat != "off");
 		if (changes.repeat == "track") {
 			repeat.classList.add("once");
 		} else {
@@ -165,11 +167,18 @@ function setDisplayData(changes) {
 	}
 }
 
-function showHide(elem, show) {
+function showHide(elem, show, useInvisibility) {
 	if (show) {
+		elem.classList.remove("invisible");
 		elem.classList.remove("hidden");
 	} else {
-		elem.classList.add("hidden");
+		if (useInvisibility) {
+			elem.classList.add("invisible");
+			elem.classList.remove("hidden");
+		} else {
+			elem.classList.add("hidden");
+			elem.classList.remove("invisible");
+		}
 	}
 }
 
@@ -201,20 +210,26 @@ function changeImage(newImage) {
 	if (!oldImg.includes(newImage)) {
 		clearTimeout(newImageFadeIn);
 		preloadImg = new Image();
-		preloadImg.crossOrigin = "Anonymous";
+		if (!liteMode) {
+			preloadImg.crossOrigin = "Anonymous";
+		}
 		preloadImg.onload = () => {
 			newImageFadeIn = setTimeout(() => {
-				setArtworkOpacity("1");
-
 				let img = makeUrl(preloadImg.src);
 				document.getElementById("artwork-img").style.backgroundImage = img;
 
 				let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
 				if (!img.includes(DEFAULT_IMAGE)) {
-					let dominantColor = getDominantImageColor(preloadImg);
-					backgroundUrl += `, rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, ${dominantColor[3]}) ${img}`;
+					if (liteMode) {
+						backgroundUrl += `, ${img}`;
+					} else {
+						let dominantColor = getDominantImageColor(preloadImg);
+						backgroundUrl += `, rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, ${dominantColor[3]}) ${img}`;
+					}
 				}
 				document.getElementById("background-img").style.background = backgroundUrl;
+
+				setArtworkOpacity("1");
 			}, setImageTransitionMs);
 		}
 		preloadImg.src = newImage;
@@ -223,10 +238,11 @@ function changeImage(newImage) {
 }
 
 window.addEventListener('load', setLiteMode);
-
+var liteMode = false;
 function setLiteMode() {
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.get("lite") != null) {
+		liteMode = true;
 		document.getElementById("artwork-img").style.transition = "unset";
 		document.getElementById("background-img").style.transition = "unset";
 		setImageTransitionMs = 0;
@@ -263,10 +279,8 @@ function getDominantImageColor(img) {
 
 			let dominant;
 			let prevColorfulness = 0;
-			let avgColorfulness = 0;
 			for (let color of palette) {
 				let currentColorfulness = colorfulness(color[0], color[1], color[2]);
-				avgColorfulness += currentColorfulness;
 				if (currentColorfulness >= prevColorfulness) {
 					dominant = color;
 					prevColorfulness = currentColorfulness;
@@ -278,9 +292,9 @@ function getDominantImageColor(img) {
 				let g = dominant[1];
 				let b = dominant[2];
 
-				// Basically, the more colorful the picture as a whole is,
+				// Basically, the more colorful the result color is,
 				// the more visible the overlay will be
-				let tmpAlpha = 2 * (avgColorfulness / palette.length);
+				let tmpAlpha = Math.sin(prevColorfulness * (Math.PI / 2));
 				let alpha = Math.max(OVERLAY_MIN_ALPHA, Math.min(OVERLAY_MAX_ALPHA, tmpAlpha));
 
 				return [r, g, b, alpha];
@@ -318,7 +332,11 @@ function updateProgress(changes) {
 	document.getElementById("time-current").innerHTML = formattedCurrentTime;
 	document.getElementById("time-total").innerHTML = formattedTotalTime;
 
-	document.getElementById("progress-current").style.width = Math.min(100, ((current / total) * 100)) + "%";
+	let progressPercent = Math.min(1, ((current / total))) * 100;
+	if (isNaN(progressPercent)) {
+		progressPercent = 0;
+	}
+	document.getElementById("progress-current").style.width = progressPercent + "%";
 }
 
 function formatTime(current, total) {
@@ -346,9 +364,9 @@ function formatTime(current, total) {
 }
 
 function calcHMS(ms) {
-	let s = Math.floor(ms / 1000) % 60;
-	let m = Math.floor((Math.floor(ms / 1000)) / 60) % 60;
-	let h = Math.floor((Math.floor((Math.floor(ms / 1000)) / 60)) / 60);
+	let s = Math.round(ms / 1000) % 60;
+	let m = Math.floor((Math.round(ms / 1000)) / 60) % 60;
+	let h = Math.floor((Math.floor((Math.round(ms / 1000)) / 60)) / 60);
 	return {
 		hours: h,
 		minutes: m,
@@ -365,7 +383,7 @@ function pad2(time) {
 // TIMERS
 ///////////////////////////////
 
-const PROGRESS_BAR_UPDATE_MS = 250;
+const PROGRESS_BAR_UPDATE_MS = 200;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 
 var autoTimer;
@@ -373,7 +391,10 @@ var idleTimeout;
 
 function startTimers() {
 	clearTimers();
+
+	startTime = Date.now();
 	autoTimer = setInterval(() => advanceProgressBar(), PROGRESS_BAR_UPDATE_MS);
+
 	idleTimeout = setTimeout(() => setIdle(), IDLE_TIMEOUT_MS);
 	this.idle = false;
 }
@@ -383,9 +404,13 @@ function clearTimers() {
 	clearTimeout(idleTimeout);
 }
 
+var startTime;
 function advanceProgressBar() {
 	if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
-		currentData.timeCurrent = Math.min(currentData.timeCurrent + PROGRESS_BAR_UPDATE_MS, currentData.timeTotal);
+		let now = Date.now();
+		let ellapsedTime = now - startTime;
+		startTime = now;
+		currentData.timeCurrent = Math.min(currentData.timeCurrent + ellapsedTime, currentData.timeTotal);
 		updateProgress(currentData);
 	}
 }
@@ -405,16 +430,18 @@ function setIdle() {
 
 			playlist: "&nbsp;",
 			device: "&nbsp;",
+			volume: 0,
 
 			pause: true,
 			shuffle: false,
-			repeat: null,
+			repeat: "off",
 
 			timeCurrent: 0,
-			timeTotal: 0, // to avoid NaN
+			timeTotal: 0,
 
 			image: DEFAULT_IMAGE
 		};
 		setDisplayData(idleDisplayData);
+		this.currentData = {};
 	}
 }
