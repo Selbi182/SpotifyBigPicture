@@ -46,7 +46,12 @@ This is done using [ColorThief.js](https://lokeshdhakar.com/projects/color-thief
 
 ### Lite Mode
 
-I originally wanted to use this on my Raspberry Pi 3, but unfortunately that little guy just isn't strong enough to smoothly do the song transitions and the background color overlay. These two features can therefore be disabled by adding `?lite` to the URL. Everything else is still snappy!
+I originally wanted to use this on my Raspberry Pi 3, but unfortunately that little guy just isn't strong enough to smoothly do the song transitions and the background color overlay. Various features can therefore be selectively disabled by `?lite=#` to the URL:
+
+* 1: Disable transitions
+* 2: Disable background color overlay
+* 3: Disable background artwork (just use a colored gradient)
+* 4: Disable all three (the same as 3 without a colored overlay, always gray)
 
 ## Note about stability
 

@@ -210,23 +210,23 @@ function changeImage(newImage) {
 	if (!oldImg.includes(newImage)) {
 		clearTimeout(newImageFadeIn);
 		preloadImg = new Image();
-		if (!liteMode) {
+		if (!liteModes.has(LITEMODE_NO_BG_COLOR_OVERLAY)) {
 			preloadImg.crossOrigin = "Anonymous";
 		}
 		preloadImg.onload = () => {
 			newImageFadeIn = setTimeout(() => {
-				let img = makeUrl(preloadImg.src);
-				document.getElementById("artwork-img").style.backgroundImage = img;
+				let artworkUrl = makeUrl(preloadImg.src);
+				document.getElementById("artwork-img").style.backgroundImage = artworkUrl;
 
-				let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
-				if (!img.includes(DEFAULT_IMAGE)) {
-					if (liteMode) {
-						backgroundUrl += `, ${img}`;
-					} else {
-						let dominantColor = getDominantImageColor(preloadImg);
-						backgroundUrl += `, rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, ${dominantColor[3]}) ${img}`;
-					}
-				}
+				let defaultBackgroundUrl = makeUrl(DEFAULT_BACKGROUND);
+				
+				let rgba = getDominantImageColor(preloadImg);
+				let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
+				
+				let backgroundArtworkUrl = liteModes.has(LITEMODE_NO_ARTWORK_BG) ? "" : artworkUrl + ", ";
+				
+				let backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${defaultBackgroundUrl}`;
+				
 				document.getElementById("background-img").style.background = backgroundUrl;
 
 				setArtworkOpacity("1");
@@ -237,15 +237,35 @@ function changeImage(newImage) {
 	}
 }
 
+const LITEMODE_NO_TRANSITIONS = "1";
+const LITEMODE_NO_BG_COLOR_OVERLAY = "2";
+const LITEMODE_NO_ARTWORK_BG = "3";
+var liteModes = new Set([]);
 window.addEventListener('load', setLiteMode);
-var liteMode = false;
 function setLiteMode() {
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.get("lite") != null) {
-		liteMode = true;
-		document.getElementById("artwork-img").style.transition = "unset";
-		document.getElementById("background-img").style.transition = "unset";
-		setImageTransitionMs = 0;
+		let liteModeParam = urlParams.get("lite");
+		if (liteModeParam == 1) {
+			liteModes.add(LITEMODE_NO_TRANSITIONS);
+		} else if (liteModeParam == 2) {
+			liteModes.add(LITEMODE_NO_BG_COLOR_OVERLAY);
+		} else if (liteModeParam == 3) {
+			liteModes.add(LITEMODE_NO_ARTWORK_BG);
+		} else if (liteModeParam == 4) {
+			liteModes.add(LITEMODE_NO_TRANSITIONS);
+			liteModes.add(LITEMODE_NO_BG_COLOR_OVERLAY);
+			liteModes.add(LITEMODE_NO_ARTWORK_BG);
+		}
+		
+		if (liteModes.has(LITEMODE_NO_TRANSITIONS)) {
+			document.getElementById("artwork-img").style.transition = "unset";
+			document.getElementById("background-img").style.transition = "unset";
+			setImageTransitionMs = 0;
+		}
+		if (liteModes.has(LITEMODE_NO_ARTWORK_BG)) {
+			document.getElementById("background-img").style.filter = "unset";			
+		}
 	}
 }
 
@@ -271,40 +291,45 @@ window.addEventListener('load', () => {
 const PALETTE_SAMPLE_SIZE = 6;
 const OVERLAY_MIN_ALPHA = 0.1;
 const OVERLAY_MAX_ALPHA = 0.9;
-
+const DEFAULT_RGBA = [0, 0, 0, OVERLAY_MIN_ALPHA];
 function getDominantImageColor(img) {
-	try {
-		if (colorThief) {
-			let palette = colorThief.getPalette(img, PALETTE_SAMPLE_SIZE);
+	if (!liteModes.has(LITEMODE_NO_BG_COLOR_OVERLAY)) {
+		try {
+			if (colorThief) {
+				let palette = colorThief.getPalette(img, PALETTE_SAMPLE_SIZE);
+	
+				let dominant;
+				let prevColorfulness = 0;
+				for (let color of palette) {
+					let currentColorfulness = colorfulness(color[0], color[1], color[2]);
+					if (currentColorfulness >= prevColorfulness) {
+						dominant = color;
+						prevColorfulness = currentColorfulness;
+					}
+				}
+	
+				if (dominant) {
+					let r = dominant[0];
+					let g = dominant[1];
+					let b = dominant[2];
 
-			let dominant;
-			let prevColorfulness = 0;
-			for (let color of palette) {
-				let currentColorfulness = colorfulness(color[0], color[1], color[2]);
-				if (currentColorfulness >= prevColorfulness) {
-					dominant = color;
-					prevColorfulness = currentColorfulness;
+					let alpha = 1.0;
+					if (!liteModes.has(LITEMODE_NO_ARTWORK_BG)) {
+						// Basically, the more colorful the result color is,
+						// the more visible the overlay will be
+						let tmpAlpha = Math.sin(prevColorfulness * (Math.PI / 2));
+						let alpha = Math.max(OVERLAY_MIN_ALPHA, Math.min(OVERLAY_MAX_ALPHA, tmpAlpha));
+					}
+					
+					return [r, g, b, alpha];
 				}
 			}
-
-			if (dominant) {
-				let r = dominant[0];
-				let g = dominant[1];
-				let b = dominant[2];
-
-				// Basically, the more colorful the result color is,
-				// the more visible the overlay will be
-				let tmpAlpha = Math.sin(prevColorfulness * (Math.PI / 2));
-				let alpha = Math.max(OVERLAY_MIN_ALPHA, Math.min(OVERLAY_MAX_ALPHA, tmpAlpha));
-
-				return [r, g, b, alpha];
-			}
+			throw "Found no dominant color";
+		} catch (ex) {
+			console.error(ex);
 		}
-		throw "Found no dominant color";
-	} catch (ex) {
-		console.error(ex);
-		return [0, 0, 0, OVERLAY_MIN_ALPHA];
 	}
+	return DEFAULT_RGBA;
 }
 
 function colorfulness(r, g, b) {
