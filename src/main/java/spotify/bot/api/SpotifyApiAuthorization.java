@@ -106,7 +106,7 @@ public class SpotifyApiAuthorization {
 				log.error("Login timeout! Shutting down application in case of a Spotify Web API anomaly!");
 				System.exit(1);
 			}
-		} catch (SpotifyWebApiException e) {
+		} catch (BotException e) {
 			System.exit(182);
 		}
 	}

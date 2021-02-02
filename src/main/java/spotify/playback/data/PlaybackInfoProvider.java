@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.enums.ModelObjectType;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import com.wrapper.spotify.model_objects.specification.Album;
 import com.wrapper.spotify.model_objects.specification.Artist;
@@ -16,6 +15,7 @@ import com.wrapper.spotify.model_objects.specification.Context;
 import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.model_objects.specification.Track;
 
+import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO.Type;
@@ -49,7 +49,7 @@ public class PlaybackInfoProvider {
 				}
 			}
 			return PlaybackInfoDTO.IDLE;
-		} catch (SpotifyWebApiException e) {
+		} catch (BotException e) {
 			e.printStackTrace();
 			return PlaybackInfoDTO.EMPTY;
 		}
@@ -58,7 +58,7 @@ public class PlaybackInfoProvider {
 	private PlaybackInfoDTO findInfoDifferencesAndUpdateCurrent(PlaybackInfoDTO current) {
 		PlaybackInfoDTO differences = new PlaybackInfoDTO(Type.EMTPY);
 
-		if (!Objects.equals(previous.getImage(), current.getImage())) { // (previous.getImage() == null && current.getImage() != null) || !previous.getImage().equals(current.getImage())) {
+		if (!Objects.equals(previous.getImage(), current.getImage())) {
 			differences.setType(Type.DATA);
 			differences.setImage(current.getImage());
 			this.previous.setImage(current.getImage());
@@ -195,7 +195,7 @@ public class PlaybackInfoProvider {
 						break;
 				}
 			}			
-		} catch (SpotifyWebApiException e) {
+		} catch (BotException e) {
 			e.printStackTrace();
 		}
 		return previous != null && previous.getPlaylist() != null ? previous.getPlaylist() : "";

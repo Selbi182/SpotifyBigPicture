@@ -93,10 +93,6 @@ function createHeartbeatTimeout() {
 	clearTimeout(heartbeatTimeout);
 	heartbeatTimeout = setTimeout(() => {
 		console.error("Heartbeat timeout")
-
-		// Commented out to pretend the song is still playing, it usually reconnects after a few seconds anyway
-		// setIdle();
-
 		init();
 	}, HEARTBEAT_TIMEOUT_MS);
 }
@@ -182,7 +178,7 @@ function showHide(elem, show, useInvisibility) {
 	}
 }
 
-const HIDE_VOLUME_TIMEOUT_MS = 3 * 1000;
+const HIDE_VOLUME_TIMEOUT_MS = 2 * 1000;
 var volumeTimeout;
 
 function updateVolume(volume) {
@@ -196,7 +192,7 @@ function updateVolume(volume) {
 	}
 }
 
-const IMAGE_TRANSITION_MS = 1 * 1000;
+const IMAGE_TRANSITION_MS = 500;
 var setImageTransitionMs = IMAGE_TRANSITION_MS;
 
 const DEFAULT_IMAGE = 'img/idle.png';
@@ -350,9 +346,9 @@ function updateProgress(changes) {
 	let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
 	let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
 
-	let formattedTime = formatTime(current, total)
-	let formattedCurrentTime = formattedTime.current;
-	let formattedTotalTime = formattedTime.total;
+	let formattedTimes = formatTime(current, total)
+	let formattedCurrentTime = formattedTimes.current;
+	let formattedTotalTime = formattedTimes.total;
 
 	document.getElementById("time-current").innerHTML = formattedCurrentTime;
 	document.getElementById("time-total").innerHTML = formattedTotalTime;
@@ -362,6 +358,8 @@ function updateProgress(changes) {
 		progressPercent = 0;
 	}
 	document.getElementById("progress-current").style.width = progressPercent + "%";
+	
+	document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} - ${currentData.title}`;
 }
 
 function formatTime(current, total) {
