@@ -2,7 +2,7 @@
 <html lang="en-us">
     <head>
         <meta charset="utf-8">
-        <title>Spotify Playback</title>
+        <title>Spotify Playback Info</title>
         <script src="playback_flux.js"></script>
         <script src="mouse_hide.js"></script>
         <script src="color-thief.umd.js"></script>
@@ -27,6 +27,17 @@
                 </div>
                 <div id="meta-right">
                     <div id="logo"></div>
+                    <div id="settings">
+                    	<div id="settings-header">Lite Modes</div>
+                    	<div id="settings-links">
+	                    	<a href="/">Default</a>
+	                    	<a href="?lite=1">Disable Transitions</a>
+	                    	<a href="?lite=2">Disable Color Overlay</a>
+	                    	<a href="?lite=3">Disable BG Artwork</a>
+	                    	<a href="?lite=4">Disable All</a>
+                    	</div>
+                    	<a id="fullscreen" onclick="toggleFullscreen();">Toggle Fullscreen</a>
+                    </div>
                 </div>
             </div>
             

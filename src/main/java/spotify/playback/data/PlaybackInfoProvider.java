@@ -1,6 +1,13 @@
 package spotify.playback.data;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,8 +36,14 @@ public class PlaybackInfoProvider {
 	private SpotifyApi spotifyApi;
 
 	private PlaybackInfoDTO previous;
-
 	private String previousContextString;
+	private static final List<Field> DTO_FIELDS;
+	static {
+		DTO_FIELDS = Stream.of(PlaybackInfoDTO.class.getDeclaredFields())
+			.filter(f -> !Modifier.isFinal(f.getModifiers()))
+			.filter(f -> !f.getType().equals(PlaybackInfoDTO.Type.class))
+			.collect(Collectors.toList());
+	}
 
 	public PlaybackInfoDTO getCurrentPlaybackInfo(boolean full) {
 		if (previous == null) {
@@ -44,8 +57,12 @@ public class PlaybackInfoProvider {
 					this.previous = currentPlaybackInfo;
 					return currentPlaybackInfo;
 				} else {
-					PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
-					return changedInfos;
+					try {
+						PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
+						return changedInfos;
+					} catch (IllegalArgumentException | IntrospectionException | ReflectiveOperationException e) {
+						throw new BotException(e);
+					}
 				}
 			}
 			return PlaybackInfoDTO.IDLE;
@@ -55,80 +72,34 @@ public class PlaybackInfoProvider {
 		}
 	}
 
-	private PlaybackInfoDTO findInfoDifferencesAndUpdateCurrent(PlaybackInfoDTO current) {
-		PlaybackInfoDTO differences = new PlaybackInfoDTO(Type.EMTPY);
+	private void checkDifferences(PlaybackInfoDTO differences, PlaybackInfoDTO previous, PlaybackInfoDTO current, String field) throws IntrospectionException, ReflectiveOperationException, IllegalArgumentException {
+		PropertyDescriptor propertyDescriptor = new PropertyDescriptor(field, PlaybackInfoDTO.class);
+		Object previousObject = propertyDescriptor.getReadMethod().invoke(previous);
+		Object currentObject = propertyDescriptor.getReadMethod().invoke(current);
+		if (!Objects.equals(previousObject, currentObject)) {
+			differences.setType(Type.DATA);
+			propertyDescriptor.getWriteMethod().invoke(differences, currentObject);
+			propertyDescriptor.getWriteMethod().invoke(this.previous, currentObject);
+		}
+	}
 
-		if (!Objects.equals(previous.getImage(), current.getImage())) {
-			differences.setType(Type.DATA);
-			differences.setImage(current.getImage());
-			this.previous.setImage(current.getImage());
-		}
-		
-		if (!Objects.equals(previous.getTitle(), current.getTitle())) {
-			differences.setType(Type.DATA);
-			differences.setTitle(current.getTitle());
-			this.previous.setTitle(current.getTitle());
-		}
-		if (!Objects.equals(previous.getArtist(), current.getArtist())) {
-			differences.setType(Type.DATA);
-			differences.setArtist(current.getArtist());
-			this.previous.setArtist(current.getArtist());
-		}
-		if (!Objects.equals(previous.getAlbum(), current.getAlbum())) {
-			differences.setType(Type.DATA);
-			differences.setAlbum(current.getAlbum());
-			this.previous.setAlbum(current.getAlbum());
-		}
-		if (!Objects.equals(previous.getRelease(), current.getRelease())) {
-			differences.setType(Type.DATA);
-			differences.setRelease(current.getRelease());
-			this.previous.setRelease(current.getRelease());
+	private PlaybackInfoDTO findInfoDifferencesAndUpdateCurrent(PlaybackInfoDTO current) throws IllegalArgumentException, IntrospectionException, ReflectiveOperationException {
+		PlaybackInfoDTO diff = new PlaybackInfoDTO(Type.EMTPY);
+		for (Field field : DTO_FIELDS) {
+			String fieldName = field.getName();
+			if (fieldName.equals("timeCurrent")) {
+				// Progress always needs to get updated, so it's handled separately
+				if (!PlaybackInfoUtils.isWithinEstimatedProgressMs(previous, current)) {
+					diff.setType(Type.DATA);
+					diff.setTimeCurrent(current.getTimeCurrent());
+				}
+				this.previous.setTimeCurrent(current.getTimeCurrent());
+			} else {
+				checkDifferences(diff, previous, current, fieldName);
+			}
 		}
 
-		if (!Objects.equals(previous.getPlaylist(), current.getPlaylist())) {
-			differences.setType(Type.DATA);
-			differences.setPlaylist(current.getPlaylist());
-			this.previous.setPlaylist(current.getPlaylist());
-		}
-		if (!Objects.equals(previous.getDevice(), current.getDevice())) {
-			differences.setType(Type.DATA);
-			differences.setDevice(current.getDevice());
-			this.previous.setDevice(current.getDevice());
-		}
-		if (!Objects.equals(previous.getVolume(), current.getVolume())) {
-			differences.setType(Type.DATA);
-			differences.setVolume(current.getVolume());
-			this.previous.setVolume(current.getVolume());
-		}
-
-		if (!Objects.equals(previous.isPaused(), current.isPaused())) {
-			differences.setType(Type.DATA);
-			differences.setPaused(current.isPaused());
-			this.previous.setPaused(current.isPaused());
-		}
-		if (!Objects.equals(previous.isShuffle(), current.isShuffle())) {
-			differences.setType(Type.DATA);
-			differences.setShuffle(current.isShuffle());
-			this.previous.setShuffle(current.isShuffle());
-		}
-		if (!Objects.equals(previous.getRepeat(), current.getRepeat())) {
-			differences.setType(Type.DATA);
-			differences.setRepeat(current.getRepeat());
-			this.previous.setRepeat(current.getRepeat());
-		}
-
-		if (!PlaybackInfoUtils.isWithinEstimatedProgressMs(previous, current)) {
-			differences.setType(Type.DATA);
-			differences.setTimeCurrent(current.getTimeCurrent());
-		}
-		this.previous.setTimeCurrent(current.getTimeCurrent()); // always update
-
-		if (!Objects.equals(previous.getTimeTotal(), current.getTimeTotal())) {
-			differences.setType(Type.DATA);
-			differences.setTimeTotal(current.getTimeTotal());
-			this.previous.setTimeTotal(current.getTimeTotal());
-		}
-		return differences;
+		return diff;
 	}
 
 	private PlaybackInfoDTO buildInfo(CurrentlyPlayingContext info, boolean forceContextCheck) {
@@ -153,13 +124,12 @@ public class PlaybackInfoProvider {
 			.build();
 		return currentPlaybackInfoFull;
 	}
-	
 
 	/**
 	 * Get the name of the currently playing context (either a playlist name, an
 	 * artist, or an album). Only works on Tracks.
 	 * 
-	 * @param info       the context info
+	 * @param info the context info
 	 * @return a String of the current context, null if none was found
 	 */
 	public String findContextName(CurrentlyPlayingContext info) {
@@ -167,7 +137,7 @@ public class PlaybackInfoProvider {
 			Context context = info.getContext();
 			if (context != null && !context.toString().equals(previousContextString) && info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
 				this.previousContextString = context.toString();
-				
+
 				ModelObjectType type = context.getType();
 				switch (type) {
 					case PLAYLIST:
@@ -194,7 +164,7 @@ public class PlaybackInfoProvider {
 					default:
 						break;
 				}
-			}			
+			}
 		} catch (BotException e) {
 			e.printStackTrace();
 		}

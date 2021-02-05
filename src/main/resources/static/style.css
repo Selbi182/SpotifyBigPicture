@@ -15,10 +15,11 @@
 }
 
 :root {
-	--color-primary: #eee;
-	--color-secondary: #ddd;
-	--color-tertiary: rgba(64, 64, 64, 0.8);
-	--color-quaternary: rgba(64, 64, 64, 0.2);
+	--color-1: #eee;
+	--color-2: #ddd;
+	--color-3: #888;
+	--color-4: rgba(64, 64, 64, 0.8);
+	--color-5: rgba(64, 64, 64, 0.2);
 	--image-transition: 0.5s;
 }
 
@@ -26,12 +27,24 @@ html, body {
 	margin: 0;
 	overflow: hidden;
 	background: black;
-	color: var(--color-primary);
+	color: var(--color-1);
 	font-family: "Gotham", sans-serif;
 	width: 100%;
 	height: 100%;
 	text-shadow: 4px 4px 8px black;
 	cursor: none;
+}
+
+
+a {
+	text-decoration: none;
+	color: var(--color-3);
+	white-space: pre;
+	cursor: pointer;
+}
+
+a:hover {
+	color: var(--color-1);
 }
 
 * {
@@ -55,7 +68,7 @@ html, body {
 	background-repeat: no-repeat !important;
 	background-blend-mode: multiply;
 	filter: blur(10px);
-	transform: scale(1.5);
+	transform: scale(1.1);
 	width: 100%;
 	height: 100%;
 	transition: opacity var(--image-transition);
@@ -81,6 +94,24 @@ html, body {
 
 
 /* TOP */
+
+#artwork {
+	flex: 1.2;
+	order: 2;
+	text-align: center;
+	z-index: -1;
+}
+
+#artwork > #artwork-img {
+	background: url(img/idle.png);
+	background-repeat: no-repeat !important;
+	background-position: center !important;
+	background-size: contain !important;
+	width: auto;
+	height: 100%;
+	filter: drop-shadow(0px 0px 48px black);
+	transition: opacity var(--image-transition);
+}
 
 #top-info {
 	flex-grow: 1;
@@ -108,14 +139,14 @@ html, body {
 	margin-top: 4vh;
 	height: calc(100% - 4vh);
 	width: 3vh;
-	background-color: var(--color-quaternary);
+	background-color: var(--color-5);
 	display: flex;
 }
 
 #meta-left > #volume > #volume-current {
 	height: 0%;
 	width: 100%;
-	background-color: var(--color-secondary);
+	background-color: var(--color-2);
 	align-self: flex-end;
 }
 
@@ -125,31 +156,23 @@ html, body {
 	text-align: right;
 }
 
-#logo {
+#meta-right > #logo {
 	height: 5vw;
 	background: url("img/symbols/spotify.png") right no-repeat;
 	background-size: contain;
-	filter: drop-shadow(0 0 1px var(--color-tertiary));
+	filter: drop-shadow(0 0 1px var(--color-4));
 }
 
-#artwork {
-	flex: 3;
-	order: 2;
-	text-align: center;
-	z-index: -1;
-}
-
-#artwork > #artwork-img {
-	background: url(img/idle.png);
-	background-repeat: no-repeat !important;
-	background-position: center !important;
-	background-size: contain !important;
-	width: auto;
+#meta-right > #settings {
+	width: 100%;
 	height: 100%;
-	filter: drop-shadow(0px 0px 48px black);
-	transition: opacity var(--image-transition);
+	padding-top: 2vmin;
+	display: none;
 }
 
+#meta-right > #settings > #settings-links {
+	white-space: pre;
+}
 
 /* CENTER */
 
@@ -167,14 +190,14 @@ html, body {
 
 #artist {
 	font-size: 3vh;
-	color: var(--color-secondary);
+	color: var(--color-2);
 	margin-bottom: 0.5vh;
 }
 
 #album {
 	margin-top: 0.5em;
 	font-size: 2vh;
-	color: var(--color-secondary);
+	color: var(--color-2);
 	opacity: 0.6;
 }
 
@@ -187,13 +210,13 @@ html, body {
 }
 
 #progress {
-	background: var(--color-tertiary);
+	background: var(--color-4);
 	width: 100%;
 	margin: 1em;
 }
 
 #progress-current {
-	background-color: var(--color-primary);
+	background-color: var(--color-1);
 	height: 0.5vh;
 	width: 0%;
 }
@@ -218,12 +241,12 @@ html, body {
 
 #time-current {
 	font-size: 4vh;
-	color: var(--color-secondary);
+	color: var(--color-2);
 }
 
 #time-total {
 	font-size: 4vh;
-	color: var(--color-secondary);
+	color: var(--color-2);
 }
 
 #info-symbols {

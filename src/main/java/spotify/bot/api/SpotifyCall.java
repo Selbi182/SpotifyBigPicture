@@ -54,7 +54,8 @@ public class SpotifyCall {
 				} catch (ParseException | IOException e) {
 					throw new BotException(e);
 				} catch (UnauthorizedException e) {
-					spotifyApiAuthorization.refresh();
+					String newAccessToken = spotifyApiAuthorization.refresh();
+					requestBuilder.setHeader("Authorization", "Bearer " + newAccessToken);
 				} catch (TooManyRequestsException e) {
 					int timeout = e.getRetryAfter();
 					long sleepMs = (timeout * RETRY_TIMEOUT_429 * attempt) + RETRY_TIMEOUT_429;

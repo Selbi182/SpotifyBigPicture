@@ -214,15 +214,13 @@ function changeImage(newImage) {
 				let artworkUrl = makeUrl(preloadImg.src);
 				document.getElementById("artwork-img").style.backgroundImage = artworkUrl;
 
-				let defaultBackgroundUrl = makeUrl(DEFAULT_BACKGROUND);
-				
-				let rgba = getDominantImageColor(preloadImg);
-				let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
-				
-				let backgroundArtworkUrl = liteModes.has(LITEMODE_NO_ARTWORK_BG) ? "" : artworkUrl + ", ";
-				
-				let backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${defaultBackgroundUrl}`;
-				
+				let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
+				if (!idle) {
+					let rgba = getDominantImageColor(preloadImg);
+					let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
+					let backgroundArtworkUrl = liteModes.has(LITEMODE_NO_ARTWORK_BG) ? "" : artworkUrl + ", ";
+					backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
+				}
 				document.getElementById("background-img").style.background = backgroundUrl;
 
 				setArtworkOpacity("1");
@@ -314,7 +312,7 @@ function getDominantImageColor(img) {
 						// Basically, the more colorful the result color is,
 						// the more visible the overlay will be
 						let tmpAlpha = Math.sin(prevColorfulness * (Math.PI / 2));
-						let alpha = Math.max(OVERLAY_MIN_ALPHA, Math.min(OVERLAY_MAX_ALPHA, tmpAlpha));
+						alpha = Math.max(OVERLAY_MIN_ALPHA, Math.min(OVERLAY_MAX_ALPHA, tmpAlpha));
 					}
 					
 					return [r, g, b, alpha];
@@ -359,7 +357,11 @@ function updateProgress(changes) {
 	}
 	document.getElementById("progress-current").style.width = progressPercent + "%";
 	
-	document.title = `[${formattedCurrentTime}/${formattedTotalTime}] ${currentData.artist} - ${currentData.title}`;
+	if (idle) {
+		document.title = "Spotify Playback Info";
+	} else {
+		document.title = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artist} - ${currentData.title}`;
+	}
 }
 
 function formatTime(current, total) {

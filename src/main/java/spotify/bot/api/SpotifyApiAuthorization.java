@@ -67,12 +67,12 @@ public class SpotifyApiAuthorization {
 		applicationEventPublisher.publishEvent(new LoggedInEvent(this));
 	}
 	
-	public void refresh() {
+	public String refresh() {
 		try {
-			authorizationCodeRefresh();
+			return authorizationCodeRefresh();
 		} catch (HttpConnectTimeoutException e) {
 			authenticate();
-			refresh();
+			return refresh();
 		}
 	}
 
@@ -133,14 +133,15 @@ public class SpotifyApiAuthorization {
 	/**
 	 * Refresh the access token
 	 * 
-	 * @throws HttpConnectTimeoutException
+	 * @return the new access token
 	 */
-	private void authorizationCodeRefresh() throws HttpConnectTimeoutException {
+	private String authorizationCodeRefresh() throws HttpConnectTimeoutException {
 		try {
-			AuthorizationCodeCredentials acc = Executors.newSingleThreadExecutor().submit(() -> {
-				return SpotifyCall.execute(spotifyApi.authorizationCodeRefresh());
-			}).get(LOGIN_TIMEOUT, TimeUnit.SECONDS);
+			AuthorizationCodeCredentials acc = Executors.newSingleThreadExecutor()
+				.submit(() -> SpotifyCall.execute(spotifyApi.authorizationCodeRefresh()))
+				.get(LOGIN_TIMEOUT, TimeUnit.SECONDS);
 			updateTokens(acc);
+			return acc.getAccessToken();
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			String msg = "Failed to automatically refresh access token after " + LOGIN_TIMEOUT + " seconds. A manual (re-)login might be required.";
 			log.error(msg);
