@@ -33,6 +33,7 @@ html, body {
 	height: 100%;
 	text-shadow: 4px 4px 8px black;
 	cursor: none;
+	user-select: none;
 }
 
 
@@ -50,6 +51,18 @@ a:hover {
 * {
 	/* border: 1px solid blue; */
 }
+
+/* DARK OVERLAY */
+
+#dark-overlay {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: rgba(0,0,0, 0.5);
+	z-index: 2;
+	pointer-events: none;
+}
+
 
 /* BACKGROUND */
 
@@ -166,11 +179,14 @@ a:hover {
 #meta-right > #settings {
 	width: 100%;
 	height: 100%;
-	padding-top: 2vmin;
 	display: none;
 }
 
-#meta-right > #settings > #settings-links {
+#meta-right > #settings > .settings-header {
+	padding-top: 2vmin;
+}
+
+#meta-right > #settings > .settings-links {
 	white-space: pre;
 }
 

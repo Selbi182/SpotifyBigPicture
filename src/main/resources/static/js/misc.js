@@ -22,3 +22,12 @@ function toggleFullscreen() {
 	    }
 	}
 }
+
+function toggleDarkMode() {
+	let overlay = document.getElementById("dark-overlay").style;
+	if (overlay.display == "none") {
+		overlay.display = "inherit";
+	} else {
+		overlay.display = "none";
+	}
+}

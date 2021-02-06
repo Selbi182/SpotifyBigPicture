@@ -3,13 +3,14 @@
     <head>
         <meta charset="utf-8">
         <title>Spotify Playback Info</title>
-        <script src="playback_flux.js"></script>
-        <script src="mouse_hide.js"></script>
-        <script src="color-thief.umd.js"></script>
+        <script src="js/playback_info_controller.js"></script>
+        <script src="js/misc.js"></script>
+        <script src="js/color_thief.js"></script>
         <link rel="stylesheet" href="style.css"></link>
         <link rel="icon" href="/favicon.png" type="image/x-icon">
     </head>
     <body>
+    	<div id="dark-overlay" style="display: none;"></div>
         <div id="background">
             <div id="background-img"></div>
         </div>
@@ -28,15 +29,19 @@
                 <div id="meta-right">
                     <div id="logo"></div>
                     <div id="settings">
-                    	<div id="settings-header">Lite Modes</div>
-                    	<div id="settings-links">
+                    	<div class="settings-header">Settings</div>
+                    	<div class="settings-links">
+	                    	<a onclick="toggleFullscreen();">Toggle Fullscreen</a>
+	                    	<a onclick="toggleDarkMode();">Toggle Dark Mode</a>
+                    	</div>
+                    	<div class="settings-header">Lite Modes</div>
+                    	<div class="settings-links">
 	                    	<a href="/">Default</a>
 	                    	<a href="?lite=1">Disable Transitions</a>
 	                    	<a href="?lite=2">Disable Color Overlay</a>
 	                    	<a href="?lite=3">Disable BG Artwork</a>
 	                    	<a href="?lite=4">Disable All</a>
                     	</div>
-                    	<a id="fullscreen" onclick="toggleFullscreen();">Toggle Fullscreen</a>
                     </div>
                 </div>
             </div>
