@@ -1,6 +1,9 @@
 // Hide cursor automatically when not being moved
+document.addEventListener("mousemove", handleMouseEvent);
+document.addEventListener("click", handleMouseEvent);
+
 var cursorTimeout;
-document.addEventListener("mousemove", () => {
+function handleMouseEvent() {
 	document.querySelector("body").style.cursor = "default";
 	document.getElementById("settings").style.display = "inherit"
 	clearTimeout(cursorTimeout);
@@ -8,7 +11,7 @@ document.addEventListener("mousemove", () => {
 		document.querySelector("body").style.cursor = "none";
 		document.getElementById("settings").style.display = "none";
 	}, 1000);
-});
+}
 
 function toggleFullscreen() {
 	let elem = document.documentElement;

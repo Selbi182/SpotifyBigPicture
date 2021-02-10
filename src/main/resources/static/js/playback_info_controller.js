@@ -106,7 +106,8 @@ function setDisplayData(changes) {
 
 	// Main Info
 	if ('title' in changes) {
-		document.getElementById("title").innerHTML = changes.title;
+		let noFeature = changes.title.replace(/\(feat.+?\)/g, "").trim();
+		document.getElementById("title").innerHTML = noFeature;
 	}
 	if ('artist' in changes) {
 		document.getElementById("artist").innerHTML = changes.artist;
