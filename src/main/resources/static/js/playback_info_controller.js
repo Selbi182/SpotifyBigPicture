@@ -202,12 +202,12 @@ const DEFAULT_BACKGROUND = 'img/gradient.png';
 var preloadImg;
 var newImageFadeIn;
 
-function changeImage(newImage) {
+function changeImage(newImage, force) {
 	let oldImg = document.getElementById("artwork-img").style.backgroundImage;
-	if (!oldImg.includes(newImage)) {
+	if (force || !oldImg.includes(newImage)) {
 		clearTimeout(newImageFadeIn);
 		preloadImg = new Image();
-		if (!liteModes.has(LITEMODE_NO_BG_COLOR_OVERLAY)) {
+		if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
 			preloadImg.crossOrigin = "Anonymous";
 		}
 		preloadImg.onload = () => {
@@ -219,7 +219,7 @@ function changeImage(newImage) {
 				if (!idle) {
 					let rgba = getDominantImageColor(preloadImg);
 					let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
-					let backgroundArtworkUrl = liteModes.has(LITEMODE_NO_ARTWORK_BG) ? "" : artworkUrl + ", ";
+					let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
 					backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
 				}
 				document.getElementById("background-img").style.background = backgroundUrl;
@@ -229,38 +229,6 @@ function changeImage(newImage) {
 		}
 		preloadImg.src = newImage;
 		setArtworkOpacity("0");
-	}
-}
-
-const LITEMODE_NO_TRANSITIONS = "1";
-const LITEMODE_NO_BG_COLOR_OVERLAY = "2";
-const LITEMODE_NO_ARTWORK_BG = "3";
-var liteModes = new Set([]);
-window.addEventListener('load', setLiteMode);
-function setLiteMode() {
-	const urlParams = new URLSearchParams(window.location.search);
-	if (urlParams.get("lite") != null) {
-		let liteModeParam = urlParams.get("lite");
-		if (liteModeParam == 1) {
-			liteModes.add(LITEMODE_NO_TRANSITIONS);
-		} else if (liteModeParam == 2) {
-			liteModes.add(LITEMODE_NO_BG_COLOR_OVERLAY);
-		} else if (liteModeParam == 3) {
-			liteModes.add(LITEMODE_NO_ARTWORK_BG);
-		} else if (liteModeParam == 4) {
-			liteModes.add(LITEMODE_NO_TRANSITIONS);
-			liteModes.add(LITEMODE_NO_BG_COLOR_OVERLAY);
-			liteModes.add(LITEMODE_NO_ARTWORK_BG);
-		}
-		
-		if (liteModes.has(LITEMODE_NO_TRANSITIONS)) {
-			document.getElementById("artwork-img").style.transition = "unset";
-			document.getElementById("background-img").style.transition = "unset";
-			setImageTransitionMs = 0;
-		}
-		if (liteModes.has(LITEMODE_NO_ARTWORK_BG)) {
-			document.getElementById("background-img").style.filter = "unset";			
-		}
 	}
 }
 
@@ -288,7 +256,7 @@ const OVERLAY_MIN_ALPHA = 0.1;
 const OVERLAY_MAX_ALPHA = 0.9;
 const DEFAULT_RGBA = [0, 0, 0, OVERLAY_MIN_ALPHA];
 function getDominantImageColor(img) {
-	if (!liteModes.has(LITEMODE_NO_BG_COLOR_OVERLAY)) {
+	if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
 		try {
 			if (colorThief) {
 				let palette = colorThief.getPalette(img, PALETTE_SAMPLE_SIZE);
@@ -309,7 +277,7 @@ function getDominantImageColor(img) {
 					let b = dominant[2];
 
 					let alpha = 1.0;
-					if (!liteModes.has(LITEMODE_NO_ARTWORK_BG)) {
+					if (visualPreferences[PARAM_BG_ARTWORK]) {
 						// Basically, the more colorful the result color is,
 						// the more visible the overlay will be
 						let tmpAlpha = Math.sin(prevColorfulness * (Math.PI / 2));
@@ -470,4 +438,156 @@ function setIdle() {
 		setDisplayData(idleDisplayData);
 		this.currentData = {};
 	}
+}
+
+
+///////////////////////////////
+// VISUAL PREFERENCES
+///////////////////////////////
+
+const PARAM_FULLSCREEN = "fullscreen";
+const PARAM_DARK_MODE = "darkmode";
+const PARAM_TRANSITIONS = "transitions";
+const PARAM_BG_ARTWORK = "bgartwork";
+const PARAM_BG_COLOR_OVERLAY = "bgcoloroverlay";
+
+// Settings with defaults
+var visualPreferences = {
+	[PARAM_FULLSCREEN]:       false,
+	[PARAM_DARK_MODE]:        false,
+	[PARAM_TRANSITIONS]:      true,
+	[PARAM_BG_ARTWORK]:       true,
+	[PARAM_BG_COLOR_OVERLAY]: true
+};
+
+function toggleVisualPreference(key) {
+	if (visualPreferences.hasOwnProperty(key)) {
+		let newState = !visualPreferences[key];
+		refreshPreference(key, newState);
+	}
+}
+
+function refreshPreference(preference, state) {
+	visualPreferences[preference] = state;
+
+	// Refresh Preference
+	switch (preference) {
+		case PARAM_FULLSCREEN:
+			setFullscreen(state);
+			break;
+		case PARAM_DARK_MODE:
+			showHide(document.getElementById("dark-overlay"), state, false);
+			break;
+		case PARAM_TRANSITIONS:
+			setTransitions(state);
+		case PARAM_BG_ARTWORK:
+		case PARAM_BG_COLOR_OVERLAY:
+			if (currentData.image) {
+				changeImage(currentData.image, true);
+			}
+			break;
+	}
+
+	// URL Params
+	if (preference != PARAM_FULLSCREEN) {
+		const url = new URL(window.location);
+		url.searchParams.set(preference, state);
+		window.history.replaceState({}, 'Spotify Playback Info', url.toString());
+	}
+
+	// ToggleCheckmark
+	let classList = document.getElementById(preference).classList;
+	if (state) {
+		classList.add("preference-on");
+	} else {
+		classList.remove("preference-on");
+	}
+}
+
+window.addEventListener('load', initVisualPreferencesFromUrlParams);
+function initVisualPreferencesFromUrlParams() {
+	// initPreference(PARAM_FULLSCREEN); // blocked by most browsers on non-usergenerated events
+	initPreference(PARAM_DARK_MODE);
+	initPreference(PARAM_TRANSITIONS);
+	initPreference(PARAM_BG_ARTWORK);
+	initPreference(PARAM_BG_COLOR_OVERLAY);
+}
+
+function initPreference(preference) {
+	const urlParams = new URLSearchParams(window.location.search);
+	let state = visualPreferences[preference];
+	if (urlParams.get(preference) != null) {
+		let state = (urlParams.get(preference) == "true");
+	}
+	refreshPreference(preference, state);
+}
+
+function setFullscreen(state) {
+	let elem = document.documentElement;
+	if (state) {
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		}
+	} else {
+	    if (document.exitFullscreen) {
+	    	document.exitFullscreen();
+	    }
+	}
+}
+
+function setTransitions(state) {
+	let mainImgClassList = document.getElementById("artwork-img").classList;
+	let backgroundImgClassList = document.getElementById("background-img").classList;
+	if (state) {
+		mainImgClassList.add("transition");
+		backgroundImgClassList.add("transition");
+		setImageTransitionMs = IMAGE_TRANSITION_MS;
+	} else {
+		mainImgClassList.remove("transition");
+		backgroundImgClassList.remove("transition");
+		setImageTransitionMs = 0;
+	}
+}
+
+///////////////////////////////
+// HOTKEYS
+///////////////////////////////
+
+document.onkeydown = (e) => {
+	switch (e.key) {
+		case "f":
+			toggleVisualPreference(PARAM_FULLSCREEN);
+			break;
+		case "d":
+			toggleVisualPreference(PARAM_DARK_MODE);
+			break;
+		case "t":
+			toggleVisualPreference(PARAM_TRANSITIONS);
+			break;
+		case "a":
+			toggleVisualPreference(PARAM_BG_ARTWORK);
+			break;
+		case "c":
+			toggleVisualPreference(PARAM_BG_COLOR_OVERLAY);
+			break;
+	}
+}
+
+
+///////////////////////////////
+// MOUSE HIDE
+///////////////////////////////
+
+document.addEventListener("mousemove", handleMouseEvent);
+document.addEventListener("click", handleMouseEvent);
+document.addEventListener("keydown", handleMouseEvent);
+var cursorTimeout;
+function handleMouseEvent() {
+	document.querySelector("body").style.cursor = "default";
+	document.getElementById("settings").style.display = "inherit";
+	clearTimeout(cursorTimeout);
+	cursorTimeout = setTimeout(() => {
+		document.querySelector("body").style.cursor = "none";
+		document.getElementById("settings").style.display = "none";
+	}, 1000);
 }
