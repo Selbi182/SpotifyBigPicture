@@ -1,6 +1,0 @@
-========
-= TODO =
-========
-
-Stability:
-- Reconnecting the Flux still doesn't work properly on the Raspi...

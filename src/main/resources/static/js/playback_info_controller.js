@@ -203,32 +203,34 @@ var preloadImg;
 var newImageFadeIn;
 
 function changeImage(newImage, force) {
-	let oldImg = document.getElementById("artwork-img").style.backgroundImage;
-	if (force || !oldImg.includes(newImage)) {
-		clearTimeout(newImageFadeIn);
-		preloadImg = new Image();
-		if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
-			preloadImg.crossOrigin = "Anonymous";
-		}
-		preloadImg.onload = () => {
-			newImageFadeIn = setTimeout(() => {
-				let artworkUrl = makeUrl(preloadImg.src);
-				document.getElementById("artwork-img").style.backgroundImage = artworkUrl;
+	if (newImage) {
+		let oldImg = document.getElementById("artwork-img").style.backgroundImage;
+		if (force || !oldImg.includes(newImage)) {
+			clearTimeout(newImageFadeIn);
+			preloadImg = new Image();
+			if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
+				preloadImg.crossOrigin = "Anonymous";
+			}
+			preloadImg.onload = () => {
+				newImageFadeIn = setTimeout(() => {
+					let artworkUrl = makeUrl(preloadImg.src);
+					document.getElementById("artwork-img").style.backgroundImage = artworkUrl;
 
-				let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
-				if (!idle) {
-					let rgba = getDominantImageColor(preloadImg);
-					let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
-					let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
-					backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
-				}
-				document.getElementById("background-img").style.background = backgroundUrl;
+					let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
+					if (!idle) {
+						let rgba = getDominantImageColor(preloadImg);
+						let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
+						let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
+						backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
+					}
+					document.getElementById("background-img").style.background = backgroundUrl;
 
-				setArtworkOpacity("1");
-			}, setImageTransitionMs);
+					setArtworkOpacity("1");
+				}, setImageTransitionMs);
+			}
+			preloadImg.src = newImage;
+			setArtworkOpacity("0");
 		}
-		preloadImg.src = newImage;
-		setArtworkOpacity("0");
 	}
 }
 
@@ -480,11 +482,19 @@ function refreshPreference(preference, state) {
 			break;
 		case PARAM_TRANSITIONS:
 			setTransitions(state);
+			changeImage(currentData.image, true);
+			break;
 		case PARAM_BG_ARTWORK:
-		case PARAM_BG_COLOR_OVERLAY:
-			if (currentData.image) {
-				changeImage(currentData.image, true);
+			let background = document.getElementById("background-img").classList;
+			if (state) {
+				background.add("blur");
+			} else {
+				background.remove("blur");
 			}
+			changeImage(currentData.image, true);
+			break;
+		case PARAM_BG_COLOR_OVERLAY:
+			changeImage(currentData.image, true);
 			break;
 	}
 
@@ -495,7 +505,7 @@ function refreshPreference(preference, state) {
 		window.history.replaceState({}, 'Spotify Playback Info', url.toString());
 	}
 
-	// ToggleCheckmark
+	// Toggle Checkmark
 	let classList = document.getElementById(preference).classList;
 	if (state) {
 		classList.add("preference-on");
@@ -517,7 +527,7 @@ function initPreference(preference) {
 	const urlParams = new URLSearchParams(window.location.search);
 	let state = visualPreferences[preference];
 	if (urlParams.get(preference) != null) {
-		let state = (urlParams.get(preference) == "true");
+		state = (urlParams.get(preference) == "true");
 	}
 	refreshPreference(preference, state);
 }
