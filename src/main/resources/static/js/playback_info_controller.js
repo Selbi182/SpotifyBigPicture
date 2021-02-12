@@ -182,10 +182,11 @@ function showHide(elem, show, useInvisibility) {
 const HIDE_VOLUME_TIMEOUT_MS = 2 * 1000;
 var volumeTimeout;
 
-function updateVolume(volume) {
-	if (volume != null && volume !== currentData.volume) {
+function updateVolume(volume, force) {
+	if (force !== undefined || (volume != null && volume !== currentData.volume)) {
 		let volumeBox = document.getElementById("volume");
-		showHide(volumeBox, true);
+		let state = force !== undefined ? force : visualPreferences[PARAM_SHOW_VOLUME];
+		showHide(volumeBox, state);
 		clearTimeout(volumeTimeout);
 		volumeTimeout = setTimeout(() => showHide(volumeBox, false), HIDE_VOLUME_TIMEOUT_MS);
 
@@ -452,6 +453,7 @@ const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
 const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_BG_COLOR_OVERLAY = "bgcoloroverlay";
+const PARAM_SHOW_VOLUME = "showvolume";
 
 // Settings with defaults
 var visualPreferences = {
@@ -459,7 +461,8 @@ var visualPreferences = {
 	[PARAM_DARK_MODE]:        false,
 	[PARAM_TRANSITIONS]:      true,
 	[PARAM_BG_ARTWORK]:       true,
-	[PARAM_BG_COLOR_OVERLAY]: true
+	[PARAM_BG_COLOR_OVERLAY]: true,
+	[PARAM_SHOW_VOLUME]:      true
 };
 
 function toggleVisualPreference(key) {
@@ -496,6 +499,9 @@ function refreshPreference(preference, state) {
 		case PARAM_BG_COLOR_OVERLAY:
 			changeImage(currentData.image, true);
 			break;
+		case PARAM_SHOW_VOLUME:
+			updateVolume(currentData.volume, state);
+			break;
 	}
 
 	// URL Params
@@ -521,6 +527,7 @@ function initVisualPreferencesFromUrlParams() {
 	initPreference(PARAM_TRANSITIONS);
 	initPreference(PARAM_BG_ARTWORK);
 	initPreference(PARAM_BG_COLOR_OVERLAY);
+	initPreference(PARAM_SHOW_VOLUME);
 }
 
 function initPreference(preference) {
@@ -579,6 +586,9 @@ document.onkeydown = (e) => {
 			break;
 		case "c":
 			toggleVisualPreference(PARAM_BG_COLOR_OVERLAY);
+			break;
+		case "v":
+			toggleVisualPreference(PARAM_SHOW_VOLUME);
 			break;
 	}
 }

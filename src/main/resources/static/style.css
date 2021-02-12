@@ -50,6 +50,7 @@ a:hover {
 
 * {
 	/* border: 1px solid blue; */
+	box-sizing: border-box;
 }
 
 .transition {
@@ -184,7 +185,7 @@ a:hover {
 
 #meta-right > #settings {
 	width: 100%;
-	height: 100%;
+	height: auto;
 	display: none;
 }
 
@@ -193,7 +194,7 @@ a:hover {
 }
 
 #meta-right > #settings > .settings-links {
-	white-space: pre;
+	white-space: pre-line;
 	line-height: 2vmin;
 }
 
