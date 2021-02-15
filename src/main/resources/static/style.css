@@ -84,7 +84,7 @@ a:hover {
 	background-size: cover !important;
 	background-position: center center !important;
 	background-repeat: no-repeat !important;
-	background-blend-mode: multiply;
+	background-blend-mode: soft-light, multiply;
 	transform: scale(1.1);
 	width: 100%;
 	height: 100%;

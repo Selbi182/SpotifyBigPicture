@@ -72,8 +72,6 @@ function closeFlux() {
 
 window.addEventListener('beforeunload', closeFlux);
 
-window.onfocus = () => singleRequest();
-
 function processJson(json) {
 	if (json.type == "DATA") {
 		setDisplayData(json);
@@ -212,7 +210,8 @@ function changeImage(newImage, force) {
 			if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
 				preloadImg.crossOrigin = "Anonymous";
 			}
-			preloadImg.onload = () => {
+			preloadImg.src = newImage;
+			preloadImg.decode().then(() => {
 				newImageFadeIn = setTimeout(() => {
 					let artworkUrl = makeUrl(preloadImg.src);
 					document.getElementById("artwork-img").style.backgroundImage = artworkUrl;
@@ -226,10 +225,9 @@ function changeImage(newImage, force) {
 					}
 					document.getElementById("background-img").style.background = backgroundUrl;
 
-					setArtworkOpacity("1");
+			    	setArtworkOpacity("1");
 				}, setImageTransitionMs);
-			}
-			preloadImg.src = newImage;
+			});
 			setArtworkOpacity("0");
 		}
 	}
@@ -247,7 +245,6 @@ function extractUrl(url) {
 function makeUrl(url) {
 	return "url(" + url + ")";
 }
-
 
 var colorThief;
 window.addEventListener('load', () => {
@@ -281,10 +278,9 @@ function getDominantImageColor(img) {
 
 					let alpha = 1.0;
 					if (visualPreferences[PARAM_BG_ARTWORK]) {
-						// Basically, the more colorful the result color is,
+						// Basically, the darker the result color is,
 						// the more visible the overlay will be
-						let tmpAlpha = Math.sin(prevColorfulness * (Math.PI / 2));
-						alpha = Math.max(OVERLAY_MIN_ALPHA, Math.min(OVERLAY_MAX_ALPHA, tmpAlpha));
+						alpha = 1 - ((r + g + b) / (255 * 3));
 					}
 					
 					return [r, g, b, alpha];
