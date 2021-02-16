@@ -225,7 +225,7 @@ function changeImage(newImage, force) {
 					}
 					document.getElementById("background-img").style.background = backgroundUrl;
 
-			    	setArtworkOpacity("1");
+					setArtworkOpacity("1");
 				}, setImageTransitionMs);
 			});
 			setArtworkOpacity("0");
@@ -246,63 +246,39 @@ function makeUrl(url) {
 	return "url(" + url + ")";
 }
 
-var colorThief;
-window.addEventListener('load', () => {
-	colorThief = new ColorThief();
-});
 
-const PALETTE_SAMPLE_SIZE = 6;
-const OVERLAY_MIN_ALPHA = 0.1;
-const OVERLAY_MAX_ALPHA = 0.9;
+const OVERLAY_MIN_ALPHA = 0.5;
 const DEFAULT_RGBA = [0, 0, 0, OVERLAY_MIN_ALPHA];
+const MIN_POPULATION_THRESHOLD = 100;
+
 function getDominantImageColor(img) {
 	if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
 		try {
-			if (colorThief) {
-				let palette = colorThief.getPalette(img, PALETTE_SAMPLE_SIZE);
-	
-				let dominant;
-				let prevColorfulness = 0;
-				for (let color of palette) {
-					let currentColorfulness = colorfulness(color[0], color[1], color[2]);
-					if (currentColorfulness >= prevColorfulness) {
-						dominant = color;
-						prevColorfulness = currentColorfulness;
-					}
-				}
-	
-				if (dominant) {
-					let r = dominant[0];
-					let g = dominant[1];
-					let b = dominant[2];
+			let palette = new Vibrant(img);
+			
+			let vibrantSwatch = palette.VibrantSwatch;
+			if (vibrantSwatch && vibrantSwatch.population > MIN_POPULATION_THRESHOLD) {
+				let dominant = vibrantSwatch.getRgb();
 
-					let alpha = 1.0;
-					if (visualPreferences[PARAM_BG_ARTWORK]) {
-						// Basically, the darker the result color is,
-						// the more visible the overlay will be
-						alpha = 1 - ((r + g + b) / (255 * 3));
-					}
-					
-					return [r, g, b, alpha];
+				let r = dominant[0];
+				let g = dominant[1];
+				let b = dominant[2];
+
+				let alpha = 1.0;
+				if (visualPreferences[PARAM_BG_ARTWORK]) {
+					// Basically, the brighter the result color is,
+					// the more visible the overlay will be
+					alpha = OVERLAY_MIN_ALPHA + (Math.sqrt(0.299*r*r + 0.587*g*g + 0.114*b*b ) / 255) * OVERLAY_MIN_ALPHA;
 				}
+			
+				return [r, g, b, alpha];
 			}
-			throw "Found no dominant color";
 		} catch (ex) {
 			console.error(ex);
 		}
 	}
 	return DEFAULT_RGBA;
 }
-
-function colorfulness(r, g, b) {
-	// Rough implementation of Colorfulness Index defined by Hasler and Suesstrunk
-	// -> https://infoscience.epfl.ch/record/33994/files/HaslerS03.pdf (p. 5+6)
-	let rg = Math.abs(r - g);
-	let yb = Math.abs((0.5 * (r + g)) - b);
-	let meanRoot = Math.sqrt(Math.pow(rg, 2) + Math.pow(yb, 2));
-	return meanRoot / 255;
-}
-
 
 ///////////////////////////////
 // PROGRESS
