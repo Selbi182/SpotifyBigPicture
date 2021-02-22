@@ -192,50 +192,79 @@ function updateVolume(volume, force) {
 	}
 }
 
-const IMAGE_TRANSITION_MS = 500;
-var setImageTransitionMs = IMAGE_TRANSITION_MS;
-
+const TRANSITION_MS = 500;
 const DEFAULT_IMAGE = 'img/idle.png';
 const DEFAULT_BACKGROUND = 'img/gradient.png';
 
 var preloadImg;
-var newImageFadeIn;
+var fadeOutDone = false;
+var decodeDone = false;
+
+var fadeOutTimeout;
 
 function changeImage(newImage, force) {
 	if (newImage) {
 		let oldImg = document.getElementById("artwork-img").style.backgroundImage;
 		if (force || !oldImg.includes(newImage)) {
-			clearTimeout(newImageFadeIn);
+			clearTimeout(fadeOutTimeout);
+			fadeOutDone = false;
+			decodeDone = false;
+
+			let previousOpacity = setArtworkOpacity("0");
+			if (previousOpacity > 0) {
+				fadeOutTimeout = setTimeout(() => {
+					fadeOutDone = true;
+					paintArtwork();
+				}, TRANSITION_MS);
+			} else {
+				fadeOutDone = true;
+			}
+
 			preloadImg = new Image();
 			if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
 				preloadImg.crossOrigin = "Anonymous";
 			}
 			preloadImg.src = newImage;
+
 			preloadImg.decode().then(() => {
-				newImageFadeIn = setTimeout(() => {
-					let artworkUrl = makeUrl(preloadImg.src);
-					document.getElementById("artwork-img").style.backgroundImage = artworkUrl;
-
-					let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
-					if (!idle) {
-						let rgba = getDominantImageColor(preloadImg);
-						let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
-						let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
-						backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
-					}
-					document.getElementById("background-img").style.background = backgroundUrl;
-
-					setArtworkOpacity("1");
-				}, setImageTransitionMs);
+				decodeDone = true;
+				paintArtwork();
 			});
-			setArtworkOpacity("0");
 		}
 	}
 }
 
+const FADE_IN_DELAY = 1000;
+var fadeInDelay = 0;
+function paintArtwork() {
+	if (fadeOutDone && decodeDone && preloadImg) {
+		let artworkUrl = makeUrl(preloadImg.src);
+
+		let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
+		if (!idle) {
+			let rgba = getDominantImageColor(preloadImg);
+			let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
+			let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
+			backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
+		}
+
+		let artwork = document.getElementById("artwork-img").style;
+		let background = document.getElementById("background-img").style;
+		artwork.backgroundImage = artworkUrl;
+		background.background = backgroundUrl;
+
+		setTimeout(() => {
+			setArtworkOpacity("1");
+			preloadImg = null;
+	    }, fadeInDelay);
+	}
+}
+
 function setArtworkOpacity(value) {
+	let previousOpacity = document.getElementById("artwork-img").style.opacity;
 	document.getElementById("artwork-img").style.opacity = value;
 	document.getElementById("background-img").style.opacity = value;
+	return previousOpacity;
 }
 
 function extractUrl(url) {
@@ -243,7 +272,7 @@ function extractUrl(url) {
 }
 
 function makeUrl(url) {
-	return "url(" + url + ")";
+	return `url(${url})`;
 }
 
 
@@ -301,7 +330,7 @@ function updateProgress(changes) {
 	}
 	document.getElementById("progress-current").style.width = progressPercent + "%";
 	
-	if (idle) {
+	if (idle || !currentData.artist || !currentData.title) {
 		document.title = "Spotify Playback Info";
 	} else {
 		document.title = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artist} - ${currentData.title}`;
@@ -426,6 +455,7 @@ const PARAM_TRANSITIONS = "transitions";
 const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_BG_COLOR_OVERLAY = "bgcoloroverlay";
 const PARAM_SHOW_VOLUME = "showvolume";
+const PARAM_FADEIN_DELAY = "fadeindelay";
 
 // Settings with defaults
 var visualPreferences = {
@@ -434,7 +464,8 @@ var visualPreferences = {
 	[PARAM_TRANSITIONS]:      true,
 	[PARAM_BG_ARTWORK]:       true,
 	[PARAM_BG_COLOR_OVERLAY]: true,
-	[PARAM_SHOW_VOLUME]:      true
+	[PARAM_SHOW_VOLUME]:      false,
+	[PARAM_FADEIN_DELAY]:	  false
 };
 
 function toggleVisualPreference(key) {
@@ -474,6 +505,11 @@ function refreshPreference(preference, state) {
 		case PARAM_SHOW_VOLUME:
 			updateVolume(currentData.volume, state);
 			break;
+		case PARAM_FADEIN_DELAY:
+			fadeInDelay = state ? FADE_IN_DELAY : 0;
+			//updateVolume(currentData.volume, state);
+			changeImage(currentData.image, true);
+			break;
 	}
 
 	// URL Params
@@ -500,6 +536,7 @@ function initVisualPreferencesFromUrlParams() {
 	initPreference(PARAM_BG_ARTWORK);
 	initPreference(PARAM_BG_COLOR_OVERLAY);
 	initPreference(PARAM_SHOW_VOLUME);
+	initPreference(PARAM_FADEIN_DELAY);
 }
 
 function initPreference(preference) {
@@ -530,11 +567,9 @@ function setTransitions(state) {
 	if (state) {
 		mainImgClassList.add("transition");
 		backgroundImgClassList.add("transition");
-		setImageTransitionMs = IMAGE_TRANSITION_MS;
 	} else {
 		mainImgClassList.remove("transition");
 		backgroundImgClassList.remove("transition");
-		setImageTransitionMs = 0;
 	}
 }
 
@@ -562,6 +597,9 @@ document.onkeydown = (e) => {
 		case "v":
 			toggleVisualPreference(PARAM_SHOW_VOLUME);
 			break;
+		case "i":
+			toggleVisualPreference(PARAM_FADEIN_DELAY);
+			break;
 	}
 }
 
@@ -572,7 +610,6 @@ document.onkeydown = (e) => {
 
 document.addEventListener("mousemove", handleMouseEvent);
 document.addEventListener("click", handleMouseEvent);
-document.addEventListener("keydown", handleMouseEvent);
 var cursorTimeout;
 function handleMouseEvent() {
 	document.querySelector("body").style.cursor = "default";
