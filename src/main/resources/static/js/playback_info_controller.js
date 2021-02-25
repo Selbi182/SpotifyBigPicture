@@ -241,25 +241,24 @@ function paintArtwork() {
 		let artworkUrl = makeUrl(preloadImg.src);
 
 		let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
-		if (!idle) {
-			let rgba = getDominantImageColor(preloadImg);
+		let rgba;
+		if (!idle && !artworkUrl.includes(DEFAULT_IMAGE)) {
+			rgba = getDominantImageColor(preloadImg);
 			let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
 			let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
 			backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
-
-			if (visualPreferences[PARAM_COLORED_SHADOW]) {
-				document.getElementById("artwork-img").style.filter = `drop-shadow(0px 0px 48px ${backgroundColorOverlay}) drop-shadow(0px 0px 16px #00000080)`;
-			} else {
-				document.getElementById("artwork-img").style.filter = "";
-			}
-		} else {
-			document.getElementById("artwork-img").style.filter = "";
 		}
 
 		let artwork = document.getElementById("artwork-img").style;
 		let background = document.getElementById("background-img").style;
 		artwork.backgroundImage = artworkUrl;
 		background.background = backgroundUrl;
+
+		if (rgba && !idle && visualPreferences[PARAM_COLORED_SHADOW]) {
+			artwork.filter = `drop-shadow(0px 0px 48px rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3] / 2}))`;
+		} else {
+			artwork.filter = "";
+		}
 
 		setTimeout(() => {
 			setArtworkOpacity("1");
@@ -332,7 +331,6 @@ function getBestSwatch(palette) {
 				bestSwatch = swatch;
 				bestSwatch.name = swatchIndex;
 				bestSwatch.weightedPopulation = weightedPopulation;
-				delete bestSwatch.hsl;
 			}
 		}
 	}
@@ -413,6 +411,7 @@ function pad2(time) {
 
 const PROGRESS_BAR_UPDATE_MS = 200;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+const REQUEST_ON_SONG_END_MS = 100;
 
 var autoTimer;
 var idleTimeout;
@@ -439,9 +438,11 @@ function advanceProgressBar() {
 		let ellapsedTime = now - startTime;
 		startTime = now;
 		let newTime = currentData.timeCurrent + ellapsedTime;
-		if (newTime > currentData.timeTotal && currentData.timeCurrent < currentData.timeTotal) {
+		if (newTime > currentData.timeTotal) {
+			if (currentData.timeCurrent < currentData.timeTotal) {
+				setTimeout(() => singleRequest(), REQUEST_ON_SONG_END_MS);
+			}
 			newTime = currentData.timeTotal;
-			setTimeout(() => singleRequest(), 100);
 		}
 		currentData.timeCurrent = newTime;
 		updateProgress(currentData);
