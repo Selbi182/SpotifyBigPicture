@@ -188,6 +188,8 @@ a:hover {
 	width: 100%;
 	height: auto;
 	display: none;
+	font-size: 2vh;
+	line-height: 3vh;
 }
 
 #meta-right > #settings > .settings-header {
@@ -239,7 +241,7 @@ a:hover {
 }
 
 #progress {
-	background: rgba(255,255,255, 0.25);
+	background: rgba(255,255,255, 0.2);
 	width: 100%;
 	margin: 1em;
 	border-radius: 0.5vh;

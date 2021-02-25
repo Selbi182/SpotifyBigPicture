@@ -162,6 +162,14 @@ function setDisplayData(changes) {
 	}
 }
 
+function setClass(elem, className, state) {
+	if (state) {
+		elem.classList.add(className);
+	} else {
+		elem.classList.remove(className);
+	}
+}
+
 function showHide(elem, show, useInvisibility) {
 	if (show) {
 		elem.classList.remove("invisible");
@@ -221,7 +229,7 @@ function changeImage(newImage, force) {
 			}
 
 			preloadImg = new Image();
-			if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
+			if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_COLORED_SHADOW]) {
 				preloadImg.crossOrigin = "Anonymous";
 			}
 			preloadImg.src = newImage;
@@ -235,7 +243,6 @@ function changeImage(newImage, force) {
 }
 
 const FADE_IN_DELAY = 1000;
-var fadeInDelay = 0;
 function paintArtwork() {
 	if (fadeOutDone && decodeDone && preloadImg) {
 		let artworkUrl = makeUrl(preloadImg.src);
@@ -244,7 +251,7 @@ function paintArtwork() {
 		let rgba;
 		if (!idle && !artworkUrl.includes(DEFAULT_IMAGE)) {
 			rgba = getDominantImageColor(preloadImg);
-			let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
+			let backgroundColorOverlay = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.alpha})`;
 			let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
 			backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
 		}
@@ -255,21 +262,21 @@ function paintArtwork() {
 		background.background = backgroundUrl;
 
 		if (rgba && !idle && visualPreferences[PARAM_COLORED_SHADOW]) {
-			artwork.filter = `drop-shadow(0px 0px 48px rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3] / 2}))`;
+			artwork.filter = `drop-shadow(0px 0px 48px rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${1 - rgba.brightness}))`;
 		} else {
 			artwork.filter = "";
 		}
 
 		setTimeout(() => {
 			setArtworkOpacity("1");
-	    }, fadeInDelay);
+	    }, visualPreferences[PARAM_FADEIN_DELAY] ? FADE_IN_DELAY : 0);
 	}
 }
 
 function setArtworkOpacity(value) {
 	let previousOpacity = document.getElementById("artwork-img").style.opacity;
 	document.getElementById("artwork-img").style.opacity = value;
-	document.getElementById("background-img").style.opacity = value;
+	document.getElementById("background-img").style.opacity = visualPreferences[PARAM_DARKEN_BACKGROUND] ? value / 2 : value;
 	return previousOpacity;
 }
 
@@ -283,12 +290,18 @@ function makeUrl(url) {
 
 
 const OVERLAY_MIN_ALPHA = 0.5;
-const DEFAULT_RGBA = [0, 0, 0, OVERLAY_MIN_ALPHA];
+const DEFAULT_RGBA = {
+	r: 0,
+	g: 0,
+	b: 0,
+	alpha: OVERLAY_MIN_ALPHA,
+	brightness: 0
+};
 function getDominantImageColor(img) {
-	if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
+	if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_COLORED_SHADOW]) {
 		try {
 			let palette = new Vibrant(img);
-			let swatch = getBestSwatch(palette);
+			let swatch = getBestSwatch(palette, false);
 			if (swatch) {
 				let rgb = swatch.getRgb();
 
@@ -303,7 +316,13 @@ function getDominantImageColor(img) {
 					alpha = OVERLAY_MIN_ALPHA + (Math.sqrt(0.299*r*r + 0.587*g*g + 0.114*b*b ) / 255) * OVERLAY_MIN_ALPHA;
 				}
 			
-				return [r, g, b, alpha];
+				return {
+					r: r,
+					g: g,
+					b: b,
+					alpha: alpha,
+					brightness: swatch.getHsl()[2]
+				};
 			}
 		} catch (ex) {
 			console.error(ex);
@@ -321,11 +340,11 @@ const WEIGHTED_SWATCHES = {
 	DarkMuted: 1
 };
 const MIN_POPULATION_THRESHOLD = 500;
-function getBestSwatch(palette) {
+function getBestSwatch(palette, ignoreThreshold) {
 	let bestSwatch = null;
 	for (let swatchIndex in WEIGHTED_SWATCHES) {
 		let swatch = palette.swatches()[swatchIndex];
-		if (swatch && swatch.population > MIN_POPULATION_THRESHOLD) {
+		if (swatch && (ignoreThreshold || swatch.population > MIN_POPULATION_THRESHOLD)) {
 			let weightedPopulation = swatch.population * WEIGHTED_SWATCHES[swatchIndex];
 			if (!bestSwatch || bestSwatch.weightedPopulation < weightedPopulation) {
 				bestSwatch = swatch;
@@ -334,7 +353,11 @@ function getBestSwatch(palette) {
 			}
 		}
 	}
-	return bestSwatch;
+	if (!bestSwatch && !ignoreThreshold) {
+		return getBestSwatch(palette, true);
+	} else {
+		return bestSwatch;
+	}
 }
 
 ///////////////////////////////
@@ -493,17 +516,19 @@ const PARAM_BG_COLOR_OVERLAY = "bgcoloroverlay";
 const PARAM_SHOW_VOLUME = "showvolume";
 const PARAM_FADEIN_DELAY = "fadeindelay";
 const PARAM_COLORED_SHADOW = "coloredshadow";
+const PARAM_DARKEN_BACKGROUND = "darkenbackground";
 
 // Settings with defaults
 var visualPreferences = {
-	[PARAM_FULLSCREEN]:       false,
-	[PARAM_DARK_MODE]:        false,
-	[PARAM_TRANSITIONS]:      true,
-	[PARAM_BG_ARTWORK]:       true,
-	[PARAM_BG_COLOR_OVERLAY]: true,
-	[PARAM_SHOW_VOLUME]:      false,
-	[PARAM_FADEIN_DELAY]:	  false,
-	[PARAM_COLORED_SHADOW]:   true
+	[PARAM_FULLSCREEN]:        false,
+	[PARAM_DARK_MODE]:         false,
+	[PARAM_TRANSITIONS]:       true,
+	[PARAM_BG_ARTWORK]:        true,
+	[PARAM_BG_COLOR_OVERLAY]:  true,
+	[PARAM_SHOW_VOLUME]:       false,
+	[PARAM_FADEIN_DELAY]:	   false,
+	[PARAM_COLORED_SHADOW]:    true,
+	[PARAM_DARKEN_BACKGROUND]: true
 };
 
 function toggleVisualPreference(key) {
@@ -525,29 +550,21 @@ function refreshPreference(preference, state) {
 			showHide(document.getElementById("dark-overlay"), state, false);
 			break;
 		case PARAM_TRANSITIONS:
-			setTransitions(state);
+			setClass(document.getElementById("artwork-img"), "transition", state);
+			setClass(document.getElementById("background-img"), "transition", state);
 			changeImage(currentData.image, true);
 			break;
 		case PARAM_BG_ARTWORK:
-			let background = document.getElementById("background-img").classList;
-			if (state) {
-				background.add("blur");
-			} else {
-				background.remove("blur");
-			}
-			changeImage(currentData.image, true);
-			break;
-		case PARAM_BG_COLOR_OVERLAY:
+			setClass(document.getElementById("background-img"), "blur", state);
 			changeImage(currentData.image, true);
 			break;
 		case PARAM_SHOW_VOLUME:
 			updateVolume(currentData.volume, state);
 			break;
 		case PARAM_FADEIN_DELAY:
-			fadeInDelay = state ? FADE_IN_DELAY : 0;
-			changeImage(currentData.image, true);
-			break;
+		case PARAM_BG_COLOR_OVERLAY:
 		case PARAM_COLORED_SHADOW:
+		case PARAM_DARKEN_BACKGROUND:
 			changeImage(currentData.image, true);
 			break;
 	}
@@ -578,6 +595,7 @@ function initVisualPreferencesFromUrlParams() {
 	initPreference(PARAM_SHOW_VOLUME);
 	initPreference(PARAM_FADEIN_DELAY);
 	initPreference(PARAM_COLORED_SHADOW);
+	initPreference(PARAM_DARKEN_BACKGROUND);
 }
 
 function initPreference(preference) {
@@ -599,18 +617,6 @@ function setFullscreen(state) {
 	    if (document.exitFullscreen) {
 	    	document.exitFullscreen();
 	    }
-	}
-}
-
-function setTransitions(state) {
-	let mainImgClassList = document.getElementById("artwork-img").classList;
-	let backgroundImgClassList = document.getElementById("background-img").classList;
-	if (state) {
-		mainImgClassList.add("transition");
-		backgroundImgClassList.add("transition");
-	} else {
-		mainImgClassList.remove("transition");
-		backgroundImgClassList.remove("transition");
 	}
 }
 
@@ -643,6 +649,9 @@ document.onkeydown = (e) => {
 			break;
 		case "s":
 			toggleVisualPreference(PARAM_COLORED_SHADOW);
+			break;
+		case "b":
+			toggleVisualPreference(PARAM_DARKEN_BACKGROUND);
 			break;
 	}
 }
