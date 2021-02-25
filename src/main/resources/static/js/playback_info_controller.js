@@ -215,7 +215,7 @@ function changeImage(newImage, force) {
 				fadeOutTimeout = setTimeout(() => {
 					fadeOutDone = true;
 					paintArtwork();
-				}, TRANSITION_MS);
+				}, visualPreferences[PARAM_TRANSITIONS] ? TRANSITION_MS : 0);
 			} else {
 				fadeOutDone = true;
 			}
@@ -246,6 +246,14 @@ function paintArtwork() {
 			let backgroundColorOverlay = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
 			let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
 			backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
+
+			if (visualPreferences[PARAM_COLORED_SHADOW]) {
+				document.getElementById("artwork-img").style.filter = `drop-shadow(0px 0px 48px ${backgroundColorOverlay}) drop-shadow(0px 0px 16px #00000080)`;
+			} else {
+				document.getElementById("artwork-img").style.filter = "";
+			}
+		} else {
+			document.getElementById("artwork-img").style.filter = "";
 		}
 
 		let artwork = document.getElementById("artwork-img").style;
@@ -255,7 +263,6 @@ function paintArtwork() {
 
 		setTimeout(() => {
 			setArtworkOpacity("1");
-			preloadImg = null;
 	    }, fadeInDelay);
 	}
 }
@@ -278,20 +285,17 @@ function makeUrl(url) {
 
 const OVERLAY_MIN_ALPHA = 0.5;
 const DEFAULT_RGBA = [0, 0, 0, OVERLAY_MIN_ALPHA];
-const MIN_POPULATION_THRESHOLD = 100;
-
 function getDominantImageColor(img) {
 	if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
 		try {
 			let palette = new Vibrant(img);
-			
-			let vibrantSwatch = palette.VibrantSwatch;
-			if (vibrantSwatch && vibrantSwatch.population > MIN_POPULATION_THRESHOLD) {
-				let dominant = vibrantSwatch.getRgb();
+			let swatch = getBestSwatch(palette);
+			if (swatch) {
+				let rgb = swatch.getRgb();
 
-				let r = dominant[0];
-				let g = dominant[1];
-				let b = dominant[2];
+				let r = rgb[0];
+				let g = rgb[1];
+				let b = rgb[2];
 
 				let alpha = 1.0;
 				if (visualPreferences[PARAM_BG_ARTWORK]) {
@@ -307,6 +311,32 @@ function getDominantImageColor(img) {
 		}
 	}
 	return DEFAULT_RGBA;
+}
+
+const WEIGHTED_SWATCHES = {
+	Vibrant: 5,
+	DarkVibrant: 4,
+	LightVibrant: 3,
+	Muted: 2,
+	LightMuted: 2,
+	DarkMuted: 1
+};
+const MIN_POPULATION_THRESHOLD = 500;
+function getBestSwatch(palette) {
+	let bestSwatch = null;
+	for (let swatchIndex in WEIGHTED_SWATCHES) {
+		let swatch = palette.swatches()[swatchIndex];
+		if (swatch && swatch.population > MIN_POPULATION_THRESHOLD) {
+			let weightedPopulation = swatch.population * WEIGHTED_SWATCHES[swatchIndex];
+			if (!bestSwatch || bestSwatch.weightedPopulation < weightedPopulation) {
+				bestSwatch = swatch;
+				bestSwatch.name = swatchIndex;
+				bestSwatch.weightedPopulation = weightedPopulation;
+				delete bestSwatch.hsl;
+			}
+		}
+	}
+	return bestSwatch;
 }
 
 ///////////////////////////////
@@ -408,7 +438,12 @@ function advanceProgressBar() {
 		let now = Date.now();
 		let ellapsedTime = now - startTime;
 		startTime = now;
-		currentData.timeCurrent = Math.min(currentData.timeCurrent + ellapsedTime, currentData.timeTotal);
+		let newTime = currentData.timeCurrent + ellapsedTime;
+		if (newTime > currentData.timeTotal && currentData.timeCurrent < currentData.timeTotal) {
+			newTime = currentData.timeTotal;
+			setTimeout(() => singleRequest(), 100);
+		}
+		currentData.timeCurrent = newTime;
 		updateProgress(currentData);
 	}
 }
@@ -456,6 +491,7 @@ const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_BG_COLOR_OVERLAY = "bgcoloroverlay";
 const PARAM_SHOW_VOLUME = "showvolume";
 const PARAM_FADEIN_DELAY = "fadeindelay";
+const PARAM_COLORED_SHADOW = "coloredshadow";
 
 // Settings with defaults
 var visualPreferences = {
@@ -465,7 +501,8 @@ var visualPreferences = {
 	[PARAM_BG_ARTWORK]:       true,
 	[PARAM_BG_COLOR_OVERLAY]: true,
 	[PARAM_SHOW_VOLUME]:      false,
-	[PARAM_FADEIN_DELAY]:	  false
+	[PARAM_FADEIN_DELAY]:	  false,
+	[PARAM_COLORED_SHADOW]:   true
 };
 
 function toggleVisualPreference(key) {
@@ -507,7 +544,9 @@ function refreshPreference(preference, state) {
 			break;
 		case PARAM_FADEIN_DELAY:
 			fadeInDelay = state ? FADE_IN_DELAY : 0;
-			//updateVolume(currentData.volume, state);
+			changeImage(currentData.image, true);
+			break;
+		case PARAM_COLORED_SHADOW:
 			changeImage(currentData.image, true);
 			break;
 	}
@@ -537,6 +576,7 @@ function initVisualPreferencesFromUrlParams() {
 	initPreference(PARAM_BG_COLOR_OVERLAY);
 	initPreference(PARAM_SHOW_VOLUME);
 	initPreference(PARAM_FADEIN_DELAY);
+	initPreference(PARAM_COLORED_SHADOW);
 }
 
 function initPreference(preference) {
@@ -599,6 +639,9 @@ document.onkeydown = (e) => {
 			break;
 		case "i":
 			toggleVisualPreference(PARAM_FADEIN_DELAY);
+			break;
+		case "s":
+			toggleVisualPreference(PARAM_COLORED_SHADOW);
 			break;
 	}
 }
