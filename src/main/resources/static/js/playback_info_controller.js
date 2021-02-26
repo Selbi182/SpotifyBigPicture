@@ -7,26 +7,28 @@ var idle = false;
 ///////////////////////////////
 
 const FLUX_URL = "/playbackinfoflux";
-const FULL_INFO_URL = "/playbackinfo?full=true";
+const INFO_URL = "/playbackinfo";
+const INFO_URL_FULL = INFO_URL + "?full=true";
 const RETRY_TIMEOUT_MS = 5 * 1000;
 
 window.addEventListener('load', init);
 
 function init() {
 	console.info("Init");
-	singleRequest();
+	singleRequest(true);
 	closeFlux();
 	startFlux();
 	createHeartbeatTimeout();
 }
 
-function singleRequest() {
-	fetch(FULL_INFO_URL)
+function singleRequest(forceFull) {
+	let url = forceFull ? INFO_URL_FULL : INFO_URL;
+	fetch(url)
 		.then(response => response.json())
 		.then(json => processJson(json))
 		.catch(ex => {
 			console.error("Single request", ex);
-			setTimeout(singleRequest, RETRY_TIMEOUT_MS);
+			setTimeout(() => singleRequest(forceFull), RETRY_TIMEOUT_MS);
 		});
 }
 
@@ -42,7 +44,7 @@ function startFlux() {
 				try {
 					createHeartbeatTimeout();
 					if (idle) {
-						singleRequest();
+						singleRequest(true);
 					} else {
 						let data = event.data;
 						let json = JSON.parse(data);
@@ -104,11 +106,10 @@ function setDisplayData(changes) {
 
 	// Main Info
 	if ('title' in changes) {
-		let noFeature = changes.title.replace(/\(feat.+?\)/g, "").trim();
-		document.getElementById("title").innerHTML = noFeature;
+		document.getElementById("title").innerHTML = removeFeatures(changes.title);
 	}
-	if ('artist' in changes) {
-		document.getElementById("artist").innerHTML = changes.artist;
+	if ('artists' in changes) {
+		updateArtists(changes.artists);
 	}
 	if ('album' in changes || 'release' in changes) {
 		let album = 'album' in changes ? changes.album : currentData.album;
@@ -183,6 +184,19 @@ function showHide(elem, show, useInvisibility) {
 			elem.classList.remove("invisible");
 		}
 	}
+}
+
+function removeFeatures(title) {
+	return title.replace(/\(feat.+?\)/g, "").trim();
+}
+
+function updateArtists(artists) {
+	let artistsString = artists[0];
+	if (artists.length > 1) {
+		let featuredArtists = artists.slice(1).join(", ");
+		artistsString += ` (feat. ${featuredArtists})`;
+	}
+	document.getElementById("artists").innerHTML = artistsString;	
 }
 
 const HIDE_VOLUME_TIMEOUT_MS = 2 * 1000;
@@ -273,10 +287,11 @@ function paintArtwork() {
 	}
 }
 
+const DARKEN_BACKGROUND_MULTIPLIER = 0.65;
 function setArtworkOpacity(value) {
 	let previousOpacity = document.getElementById("artwork-img").style.opacity;
 	document.getElementById("artwork-img").style.opacity = value;
-	document.getElementById("background-img").style.opacity = visualPreferences[PARAM_DARKEN_BACKGROUND] ? value / 2 : value;
+	document.getElementById("background-img").style.opacity = visualPreferences[PARAM_DARKEN_BACKGROUND] ? value * DARKEN_BACKGROUND_MULTIPLIER : value;
 	return previousOpacity;
 }
 
@@ -381,10 +396,10 @@ function updateProgress(changes) {
 	}
 	document.getElementById("progress-current").style.width = progressPercent + "%";
 	
-	if (idle || !currentData.artist || !currentData.title) {
+	if (idle || !currentData.artists || !currentData.title) {
 		document.title = "Spotify Playback Info";
 	} else {
-		document.title = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artist} - ${currentData.title}`;
+		document.title = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artists[0]} - ${removeFeatures(currentData.title)}`;
 	}
 }
 
@@ -463,7 +478,7 @@ function advanceProgressBar() {
 		let newTime = currentData.timeCurrent + ellapsedTime;
 		if (newTime > currentData.timeTotal) {
 			if (currentData.timeCurrent < currentData.timeTotal) {
-				setTimeout(() => singleRequest(), REQUEST_ON_SONG_END_MS);
+				setTimeout(() => singleRequest(false), REQUEST_ON_SONG_END_MS);
 			}
 			newTime = currentData.timeTotal;
 		}
@@ -481,7 +496,7 @@ function setIdle() {
 			type: "IDLE",
 
 			title: "&nbsp;",
-			artist: "&nbsp;",
+			artists: "&nbsp;",
 			album: "&nbsp;",
 			release: "",
 

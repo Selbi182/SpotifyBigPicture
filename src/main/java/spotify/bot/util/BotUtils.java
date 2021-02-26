@@ -148,6 +148,18 @@ public final class BotUtils {
 			.map(ArtistSimplified::getName)
 			.collect(Collectors.joining(", "));
 	}
+	
+	/**
+	 * Convert the ArtistSimplified to a list of the names
+	 * 
+	 * @param artists
+	 * @return
+	 */
+	public static List<String> toArtistNamesList(ArtistSimplified[] artists) {
+		return Stream.of(artists)
+			.map(ArtistSimplified::getName)
+			.collect(Collectors.toList());
+	}
 
 	/**
 	 * Returns the name of the first artist of this album (usually the only one)

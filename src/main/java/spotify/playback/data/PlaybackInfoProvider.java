@@ -112,7 +112,7 @@ public class PlaybackInfoProvider {
 			.device(info.getDevice().getName())
 			.volume(info.getDevice().getVolume_percent())
 
-			.artist(BotUtils.joinArtists(track.getArtists()))
+			.artists(BotUtils.toArtistNamesList(track.getArtists()))
 			.title(track.getName())
 			.album(track.getAlbum().getName())
 			.release(PlaybackInfoUtils.findReleaseYear(track))

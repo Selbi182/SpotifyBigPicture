@@ -1,5 +1,7 @@
 package spotify.playback.data;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -28,7 +30,7 @@ public class PlaybackInfoDTO {
 	private String device;
 	private Integer volume;
 	private String playlist;
-	private String artist;
+	private List<String> artists;
 	private String title;
 	private String album;
 	private String release;
@@ -51,7 +53,7 @@ public class PlaybackInfoDTO {
 		this.device = builder.device;
 		this.volume = builder.volume;
 		this.playlist = builder.playlist;
-		this.artist = builder.artist;
+		this.artists = builder.artists;
 		this.title = builder.title;
 		this.album = builder.album;
 		this.release = builder.release;
@@ -125,12 +127,12 @@ public class PlaybackInfoDTO {
 		this.playlist = playlist;
 	}
 
-	public String getArtist() {
-		return artist;
+	public List<String> getArtists() {
+		return artists;
 	}
 
-	public void setArtist(String artist) {
-		this.artist = artist;
+	public void setArtists(List<String> artists) {
+		this.artists = artists;
 	}
 
 	public String getTitle() {
@@ -188,7 +190,7 @@ public class PlaybackInfoDTO {
 		private String device;
 		private Integer volume;
 		private String playlist;
-		private String artist;
+		private List<String> artists;
 		private String title;
 		private String album;
 		private String release;
@@ -226,8 +228,8 @@ public class PlaybackInfoDTO {
 			return Builder.this;
 		}
 
-		public Builder artist(String artist) {
-			this.artist = artist;
+		public Builder artists(List<String> artists) {
+			this.artists = artists;
 			return Builder.this;
 		}
 
