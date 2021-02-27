@@ -243,7 +243,7 @@ function changeImage(newImage, force) {
 			}
 
 			preloadImg = new Image();
-			if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_COLORED_SHADOW]) {
+			if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_ARTWORK_GLOW]) {
 				preloadImg.crossOrigin = "Anonymous";
 			}
 			preloadImg.src = newImage;
@@ -275,8 +275,8 @@ function paintArtwork() {
 		artwork.backgroundImage = artworkUrl;
 		background.background = backgroundUrl;
 
-		if (rgba && !idle && visualPreferences[PARAM_COLORED_SHADOW]) {
-			artwork.filter = `drop-shadow(0px 0px 48px rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${1 - rgba.brightness}))`;
+		if (rgba && !idle && visualPreferences[PARAM_ARTWORK_GLOW]) {
+			artwork.filter = `drop-shadow(0 4px 10vh rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${1 - rgba.brightness}))`;
 		} else {
 			artwork.filter = "";
 		}
@@ -313,7 +313,7 @@ const DEFAULT_RGBA = {
 	brightness: 0
 };
 function getDominantImageColor(img) {
-	if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_COLORED_SHADOW]) {
+	if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_ARTWORK_GLOW]) {
 		try {
 			let palette = new Vibrant(img);
 			let swatch = getBestSwatch(palette, false);
@@ -384,6 +384,7 @@ function updateProgress(changes) {
 	let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
 	let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
 
+	// Text
 	let formattedTimes = formatTime(current, total)
 	let formattedCurrentTime = formattedTimes.current;
 	let formattedTotalTime = formattedTimes.total;
@@ -391,12 +392,14 @@ function updateProgress(changes) {
 	document.getElementById("time-current").innerHTML = formattedCurrentTime;
 	document.getElementById("time-total").innerHTML = formattedTotalTime;
 
+	// Progress Bar
 	let progressPercent = Math.min(1, ((current / total))) * 100;
 	if (isNaN(progressPercent)) {
 		progressPercent = 0;
 	}
 	document.getElementById("progress-current").style.width = progressPercent + "%";
 	
+	// Title
 	if (idle || !currentData.artists || !currentData.title) {
 		document.title = "Spotify Playback Info";
 	} else {
@@ -448,7 +451,7 @@ function pad2(time) {
 // TIMERS
 ///////////////////////////////
 
-const PROGRESS_BAR_UPDATE_MS = 200;
+const PROGRESS_BAR_UPDATE_MS = 500;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 const REQUEST_ON_SONG_END_MS = 100;
 
@@ -531,8 +534,9 @@ const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_BG_COLOR_OVERLAY = "bgcoloroverlay";
 const PARAM_SHOW_VOLUME = "showvolume";
 const PARAM_FADEIN_DELAY = "fadeindelay";
-const PARAM_COLORED_SHADOW = "coloredshadow";
+const PARAM_ARTWORK_GLOW = "artworkglow";
 const PARAM_DARKEN_BACKGROUND = "darkenbackground";
+const PARAM_SMOOTH_PROGRESS = "smoothprogress";
 
 // Settings with defaults
 var visualPreferences = {
@@ -543,8 +547,9 @@ var visualPreferences = {
 	[PARAM_BG_COLOR_OVERLAY]:  true,
 	[PARAM_SHOW_VOLUME]:       false,
 	[PARAM_FADEIN_DELAY]:	   false,
-	[PARAM_COLORED_SHADOW]:    true,
-	[PARAM_DARKEN_BACKGROUND]: true
+	[PARAM_ARTWORK_GLOW]:      true,
+	[PARAM_DARKEN_BACKGROUND]: true,
+	[PARAM_SMOOTH_PROGRESS]:   true
 };
 
 function toggleVisualPreference(key) {
@@ -577,9 +582,12 @@ function refreshPreference(preference, state) {
 		case PARAM_SHOW_VOLUME:
 			updateVolume(currentData.volume, state);
 			break;
+		case PARAM_SMOOTH_PROGRESS:
+			setClass(document.getElementById("progress-current"), "smooth", state);
+			break;
 		case PARAM_FADEIN_DELAY:
 		case PARAM_BG_COLOR_OVERLAY:
-		case PARAM_COLORED_SHADOW:
+		case PARAM_ARTWORK_GLOW:
 		case PARAM_DARKEN_BACKGROUND:
 			changeImage(currentData.image, true);
 			break;
@@ -603,15 +611,12 @@ function refreshPreference(preference, state) {
 
 window.addEventListener('load', initVisualPreferencesFromUrlParams);
 function initVisualPreferencesFromUrlParams() {
-	// initPreference(PARAM_FULLSCREEN); // blocked by most browsers on non-usergenerated events
-	initPreference(PARAM_DARK_MODE);
-	initPreference(PARAM_TRANSITIONS);
-	initPreference(PARAM_BG_ARTWORK);
-	initPreference(PARAM_BG_COLOR_OVERLAY);
-	initPreference(PARAM_SHOW_VOLUME);
-	initPreference(PARAM_FADEIN_DELAY);
-	initPreference(PARAM_COLORED_SHADOW);
-	initPreference(PARAM_DARKEN_BACKGROUND);
+	for (let pref in visualPreferences) {
+		document.getElementById(pref).onclick = () => toggleVisualPreference(pref);
+		if (pref != PARAM_FULLSCREEN) { // not for fullscreen because it's blocked by most browsers on non-usergenerated events
+			initPreference(pref);
+		}
+	}
 }
 
 function initPreference(preference) {
@@ -663,11 +668,14 @@ document.onkeydown = (e) => {
 		case "i":
 			toggleVisualPreference(PARAM_FADEIN_DELAY);
 			break;
-		case "s":
-			toggleVisualPreference(PARAM_COLORED_SHADOW);
+		case "g":
+			toggleVisualPreference(PARAM_ARTWORK_GLOW);
 			break;
 		case "b":
 			toggleVisualPreference(PARAM_DARKEN_BACKGROUND);
+			break;
+		case "p":
+			toggleVisualPreference(PARAM_SMOOTH_PROGRESS);
 			break;
 	}
 }

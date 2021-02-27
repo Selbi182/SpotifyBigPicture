@@ -121,6 +121,7 @@ a:hover {
 	flex-grow: 1;
 	flex-direction: row;
 	position: relative;
+	margin-bottom: 1vmin;
 }
 
 #artwork {
@@ -138,7 +139,7 @@ a:hover {
 	background-size: contain !important;
 	width: auto;
 	height: 100%;
-	filter: drop-shadow(0px 0px 48px black);
+	filter: drop-shadow(0 4px 10vmin black);
 	opacity: 0;
 }
 
@@ -259,7 +260,10 @@ a:hover {
 	min-height: 1px;
 	width: 0%;
 	border-radius: 0.5vh;
-	transition: width 0.2s linear;
+}
+
+#progress-current.smooth {
+	transition: width 0.5s linear;
 }
 
 #bottom-left {

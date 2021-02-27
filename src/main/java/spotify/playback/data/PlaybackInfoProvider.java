@@ -37,6 +37,7 @@ public class PlaybackInfoProvider {
 
 	private PlaybackInfoDTO previous;
 	private String previousContextString;
+	private Album currentContextAlbum;
 	private static final List<Field> DTO_FIELDS;
 	static {
 		DTO_FIELDS = Stream.of(PlaybackInfoDTO.class.getDeclaredFields())
@@ -135,40 +136,45 @@ public class PlaybackInfoProvider {
 	public String findContextName(CurrentlyPlayingContext info) {
 		try {
 			Context context = info.getContext();
-			if (context != null && !context.toString().equals(previousContextString) && info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
-				this.previousContextString = context.toString();
-
-				ModelObjectType type = context.getType();
-				switch (type) {
-					case PLAYLIST:
+			if (context != null && info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
+				if (ModelObjectType.PLAYLIST.equals(context.getType())) {
+					if (checkContextString(context)) {
 						String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
 						Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 						if (contextPlaylist != null) {
 							return contextPlaylist.getName();
 						}
-						break;
-					case ARTIST:
+					}
+				} else if (ModelObjectType.ARTIST.equals(context.getType())) {
+					if (checkContextString(context)) {
 						String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
 						Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
 						if (contextArtist != null) {
-							return contextArtist.getName();
+							return "Artist: " + contextArtist.getName();
 						}
-						break;
-					case ALBUM:
+					}
+				} else if (ModelObjectType.ALBUM.equals(context.getType())) {
+					Track track = (Track) info.getItem();
+					if (currentContextAlbum == null || !currentContextAlbum.getId().equals(track.getAlbum().getId())) {
 						String albumId = context.getHref().replace(PlaybackInfoConstants.ALBUM_PREFIX, "");
 						Album contextAlbum = SpotifyCall.execute(spotifyApi.getAlbum(albumId));
-						if (contextAlbum != null) {
-							return contextAlbum.getName();
-						}
-						break;
-					default:
-						break;
+						this.currentContextAlbum = contextAlbum;
+					}
+					return String.format("Track: %02d / %02d", track.getTrackNumber(), currentContextAlbum.getTracks().getTotal());
 				}
 			}
 		} catch (BotException e) {
 			e.printStackTrace();
 		}
 		return previous != null && previous.getPlaylist() != null ? previous.getPlaylist() : "";
+	}
+
+	private boolean checkContextString(Context context) {
+		if (!context.toString().equals(previousContextString)) {
+			this.previousContextString = context.toString();
+			return true;
+		}
+		return false;
 	}
 
 }
