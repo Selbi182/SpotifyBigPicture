@@ -96,6 +96,7 @@ a:hover {
 	filter: blur(10px);
 }
 
+
 /* MAIN */
 
 #content, #top-info, #center-info, #bottom-info, #time, #info-symbols, #bottom-left {
@@ -116,9 +117,16 @@ a:hover {
 
 /* TOP */
 
+#top-info {
+	flex-grow: 1;
+	flex-direction: row;
+	position: relative;
+}
+
 #artwork {
-	flex: 1.2;
-	order: 2;
+	position: absolute;
+	width: 100%;
+	height: 100%;
 	text-align: center;
 	z-index: -1;
 }
@@ -134,16 +142,12 @@ a:hover {
 	opacity: 0;
 }
 
-#top-info {
-	flex-grow: 1;
-	flex-direction: row;
-}
 
 #meta-left {
 	flex: 1;
 	order: 1;
 	text-align: left;
-	font-size: 2vh;
+	font-size: 2vmin;
 	word-break: break-word;
 }
 
@@ -175,6 +179,7 @@ a:hover {
 	flex: 1;
 	order: 3;
 	text-align: right;
+	position: relative;
 }
 
 #meta-right > #logo {
@@ -185,11 +190,12 @@ a:hover {
 }
 
 #meta-right > #settings {
+	position: absolute;
 	width: 100%;
-	height: auto;
+	height: 100%;
 	display: none;
-	font-size: 2vh;
-	line-height: 3vh;
+	font-size: 1.5vmin;
+	line-height: 3vmin;
 }
 
 #meta-right > #settings > .settings-header {
@@ -215,19 +221,19 @@ a:hover {
 }
 
 #title {
-	font-size: 5vh;
+	font-size: 5vmin;
 	margin-bottom: 0.5vh;
 }
 
 #artists {
-	font-size: 3vh;
+	font-size: 3vmin;
 	color: var(--color-2);
 	margin-bottom: 0.5vh;
 }
 
 #album {
 	margin-top: 0.5em;
-	font-size: 2vh;
+	font-size: 2vmin;
 	color: var(--color-2);
 	opacity: 0.6;
 }
@@ -250,8 +256,10 @@ a:hover {
 #progress-current {
 	background-color: var(--color-1);
 	height: 0.5vh;
+	min-height: 1px;
 	width: 0%;
 	border-radius: 0.5vh;
+	transition: width 0.2s linear;
 }
 
 #bottom-left {
@@ -273,12 +281,12 @@ a:hover {
 }
 
 #time-current {
-	font-size: 4vh;
+	font-size: 4vmin;
 	color: var(--color-2);
 }
 
 #time-total {
-	font-size: 4vh;
+	font-size: 4vmin;
 	color: var(--color-2);
 }
 

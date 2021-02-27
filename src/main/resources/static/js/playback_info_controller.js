@@ -187,7 +187,7 @@ function showHide(elem, show, useInvisibility) {
 }
 
 function removeFeatures(title) {
-	return title.replace(/\(feat.+?\)/g, "").trim();
+	return title.replace(/[\(|\[]feat.+?[\)|\]]/g, "").trim();
 }
 
 function updateArtists(artists) {
@@ -375,6 +375,7 @@ function getBestSwatch(palette, ignoreThreshold) {
 	}
 }
 
+
 ///////////////////////////////
 // PROGRESS
 ///////////////////////////////
@@ -496,7 +497,7 @@ function setIdle() {
 			type: "IDLE",
 
 			title: "&nbsp;",
-			artists: "&nbsp;",
+			artists: ["&nbsp;"],
 			album: "&nbsp;",
 			release: "",
 
