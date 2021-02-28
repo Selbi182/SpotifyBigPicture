@@ -66,11 +66,10 @@ public class PlaybackInfoProvider {
 					}
 				}
 			}
-			return PlaybackInfoDTO.IDLE;
 		} catch (BotException e) {
 			e.printStackTrace();
-			return PlaybackInfoDTO.EMPTY;
 		}
+		return PlaybackInfoDTO.IDLE;
 	}
 
 	private void checkDifferences(PlaybackInfoDTO differences, PlaybackInfoDTO previous, PlaybackInfoDTO current, String field) throws IntrospectionException, ReflectiveOperationException, IllegalArgumentException {
@@ -139,6 +138,7 @@ public class PlaybackInfoProvider {
 			if (context != null && info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
 				if (ModelObjectType.PLAYLIST.equals(context.getType())) {
 					if (checkContextString(context)) {
+						this.currentContextAlbum = null;
 						String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
 						Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 						if (contextPlaylist != null) {
@@ -147,6 +147,7 @@ public class PlaybackInfoProvider {
 					}
 				} else if (ModelObjectType.ARTIST.equals(context.getType())) {
 					if (checkContextString(context)) {
+						this.currentContextAlbum = null;
 						String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
 						Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
 						if (contextArtist != null) {
@@ -154,6 +155,7 @@ public class PlaybackInfoProvider {
 						}
 					}
 				} else if (ModelObjectType.ALBUM.equals(context.getType())) {
+					checkContextString(context);
 					Track track = (Track) info.getItem();
 					if (currentContextAlbum == null || !currentContextAlbum.getId().equals(track.getAlbum().getId())) {
 						String albumId = context.getHref().replace(PlaybackInfoConstants.ALBUM_PREFIX, "");

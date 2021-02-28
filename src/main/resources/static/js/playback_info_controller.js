@@ -452,7 +452,7 @@ function pad2(time) {
 ///////////////////////////////
 
 const PROGRESS_BAR_UPDATE_MS = 500;
-const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+const IDLE_TIMEOUT_MS = 1 * 60 * 60 * 1000;
 const REQUEST_ON_SONG_END_MS = 100;
 
 var autoTimer;
@@ -612,7 +612,7 @@ function refreshPreference(preference, state) {
 window.addEventListener('load', initVisualPreferencesFromUrlParams);
 function initVisualPreferencesFromUrlParams() {
 	for (let pref in visualPreferences) {
-		document.getElementById(pref).onclick = () => toggleVisualPreference(pref);
+		document.getElementById(pref).firstChild.onclick = () => toggleVisualPreference(pref);
 		if (pref != PARAM_FULLSCREEN) { // not for fullscreen because it's blocked by most browsers on non-usergenerated events
 			initPreference(pref);
 		}
