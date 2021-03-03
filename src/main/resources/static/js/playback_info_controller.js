@@ -219,82 +219,62 @@ const DEFAULT_IMAGE = 'img/idle.png';
 const DEFAULT_BACKGROUND = 'img/gradient.png';
 
 var preloadImg;
-var fadeOutDone = false;
-var decodeDone = false;
-
 var fadeOutTimeout;
 
 function changeImage(newImage, force) {
 	if (newImage) {
-		let oldImg = document.getElementById("artwork-img").style.backgroundImage;
+		let artwork = document.getElementById("artwork-img");
+		let oldImg = document.getElementById("artwork-img").src;
 		if (force || !oldImg.includes(newImage)) {
+			setArtworkVisibility(false);
 			clearTimeout(fadeOutTimeout);
-			fadeOutDone = false;
-			decodeDone = false;
-
-			let previousOpacity = setArtworkOpacity("0");
-			if (previousOpacity > 0) {
-				fadeOutTimeout = setTimeout(() => {
-					fadeOutDone = true;
-					paintArtwork();
-				}, visualPreferences[PARAM_TRANSITIONS] ? TRANSITION_MS : 0);
-			} else {
-				fadeOutDone = true;
-			}
-
-			preloadImg = new Image();
-			if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_ARTWORK_GLOW]) {
-				preloadImg.crossOrigin = "Anonymous";
-			}
-			preloadImg.src = newImage;
-
-			preloadImg.decode().then(() => {
-				decodeDone = true;
-				paintArtwork();
-			});
+			
+			fadeOutTimeout = setTimeout(() => {
+				artwork.onload = () => {
+					paintArtwork(artwork);
+				};
+				artwork.src = newImage;
+			}, visualPreferences[PARAM_TRANSITIONS] ? TRANSITION_MS : 0);
 		}
 	}
 }
 
 const FADE_IN_DELAY = 1000;
-function paintArtwork() {
-	if (fadeOutDone && decodeDone && preloadImg) {
-		let artworkUrl = makeUrl(preloadImg.src);
+function paintArtwork(artwork) {
+	let artworkUrl = artwork.src;
 
-		let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
-		let rgba;
-		if (!idle && !artworkUrl.includes(DEFAULT_IMAGE)) {
-			rgba = getDominantImageColor(preloadImg);
-			if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
-				let backgroundColorOverlay = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.alpha})`;
-				let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
-				backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
-			}
-		}
+	let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
+	let rgba;
+	if (!idle && !artworkUrl.includes(DEFAULT_IMAGE)) {
+		let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK]
+			? makeUrl(artworkUrl) + ", "
+			: "";
 
-		let artwork = document.getElementById("artwork-img").style;
-		let background = document.getElementById("background-img").style;
-		artwork.backgroundImage = artworkUrl;
-		background.background = backgroundUrl;
+		rgba = getDominantImageColor(artwork);
+		let backgroundColorOverlay = visualPreferences[PARAM_BG_COLOR_OVERLAY]
+			? `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.alpha})`
+			: "";
 
-		if (rgba && !idle && visualPreferences[PARAM_ARTWORK_GLOW]) {
-			artwork.filter = `drop-shadow(0 4px 10vh rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${1 - rgba.brightness}))`;
-		} else {
-			artwork.filter = "";
-		}
-
-		setTimeout(() => {
-			setArtworkOpacity("1");
-	    }, visualPreferences[PARAM_FADEIN_DELAY] ? FADE_IN_DELAY : 0);
+		backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
 	}
+	
+	if (rgba && !idle && visualPreferences[PARAM_ARTWORK_GLOW]) {
+		artwork.style.boxShadow = `var(--artwork-shadow) rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${(1 - rgba.brightness) / 2})`;
+	} else {
+		artwork.style.boxShadow = "";
+	}
+	
+	let background = document.getElementById("background-img").style;
+	background.background = backgroundUrl;
+
+	setTimeout(() => {
+		setArtworkVisibility(true);
+    }, visualPreferences[PARAM_FADEIN_DELAY] ? FADE_IN_DELAY : 0);
 }
 
-const DARKEN_BACKGROUND_MULTIPLIER = 0.65;
-function setArtworkOpacity(value) {
-	let previousOpacity = document.getElementById("artwork-img").style.opacity;
-	document.getElementById("artwork-img").style.opacity = value;
-	document.getElementById("background-img").style.opacity = visualPreferences[PARAM_DARKEN_BACKGROUND] ? value * DARKEN_BACKGROUND_MULTIPLIER : value;
-	return previousOpacity;
+function setArtworkVisibility(state) {
+	setClass(document.getElementById("artwork-img"), "show", state);
+	setClass(document.getElementById("background-img"), "show", state);
 }
 
 function extractUrl(url) {
@@ -308,11 +288,11 @@ function makeUrl(url) {
 
 const OVERLAY_MIN_ALPHA = 0.5;
 const DEFAULT_RGBA = {
-	r: 64,
-	g: 64,
-	b: 64,
+	r: 255,
+	g: 255,
+	b: 255,
 	alpha: OVERLAY_MIN_ALPHA,
-	brightness: 0
+	brightness: 0.5
 };
 function getDominantImageColor(img) {
 	if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_ARTWORK_GLOW]) {
@@ -357,7 +337,7 @@ const WEIGHTED_SWATCHES = {
 	DarkMuted: 1
 };
 const MIN_POPULATION_THRESHOLD = 500;
-const MIN_BRIGHTNESS = 0.35;
+const MIN_BRIGHTNESS = 0.2;
 function getBestSwatch(palette) {
 	let bestSwatch = null;
 	for (let swatchIndex in WEIGHTED_SWATCHES) {
@@ -584,10 +564,12 @@ function refreshPreference(preference, state) {
 		case PARAM_SMOOTH_PROGRESS:
 			setClass(document.getElementById("progress-current"), "smooth", state);
 			break;
+		case PARAM_DARKEN_BACKGROUND:
+			setClass(document.getElementById("background-img"), "darken", state);
+			break;
 		case PARAM_FADEIN_DELAY:
 		case PARAM_BG_COLOR_OVERLAY:
 		case PARAM_ARTWORK_GLOW:
-		case PARAM_DARKEN_BACKGROUND:
 			changeImage(currentData.image, true);
 			break;
 	}
