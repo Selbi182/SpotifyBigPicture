@@ -193,7 +193,7 @@ function removeFeatures(title) {
 function updateArtists(artists) {
 	let artistsString = artists[0];
 	if (artists.length > 1) {
-		let featuredArtists = artists.slice(1).join(", ");
+		let featuredArtists = artists.slice(1).join(" & ");
 		artistsString += ` (feat. ${featuredArtists})`;
 	}
 	document.getElementById("artists").innerHTML = artistsString;	
@@ -265,9 +265,11 @@ function paintArtwork() {
 		let rgba;
 		if (!idle && !artworkUrl.includes(DEFAULT_IMAGE)) {
 			rgba = getDominantImageColor(preloadImg);
-			let backgroundColorOverlay = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.alpha})`;
-			let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
-			backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
+			if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
+				let backgroundColorOverlay = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.alpha})`;
+				let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK] ? artworkUrl + ", " : "";
+				backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
+			}
 		}
 
 		let artwork = document.getElementById("artwork-img").style;
@@ -306,9 +308,9 @@ function makeUrl(url) {
 
 const OVERLAY_MIN_ALPHA = 0.5;
 const DEFAULT_RGBA = {
-	r: 0,
-	g: 0,
-	b: 0,
+	r: 64,
+	g: 64,
+	b: 64,
 	alpha: OVERLAY_MIN_ALPHA,
 	brightness: 0
 };
@@ -316,7 +318,7 @@ function getDominantImageColor(img) {
 	if (visualPreferences[PARAM_BG_COLOR_OVERLAY] || visualPreferences[PARAM_ARTWORK_GLOW]) {
 		try {
 			let palette = new Vibrant(img);
-			let swatch = getBestSwatch(palette, false);
+			let swatch = getBestSwatch(palette);
 			if (swatch) {
 				let rgb = swatch.getRgb();
 
@@ -355,11 +357,12 @@ const WEIGHTED_SWATCHES = {
 	DarkMuted: 1
 };
 const MIN_POPULATION_THRESHOLD = 500;
-function getBestSwatch(palette, ignoreThreshold) {
+const MIN_BRIGHTNESS = 0.35;
+function getBestSwatch(palette) {
 	let bestSwatch = null;
 	for (let swatchIndex in WEIGHTED_SWATCHES) {
 		let swatch = palette.swatches()[swatchIndex];
-		if (swatch && (ignoreThreshold || swatch.population > MIN_POPULATION_THRESHOLD)) {
+		if (swatch && swatch.population > MIN_POPULATION_THRESHOLD && swatch.getHsl()[2] > MIN_BRIGHTNESS) {
 			let weightedPopulation = swatch.population * WEIGHTED_SWATCHES[swatchIndex];
 			if (!bestSwatch || bestSwatch.weightedPopulation < weightedPopulation) {
 				bestSwatch = swatch;
@@ -368,11 +371,7 @@ function getBestSwatch(palette, ignoreThreshold) {
 			}
 		}
 	}
-	if (!bestSwatch && !ignoreThreshold) {
-		return getBestSwatch(palette, true);
-	} else {
-		return bestSwatch;
-	}
+	return bestSwatch;
 }
 
 
@@ -453,7 +452,7 @@ function pad2(time) {
 
 const PROGRESS_BAR_UPDATE_MS = 500;
 const IDLE_TIMEOUT_MS = 1 * 60 * 60 * 1000;
-const REQUEST_ON_SONG_END_MS = 100;
+const REQUEST_ON_SONG_END_MS = 200;
 
 var autoTimer;
 var idleTimeout;
@@ -499,13 +498,13 @@ function setIdle() {
 		let idleDisplayData = {
 			type: "IDLE",
 
-			title: "&nbsp;",
-			artists: ["&nbsp;"],
-			album: "&nbsp;",
+			title: "",
+			artists: [""],
+			album: "",
 			release: "",
 
-			playlist: "&nbsp;",
-			device: "&nbsp;",
+			playlist: "",
+			device: "",
 			volume: 0,
 
 			pause: true,
@@ -688,6 +687,7 @@ document.onkeydown = (e) => {
 document.addEventListener("mousemove", handleMouseEvent);
 document.addEventListener("click", handleMouseEvent);
 var cursorTimeout;
+const MOUSE_MOVE_HIDE_TIMEOUT_MS = 2 * 1000;
 function handleMouseEvent() {
 	document.querySelector("body").style.cursor = "default";
 	document.getElementById("settings").style.display = "inherit";
@@ -695,5 +695,5 @@ function handleMouseEvent() {
 	cursorTimeout = setTimeout(() => {
 		document.querySelector("body").style.cursor = "none";
 		document.getElementById("settings").style.display = "none";
-	}, 1000);
+	}, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }

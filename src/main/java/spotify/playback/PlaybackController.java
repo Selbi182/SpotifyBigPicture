@@ -65,7 +65,7 @@ public class PlaybackController {
 	 */
 	@Scheduled(initialDelay = PlaybackInfoConstants.INTERVAL_MS, fixedRate = PlaybackInfoConstants.INTERVAL_MS)
 	private void fetchCurrentPlaybackInfoAndPublish() {
-		if (isAnyoneListening()) {
+		if (false || isAnyoneListening()) {
 			PlaybackInfoDTO info = playbackInfo(false);
 			if (info != null && !info.isEmpty()) {
 				sseSend(info);
