@@ -431,9 +431,11 @@ function pad2(time) {
 const PROGRESS_BAR_UPDATE_MS = 500;
 const IDLE_TIMEOUT_MS = 1 * 60 * 60 * 1000;
 const REQUEST_ON_SONG_END_MS = 200;
+const MAX_POST_SONG_END_AUTO_REQUEST_COUNT = 4;
 
 var autoTimer;
 var idleTimeout;
+var postSongEndRequestCount = 0;
 
 function startTimers() {
 	clearTimers();
@@ -458,10 +460,15 @@ function advanceProgressBar() {
 		startTime = now;
 		let newTime = currentData.timeCurrent + ellapsedTime;
 		if (newTime > currentData.timeTotal) {
-			if (currentData.timeCurrent < currentData.timeTotal) {
+			postSongEndRequestCount++;
+			if (postSongEndRequestCount > MAX_POST_SONG_END_AUTO_REQUEST_COUNT) {
+				singleRequest(true);
+			} else if (currentData.timeCurrent < currentData.timeTotal) {
 				setTimeout(() => singleRequest(false), REQUEST_ON_SONG_END_MS);
 			}
 			newTime = currentData.timeTotal;
+		} else {
+			postSongEndRequestCount = 0;
 		}
 		currentData.timeCurrent = newTime;
 		updateProgress(currentData);
@@ -564,6 +571,7 @@ function refreshPreference(preference, state) {
 			break;
 		case PARAM_SCALE_BACKGROUND:
 			setClass(document.getElementById("background"), "scale", state);
+			setClass(document.getElementById("background-img"), "scale", state);
 			break;
 		case PARAM_DARKEN_BACKGROUND:
 			setClass(document.getElementById("background"), "darken", state);
@@ -655,7 +663,7 @@ document.onkeydown = (e) => {
 		case "p":
 			toggleVisualPreference(PARAM_SMOOTH_PROGRESS);
 			break;
-		case "s":
+		case "z":
 			toggleVisualPreference(PARAM_SCALE_BACKGROUND);
 			break;
 	}

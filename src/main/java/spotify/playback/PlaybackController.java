@@ -38,7 +38,7 @@ public class PlaybackController {
 	 * @return the playback info
 	 */
 	@GetMapping("/playbackinfo")
-	public PlaybackInfoDTO playbackInfo(@RequestParam(defaultValue = "false") boolean full) {
+	public PlaybackInfoDTO getCurrentPlaybackInfo(@RequestParam(defaultValue = "false") boolean full) {
 		return currentPlaybackInfo.getCurrentPlaybackInfo(full);
 	}
 
@@ -50,11 +50,11 @@ public class PlaybackController {
 	 * @throws IOException
 	 */
 	@GetMapping("/playbackinfoflux")
-	public SseEmitter getNewNotification() throws IOException {
+	public SseEmitter createAndRegisterNewFlux() throws IOException {
 		SseEmitter emitter = new SseEmitter();
 		emitter.onError(e -> emitter.complete());
 		emitter.onCompletion(() -> removeDeadEmitter(emitter));
-		emitter.send(playbackInfo(true));
+		emitter.send(getCurrentPlaybackInfo(true));
 		this.emitters.add(emitter);
 		return emitter;
 	}
@@ -64,9 +64,9 @@ public class PlaybackController {
 	 * anything was changed
 	 */
 	@Scheduled(initialDelay = PlaybackInfoConstants.INTERVAL_MS, fixedRate = PlaybackInfoConstants.INTERVAL_MS)
-	private void fetchCurrentPlaybackInfoAndPublish() {
+	private void fetchAndPublishCurrentPlaybackInfo() {
 		if (false || isAnyoneListening()) {
-			PlaybackInfoDTO info = playbackInfo(false);
+			PlaybackInfoDTO info = getCurrentPlaybackInfo(false);
 			if (info != null && !info.isEmpty()) {
 				sseSend(info);
 			}

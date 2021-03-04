@@ -77,7 +77,11 @@ html, body {
 }
 
 #background.scale {
- 	transform: scale(1.1);
+ 	transform: scale(1.05);
+}
+
+#background-img.scale {
+ 	transform: scale(1.3);
 }
 
 #background-img {
@@ -235,8 +239,11 @@ html, body {
 	color: var(--color-full);
 }
 
+#meta-right > #settings > .settings-links > .spacer {
+	height: 2vmin;
+}
+
 #meta-right > #settings > .settings-links > #fullscreen {
-	line-height: 10vmin;
 	font-size: 3vmin;
 }
 
