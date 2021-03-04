@@ -513,6 +513,7 @@ const PARAM_SHOW_VOLUME = "showvolume";
 const PARAM_ARTWORK_GLOW = "artworkglow";
 const PARAM_DARKEN_BACKGROUND = "darkenbackground";
 const PARAM_SMOOTH_PROGRESS = "smoothprogress";
+const PARAM_SCALE_BACKGROUND = "scalebackground";
 
 // Settings with defaults
 var visualPreferences = {
@@ -524,7 +525,8 @@ var visualPreferences = {
 	[PARAM_SHOW_VOLUME]:       false,
 	[PARAM_ARTWORK_GLOW]:      true,
 	[PARAM_DARKEN_BACKGROUND]: true,
-	[PARAM_SMOOTH_PROGRESS]:   true
+	[PARAM_SMOOTH_PROGRESS]:   true,
+	[PARAM_SCALE_BACKGROUND]:  true
 };
 
 function toggleVisualPreference(key) {
@@ -543,7 +545,7 @@ function refreshPreference(preference, state) {
 			setFullscreen(state);
 			break;
 		case PARAM_DARK_MODE:
-			showHide(document.getElementById("dark-overlay"), state, false);
+			setClass(document.getElementById("dark-overlay"), "show", state);
 			break;
 		case PARAM_TRANSITIONS:
 			setClass(document.getElementById("artwork-img"), "transition", state);
@@ -559,6 +561,9 @@ function refreshPreference(preference, state) {
 			break;
 		case PARAM_SMOOTH_PROGRESS:
 			setClass(document.getElementById("progress-current"), "smooth", state);
+			break;
+		case PARAM_SCALE_BACKGROUND:
+			setClass(document.getElementById("background"), "scale", state);
 			break;
 		case PARAM_DARKEN_BACKGROUND:
 			setClass(document.getElementById("background"), "darken", state);
@@ -649,6 +654,9 @@ document.onkeydown = (e) => {
 			break;
 		case "p":
 			toggleVisualPreference(PARAM_SMOOTH_PROGRESS);
+			break;
+		case "s":
+			toggleVisualPreference(PARAM_SCALE_BACKGROUND);
 			break;
 	}
 }

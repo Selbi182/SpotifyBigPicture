@@ -13,20 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.enums.CurrentlyPlayingType;
-import com.wrapper.spotify.enums.ModelObjectType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
-import com.wrapper.spotify.model_objects.specification.Album;
-import com.wrapper.spotify.model_objects.specification.Artist;
-import com.wrapper.spotify.model_objects.specification.Context;
-import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.model_objects.specification.Track;
 
 import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO.Type;
-import spotify.playback.data.help.PlaybackInfoConstants;
+import spotify.playback.data.help.PlaybackContextProvider;
 import spotify.playback.data.help.PlaybackInfoUtils;
 
 @Component
@@ -34,10 +28,11 @@ public class PlaybackInfoProvider {
 
 	@Autowired
 	private SpotifyApi spotifyApi;
+	
+	@Autowired
+	private PlaybackContextProvider playbackContextProvider;
 
 	private PlaybackInfoDTO previous;
-	private String previousContextString;
-	private Album currentContextAlbum;
 	private static final List<Field> DTO_FIELDS;
 	static {
 		DTO_FIELDS = Stream.of(PlaybackInfoDTO.class.getDeclaredFields())
@@ -69,7 +64,7 @@ public class PlaybackInfoProvider {
 		} catch (BotException e) {
 			e.printStackTrace();
 		}
-		return PlaybackInfoDTO.IDLE;
+		return PlaybackInfoDTO.EMPTY;
 	}
 
 	private void checkDifferences(PlaybackInfoDTO differences, PlaybackInfoDTO previous, PlaybackInfoDTO current, String field) throws IntrospectionException, ReflectiveOperationException, IllegalArgumentException {
@@ -108,7 +103,7 @@ public class PlaybackInfoProvider {
 			.paused(!info.getIs_playing())
 			.shuffle(info.getShuffle_state())
 			.repeat(info.getRepeat_state())
-			.playlist(findContextName(info))
+			.playlist(playbackContextProvider.findContextName(info, previous))
 			.device(info.getDevice().getName())
 			.volume(info.getDevice().getVolume_percent())
 
@@ -124,59 +119,4 @@ public class PlaybackInfoProvider {
 			.build();
 		return currentPlaybackInfoFull;
 	}
-
-	/**
-	 * Get the name of the currently playing context (either a playlist name, an
-	 * artist, or an album). Only works on Tracks.
-	 * 
-	 * @param info the context info
-	 * @return a String of the current context, null if none was found
-	 */
-	public String findContextName(CurrentlyPlayingContext info) {
-		try {
-			Context context = info.getContext();
-			if (context != null && info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
-				if (ModelObjectType.PLAYLIST.equals(context.getType())) {
-					if (checkContextString(context)) {
-						this.currentContextAlbum = null;
-						String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
-						Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
-						if (contextPlaylist != null) {
-							return contextPlaylist.getName();
-						}
-					}
-				} else if (ModelObjectType.ARTIST.equals(context.getType())) {
-					if (checkContextString(context)) {
-						this.currentContextAlbum = null;
-						String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
-						Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
-						if (contextArtist != null) {
-							return "Artist: " + contextArtist.getName();
-						}
-					}
-				} else if (ModelObjectType.ALBUM.equals(context.getType())) {
-					checkContextString(context);
-					Track track = (Track) info.getItem();
-					if (currentContextAlbum == null || !currentContextAlbum.getId().equals(track.getAlbum().getId())) {
-						String albumId = context.getHref().replace(PlaybackInfoConstants.ALBUM_PREFIX, "");
-						Album contextAlbum = SpotifyCall.execute(spotifyApi.getAlbum(albumId));
-						this.currentContextAlbum = contextAlbum;
-					}
-					return String.format("Track: %02d / %02d", track.getTrackNumber(), currentContextAlbum.getTracks().getTotal());
-				}
-			}
-		} catch (BotException e) {
-			e.printStackTrace();
-		}
-		return previous != null && previous.getPlaylist() != null ? previous.getPlaylist() : "";
-	}
-
-	private boolean checkContextString(Context context) {
-		if (!context.toString().equals(previousContextString)) {
-			this.previousContextString = context.toString();
-			return true;
-		}
-		return false;
-	}
-
 }

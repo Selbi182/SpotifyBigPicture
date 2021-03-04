@@ -15,11 +15,11 @@
 }
 
 :root {
-	--color-1: #eee;
-	--color-2: #ddd;
-	--color-3: #888;
-	--color-4: rgba(64, 64, 64, 0.8);
-	--color-5: rgba(64, 64, 64, 0.2);
+	--color-full: #ffffffff;
+	--color-strong: #ffffffdd;
+	--color-medium: #ffffffaa;
+	--color-weak: #ffffff44;
+	--color-weakest: #ffffff22;
 	--image-transition: 0.5s;
 }
 
@@ -27,11 +27,11 @@ html, body {
 	margin: 0;
 	overflow: hidden;
 	background: black;
-	color: var(--color-1);
+	color: var(--color-full);
 	font-family: "Gotham", sans-serif;
 	width: 100%;
 	height: 100%;
-	text-shadow: 4px 4px 8px black;
+	text-shadow: 4px 4px 8px #000000aa;
 	cursor: none;
 	user-select: none;
 	font-size: 2vmin;
@@ -51,12 +51,16 @@ html, body {
 
 #dark-overlay {
 	background: black;
-	opacity: 0.5;
 	position: absolute;
 	width: 100%;
 	height: 100%;
 	z-index: 2;
 	pointer-events: none;
+	opacity: 0;
+}
+
+#dark-overlay.show {
+	opacity: 0.5;
 }
 
 
@@ -70,7 +74,10 @@ html, body {
 	opacity: 0;
 	background-blend-mode: multiply;
 	background-size: cover !important;
-/* 	transform: scale(1.05); */
+}
+
+#background.scale {
+ 	transform: scale(1.1);
 }
 
 #background-img {
@@ -79,6 +86,10 @@ html, body {
 	image-rendering: crisp-edges;
 	object-fit: cover;
 	mix-blend-mode: soft-light;
+}
+
+#background-img[src=""] {
+	display: none;
 }
 
 #background.blur {
@@ -90,7 +101,7 @@ html, body {
 }
 
 #background.show.darken {
-	opacity: 0.5;
+	opacity: 0.65;
 }
 
 
@@ -133,6 +144,7 @@ html, body {
 	height: 100%;
 	max-width: 100%;
 	max-height: 100%;
+	object-fit: contain;
 	box-shadow: var(--artwork-shadow) rgba(0,0,0, 0.5);
 	--artwork-shadow: 0 0 10vmin 3vmin;
 	opacity: 0;
@@ -142,6 +154,15 @@ html, body {
 	opacity: 1;
 }
 
+@media only screen and (orientation:portrait) {
+  #artwork > #artwork-img {
+    box-shadow: unset !important;
+  }
+  
+  #artworkglow {
+  	display: none;
+  }
+}
 
 #meta-left {
 	flex: 1;
@@ -164,14 +185,14 @@ html, body {
 	margin-top: 4vmin;
 	height: calc(100% - 4vmin);
 	width: 3vmin;
-	background-color: var(--color-5);
+	background-color: var(--color-weakest);
 	display: flex;
 }
 
 #meta-left > #volume > #volume-current {
 	height: 0%;
 	width: 100%;
-	background-color: var(--color-2);
+	background-color: var(--color-strong);
 	align-self: flex-end;
 }
 
@@ -205,13 +226,13 @@ html, body {
 
 #meta-right > #settings > .settings-links > div > a {
 	text-decoration: none;
-	color: var(--color-3);
+	color: var(--color-medium);
 	white-space: pre;
 	cursor: pointer;
 }
 
 #meta-right > #settings > .settings-links > div > a:hover {
-	color: var(--color-1);
+	color: var(--color-full);
 }
 
 #meta-right > #settings > .settings-links > #fullscreen {
@@ -240,14 +261,14 @@ html, body {
 
 #artists {
 	font-size: 3vmin;
-	color: var(--color-2);
+	color: var(--color-strong);
 	margin-bottom: 0.5vmin;
 }
 
 #album {
 	margin-top: 0.5em;
 	font-size: 2vmin;
-	color: var(--color-2);
+	color: var(--color-strong);
 	opacity: 0.6;
 }
 
@@ -267,7 +288,7 @@ html, body {
 }
 
 #progress-current {
-	background-color: var(--color-1);
+	background-color: var(--color-full);
 	height: 0.5vmin;
 	min-height: 1px;
 	width: 0%;
@@ -298,12 +319,12 @@ html, body {
 
 #time-current {
 	font-size: 4vmin;
-	color: var(--color-2);
+	color: var(--color-strong);
 }
 
 #time-total {
 	font-size: 4vmin;
-	color: var(--color-2);
+	color: var(--color-strong);
 }
 
 #info-symbols {

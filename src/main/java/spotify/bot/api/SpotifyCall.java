@@ -1,13 +1,19 @@
 package spotify.bot.api;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hc.core5.http.ParseException;
 
 import com.wrapper.spotify.exceptions.detailed.TooManyRequestsException;
 import com.wrapper.spotify.exceptions.detailed.UnauthorizedException;
+import com.wrapper.spotify.model_objects.specification.Paging;
+import com.wrapper.spotify.model_objects.specification.PagingCursorbased;
 import com.wrapper.spotify.requests.IRequest;
 import com.wrapper.spotify.requests.IRequest.Builder;
+import com.wrapper.spotify.requests.data.IPagingCursorbasedRequestBuilder;
+import com.wrapper.spotify.requests.data.IPagingRequestBuilder;
 
 import spotify.bot.util.BotUtils;
 
@@ -68,5 +74,57 @@ public class SpotifyCall {
 
 		finalException.printStackTrace();
 		throw new BotException(finalException);
+	}
+
+	/**
+	 * Executes a paging-based Spotify Web API request. This process is done
+	 * greedily, see {@link SpotifyApiWrapper#execute}.
+	 * 
+	 * @param <T>                  the injected return type
+	 * @param <BT>                 the injected Builder
+	 * @param pagingRequestBuilder the basic, unbuilt request paging builder
+	 * @return the fully exhausted list of result items
+	 */
+	public static <T, BT extends Builder<Paging<T>, ?>> List<T> executePaging(IPagingRequestBuilder<T, BT> pagingRequestBuilder) throws BotException {
+		List<T> resultList = new ArrayList<>();
+		Paging<T> paging = null;
+		do {
+			if (paging != null && paging.getNext() != null) {
+				pagingRequestBuilder.offset(paging.getOffset() + paging.getLimit());
+			}
+			paging = execute(pagingRequestBuilder);
+			BotUtils.addToListIfNotBlank(paging.getItems(), resultList);
+		} while (paging.getNext() != null);
+		return resultList;
+	}
+
+	/**
+	 * Executes a pagingcursor-based Spotify Web API request. This process is done
+	 * greedily, see {@link SpotifyApiWrapper#execute}.
+	 * 
+	 * @param <T>                  the injected return type
+	 * @param <BT>                 the injected Builder
+	 * @param <A>                  the After type (currently only String is
+	 *                             supported)
+	 * @param pagingRequestBuilder the basic, unbuilt request pagingcursor builder
+	 * @return the fully exhausted list of result items
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T, A, BT extends Builder<PagingCursorbased<T>, ?>> List<T> executePaging(IPagingCursorbasedRequestBuilder<T, A, BT> pagingRequestBuilder) throws BotException {
+		List<T> resultList = new ArrayList<>();
+		PagingCursorbased<T> paging = null;
+		do {
+			if (paging != null && paging.getNext() != null) {
+				String after = paging.getCursors()[0].getAfter();
+				try {
+					pagingRequestBuilder.after((A) after);
+				} catch (ClassCastException e) {
+					throw new UnsupportedOperationException("Cursor-based paging is currently only supported for String-based curors!");
+				}
+			}
+			paging = execute(pagingRequestBuilder);
+			BotUtils.addToListIfNotBlank(paging.getItems(), resultList);
+		} while (paging.getNext() != null);
+		return resultList;
 	}
 }
