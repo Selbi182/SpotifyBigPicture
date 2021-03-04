@@ -232,30 +232,35 @@ function changeImage(newImage, force) {
 			fadeOutTimeout = setTimeout(() => {
 				artwork.onload = () => {
 					paintArtwork(artwork);
+
+					let backgroundImg = document.getElementById("background-img");
+					if (visualPreferences[PARAM_BG_ARTWORK]) {
+						backgroundImg.onload = () => {
+							setArtworkVisibility(true);
+						};
+						backgroundImg.src = artwork.src;						
+					} else {
+						backgroundImg.src = "";
+						setArtworkVisibility(true);
+					}
 				};
+				
 				artwork.src = newImage;
 			}, visualPreferences[PARAM_TRANSITIONS] ? TRANSITION_MS : 0);
 		}
 	}
 }
 
-const FADE_IN_DELAY = 1000;
 function paintArtwork(artwork) {
 	let artworkUrl = artwork.src;
-
-	let backgroundUrl = makeUrl(DEFAULT_BACKGROUND);
-	let rgba;
-	if (!idle && !artworkUrl.includes(DEFAULT_IMAGE)) {
-		let backgroundArtworkUrl = visualPreferences[PARAM_BG_ARTWORK]
-			? makeUrl(artworkUrl) + ", "
-			: "";
-
-		rgba = getDominantImageColor(artwork);
-		let backgroundColorOverlay = visualPreferences[PARAM_BG_COLOR_OVERLAY]
-			? `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.alpha})`
-			: "";
-
-		backgroundUrl = `${backgroundArtworkUrl} ${backgroundColorOverlay} ${backgroundUrl}`;
+	
+	let rgba = getDominantImageColor(artwork);
+	let backgroundWrapper = document.getElementById("background");
+	if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
+		let backgroundColorOverlay = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.alpha})`
+		backgroundWrapper.style.background = `${backgroundColorOverlay} ${makeUrl(DEFAULT_BACKGROUND)}`;
+	} else {
+		backgroundWrapper.style.background = "";		
 	}
 	
 	if (rgba && !idle && visualPreferences[PARAM_ARTWORK_GLOW]) {
@@ -263,18 +268,11 @@ function paintArtwork(artwork) {
 	} else {
 		artwork.style.boxShadow = "";
 	}
-	
-	let background = document.getElementById("background-img").style;
-	background.background = backgroundUrl;
-
-	setTimeout(() => {
-		setArtworkVisibility(true);
-    }, visualPreferences[PARAM_FADEIN_DELAY] ? FADE_IN_DELAY : 0);
 }
 
 function setArtworkVisibility(state) {
 	setClass(document.getElementById("artwork-img"), "show", state);
-	setClass(document.getElementById("background-img"), "show", state);
+	setClass(document.getElementById("background"), "show", state);
 }
 
 function extractUrl(url) {
@@ -337,7 +335,7 @@ const WEIGHTED_SWATCHES = {
 	DarkMuted: 1
 };
 const MIN_POPULATION_THRESHOLD = 500;
-const MIN_BRIGHTNESS = 0.2;
+const MIN_BRIGHTNESS = 0.1;
 function getBestSwatch(palette) {
 	let bestSwatch = null;
 	for (let swatchIndex in WEIGHTED_SWATCHES) {
@@ -512,7 +510,6 @@ const PARAM_TRANSITIONS = "transitions";
 const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_BG_COLOR_OVERLAY = "bgcoloroverlay";
 const PARAM_SHOW_VOLUME = "showvolume";
-const PARAM_FADEIN_DELAY = "fadeindelay";
 const PARAM_ARTWORK_GLOW = "artworkglow";
 const PARAM_DARKEN_BACKGROUND = "darkenbackground";
 const PARAM_SMOOTH_PROGRESS = "smoothprogress";
@@ -525,7 +522,6 @@ var visualPreferences = {
 	[PARAM_BG_ARTWORK]:        true,
 	[PARAM_BG_COLOR_OVERLAY]:  true,
 	[PARAM_SHOW_VOLUME]:       false,
-	[PARAM_FADEIN_DELAY]:	   false,
 	[PARAM_ARTWORK_GLOW]:      true,
 	[PARAM_DARKEN_BACKGROUND]: true,
 	[PARAM_SMOOTH_PROGRESS]:   true
@@ -551,11 +547,11 @@ function refreshPreference(preference, state) {
 			break;
 		case PARAM_TRANSITIONS:
 			setClass(document.getElementById("artwork-img"), "transition", state);
-			setClass(document.getElementById("background-img"), "transition", state);
+			setClass(document.getElementById("background"), "transition", state);
 			changeImage(currentData.image, true);
 			break;
 		case PARAM_BG_ARTWORK:
-			setClass(document.getElementById("background-img"), "blur", state);
+			setClass(document.getElementById("background"), "blur", state);
 			changeImage(currentData.image, true);
 			break;
 		case PARAM_SHOW_VOLUME:
@@ -565,9 +561,8 @@ function refreshPreference(preference, state) {
 			setClass(document.getElementById("progress-current"), "smooth", state);
 			break;
 		case PARAM_DARKEN_BACKGROUND:
-			setClass(document.getElementById("background-img"), "darken", state);
+			setClass(document.getElementById("background"), "darken", state);
 			break;
-		case PARAM_FADEIN_DELAY:
 		case PARAM_BG_COLOR_OVERLAY:
 		case PARAM_ARTWORK_GLOW:
 			changeImage(currentData.image, true);
@@ -645,9 +640,6 @@ document.onkeydown = (e) => {
 			break;
 		case "v":
 			toggleVisualPreference(PARAM_SHOW_VOLUME);
-			break;
-		case "i":
-			toggleVisualPreference(PARAM_FADEIN_DELAY);
 			break;
 		case "g":
 			toggleVisualPreference(PARAM_ARTWORK_GLOW);
