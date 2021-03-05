@@ -38,7 +38,7 @@ public class PlaybackContextProvider {
 	 * Get the name of the currently playing context (either a playlist name, an
 	 * artist, or an album). Only works on Tracks.
 	 * 
-	 * @param info the context info
+	 * @param info     the context info
 	 * @param previous the previous info to compare to
 	 * @return a String of the current context, null if none was found
 	 */
@@ -61,7 +61,7 @@ public class PlaybackContextProvider {
 		if (contextName != null) {
 			return contextName;
 		} else {
-			return previous != null && previous.getPlaylist() != null ? previous.getPlaylist() : "";
+			return previous != null && previous.getContext() != null ? previous.getContext() : "";
 		}
 	}
 

@@ -20,6 +20,7 @@ import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO.Type;
+import spotify.playback.data.help.DominantColorProvider;
 import spotify.playback.data.help.PlaybackContextProvider;
 import spotify.playback.data.help.PlaybackInfoUtils;
 
@@ -28,9 +29,12 @@ public class PlaybackInfoProvider {
 
 	@Autowired
 	private SpotifyApi spotifyApi;
-	
+
 	@Autowired
 	private PlaybackContextProvider playbackContextProvider;
+
+	@Autowired
+	private DominantColorProvider dominantColorProvider;
 
 	private PlaybackInfoDTO previous;
 	private static final List<Field> DTO_FIELDS;
@@ -99,24 +103,30 @@ public class PlaybackInfoProvider {
 
 	private PlaybackInfoDTO buildInfo(CurrentlyPlayingContext info, boolean forceContextCheck) {
 		Track track = (Track) info.getItem();
-		PlaybackInfoDTO currentPlaybackInfoFull = PlaybackInfoDTO.builder()
-			.paused(!info.getIs_playing())
-			.shuffle(info.getShuffle_state())
-			.repeat(info.getRepeat_state())
-			.playlist(playbackContextProvider.findContextName(info, previous))
-			.device(info.getDevice().getName())
-			.volume(info.getDevice().getVolume_percent())
+		PlaybackInfoDTO pInfo = new PlaybackInfoDTO(Type.DATA);
 
-			.artists(BotUtils.toArtistNamesList(track.getArtists()))
-			.title(track.getName())
-			.album(track.getAlbum().getName())
-			.release(PlaybackInfoUtils.findReleaseYear(track))
-			.image(PlaybackInfoUtils.findLargestImage(track.getAlbum().getImages()))
+		pInfo.setPaused(!info.getIs_playing());
+		pInfo.setShuffle(info.getShuffle_state());
+		pInfo.setRepeat(info.getRepeat_state());
 
-			.timeCurrent(info.getProgress_ms())
-			.timeTotal(track.getDurationMs())
+		pInfo.setContext(playbackContextProvider.findContextName(info, previous));
+		pInfo.setDevice(info.getDevice().getName());
+		pInfo.setVolume(info.getDevice().getVolume_percent());
 
-			.build();
-		return currentPlaybackInfoFull;
+		pInfo.setArtists(BotUtils.toArtistNamesList(track.getArtists()));
+		pInfo.setTitle(track.getName());
+		pInfo.setAlbum(track.getAlbum().getName());
+		pInfo.setRelease(PlaybackInfoUtils.findReleaseYear(track));
+
+		pInfo.setTimeCurrent(info.getProgress_ms());
+		pInfo.setTimeTotal(track.getDurationMs());
+
+		String imageUrl = PlaybackInfoUtils.findLargestImage(track.getAlbum().getImages());
+		if (imageUrl != null) {
+			pInfo.setImage(imageUrl);
+			pInfo.setImageColor(dominantColorProvider.getDominantColorFromImageUrl(imageUrl));
+		}
+
+		return pInfo;
 	}
 }

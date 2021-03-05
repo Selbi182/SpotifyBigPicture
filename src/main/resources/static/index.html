@@ -4,22 +4,21 @@
         <meta charset="utf-8">
         <title>Spotify Playback Info</title>
         <script src="js/playback_info_controller.js"></script>
-        <script src="js/Vibrant.min.js"></script>
         <link rel="stylesheet" href="style.css"></link>
         <link rel="icon" href="/favicon.png" type="image/x-icon">
     </head>
     <body>
     	<div id="dark-overlay" class="transition"></div>
         <div id="background">
-            <img id="background-img" class="transition blur" src="img/gradient.png" crossorigin="Anonymous" />
+            <img id="background-img" class="transition blur" />
         </div>
         <div id="content">
             <div id="top-info">
                 <div id="artwork">
-                    <img id="artwork-img" class="transition" src="img/idle.png" crossorigin="Anonymous" />
+                    <img id="artwork-img" class="transition" />
                 </div>
                 <div id="meta-left">
-                    <div id="playlist"></div>
+                    <div id="context"></div>
                     <div id="device"></div>
                     <div id="volume" class="hidden">
                         <div id="volume-current"></div>

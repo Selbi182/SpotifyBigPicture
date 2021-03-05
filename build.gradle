@@ -2,6 +2,7 @@ buildscript {
     repositories {
         mavenCentral()
     }
+    
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:2.2.6.RELEASE")
     }
@@ -36,9 +37,5 @@ dependencies {
     
     implementation 'com.google.guava:guava:29.0-jre'
     implementation 'org.springframework.boot:spring-boot-starter-web:2.2.6.RELEASE'
-    implementation 'org.javers:javers-core:5.14.0'
-    
-    
-	testImplementation 'junit:junit:4.13'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.2.6.RELEASE'
+    implementation 'de.androidpit:color-thief:1.1.2'
 }

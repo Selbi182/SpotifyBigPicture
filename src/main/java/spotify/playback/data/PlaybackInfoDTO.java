@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import spotify.playback.data.help.DominantColorProvider.RGB;
+
 /**
  * Wrapper class for the playback info to be sent via SSEEmitter to the
  * frontend. Any field can be null to indicate no change.
@@ -15,7 +17,7 @@ public class PlaybackInfoDTO {
 	public static final PlaybackInfoDTO EMPTY = new PlaybackInfoDTO(Type.EMTPY);
 	public static final PlaybackInfoDTO HEARTBEAT = new PlaybackInfoDTO(Type.HEARTBEAT);
 	public static final PlaybackInfoDTO IDLE = new PlaybackInfoDTO(Type.IDLE);
-	
+
 	enum Type {
 		EMTPY,
 		HEARTBEAT,
@@ -29,48 +31,28 @@ public class PlaybackInfoDTO {
 	private String repeat;
 	private String device;
 	private Integer volume;
-	private String playlist;
+	private String context;
 	private List<String> artists;
 	private String title;
 	private String album;
 	private String release;
 	private String image;
+	private RGB imageColor;
 	private Integer timeCurrent;
 	private Integer timeTotal;
 
 	protected PlaybackInfoDTO() {
 	}
-	
+
 	protected PlaybackInfoDTO(Type type) {
 		this.type = type;
 	}
 
-	private PlaybackInfoDTO(Builder builder) {
-		this.type = Type.DATA;
-		this.paused = builder.paused;
-		this.shuffle = builder.shuffle;
-		this.repeat = builder.repeat;
-		this.device = builder.device;
-		this.volume = builder.volume;
-		this.playlist = builder.playlist;
-		this.artists = builder.artists;
-		this.title = builder.title;
-		this.album = builder.album;
-		this.release = builder.release;
-		this.image = builder.image;
-		this.timeCurrent = builder.timeCurrent;
-		this.timeTotal = builder.timeTotal;
-	}
-
-	public static PlaybackInfoDTO.Builder builder() {
-		return new Builder();
-	}
-	
 	@JsonIgnore
 	public boolean isEmpty() {
 		return getType().equals(Type.EMTPY);
 	}
-	
+
 	public Type getType() {
 		return type;
 	}
@@ -78,7 +60,7 @@ public class PlaybackInfoDTO {
 	public void setType(Type type) {
 		this.type = type;
 	}
-	
+
 	public Boolean isPaused() {
 		return paused;
 	}
@@ -114,17 +96,17 @@ public class PlaybackInfoDTO {
 	public Integer getVolume() {
 		return volume;
 	}
-	
+
 	public void setVolume(Integer volume) {
 		this.volume = volume;
 	}
-	
-	public String getPlaylist() {
-		return playlist;
+
+	public String getContext() {
+		return context;
 	}
 
-	public void setPlaylist(String playlist) {
-		this.playlist = playlist;
+	public void setContext(String context) {
+		this.context = context;
 	}
 
 	public List<String> getArtists() {
@@ -167,6 +149,14 @@ public class PlaybackInfoDTO {
 		this.image = image;
 	}
 
+	public RGB getImageColor() {
+		return imageColor;
+	}
+
+	public void setImageColor(RGB imageColor) {
+		this.imageColor = imageColor;
+	}
+
 	public Integer getTimeCurrent() {
 		return timeCurrent;
 	}
@@ -181,90 +171,5 @@ public class PlaybackInfoDTO {
 
 	public void setTimeTotal(Integer timeTotal) {
 		this.timeTotal = timeTotal;
-	}
-
-	public static class Builder {
-		private Boolean paused;
-		private Boolean shuffle;
-		private String repeat;
-		private String device;
-		private Integer volume;
-		private String playlist;
-		private List<String> artists;
-		private String title;
-		private String album;
-		private String release;
-		private String image;
-		private Integer timeCurrent;
-		private Integer timeTotal;
-		
-		public Builder paused(Boolean paused) {
-			this.paused = paused;
-			return Builder.this;
-		}
-
-		public Builder shuffle(Boolean shuffle) {
-			this.shuffle = shuffle;
-			return Builder.this;
-		}
-
-		public Builder repeat(String repeat) {
-			this.repeat = repeat;
-			return Builder.this;
-		}
-
-		public Builder device(String device) {
-			this.device = device;
-			return Builder.this;
-		}
-		
-		public Builder volume(Integer volume) {
-			this.volume = volume;
-			return Builder.this;
-		}
-
-		public Builder playlist(String playlist) {
-			this.playlist = playlist;
-			return Builder.this;
-		}
-
-		public Builder artists(List<String> artists) {
-			this.artists = artists;
-			return Builder.this;
-		}
-
-		public Builder title(String title) {
-			this.title = title;
-			return Builder.this;
-		}
-
-		public Builder album(String album) {
-			this.album = album;
-			return Builder.this;
-		}
-
-		public Builder release(String release) {
-			this.release = release;
-			return Builder.this;
-		}
-
-		public Builder image(String image) {
-			this.image = image;
-			return Builder.this;
-		}
-
-		public Builder timeCurrent(Integer timeCurrent) {
-			this.timeCurrent = timeCurrent;
-			return Builder.this;
-		}
-
-		public Builder timeTotal(Integer timeTotal) {
-			this.timeTotal = timeTotal;
-			return Builder.this;
-		}
-
-		public PlaybackInfoDTO build() {
-			return new PlaybackInfoDTO(this);
-		}
 	}
 }
