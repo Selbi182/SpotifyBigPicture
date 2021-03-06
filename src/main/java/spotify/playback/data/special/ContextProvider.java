@@ -1,4 +1,4 @@
-package spotify.playback.data.help;
+package spotify.playback.data.special;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,9 +21,10 @@ import com.wrapper.spotify.model_objects.specification.TrackSimplified;
 import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.playback.data.PlaybackInfoDTO;
+import spotify.playback.data.help.PlaybackInfoConstants;
 
 @Component
-public class PlaybackContextProvider {
+public class ContextProvider {
 
 	private static final int MAX_IMMEDIATE_TRACKS = 50;
 

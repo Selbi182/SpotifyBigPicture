@@ -20,9 +20,9 @@ import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO.Type;
-import spotify.playback.data.help.DominantColorProvider;
-import spotify.playback.data.help.PlaybackContextProvider;
 import spotify.playback.data.help.PlaybackInfoUtils;
+import spotify.playback.data.special.ColorProvider;
+import spotify.playback.data.special.ContextProvider;
 
 @Component
 public class PlaybackInfoProvider {
@@ -31,10 +31,10 @@ public class PlaybackInfoProvider {
 	private SpotifyApi spotifyApi;
 
 	@Autowired
-	private PlaybackContextProvider playbackContextProvider;
+	private ContextProvider playbackContextProvider;
 
 	@Autowired
-	private DominantColorProvider dominantColorProvider;
+	private ColorProvider dominantColorProvider;
 
 	private PlaybackInfoDTO previous;
 	private static final List<Field> DTO_FIELDS;

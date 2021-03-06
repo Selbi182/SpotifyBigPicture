@@ -216,6 +216,10 @@ function updateVolume(volume, force) {
 	}
 }
 
+///////////////////////////////
+// IMAGE
+///////////////////////////////
+
 function refreshImage() {
 	changeImage(currentData.image, currentData.imageColor, true);
 }
@@ -259,14 +263,12 @@ function changeImage(newImage, rgb, force) {
 				};
 				artwork.src = newImage;
 
+				let backgroundColorOverlay = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
+				backgroundWithOverlay = `${backgroundColorOverlay} ${makeUrl(DEFAULT_BACKGROUND)}`;
+				
 				if (visualPreferences[PARAM_BG_ARTWORK]) {
 					backgroundImg.onload = () => {
-						let backgroundWithOverlay = "";
-						if (visualPreferences[PARAM_BG_COLOR_OVERLAY]) {
-							let backgroundColorOverlay = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
-							backgroundWithOverlay = `${backgroundColorOverlay} ${makeUrl(DEFAULT_BACKGROUND)}`;
-							backgroundWrapper.style.background = backgroundWithOverlay;
-						}
+						backgroundWrapper.style.background = backgroundWithOverlay;
 						setArtworkVisibility(true, backgroundWrapper);
 					};
 					if (idle || artwork.src.includes(DEFAULT_IMAGE)) {
@@ -276,8 +278,11 @@ function changeImage(newImage, rgb, force) {
 					}
 				} else {
 					backgroundImg.src = "";
-					setArtworkVisibility(true, backgroundImg);
+					backgroundWrapper.style.background = backgroundWithOverlay;
+					setArtworkVisibility(true, backgroundWrapper);
 				}
+				
+				
 			}, visualPreferences[PARAM_TRANSITIONS] ? TRANSITION_MS : 0);
 		}
 	}
@@ -295,6 +300,7 @@ function setArtworkVisibility(state, elem) {
 	} else {
 		setClass(document.getElementById("artwork-img"), "show", state);
 		setClass(document.getElementById("background"), "show", state);
+		setClass(document.getElementById("background-img"), "show", state);
 	}
 }
 
@@ -472,7 +478,6 @@ const PARAM_FULLSCREEN = "fullscreen";
 const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
 const PARAM_BG_ARTWORK = "bgartwork";
-const PARAM_BG_COLOR_OVERLAY = "bgcoloroverlay";
 const PARAM_SHOW_VOLUME = "showvolume";
 const PARAM_ARTWORK_GLOW = "artworkglow";
 const PARAM_DARKEN_BACKGROUND = "darkenbackground";
@@ -485,7 +490,6 @@ var visualPreferences = {
 	[PARAM_DARK_MODE]:         false,
 	[PARAM_TRANSITIONS]:       true,
 	[PARAM_BG_ARTWORK]:        true,
-	[PARAM_BG_COLOR_OVERLAY]:  true,
 	[PARAM_SHOW_VOLUME]:       false,
 	[PARAM_ARTWORK_GLOW]:      true,
 	[PARAM_DARKEN_BACKGROUND]: true,
@@ -533,7 +537,6 @@ function refreshPreference(preference, state) {
 		case PARAM_DARKEN_BACKGROUND:
 			setClass(document.getElementById("background"), "darken", state);
 			break;
-		case PARAM_BG_COLOR_OVERLAY:
 		case PARAM_ARTWORK_GLOW:
 			refreshImage();
 			break;
@@ -604,9 +607,6 @@ document.onkeydown = (e) => {
 			break;
 		case "a":
 			toggleVisualPreference(PARAM_BG_ARTWORK);
-			break;
-		case "c":
-			toggleVisualPreference(PARAM_BG_COLOR_OVERLAY);
 			break;
 		case "v":
 			toggleVisualPreference(PARAM_SHOW_VOLUME);

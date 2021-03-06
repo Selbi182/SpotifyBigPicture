@@ -1,4 +1,4 @@
-package spotify.playback.data.help;
+package spotify.playback.data.special;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -16,16 +16,18 @@ import com.google.common.cache.LoadingCache;
 
 import de.androidpit.colorthief.ColorThief;
 import de.androidpit.colorthief.MMCQ.VBox;
+import spotify.playback.data.help.PlaybackInfoUtils;
 
 @Component
-public class DominantColorProvider {
+public class ColorProvider {
 
+	private static final int PALETTE_SAMPLE_SIZE = 10;
 	private static final double MIN_BRIGHTNESS = 0.1;
-	private static final int MIN_POPULATION = 500;
+	private static final int MIN_POPULATION = 1000;
 
 	private LoadingCache<String, RGB> cachedDominantColorsForUrl;
 
-	public DominantColorProvider() {
+	public ColorProvider() {
 		this.cachedDominantColorsForUrl = CacheBuilder.newBuilder()
 			.build(new CacheLoader<String, RGB>() {
 				@Override
@@ -49,7 +51,7 @@ public class DominantColorProvider {
 	private RGB getDominantColor(String imageUrl) throws IOException {
 		BufferedImage img = ImageIO.read(new URL(imageUrl));
 
-		List<VBox> vboxes = ColorThief.getColorMap(img, 10).vboxes;
+		List<VBox> vboxes = ColorThief.getColorMap(img, PALETTE_SAMPLE_SIZE).vboxes;
 
 		double bestWeightedPopulation = 0;
 		VBox bestVbox = null;
@@ -59,8 +61,8 @@ public class DominantColorProvider {
 			int g = pal[1];
 			int b = pal[2];
 
-			double brightness = calculateBrightness(r, g, b);
-			double colorfulness = calculateColorfulness(r, g, b);
+			double brightness = PlaybackInfoUtils.calculateBrightness(r, g, b);
+			double colorfulness = PlaybackInfoUtils.calculateColorfulness(r, g, b);
 			int population = vBox.count(false);
 
 			double weightedPopulation = population + (population * Math.pow(colorfulness, 2));
@@ -74,23 +76,10 @@ public class DominantColorProvider {
 		if (bestVbox != null) {
 			int[] rgb = bestVbox.avg(false);
 			return new RGB(rgb[0], rgb[1], rgb[2]);
+		} else {
+			// For dark and grayscale images
+			return RGB.DEFAULT_RGB;
 		}
-		return RGB.DEFAULT_RGB; // for dark and grayscale images
-	}
-
-	private static double calculateBrightness(int r, int g, int b) {
-		// Rough brightness calculation based on the HSP Color Model
-		// -> http://alienryderflex.com/hsp.html
-		return Math.sqrt(0.299 * Math.pow(r, 2) + 0.587 * Math.pow(g, 2) + 0.114 * Math.pow(b, 2)) / 255;
-	}
-
-	private static double calculateColorfulness(int r, int g, int b) {
-		// Rough implementation of Colorfulness Index defined by Hasler and Suesstrunk
-		// -> https://infoscience.epfl.ch/record/33994/files/HaslerS03.pdf (p. 5+6)
-		double rg = Math.abs(r - g);
-		double yb = Math.abs((0.5 * (r + g)) - b);
-		double meanRoot = Math.sqrt(Math.pow(rg, 2) + Math.pow(yb, 2));
-		return meanRoot;
 	}
 
 	public static class RGB {

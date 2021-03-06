@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import spotify.playback.data.help.DominantColorProvider.RGB;
+import spotify.playback.data.special.ColorProvider.RGB;
 
 /**
  * Wrapper class for the playback info to be sent via SSEEmitter to the
