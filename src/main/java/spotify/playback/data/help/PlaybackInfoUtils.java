@@ -1,6 +1,5 @@
 package spotify.playback.data.help;
 
-import com.wrapper.spotify.model_objects.specification.Image;
 import com.wrapper.spotify.model_objects.specification.Track;
 
 import spotify.playback.data.PlaybackInfoDTO;
@@ -19,23 +18,6 @@ public class PlaybackInfoUtils {
 			return track.getAlbum().getReleaseDate().substring(0, 4);
 		}
 		return "LOCAL";
-	}
-
-	/**
-	 * Find the largest image (width x height, because not all images are squares)
-	 * of a given array of images.
-	 * 
-	 * @param images to check
-	 * @return URL of the largest image, null if no image was given
-	 */
-	public static String findLargestImage(Image[] images) {
-		Image largest = null;
-		for (Image img : images) {
-			if (largest == null || (img.getWidth() * img.getHeight()) > (largest.getWidth() * largest.getHeight())) {
-				largest = img;
-			}
-		}
-		return largest != null ? largest.getUrl() : null;
 	}
 
 	/**

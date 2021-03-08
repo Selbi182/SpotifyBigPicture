@@ -74,6 +74,7 @@ html, body {
 	opacity: 0;
 	background-blend-mode: multiply;
 	background-size: cover !important;
+	background-position: center !important;
 }
 
 #background.scale {
@@ -89,7 +90,7 @@ html, body {
 	height: 100%;
 	image-rendering: crisp-edges;
 	object-fit: cover;
-	mix-blend-mode: soft-light;
+	mix-blend-mode: overlay;
 }
 
 #background-img[src=""] {

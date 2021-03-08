@@ -156,12 +156,20 @@ function setDisplayData(changes) {
 	}
 
 	// Image
-	if ('image' in changes || 'imageColor' in changes) {
+	if (changes.type == "IDLE") {
+		let artworkImg = document.getElementById("artwork-img");
+		let backgroundImg = document.getElementById("background-img");
+		artworkImg.src = "";
+		backgroundImg.src = "";
+		setArtworkVisibility(false);
+	} else if ('image' in changes || 'imageColor' in changes) {
+		if (changes.image == "BLANK") {
+			changes.image = DEFAULT_IMAGE;
+			changes.imageColor = DEFAULT_RGB;
+		}
 		let image = changes.image != null ? changes.image : currentData.image;
 		let imageColor = changes.imageColor != null ? changes.imageColor : currentData.imageColor;
 		changeImage(image, imageColor);
-	} else if ('release' in changes && changes.release == "LOCAL") {
-		setIdleImage();
 	}
 }
 
@@ -259,30 +267,27 @@ function changeImage(newImage, rgb, force) {
 						glow = `var(--artwork-shadow) rgb(${rgb.r}, ${rgb.g}, ${rgb.b}, ${glowAlpha})`;
 					};
 					artwork.style.boxShadow = glow;
-					setArtworkVisibility(true, artwork);
+					
+					let backgroundColorOverlay = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
+					backgroundWithOverlay = `${backgroundColorOverlay} ${makeUrl(DEFAULT_BACKGROUND)}`;
+					
+					if (visualPreferences[PARAM_BG_ARTWORK]) {
+						backgroundImg.onload = () => {
+							backgroundWrapper.style.background = backgroundWithOverlay;
+							setArtworkVisibility(true);
+						};
+						if (idle || artwork.src.includes(DEFAULT_IMAGE)) {
+							backgroundImg.src = DEFAULT_BACKGROUND;
+						} else {
+							backgroundImg.src = artwork.src;
+						}
+					} else {
+						backgroundImg.src = "";
+						backgroundWrapper.style.background = backgroundWithOverlay;
+						setArtworkVisibility(true);
+					}
 				};
 				artwork.src = newImage;
-
-				let backgroundColorOverlay = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
-				backgroundWithOverlay = `${backgroundColorOverlay} ${makeUrl(DEFAULT_BACKGROUND)}`;
-				
-				if (visualPreferences[PARAM_BG_ARTWORK]) {
-					backgroundImg.onload = () => {
-						backgroundWrapper.style.background = backgroundWithOverlay;
-						setArtworkVisibility(true, backgroundWrapper);
-					};
-					if (idle || artwork.src.includes(DEFAULT_IMAGE)) {
-						backgroundImg.src = DEFAULT_BACKGROUND;
-					} else {
-						backgroundImg.src = artwork.src;
-					}
-				} else {
-					backgroundImg.src = "";
-					backgroundWrapper.style.background = backgroundWithOverlay;
-					setArtworkVisibility(true, backgroundWrapper);
-				}
-				
-				
 			}, visualPreferences[PARAM_TRANSITIONS] ? TRANSITION_MS : 0);
 		}
 	}
@@ -294,14 +299,10 @@ function calculateBrightness(r, g, b) {
 	return Math.sqrt(0.299 * Math.pow(r, 2) + 0.587 * Math.pow(g, 2) + 0.114 * Math.pow(b, 2)) / 255;
 }
 
-function setArtworkVisibility(state, elem) {
-	if (elem) {
-		setClass(elem, "show", state);
-	} else {
-		setClass(document.getElementById("artwork-img"), "show", state);
-		setClass(document.getElementById("background"), "show", state);
-		setClass(document.getElementById("background-img"), "show", state);
-	}
+function setArtworkVisibility(state) {
+	setClass(document.getElementById("artwork-img"), "show", state);
+	setClass(document.getElementById("background"), "show", state);
+	setClass(document.getElementById("background-img"), "show", state);
 }
 
 function extractUrl(url) {
@@ -310,10 +311,6 @@ function extractUrl(url) {
 
 function makeUrl(url) {
 	return `url(${url})`;
-}
-
-function setIdleImage() {
-	changeImage(DEFAULT_IMAGE, DEFAULT_RGB);
 }
 
 
@@ -354,7 +351,7 @@ function formatTime(current, total) {
 
 	let formattedCurrent = `${pad2(currentHMS.seconds)}`;
 	let formattedTotal = `${pad2(totalHMS.seconds)}`;
-	if (totalHMS.minutes >= 10) {
+	if (totalHMS.minutes >= 10 || totalHMS.hours >= 1) {
 		formattedCurrent = `${pad2(currentHMS.minutes)}:${formattedCurrent}`;
 		formattedTotal = `${pad2(totalHMS.minutes)}:${formattedTotal}`;
 		if (totalHMS.hours > 0) {
@@ -464,7 +461,6 @@ function setIdle() {
 			timeTotal: 0
 		};
 		setDisplayData(idleDisplayData);
-		setIdleImage();
 		this.currentData = {};
 	}
 }

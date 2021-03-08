@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.wrapper.spotify.SpotifyApi;
+import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import com.wrapper.spotify.model_objects.specification.Track;
 
@@ -21,6 +22,7 @@ import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO.Type;
 import spotify.playback.data.help.PlaybackInfoUtils;
+import spotify.playback.data.special.ArtworkUrlProvider;
 import spotify.playback.data.special.ColorProvider;
 import spotify.playback.data.special.ContextProvider;
 
@@ -32,6 +34,9 @@ public class PlaybackInfoProvider {
 
 	@Autowired
 	private ContextProvider playbackContextProvider;
+
+	@Autowired
+	private ArtworkUrlProvider artworkUrlProvider;
 
 	@Autowired
 	private ColorProvider dominantColorProvider;
@@ -51,19 +56,24 @@ public class PlaybackInfoProvider {
 		}
 		try {
 			CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
-			if (info != null && info.getItem() != null && info.getItem() instanceof Track) {
-				PlaybackInfoDTO currentPlaybackInfo = buildInfo(info, full);
-				if (full) {
-					this.previous = currentPlaybackInfo;
-					return currentPlaybackInfo;
-				} else {
-					try {
-						PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
-						return changedInfos;
-					} catch (IllegalArgumentException | IntrospectionException | ReflectiveOperationException e) {
-						throw new BotException(e);
+			if (info != null) {
+				if (info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
+					PlaybackInfoDTO currentPlaybackInfo = buildInfo(info, full);
+					if (full) {
+						this.previous = currentPlaybackInfo;
+						return currentPlaybackInfo;
+					} else {
+						try {
+							PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
+							return changedInfos;
+						} catch (IllegalArgumentException | IntrospectionException | ReflectiveOperationException e) {
+							throw new BotException(e);
+						}
 					}
+				} else if (info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.EPISODE)) {
+					return PlaybackInfoDTO.IDLE;
 				}
+
 			}
 		} catch (BotException e) {
 			e.printStackTrace();
@@ -121,10 +131,12 @@ public class PlaybackInfoProvider {
 		pInfo.setTimeCurrent(info.getProgress_ms());
 		pInfo.setTimeTotal(track.getDurationMs());
 
-		String imageUrl = PlaybackInfoUtils.findLargestImage(track.getAlbum().getImages());
-		if (imageUrl != null) {
-			pInfo.setImage(imageUrl);
-			pInfo.setImageColor(dominantColorProvider.getDominantColorFromImageUrl(imageUrl));
+		String artworkUrl = artworkUrlProvider.findArtworkUrl(track);
+		if (artworkUrl != null && !artworkUrl.isEmpty()) {
+			pInfo.setImage(artworkUrl);
+			pInfo.setImageColor(dominantColorProvider.getDominantColorFromImageUrl(artworkUrl));
+		} else {
+			pInfo.setImage("BLANK");
 		}
 
 		return pInfo;
