@@ -233,6 +233,7 @@ function refreshImage() {
 }
 
 const TRANSITION_MS = 500;
+const EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const DEFAULT_IMAGE = 'img/idle.png';
 const DEFAULT_BACKGROUND = 'img/gradient.png';
 const DEFAULT_RGB = {
@@ -247,8 +248,7 @@ var fadeOutTimeout;
 function changeImage(newImage, rgb, force) {
 	if (newImage) {
 		let artwork = document.getElementById("artwork-img");
-		let backgroundWrapper = document.getElementById("background");
-		let backgroundImg = document.getElementById("background-img");
+		let artworkCrossfade = document.getElementById("artwork-img-crossfade");
 
 		let oldImg = document.getElementById("artwork-img").src;
 		if (force || !oldImg.includes(newImage)) {
@@ -259,40 +259,63 @@ function changeImage(newImage, rgb, force) {
 			let brightness = calculateBrightness(rgb.r, rgb.g, rgb.b);
 			let alpha = 0.5 + (brightness * 0.5);
 
-			fadeOutTimeout = setTimeout(() => {
-				artwork.onload = () => {
-					let glow = "";
-					if (rgb && !idle && visualPreferences[PARAM_ARTWORK_GLOW]) {
-						let glowAlpha = (1 - (brightness * 0.8)) / 2;
-						glow = `var(--artwork-shadow) rgb(${rgb.r}, ${rgb.g}, ${rgb.b}, ${glowAlpha})`;
-					};
-					artwork.style.boxShadow = glow;
-					
-					let backgroundColorOverlay = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
-					backgroundWithOverlay = `${backgroundColorOverlay} ${makeUrl(DEFAULT_BACKGROUND)}`;
-					
-					if (visualPreferences[PARAM_BG_ARTWORK]) {
-						backgroundImg.onload = () => {
-							backgroundWrapper.style.background = backgroundWithOverlay;
-							setArtworkVisibility(true);
+			// Main Artwork
+			artworkCrossfade.onload = () => {
+				setClass(artworkCrossfade, "transition", false);
+				window.requestAnimationFrame(() => {
+					setClass(artworkCrossfade, "show", true);
+					artwork.onload = () => {
+						let glow = "";
+						if (rgb && !idle && visualPreferences[PARAM_ARTWORK_GLOW]) {
+							let glowAlpha = (1 - (brightness * 0.8)) / 2;
+							glow = `var(--artwork-shadow) rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${glowAlpha})`;
 						};
-						if (idle || artwork.src.includes(DEFAULT_IMAGE)) {
-							backgroundImg.src = DEFAULT_BACKGROUND;
-						} else {
-							backgroundImg.src = artwork.src;
-						}
-					} else {
-						backgroundImg.src = "";
-						backgroundWrapper.style.background = backgroundWithOverlay;
+						artwork.style.boxShadow = glow;
 						setArtworkVisibility(true);
-					}
-				};
-				artwork.src = newImage;
-			}, visualPreferences[PARAM_TRANSITIONS] ? TRANSITION_MS : 0);
+					};
+					artwork.src = newImage;
+				});
+			};
+			artworkCrossfade.src = oldImg ? oldImg : EMPTY_IMAGE_DATA;
+			
+			
+			// Background Artwork
+			let backgroundColorOverlay = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
+			if (visualPreferences[PARAM_BG_ARTWORK]) {
+				if (visualPreferences[PARAM_TRANSITIONS]) {
+					setBackgroundVisibility(false);
+					setTimeout(() => {
+						loadBackground(backgroundColorOverlay, newImage);
+					}, TRANSITION_MS);
+				} else {
+					loadBackground(backgroundColorOverlay, newImage);
+				}
+			} else {
+				loadBackground(backgroundColorOverlay, EMPTY_IMAGE_DATA);
+			}
 		}
 	}
 }
 
+function loadBackground(colorOverlay, src) {
+	let backgroundWrapper = document.getElementById("background");
+	let backgroundImg = document.getElementById("background-img");
+	backgroundImg.onload = () => {
+		console.info(src);
+		if (src.startsWith("http")) {
+			let backgroundWithColorOverlay = `${colorOverlay} ${makeUrl(DEFAULT_BACKGROUND)}`;
+			backgroundWrapper.style.background = backgroundWithColorOverlay;
+		} else {
+			backgroundWrapper.style.background = colorOverlay;
+		}
+		setBackgroundVisibility(true);
+	};
+	if (idle || src.includes(DEFAULT_IMAGE)) {
+		backgroundImg.src = DEFAULT_BACKGROUND;
+	} else {
+		backgroundImg.src = src;
+	}
+}
 function calculateBrightness(r, g, b) {
 	// Very rough brightness calculation based on the HSP Color Model
 	// Taken from: http://alienryderflex.com/hsp.html
@@ -300,9 +323,12 @@ function calculateBrightness(r, g, b) {
 }
 
 function setArtworkVisibility(state) {
-	setClass(document.getElementById("artwork-img"), "show", state);
+	setClass(document.getElementById("artwork-img-crossfade"), "transition", state);
+	setClass(document.getElementById("artwork-img-crossfade"), "show", !state);
+}
+
+function setBackgroundVisibility(state) {
 	setClass(document.getElementById("background"), "show", state);
-	setClass(document.getElementById("background-img"), "show", state);
 }
 
 function extractUrl(url) {
@@ -513,11 +539,11 @@ function refreshPreference(preference, state) {
 			break;
 		case PARAM_TRANSITIONS:
 			setClass(document.getElementById("artwork-img"), "transition", state);
+			showHide(document.getElementById("artwork-img-crossfade"), state, true);
 			setClass(document.getElementById("background"), "transition", state);
 			refreshImage();
 			break;
 		case PARAM_BG_ARTWORK:
-			setClass(document.getElementById("background"), "blur", state);
 			refreshImage();
 			break;
 		case PARAM_SHOW_VOLUME:
@@ -630,13 +656,13 @@ document.onkeydown = (e) => {
 document.addEventListener("mousemove", handleMouseEvent);
 document.addEventListener("click", handleMouseEvent);
 var cursorTimeout;
-const MOUSE_MOVE_HIDE_TIMEOUT_MS = 2 * 1000;
+const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 function handleMouseEvent() {
-	document.querySelector("body").style.cursor = "default";
-	document.getElementById("settings").style.display = "inherit";
+	setClass(document.querySelector("body"), "hidecursor", false);
+	setClass(document.getElementById("settings"), "show", true);
 	clearTimeout(cursorTimeout);
 	cursorTimeout = setTimeout(() => {
-		document.querySelector("body").style.cursor = "none";
-		document.getElementById("settings").style.display = "none";
+		setClass(document.querySelector("body"), "hidecursor", true);
+		setClass(document.getElementById("settings"), "show", false);
 	}, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }

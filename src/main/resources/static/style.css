@@ -32,9 +32,12 @@ html, body {
 	width: 100%;
 	height: 100%;
 	text-shadow: 4px 4px 8px #000000aa;
-	cursor: none;
 	user-select: none;
 	font-size: 2vmin;
+}
+
+body.hidecursor {
+	cursor: none !important;
 }
 
 * {
@@ -106,7 +109,7 @@ html, body {
 }
 
 #background.show.darken {
-	opacity: 0.65;
+	opacity: 0.5;
 }
 
 
@@ -144,24 +147,31 @@ html, body {
 	z-index: -1;
 }
 
-#artwork > #artwork-img {
+#artwork-img, #artwork-img-crossfade {
+	position: absolute;
 	width: auto;
 	height: 100%;
 	max-width: 100%;
 	max-height: 100%;
+	transform: translate(-50%, 0);
 	object-fit: contain;
 	box-shadow: var(--artwork-shadow) rgba(0,0,0, 0.5);
 	--artwork-shadow: 0 0 10vmin 3vmin;
+}
+
+#artwork-img-crossfade {
+	z-index: 1;
+	box-shadow: none !important;
 	opacity: 0;
 }
 
-#artwork > #artwork-img.show {
+#artwork-img.show, #artwork-img-crossfade.show {
 	opacity: 1;
 }
 
 @media only screen and (orientation:portrait) {
-  #artwork > #artwork-img {
-    box-shadow: unset !important;
+  #artwork-img {
+    box-shadow: none !important;
   }
   
   #artworkglow {
@@ -218,9 +228,13 @@ html, body {
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	display: none;
 	font-size: 2vmin;
 	line-height: 4vmin;
+	opacity: 0;
+}
+
+#meta-right > #settings.show {
+	opacity: 1;
 }
 
 #meta-right > #settings > .settings-header {
@@ -233,7 +247,6 @@ html, body {
 	text-decoration: none;
 	color: var(--color-medium);
 	white-space: pre;
-	cursor: pointer;
 }
 
 #meta-right > #settings > .settings-links > div > a:hover {

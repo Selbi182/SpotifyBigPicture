@@ -9,13 +9,14 @@
     </head>
     <body>
     	<div id="dark-overlay" class="transition"></div>
-        <div id="background">
-            <img id="background-img" class="transition blur" />
+        <div id="background" class="blur">
+            <img id="background-img" class="transition" />
         </div>
         <div id="content">
             <div id="top-info">
                 <div id="artwork">
-                    <img id="artwork-img" class="transition" />
+                    <img id="artwork-img" />
+                    <img id="artwork-img-crossfade" class="transition" />
                 </div>
                 <div id="meta-left">
                     <div id="context"></div>
@@ -26,7 +27,7 @@
                 </div>
                 <div id="meta-right">
                     <div id="logo"></div>
-                    <div id="settings">
+                    <div id="settings" class="transition">
                     	<div class="settings-header">Visual Preferences</div>
                     	<div class="settings-links">
 	                    	<div id="showvolume"><a>Show Volume On Change (v)</a></div>
