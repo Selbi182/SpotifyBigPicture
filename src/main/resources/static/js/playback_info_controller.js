@@ -235,7 +235,6 @@ function refreshImage() {
 const TRANSITION_MS = 500;
 const EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const DEFAULT_IMAGE = 'img/idle.png';
-const DEFAULT_BACKGROUND = 'img/gradient.png';
 const DEFAULT_RGB = {
 	r: 255,
 	g: 255,
@@ -257,7 +256,6 @@ function changeImage(newImage, rgb, force) {
 
 			let artworkUrl = artwork.src;
 			let brightness = calculateBrightness(rgb.r, rgb.g, rgb.b);
-			let alpha = 0.5 + (brightness * 0.5);
 
 			// Main Artwork
 			artworkCrossfade.onload = () => {
@@ -280,7 +278,8 @@ function changeImage(newImage, rgb, force) {
 			
 			
 			// Background Artwork
-			let backgroundColorOverlay = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
+			let backgroundColorOverlay = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${brightness})`;
+			
 			if (visualPreferences[PARAM_BG_ARTWORK]) {
 				if (visualPreferences[PARAM_TRANSITIONS]) {
 					setBackgroundVisibility(false);
@@ -301,20 +300,10 @@ function loadBackground(colorOverlay, src) {
 	let backgroundWrapper = document.getElementById("background");
 	let backgroundImg = document.getElementById("background-img");
 	backgroundImg.onload = () => {
-		console.info(src);
-		if (src.startsWith("http")) {
-			let backgroundWithColorOverlay = `${colorOverlay} ${makeUrl(DEFAULT_BACKGROUND)}`;
-			backgroundWrapper.style.background = backgroundWithColorOverlay;
-		} else {
-			backgroundWrapper.style.background = colorOverlay;
-		}
+		backgroundWrapper.style.setProperty("--background-overlay-color", colorOverlay);
 		setBackgroundVisibility(true);
 	};
-	if (idle || src.includes(DEFAULT_IMAGE)) {
-		backgroundImg.src = DEFAULT_BACKGROUND;
-	} else {
-		backgroundImg.src = src;
-	}
+	backgroundImg.src = src;
 }
 function calculateBrightness(r, g, b) {
 	// Very rough brightness calculation based on the HSP Color Model

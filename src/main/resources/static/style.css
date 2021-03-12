@@ -78,6 +78,9 @@ body.hidecursor {
 	background-blend-mode: multiply;
 	background-size: cover !important;
 	background-position: center !important;
+	background: var(--background-gradients), var(--background-overlay-color);
+	--background-overlay-color: white;
+	--background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%), linear-gradient(to bottom, transparent 0%, black 100%);
 }
 
 #background.scale {
@@ -109,7 +112,7 @@ body.hidecursor {
 }
 
 #background.show.darken {
-	opacity: 0.5;
+	opacity: 0.65;
 }
 
 
@@ -155,7 +158,6 @@ body.hidecursor {
 	max-height: 100%;
 	transform: translate(-50%, 0);
 	object-fit: contain;
-	box-shadow: var(--artwork-shadow) rgba(0,0,0, 0.5);
 	--artwork-shadow: 0 0 10vmin 3vmin;
 }
 

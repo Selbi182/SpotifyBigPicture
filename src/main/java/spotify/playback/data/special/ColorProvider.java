@@ -22,7 +22,7 @@ import spotify.playback.data.help.PlaybackInfoUtils;
 public class ColorProvider {
 
 	private static final int PALETTE_SAMPLE_SIZE = 10;
-	private static final double MIN_BRIGHTNESS = 0.1;
+	private static final double MIN_BRIGHTNESS = 0.35;
 	private static final int MIN_POPULATION = 1000;
 
 	private LoadingCache<String, RGB> cachedDominantColorsForUrl;
