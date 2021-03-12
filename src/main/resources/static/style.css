@@ -74,44 +74,53 @@ body.hidecursor {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	opacity: 0;
-	background-blend-mode: multiply;
+/* 	background-blend-mode: multiply; */
 	background-size: cover !important;
 	background-position: center !important;
-	background: var(--background-gradients), var(--background-overlay-color);
-	--background-overlay-color: white;
-	--background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%), linear-gradient(to bottom, transparent 0%, black 100%);
 }
 
 #background.scale {
  	transform: scale(1.05);
 }
 
-#background-img.scale {
+#background-img.scale, #background-img-crossfade.scale {
  	transform: scale(1.3);
 }
 
-#background-img {
+#background-overlay {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 1;
+	mix-blend-mode: hard-light;
+	background: var(--background-gradients), var(--background-overlay-color);
+	--background-overlay-color: white;
+	--background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%), linear-gradient(to bottom, transparent 0%, black 100%);
+}
+
+#background-img, #background-img-crossfade {
 	width: 100%;
 	height: 100%;
 	image-rendering: crisp-edges;
 	object-fit: cover;
-	mix-blend-mode: overlay;
-}
-
-#background-img[src=""] {
-	display: none;
+/* 	mix-blend-mode: overlay; */
+	position: absolute;
+	opacity: 0;
 }
 
 #background.blur {
 	filter: blur(10px);
 }
 
-#background.show {
+#background-img.show, #background-img-crossfade.show {
 	opacity: 1;
 }
 
-#background.show.darken {
+#background-img.forcehide, #background-img-crossfade.forcehide {
+	opacity: 0 !important;
+}
+
+#background.darken {
 	opacity: 0.65;
 }
 
@@ -159,6 +168,10 @@ body.hidecursor {
 	transform: translate(-50%, 0);
 	object-fit: contain;
 	--artwork-shadow: 0 0 10vmin 3vmin;
+}
+
+#artwork-img.noshadow {
+	box-shadow: none !important;
 }
 
 #artwork-img-crossfade {

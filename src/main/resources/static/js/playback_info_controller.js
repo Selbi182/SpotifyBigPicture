@@ -228,11 +228,6 @@ function updateVolume(volume, force) {
 // IMAGE
 ///////////////////////////////
 
-function refreshImage() {
-	changeImage(currentData.image, currentData.imageColor, true);
-}
-
-const TRANSITION_MS = 500;
 const EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const DEFAULT_IMAGE = 'img/idle.png';
 const DEFAULT_RGB = {
@@ -244,30 +239,27 @@ const DEFAULT_RGB = {
 var preloadImg;
 var fadeOutTimeout;
 
-function changeImage(newImage, rgb, force) {
+function changeImage(newImage, rgb) {
 	if (newImage) {
 		let artwork = document.getElementById("artwork-img");
 		let artworkCrossfade = document.getElementById("artwork-img-crossfade");
 
 		let oldImg = document.getElementById("artwork-img").src;
-		if (force || !oldImg.includes(newImage)) {
-			setArtworkVisibility(false);
+		if (!oldImg.includes(newImage)) {
 			clearTimeout(fadeOutTimeout);
 
 			let artworkUrl = artwork.src;
 			let brightness = calculateBrightness(rgb.r, rgb.g, rgb.b);
 
 			// Main Artwork
+			setArtworkVisibility(false);
 			artworkCrossfade.onload = () => {
 				setClass(artworkCrossfade, "transition", false);
 				window.requestAnimationFrame(() => {
 					setClass(artworkCrossfade, "show", true);
 					artwork.onload = () => {
-						let glow = "";
-						if (rgb && !idle && visualPreferences[PARAM_ARTWORK_GLOW]) {
-							let glowAlpha = (1 - (brightness * 0.8)) / 2;
-							glow = `var(--artwork-shadow) rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${glowAlpha})`;
-						};
+						let glowAlpha = (1 - (brightness * 0.8)) / 2;
+						let glow = `var(--artwork-shadow) rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${glowAlpha})`;
 						artwork.style.boxShadow = glow;
 						setArtworkVisibility(true);
 					};
@@ -276,39 +268,27 @@ function changeImage(newImage, rgb, force) {
 			};
 			artworkCrossfade.src = oldImg ? oldImg : EMPTY_IMAGE_DATA;
 			
-			
 			// Background Artwork
-			let backgroundColorOverlay = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${brightness})`;
-			
-			if (visualPreferences[PARAM_BG_ARTWORK]) {
-				if (visualPreferences[PARAM_TRANSITIONS]) {
-					setBackgroundVisibility(false);
-					setTimeout(() => {
-						loadBackground(backgroundColorOverlay, newImage);
-					}, TRANSITION_MS);
-				} else {
-					loadBackground(backgroundColorOverlay, newImage);
-				}
-			} else {
-				loadBackground(backgroundColorOverlay, EMPTY_IMAGE_DATA);
-			}
+			let backgroundWrapper = document.getElementById("background");
+			let backgroundOverlay = document.getElementById("background-overlay");
+			let backgroundImg = document.getElementById("background-img");
+			let backgroundCrossfade = document.getElementById("background-img-crossfade");
+			backgroundCrossfade.onload = () => {
+				setClass(backgroundCrossfade, "transition", false);
+				window.requestAnimationFrame(() => {
+					setClass(backgroundCrossfade, "show", true);
+					backgroundImg.onload = () => {
+						let backgroundColorOverlay = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${brightness})`;
+						backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
+						setClass(backgroundCrossfade, "transition", true);
+						setClass(backgroundCrossfade, "show", false);
+					};
+					backgroundImg.src = newImage;
+				});
+			};
+			backgroundCrossfade.src = oldImg ? oldImg : EMPTY_IMAGE_DATA;
 		}
 	}
-}
-
-function loadBackground(colorOverlay, src) {
-	let backgroundWrapper = document.getElementById("background");
-	let backgroundImg = document.getElementById("background-img");
-	backgroundImg.onload = () => {
-		backgroundWrapper.style.setProperty("--background-overlay-color", colorOverlay);
-		setBackgroundVisibility(true);
-	};
-	backgroundImg.src = src;
-}
-function calculateBrightness(r, g, b) {
-	// Very rough brightness calculation based on the HSP Color Model
-	// Taken from: http://alienryderflex.com/hsp.html
-	return Math.sqrt(0.299 * Math.pow(r, 2) + 0.587 * Math.pow(g, 2) + 0.114 * Math.pow(b, 2)) / 255;
 }
 
 function setArtworkVisibility(state) {
@@ -316,8 +296,10 @@ function setArtworkVisibility(state) {
 	setClass(document.getElementById("artwork-img-crossfade"), "show", !state);
 }
 
-function setBackgroundVisibility(state) {
-	setClass(document.getElementById("background"), "show", state);
+function calculateBrightness(r, g, b) {
+	// Very rough brightness calculation based on the HSP Color Model
+	// Taken from: http://alienryderflex.com/hsp.html
+	return Math.sqrt(0.299 * Math.pow(r, 2) + 0.587 * Math.pow(g, 2) + 0.114 * Math.pow(b, 2)) / 255;
 }
 
 function extractUrl(url) {
@@ -421,6 +403,7 @@ function startTimers() {
 
 	idleTimeout = setTimeout(() => setIdle(), IDLE_TIMEOUT_MS);
 	this.idle = false;
+	showHide(document.body, true);
 }
 
 function clearTimers() {
@@ -455,27 +438,7 @@ function setIdle() {
 	if (!idle) {
 		this.idle = true;
 		clearTimers();
-
-		let idleDisplayData = {
-			type: "IDLE",
-
-			title: "",
-			artists: [""],
-			album: "",
-			release: "",
-
-			context: "",
-			device: "",
-			volume: 0,
-
-			pause: true,
-			shuffle: false,
-			repeat: "off",
-
-			timeCurrent: 0,
-			timeTotal: 0
-		};
-		setDisplayData(idleDisplayData);
+		showHide(document.body, false);
 		this.currentData = {};
 	}
 }
@@ -492,7 +455,6 @@ const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_SHOW_VOLUME = "showvolume";
 const PARAM_ARTWORK_GLOW = "artworkglow";
 const PARAM_DARKEN_BACKGROUND = "darkenbackground";
-const PARAM_SMOOTH_PROGRESS = "smoothprogress";
 const PARAM_SCALE_BACKGROUND = "scalebackground";
 
 // Settings with defaults
@@ -504,7 +466,6 @@ var visualPreferences = {
 	[PARAM_SHOW_VOLUME]:       false,
 	[PARAM_ARTWORK_GLOW]:      true,
 	[PARAM_DARKEN_BACKGROUND]: true,
-	[PARAM_SMOOTH_PROGRESS]:   true,
 	[PARAM_SCALE_BACKGROUND]:  true
 };
 
@@ -527,29 +488,25 @@ function refreshPreference(preference, state) {
 			setClass(document.getElementById("dark-overlay"), "show", state);
 			break;
 		case PARAM_TRANSITIONS:
-			setClass(document.getElementById("artwork-img"), "transition", state);
-			showHide(document.getElementById("artwork-img-crossfade"), state, true);
-			setClass(document.getElementById("background"), "transition", state);
-			refreshImage();
+			setTransitions(state);
 			break;
 		case PARAM_BG_ARTWORK:
-			refreshImage();
+			setClass(document.getElementById("background-img"), "forcehide", !state);
+			setClass(document.getElementById("background-img-crossfade"), "forcehide", !state);
 			break;
 		case PARAM_SHOW_VOLUME:
 			updateVolume(currentData.volume, state);
 			break;
-		case PARAM_SMOOTH_PROGRESS:
-			setClass(document.getElementById("progress-current"), "smooth", state);
-			break;
 		case PARAM_SCALE_BACKGROUND:
 			setClass(document.getElementById("background"), "scale", state);
 			setClass(document.getElementById("background-img"), "scale", state);
+			setClass(document.getElementById("background-img-crossfade"), "scale", state);
 			break;
 		case PARAM_DARKEN_BACKGROUND:
 			setClass(document.getElementById("background"), "darken", state);
 			break;
 		case PARAM_ARTWORK_GLOW:
-			refreshImage();
+			setClass(document.getElementById("artwork-img"), "noshadow", !state);
 			break;
 	}
 
@@ -558,15 +515,28 @@ function refreshPreference(preference, state) {
 		const url = new URL(window.location);
 		url.searchParams.set(preference, state);
 		window.history.replaceState({}, 'Spotify Playback Info', url.toString());
+		
+		// Toggle Checkmark
+		let classList = document.getElementById(preference).classList;
+		if (state) {
+			classList.add("preference-on");
+		} else {
+			classList.remove("preference-on");
+		}
 	}
+}
 
-	// Toggle Checkmark
-	let classList = document.getElementById(preference).classList;
-	if (state) {
-		classList.add("preference-on");
-	} else {
-		classList.remove("preference-on");
-	}
+function setTransitions(state) {
+	setClass(document.getElementById("dark-overlay"), "transition", state);
+	setClass(document.getElementById("progress-current"), "smooth", state);
+	
+	setClass(document.getElementById("artwork-img"), "transition", state);
+	showHide(document.getElementById("artwork-img-crossfade"), state, true);
+	
+	setClass(document.getElementById("background"), "transition", state);
+	setClass(document.getElementById("background-overlay"), "transition", state);
+	setClass(document.getElementById("background-img"), "transition", state);
+	showHide(document.getElementById("background-img-crossfade"), state, true);
 }
 
 window.addEventListener('load', initVisualPreferencesFromUrlParams);
@@ -627,9 +597,6 @@ document.onkeydown = (e) => {
 			break;
 		case "b":
 			toggleVisualPreference(PARAM_DARKEN_BACKGROUND);
-			break;
-		case "p":
-			toggleVisualPreference(PARAM_SMOOTH_PROGRESS);
 			break;
 		case "z":
 			toggleVisualPreference(PARAM_SCALE_BACKGROUND);

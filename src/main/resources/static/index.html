@@ -9,8 +9,10 @@
     </head>
     <body>
     	<div id="dark-overlay" class="transition"></div>
-        <div id="background" class="blur">
-            <img id="background-img" class="transition" />
+        <div id="background" class="transition blur">
+            <img id="background-overlay" class="transition show" />
+            <img id="background-img" class="transition show" />
+            <img id="background-img-crossfade" class="transition" />
         </div>
         <div id="content">
             <div id="top-info">
@@ -31,9 +33,8 @@
                     	<div class="settings-header">Visual Preferences</div>
                     	<div class="settings-links">
 	                    	<div id="showvolume"><a>Show Volume On Change (v)</a></div>
-	                    	<div id="smoothprogress"><a>Smooth Progress Bar (p)</a></div>
+	                    	<div id="transitions"><a>Smooth Transitions (t)</a></div>
 	                    	<div id="darkmode"><a>Dark Mode (d)</a></div>
-	                    	<div id="transitions"><a>Transitions (t)</a></div>
 	                    	<div class="spacer"></div>
 	                    	<div id="bgartwork"><a>Background Artwork (a)</a></div>
 	                    	<div id="artworkglow"><a>Artwork Glow (g)</a></div>
@@ -41,7 +42,7 @@
 	                    	<div id="darkenbackground"><a>Darken Background (b)</a></div>
 	                    	<div id="scalebackground"><a>Zoom Background (z)</a></div>
 	                    	<div class="spacer"></div>
-	                    	<div id="fullscreen"><a>Full Screen (f)</a></div>
+	                    	<div id="fullscreen"><a>Toggle Full Screen (f)</a></div>
                     	</div>
                     </div>
                 </div>
