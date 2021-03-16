@@ -249,7 +249,7 @@ function changeImage(newImage, rgb) {
 			clearTimeout(fadeOutTimeout);
 
 			let artworkUrl = artwork.src;
-			let brightness = calculateBrightness(rgb.r, rgb.g, rgb.b);
+			let brightness = calculateBrightness(rgb);
 
 			// Main Artwork
 			setArtworkVisibility(false);
@@ -287,6 +287,10 @@ function changeImage(newImage, rgb) {
 				});
 			};
 			backgroundCrossfade.src = oldImg ? oldImg : EMPTY_IMAGE_DATA;
+			
+			// Colored Text
+			let rgbNorm = normalizeColor(rgb);
+			document.documentElement.style.setProperty("--text-color", `${rgbNorm.r}, ${rgbNorm.g}, ${rgbNorm.b}`);
 		}
 	}
 }
@@ -296,10 +300,20 @@ function setArtworkVisibility(state) {
 	setClass(document.getElementById("artwork-img-crossfade"), "show", !state);
 }
 
-function calculateBrightness(r, g, b) {
+
+function normalizeColor(rgb) {
+	let normalizationFactor = 255 / Math.max(rgb.r, rgb.g, rgb.b);
+	return {
+		r: rgb.r * normalizationFactor,
+		g: rgb.g * normalizationFactor,
+		b: rgb.b * normalizationFactor
+	};
+}
+
+function calculateBrightness(rgb) {
 	// Very rough brightness calculation based on the HSP Color Model
 	// Taken from: http://alienryderflex.com/hsp.html
-	return Math.sqrt(0.299 * Math.pow(r, 2) + 0.587 * Math.pow(g, 2) + 0.114 * Math.pow(b, 2)) / 255;
+	return Math.sqrt(0.299 * Math.pow(rgb.r, 2) + 0.587 * Math.pow(rgb.g, 2) + 0.114 * Math.pow(rgb.b, 2)) / 255;
 }
 
 function extractUrl(url) {
@@ -456,6 +470,7 @@ const PARAM_SHOW_VOLUME = "showvolume";
 const PARAM_ARTWORK_GLOW = "artworkglow";
 const PARAM_DARKEN_BACKGROUND = "darkenbackground";
 const PARAM_SCALE_BACKGROUND = "scalebackground";
+const PARAM_COLORED_TEXT = "coloredtext";
 
 // Settings with defaults
 var visualPreferences = {
@@ -466,7 +481,8 @@ var visualPreferences = {
 	[PARAM_SHOW_VOLUME]:       false,
 	[PARAM_ARTWORK_GLOW]:      true,
 	[PARAM_DARKEN_BACKGROUND]: true,
-	[PARAM_SCALE_BACKGROUND]:  true
+	[PARAM_SCALE_BACKGROUND]:  true,
+	[PARAM_COLORED_TEXT]:      true
 };
 
 function toggleVisualPreference(key) {
@@ -508,6 +524,9 @@ function refreshPreference(preference, state) {
 		case PARAM_ARTWORK_GLOW:
 			setClass(document.getElementById("artwork-img"), "noshadow", !state);
 			break;
+		case PARAM_COLORED_TEXT:
+			setClass(document.body, "nocoloredtext", !state);
+			break;
 	}
 
 	// URL Params
@@ -528,7 +547,8 @@ function refreshPreference(preference, state) {
 
 function setTransitions(state) {
 	setClass(document.getElementById("dark-overlay"), "transition", state);
-	setClass(document.getElementById("progress-current"), "smooth", state);
+	setClass(document.getElementById("progress-current"), "transition", state);
+	setClass(document.getElementById("settings"), "transition", state);
 	
 	setClass(document.getElementById("artwork-img"), "transition", state);
 	showHide(document.getElementById("artwork-img-crossfade"), state, true);
@@ -599,6 +619,9 @@ document.onkeydown = (e) => {
 			toggleVisualPreference(PARAM_DARKEN_BACKGROUND);
 			break;
 		case "z":
+			toggleVisualPreference(PARAM_SCALE_BACKGROUND);
+			break;
+		case "c":
 			toggleVisualPreference(PARAM_SCALE_BACKGROUND);
 			break;
 	}

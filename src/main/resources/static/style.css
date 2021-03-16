@@ -15,12 +15,16 @@
 }
 
 :root {
-	--color-full: #ffffffff;
-	--color-strong: #ffffffdd;
-	--color-medium: #ffffffaa;
-	--color-weak: #ffffff44;
-	--color-weakest: #ffffff22;
 	--image-transition: 0.5s;
+	
+	--text-color-default: 255, 255, 255;
+	--text-color: var(--text-color-default);
+	
+	--color-full:    rgba(var(--text-color), 1.0);
+	--color-strong:  rgba(var(--text-color), 0.85);
+	--color-medium:  rgba(var(--text-color), 0.65);
+	--color-weak:    rgba(var(--text-color), 0.25);
+	--color-weakest: rgba(var(--text-color), 0.15);
 }
 
 html, body {
@@ -40,13 +44,22 @@ body.hidecursor {
 	cursor: none !important;
 }
 
+body.nocoloredtext {
+	--text-color: 255, 255, 255;
+	--color-full:    rgba(var(--text-color), 1.0);
+	--color-strong:  rgba(var(--text-color), 0.85);
+	--color-medium:  rgba(var(--text-color), 0.65);
+	--color-weak:    rgba(var(--text-color), 0.25);
+	--color-weakest: rgba(var(--text-color), 0.15);
+}
+
 * {
 	/* border: 1px solid blue; */
 	box-sizing: border-box;
 }
 
 .transition {
-	transition: var(--image-transition);
+	transition: opacity var(--image-transition);
 }
 
 
@@ -74,9 +87,9 @@ body.hidecursor {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-/* 	background-blend-mode: multiply; */
 	background-size: cover !important;
 	background-position: center !important;
+	filter: blur(10px);
 }
 
 #background.scale {
@@ -103,13 +116,8 @@ body.hidecursor {
 	height: 100%;
 	image-rendering: crisp-edges;
 	object-fit: cover;
-/* 	mix-blend-mode: overlay; */
 	position: absolute;
 	opacity: 0;
-}
-
-#background.blur {
-	filter: blur(10px);
 }
 
 #background-img.show, #background-img-crossfade.show {
@@ -235,8 +243,12 @@ body.hidecursor {
 
 #meta-right > #logo {
 	height: 6vmin;
-	background: url("img/symbols/spotify.png") right no-repeat;
-	background-size: contain;
+	mask-image: url("img/symbols/spotify.png");
+	mask-size: contain;
+	mask-position: right;
+	mask-repeat: no-repeat;
+	background-color: rgb(var(--text-color));
+	opacity: 0.65;
 }
 
 #meta-right > #settings {
@@ -317,7 +329,7 @@ body.hidecursor {
 }
 
 #progress {
-	background: rgba(255,255,255, 0.2);
+	background: var(--color-weakest);
 	width: 100%;
 	margin: 1em;
 	border-radius: 0.5vmin;
@@ -331,7 +343,7 @@ body.hidecursor {
 	border-radius: 0.5vmin;
 }
 
-#progress-current.smooth {
+#progress-current.transition {
 	transition: width 0.5s linear;
 }
 
@@ -374,27 +386,27 @@ body.hidecursor {
 #info-symbols > div {
 	margin: 1em;
 	height: 100%;
-	background-size: contain !important;
-	background-repeat: no-repeat !important;
-	background-position: center center !important;
 	width: 4vmin;
 	opacity: 0.5;
+	mask-size: contain;
+	mask-repeat: no-repeat;
+	background-color: rgb(var(--text-color));
 }
 
 #info-symbols > #shuffle {
-	background: url("img/symbols/shuffle.png");
+	mask-image: url("img/symbols/shuffle.png");
 }
 
 
 #info-symbols > #pause {
-	background: url("img/symbols/pause.png");
+	mask-image: url("img/symbols/pause.png");
 	opacity: 0.9;
 }
 
 #info-symbols > #repeat {
-	background: url("img/symbols/repeat.png");
+	mask-image: url("img/symbols/repeat.png");
 }
 
 #info-symbols > #repeat.once {
-	background: url("img/symbols/repeat-once.png");
+	mask-image: url("img/symbols/repeat-once.png");
 }
