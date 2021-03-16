@@ -242,12 +242,16 @@ body.nocoloredtext {
 }
 
 #meta-right > #logo {
-	height: 6vmin;
+	-webkit-mask-image: url("img/symbols/spotify.png");
+	-webkit-mask-size: contain;
+	-webkit-mask-position: right;
+	-webkit-mask-repeat: no-repeat;
 	mask-image: url("img/symbols/spotify.png");
 	mask-size: contain;
 	mask-position: right;
 	mask-repeat: no-repeat;
 	background-color: rgb(var(--text-color));
+	height: 6vmin;
 	opacity: 0.65;
 }
 
@@ -388,25 +392,30 @@ body.nocoloredtext {
 	height: 100%;
 	width: 4vmin;
 	opacity: 0.5;
+	-webkit-mask-size: contain;
+	-webkit-mask-repeat: no-repeat;
 	mask-size: contain;
 	mask-repeat: no-repeat;
 	background-color: rgb(var(--text-color));
 }
 
 #info-symbols > #shuffle {
+	-webkit-mask-image: url("img/symbols/shuffle.png");
 	mask-image: url("img/symbols/shuffle.png");
 }
 
-
 #info-symbols > #pause {
+	-webkit-mask-image: url("img/symbols/pause.png");
 	mask-image: url("img/symbols/pause.png");
 	opacity: 0.9;
 }
 
 #info-symbols > #repeat {
+	-webkit-mask-image: url("img/symbols/repeat.png");
 	mask-image: url("img/symbols/repeat.png");
 }
 
 #info-symbols > #repeat.once {
+	-webkit-mask-image: url("img/symbols/repeat-once.png");
 	mask-image: url("img/symbols/repeat-once.png");
 }
