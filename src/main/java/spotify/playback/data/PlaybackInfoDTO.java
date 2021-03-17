@@ -37,7 +37,7 @@ public class PlaybackInfoDTO {
 	private String album;
 	private String release;
 	private String image;
-	private RGB imageColor;
+	private List<RGB> imageColors;
 	private Integer timeCurrent;
 	private Integer timeTotal;
 
@@ -149,12 +149,12 @@ public class PlaybackInfoDTO {
 		this.image = image;
 	}
 
-	public RGB getImageColor() {
-		return imageColor;
+	public List<RGB> getImageColors() {
+		return imageColors;
 	}
 
-	public void setImageColor(RGB imageColor) {
-		this.imageColor = imageColor;
+	public void setImageColors(List<RGB> imageColors) {
+		this.imageColors = imageColors;
 	}
 
 	public Integer getTimeCurrent() {

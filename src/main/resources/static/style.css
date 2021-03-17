@@ -20,11 +20,8 @@
 	--text-color-default: 255, 255, 255;
 	--text-color: var(--text-color-default);
 	
-	--color-full:    rgba(var(--text-color), 1.0);
-	--color-strong:  rgba(var(--text-color), 0.85);
-	--color-medium:  rgba(var(--text-color), 0.65);
-	--color-weak:    rgba(var(--text-color), 0.25);
-	--color-weakest: rgba(var(--text-color), 0.15);
+	--color-full: rgba(var(--text-color), 1.00);
+	--color-weak: rgba(var(--text-color), 0.15);
 }
 
 html, body {
@@ -46,11 +43,8 @@ body.hidecursor {
 
 body.nocoloredtext {
 	--text-color: 255, 255, 255;
-	--color-full:    rgba(var(--text-color), 1.0);
-	--color-strong:  rgba(var(--text-color), 0.85);
-	--color-medium:  rgba(var(--text-color), 0.65);
-	--color-weak:    rgba(var(--text-color), 0.25);
-	--color-weakest: rgba(var(--text-color), 0.15);
+	--color-full: rgba(var(--text-color), 1.00);
+	--color-weak: rgba(var(--text-color), 0.15);
 }
 
 * {
@@ -223,14 +217,14 @@ body.nocoloredtext {
 	margin-top: 4vmin;
 	height: calc(100% - 4vmin);
 	width: 3vmin;
-	background-color: var(--color-weakest);
+	background-color: var(--color-weak);
 	display: flex;
 }
 
 #meta-left > #volume > #volume-current {
 	height: 0%;
 	width: 100%;
-	background-color: var(--color-strong);
+	background-color: var(--color-full);
 	align-self: flex-end;
 }
 
@@ -276,12 +270,12 @@ body.nocoloredtext {
 
 #meta-right > #settings > .settings-links > div > a {
 	text-decoration: none;
-	color: var(--color-medium);
+	opacity: 0.65;
 	white-space: pre;
 }
 
 #meta-right > #settings > .settings-links > div > a:hover {
-	color: var(--color-full);
+	opacity: 1;
 }
 
 #meta-right > #settings > .settings-links > .spacer {
@@ -313,15 +307,14 @@ body.nocoloredtext {
 
 #artists {
 	font-size: 3vmin;
-	color: var(--color-strong);
+	opacity: 0.85;
 	margin-bottom: 0.5vmin;
 }
 
 #album {
 	margin-top: 0.5em;
 	font-size: 2vmin;
-	color: var(--color-strong);
-	opacity: 0.6;
+	opacity: 0.65;
 }
 
 
@@ -333,7 +326,7 @@ body.nocoloredtext {
 }
 
 #progress {
-	background: var(--color-weakest);
+	background: var(--color-weak);
 	width: 100%;
 	margin: 1em;
 	border-radius: 0.5vmin;
@@ -369,14 +362,9 @@ body.nocoloredtext {
 	justify-content: space-between;
 }
 
-#time-current {
+#time-current, #time-total {
 	font-size: 4vmin;
-	color: var(--color-strong);
-}
-
-#time-total {
-	font-size: 4vmin;
-	color: var(--color-strong);
+	opacity: 0.85;
 }
 
 #info-symbols {

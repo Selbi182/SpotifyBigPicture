@@ -134,7 +134,7 @@ public class PlaybackInfoProvider {
 		String artworkUrl = artworkUrlProvider.findArtworkUrl(track);
 		if (artworkUrl != null && !artworkUrl.isEmpty()) {
 			pInfo.setImage(artworkUrl);
-			pInfo.setImageColor(dominantColorProvider.getDominantColorFromImageUrl(artworkUrl));
+			pInfo.setImageColors(dominantColorProvider.getDominantColorFromImageUrl(artworkUrl));
 		} else {
 			pInfo.setImage("BLANK");
 		}

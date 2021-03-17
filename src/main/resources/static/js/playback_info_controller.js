@@ -162,14 +162,14 @@ function setDisplayData(changes) {
 		artworkImg.src = "";
 		backgroundImg.src = "";
 		setArtworkVisibility(false);
-	} else if ('image' in changes || 'imageColor' in changes) {
+	} else if ('image' in changes || 'imageColors' in changes) {
 		if (changes.image == "BLANK") {
 			changes.image = DEFAULT_IMAGE;
-			changes.imageColor = DEFAULT_RGB;
+			changes.imageColors = [DEFAULT_RGB, DEFAULT_RGB];
 		}
 		let image = changes.image != null ? changes.image : currentData.image;
-		let imageColor = changes.imageColor != null ? changes.imageColor : currentData.imageColor;
-		changeImage(image, imageColor);
+		let imageColors = changes.imageColors != null ? changes.imageColors : currentData.imageColors;
+		changeImage(image, imageColors);
 	}
 }
 
@@ -239,7 +239,7 @@ const DEFAULT_RGB = {
 var preloadImg;
 var fadeOutTimeout;
 
-function changeImage(newImage, rgb) {
+function changeImage(newImage, colors) {
 	if (newImage) {
 		let artwork = document.getElementById("artwork-img");
 		let artworkCrossfade = document.getElementById("artwork-img-crossfade");
@@ -249,7 +249,9 @@ function changeImage(newImage, rgb) {
 			clearTimeout(fadeOutTimeout);
 
 			let artworkUrl = artwork.src;
-			let brightness = calculateBrightness(rgb);
+			
+			let rgbText = normalizeColor(colors[0], 1.0);
+			let rgbOverlay = colors[1];
 
 			// Main Artwork
 			setArtworkVisibility(false);
@@ -258,10 +260,14 @@ function changeImage(newImage, rgb) {
 				window.requestAnimationFrame(() => {
 					setClass(artworkCrossfade, "show", true);
 					artwork.onload = () => {
+						let brightness = calculateBrightness(rgbOverlay);
 						let glowAlpha = (1 - (brightness * 0.8)) / 2;
-						let glow = `var(--artwork-shadow) rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${glowAlpha})`;
+						let glow = `var(--artwork-shadow) rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${glowAlpha})`;
 						artwork.style.boxShadow = glow;
 						setArtworkVisibility(true);
+
+						// Colored Text
+						document.documentElement.style.setProperty("--text-color", `${rgbText.r}, ${rgbText.g}, ${rgbText.b}`);
 					};
 					artwork.src = newImage;
 				});
@@ -278,7 +284,8 @@ function changeImage(newImage, rgb) {
 				window.requestAnimationFrame(() => {
 					setClass(backgroundCrossfade, "show", true);
 					backgroundImg.onload = () => {
-						let backgroundColorOverlay = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${brightness})`;
+						let brightness = calculateBrightness(rgbOverlay);
+						let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${brightness})`;
 						backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
 						setClass(backgroundCrossfade, "transition", true);
 						setClass(backgroundCrossfade, "show", false);
@@ -287,10 +294,6 @@ function changeImage(newImage, rgb) {
 				});
 			};
 			backgroundCrossfade.src = oldImg ? oldImg : EMPTY_IMAGE_DATA;
-			
-			// Colored Text
-			let rgbNorm = normalizeColor(rgb);
-			document.documentElement.style.setProperty("--text-color", `${rgbNorm.r}, ${rgbNorm.g}, ${rgbNorm.b}`);
 		}
 	}
 }
@@ -301,8 +304,8 @@ function setArtworkVisibility(state) {
 }
 
 
-function normalizeColor(rgb) {
-	let normalizationFactor = 255 / Math.max(rgb.r, rgb.g, rgb.b);
+function normalizeColor(rgb, targetFactor) {
+	let normalizationFactor = 255 / Math.max(rgb.r, rgb.g, rgb.b) * targetFactor;
 	return {
 		r: rgb.r * normalizationFactor,
 		g: rgb.g * normalizationFactor,
