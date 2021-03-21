@@ -13,27 +13,31 @@ import org.springframework.stereotype.Component;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.wrapper.spotify.model_objects.IPlaylistItem;
+import com.wrapper.spotify.model_objects.specification.Episode;
 import com.wrapper.spotify.model_objects.specification.Image;
 import com.wrapper.spotify.model_objects.specification.Track;
 
 @Component
 public class ArtworkUrlProvider {
 
-	private LoadingCache<ComparableTrack, String> artworkUrlCache;
+	private LoadingCache<ComparablePlaybackItem, String> artworkUrlCache;
 
 	public ArtworkUrlProvider() {
 		this.artworkUrlCache = CacheBuilder.newBuilder()
-			.build(new CacheLoader<ComparableTrack, String>() {
+			.build(new CacheLoader<ComparablePlaybackItem, String>() {
 				@Override
-				public String load(ComparableTrack track) throws IOException {
-					String spotifyImage = getDefaultSpotifyImage(track.getTrack());
+				public String load(ComparablePlaybackItem item) throws IOException {
+					String spotifyImage = getDefaultSpotifyImage(item.getItem());
 					if (spotifyImage != null) {
 						return spotifyImage;
 					}
 
-					String discogsImage = getArtworkFromDiscogs(track.getTrack());
-					if (discogsImage != null) {
-						return discogsImage;
+					if (item.getItem() instanceof Track) { // Podcasts cannot be local files
+						String discogsImage = getArtworkFromDiscogs((Track) item.getItem());
+						if (discogsImage != null) {
+							return discogsImage;
+						}
 					}
 
 					return "";
@@ -41,9 +45,9 @@ public class ArtworkUrlProvider {
 			});
 	}
 
-	public String findArtworkUrl(Track track) {
+	public String findArtworkUrl(IPlaylistItem track) {
 		try {
-			ComparableTrack comparableTrack = new ComparableTrack(track);
+			ComparablePlaybackItem comparableTrack = new ComparablePlaybackItem(track);
 			return artworkUrlCache.get(comparableTrack);
 		} catch (ExecutionException e) {
 			e.printStackTrace();
@@ -51,18 +55,27 @@ public class ArtworkUrlProvider {
 		}
 	}
 
-	private String getDefaultSpotifyImage(Track track) {
-		return findLargestImage(track.getAlbum().getImages());
+	private String getDefaultSpotifyImage(IPlaylistItem track) {
+		Image[] images = null;
+		if (track instanceof Track) {
+			images = ((Track) track).getAlbum().getImages();
+		} else if (track instanceof Episode) {
+			images = ((Episode) track).getShow().getImages();
+		}
+		return findLargestImage(images);
 	}
 
 	private String findLargestImage(Image[] images) {
-		Image largest = null;
-		for (Image img : images) {
-			if (largest == null || (img.getWidth() * img.getHeight()) > (largest.getWidth() * largest.getHeight())) {
-				largest = img;
+		if (images != null) {
+			Image largest = null;
+			for (Image img : images) {
+				if (largest == null || (img.getWidth() * img.getHeight()) > (largest.getWidth() * largest.getHeight())) {
+					largest = img;
+				}
 			}
+			return largest != null ? largest.getUrl() : null;
 		}
-		return largest != null ? largest.getUrl() : null;
+		return null;
 	}
 
 	private String getArtworkFromDiscogs(Track track) throws IOException {
@@ -88,23 +101,23 @@ public class ArtworkUrlProvider {
 		return null;
 	}
 
-	private class ComparableTrack implements Comparable<Track> {
-		private final Track track;
+	private class ComparablePlaybackItem implements Comparable<IPlaylistItem> {
+		private final IPlaylistItem item;
 
-		private ComparableTrack(Track track) {
-			this.track = track;
+		private ComparablePlaybackItem(IPlaylistItem item) {
+			this.item = item;
 		}
 
 		@Override
-		public int compareTo(Track o) {
-			return getTrack().getId().compareTo(o.getId());
+		public int compareTo(IPlaylistItem o) {
+			return getItem().getId().compareTo(o.getId());
 		}
 
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + ((track == null) ? 0 : track.getUri().hashCode());
+			result = prime * result + ((item == null) ? 0 : item.getUri().hashCode());
 			return result;
 		}
 
@@ -113,14 +126,16 @@ public class ArtworkUrlProvider {
 			String id = null;
 			if (obj instanceof Track) {
 				id = ((Track) obj).getUri();
-			} else if (obj instanceof ComparableTrack) {
-				id = ((ComparableTrack) obj).getTrack().getUri();
+			} else if (obj instanceof Episode) {
+				id = ((Episode) obj).getUri();
+			} else if (obj instanceof ComparablePlaybackItem) {
+				id = ((ComparablePlaybackItem) obj).getItem().getUri();
 			}
-			return this.getTrack().getUri().equals(id);
+			return this.getItem().getUri().equals(id);
 		}
 
-		public Track getTrack() {
-			return track;
+		public IPlaylistItem getItem() {
+			return item;
 		}
 	}
 }

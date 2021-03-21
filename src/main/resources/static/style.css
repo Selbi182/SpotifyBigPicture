@@ -21,7 +21,7 @@
 	--text-color: var(--text-color-default);
 	
 	--color-full: rgba(var(--text-color), 1.00);
-	--color-weak: rgba(var(--text-color), 0.15);
+	--color-weak: rgba(var(--text-color), 0.25);
 }
 
 html, body {
@@ -44,7 +44,7 @@ body.hidecursor {
 body.nocoloredtext {
 	--text-color: 255, 255, 255;
 	--color-full: rgba(var(--text-color), 1.00);
-	--color-weak: rgba(var(--text-color), 0.15);
+	--color-weak: rgba(var(--text-color), 0.25);
 }
 
 * {
@@ -204,16 +204,16 @@ body.nocoloredtext {
 	word-break: break-word;
 }
 
-#meta-left > #context {
+#context {
 	opacity: 0.8;
 }
 
-#meta-left > #device {
+#device {
 	margin-top: 1vmin;
 	opacity: 0.5;
 }
 
-#meta-left > #volume {
+#volume {
 	margin-top: 4vmin;
 	height: calc(100% - 4vmin);
 	width: 3vmin;
@@ -221,7 +221,7 @@ body.nocoloredtext {
 	display: flex;
 }
 
-#meta-left > #volume > #volume-current {
+#volume > #volume-current {
 	height: 0%;
 	width: 100%;
 	background-color: var(--color-full);
@@ -235,7 +235,7 @@ body.nocoloredtext {
 	position: relative;
 }
 
-#meta-right > #logo {
+#logo {
 	-webkit-mask-image: url("img/symbols/spotify.png");
 	-webkit-mask-size: contain;
 	-webkit-mask-position: right;
@@ -249,7 +249,7 @@ body.nocoloredtext {
 	opacity: 0.65;
 }
 
-#meta-right > #settings {
+#settings {
 	position: absolute;
 	width: 100%;
 	height: 100%;
@@ -258,35 +258,35 @@ body.nocoloredtext {
 	opacity: 0;
 }
 
-#meta-right > #settings.show {
+#settings.show {
 	opacity: 1;
 }
 
-#meta-right > #settings > .settings-header {
+#settings > .settings-header {
 	padding-top: 2vmin;
 	padding-bottom: 2vmin;
 	font-size: 3vmin;
 }
 
-#meta-right > #settings > .settings-links > div > a {
+#settings > .settings-links > div > a {
 	text-decoration: none;
 	opacity: 0.65;
 	white-space: pre;
 }
 
-#meta-right > #settings > .settings-links > div > a:hover {
+#settings > .settings-links > div > a:hover {
 	opacity: 1;
 }
 
-#meta-right > #settings > .settings-links > .spacer {
+#settings > .settings-links > .spacer {
 	height: 2vmin;
 }
 
-#meta-right > #settings > .settings-links > #fullscreen {
+#settings > .settings-links > #fullscreen {
 	font-size: 3vmin;
 }
 
-#meta-right > #settings > .settings-links > div.preference-on:before {
+#settings > .settings-links > div.preference-on:before {
 	content: "\2713";
 	margin-right: 1em;
 }

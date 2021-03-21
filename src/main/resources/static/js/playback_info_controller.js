@@ -465,7 +465,6 @@ function setIdle() {
 // VISUAL PREFERENCES
 ///////////////////////////////
 
-const PARAM_FULLSCREEN = "fullscreen";
 const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
 const PARAM_BG_ARTWORK = "bgartwork";
@@ -477,7 +476,6 @@ const PARAM_COLORED_TEXT = "coloredtext";
 
 // Settings with defaults
 var visualPreferences = {
-	[PARAM_FULLSCREEN]:        false,
 	[PARAM_DARK_MODE]:         false,
 	[PARAM_TRANSITIONS]:       true,
 	[PARAM_BG_ARTWORK]:        true,
@@ -500,9 +498,6 @@ function refreshPreference(preference, state) {
 
 	// Refresh Preference
 	switch (preference) {
-		case PARAM_FULLSCREEN:
-			setFullscreen(state);
-			break;
 		case PARAM_DARK_MODE:
 			setClass(document.getElementById("dark-overlay"), "show", state);
 			break;
@@ -533,18 +528,16 @@ function refreshPreference(preference, state) {
 	}
 
 	// URL Params
-	if (preference != PARAM_FULLSCREEN) {
-		const url = new URL(window.location);
-		url.searchParams.set(preference, state);
-		window.history.replaceState({}, 'Spotify Playback Info', url.toString());
-		
-		// Toggle Checkmark
-		let classList = document.getElementById(preference).classList;
-		if (state) {
-			classList.add("preference-on");
-		} else {
-			classList.remove("preference-on");
-		}
+	const url = new URL(window.location);
+	url.searchParams.set(preference, state);
+	window.history.replaceState({}, 'Spotify Playback Info', url.toString());
+	
+	// Toggle Checkmark
+	let classList = document.getElementById(preference).classList;
+	if (state) {
+		classList.add("preference-on");
+	} else {
+		classList.remove("preference-on");
 	}
 }
 
@@ -566,10 +559,10 @@ window.addEventListener('load', initVisualPreferencesFromUrlParams);
 function initVisualPreferencesFromUrlParams() {
 	for (let pref in visualPreferences) {
 		document.getElementById(pref).firstChild.onclick = () => toggleVisualPreference(pref);
-		if (pref != PARAM_FULLSCREEN) { // not for fullscreen because it's blocked by most browsers on non-usergenerated events
-			initPreference(pref);
-		}
+		initPreference(pref);
 	}
+	
+	document.getElementById("fullscreen").onclick = toggleFullscreen;
 }
 
 function initPreference(preference) {
@@ -581,16 +574,13 @@ function initPreference(preference) {
 	refreshPreference(preference, state);
 }
 
-function setFullscreen(state) {
-	let elem = document.documentElement;
-	if (state) {
-		if (elem.requestFullscreen) {
-			elem.requestFullscreen();
+function toggleFullscreen() {
+	if (document.fullscreenEnabled) {
+		if (!document.fullscreen) {
+			document.documentElement.requestFullscreen();
+		} else {
+			document.exitFullscreen();
 		}
-	} else {
-	    if (document.exitFullscreen) {
-	    	document.exitFullscreen();
-	    }
 	}
 }
 
@@ -601,7 +591,7 @@ function setFullscreen(state) {
 document.onkeydown = (e) => {
 	switch (e.key) {
 		case "f":
-			toggleVisualPreference(PARAM_FULLSCREEN);
+			toggleFullscreen();
 			break;
 		case "d":
 			toggleVisualPreference(PARAM_DARK_MODE);

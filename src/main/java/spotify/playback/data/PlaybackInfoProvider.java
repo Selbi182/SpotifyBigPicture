@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
+import com.wrapper.spotify.model_objects.specification.Episode;
 import com.wrapper.spotify.model_objects.specification.Track;
 
 import spotify.bot.api.BotException;
@@ -55,23 +56,26 @@ public class PlaybackInfoProvider {
 			full = true;
 		}
 		try {
-			CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
+			CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
+			System.out.println();
 			if (info != null) {
-				if (info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
-					PlaybackInfoDTO currentPlaybackInfo = buildInfo(info, full);
-					if (full) {
-						this.previous = currentPlaybackInfo;
-						return currentPlaybackInfo;
-					} else {
-						try {
-							PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
-							return changedInfos;
-						} catch (IllegalArgumentException | IntrospectionException | ReflectiveOperationException e) {
-							throw new BotException(e);
-						}
+				PlaybackInfoDTO currentPlaybackInfo = null;
+				CurrentlyPlayingType type = info.getCurrentlyPlayingType();
+				if (type.equals(CurrentlyPlayingType.TRACK)) {
+					currentPlaybackInfo = buildInfoTrack(info, full);
+				} else if (type.equals(CurrentlyPlayingType.EPISODE)) {
+					currentPlaybackInfo = buildInfoEpisode(info, full);
+				}
+				if (full) {
+					this.previous = currentPlaybackInfo;
+					return currentPlaybackInfo;
+				} else {
+					try {
+						PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
+						return changedInfos;
+					} catch (IllegalArgumentException | IntrospectionException | ReflectiveOperationException e) {
+						throw new BotException(e);
 					}
-				} else if (info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.EPISODE)) {
-					return PlaybackInfoDTO.IDLE;
 				}
 
 			}
@@ -111,7 +115,7 @@ public class PlaybackInfoProvider {
 		return diff;
 	}
 
-	private PlaybackInfoDTO buildInfo(CurrentlyPlayingContext info, boolean forceContextCheck) {
+	private PlaybackInfoDTO buildInfoTrack(CurrentlyPlayingContext info, boolean forceContextCheck) {
 		Track track = (Track) info.getItem();
 		PlaybackInfoDTO pInfo = new PlaybackInfoDTO(Type.DATA);
 
@@ -139,6 +143,37 @@ public class PlaybackInfoProvider {
 			pInfo.setImage("BLANK");
 		}
 
+		return pInfo;
+	}
+	
+	private PlaybackInfoDTO buildInfoEpisode(CurrentlyPlayingContext info, boolean forceContextCheck) {
+		Episode episode = (Episode) info.getItem();
+		PlaybackInfoDTO pInfo = new PlaybackInfoDTO(Type.DATA);
+		
+		pInfo.setPaused(!info.getIs_playing());
+		pInfo.setShuffle(info.getShuffle_state());
+		pInfo.setRepeat(info.getRepeat_state());
+		
+		pInfo.setContext(playbackContextProvider.findContextName(info, previous));
+		pInfo.setDevice(info.getDevice().getName());
+		pInfo.setVolume(info.getDevice().getVolume_percent());
+		
+		pInfo.setArtists(List.of(episode.getShow().getPublisher()));
+		pInfo.setTitle(episode.getName());
+		pInfo.setAlbum(episode.getShow().getName());
+		pInfo.setRelease(episode.getReleaseDate());
+		
+		pInfo.setTimeCurrent(info.getProgress_ms());
+		pInfo.setTimeTotal(episode.getDurationMs());
+		
+		String artworkUrl = artworkUrlProvider.findArtworkUrl(episode);
+		if (artworkUrl != null && !artworkUrl.isEmpty()) {
+			pInfo.setImage(artworkUrl);
+			pInfo.setImageColors(dominantColorProvider.getDominantColorFromImageUrl(artworkUrl));
+		} else {
+			pInfo.setImage("BLANK");
+		}
+		
 		return pInfo;
 	}
 }

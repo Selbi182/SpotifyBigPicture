@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.enums.ModelObjectType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import com.wrapper.spotify.model_objects.specification.Album;
@@ -47,13 +46,15 @@ public class ContextProvider {
 		String contextName = null;
 		try {
 			Context context = info.getContext();
-			if (context != null && info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
+			if (context != null) {
 				if (ModelObjectType.PLAYLIST.equals(context.getType())) {
 					contextName = getPlaylistContext(context);
 				} else if (ModelObjectType.ARTIST.equals(context.getType())) {
 					contextName = getArtistContext(context);
 				} else if (ModelObjectType.ALBUM.equals(context.getType())) {
 					contextName = getAlbumContext(info, context);
+				} else if (ModelObjectType.SHOW.equals(context.getType())) {
+					contextName = getPodcastContext(info, context);
 				}
 			}
 		} catch (BotException e) {
@@ -104,6 +105,10 @@ public class ContextProvider {
 			}
 		}
 		return "ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName();
+	}
+
+	private String getPodcastContext(CurrentlyPlayingContext info, Context context) {
+		return "PODCAST";
 	}
 
 	private boolean didContextChange(Context context) {
