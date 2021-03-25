@@ -16,19 +16,14 @@
 
 :root {
 	--image-transition: 0.5s;
-	
-	--text-color-default: 255, 255, 255;
-	--text-color: var(--text-color-default);
-	
-	--color-full: rgba(var(--text-color), 1.00);
-	--color-weak: rgba(var(--text-color), 0.25);
+	--color: #ffffff;
 }
 
 html, body {
 	margin: 0;
 	overflow: hidden;
 	background: black;
-	color: var(--color-full);
+	color: var(--color);
 	font-family: "Gotham", sans-serif;
 	width: 100%;
 	height: 100%;
@@ -42,9 +37,7 @@ body.hidecursor {
 }
 
 body.nocoloredtext {
-	--text-color: 255, 255, 255;
-	--color-full: rgba(var(--text-color), 1.00);
-	--color-weak: rgba(var(--text-color), 0.25);
+	--color: #ffffff;
 }
 
 * {
@@ -213,21 +206,6 @@ body.nocoloredtext {
 	opacity: 0.5;
 }
 
-#volume {
-	margin-top: 4vmin;
-	height: calc(100% - 4vmin);
-	width: 3vmin;
-	background-color: var(--color-weak);
-	display: flex;
-}
-
-#volume > #volume-current {
-	height: 0%;
-	width: 100%;
-	background-color: var(--color-full);
-	align-self: flex-end;
-}
-
 #meta-right {
 	flex: 1;
 	order: 3;
@@ -244,7 +222,7 @@ body.nocoloredtext {
 	mask-size: contain;
 	mask-position: right;
 	mask-repeat: no-repeat;
-	background-color: rgb(var(--text-color));
+	background-color: var(--color);
 	height: 6vmin;
 	opacity: 0.65;
 }
@@ -326,18 +304,28 @@ body.nocoloredtext {
 }
 
 #progress {
-	background: var(--color-weak);
 	width: 100%;
 	margin: 1em;
 	border-radius: 0.5vmin;
+	height: 0.5vmin;
+	min-height: 1px;
+	position: relative;
+}
+
+#progress-background {
+	background: var(--color);
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	opacity: 0.25;
 }
 
 #progress-current {
-	background-color: var(--color-full);
-	height: 0.5vmin;
-	min-height: 1px;
+	background-color: var(--color);
 	width: 0%;
+	height: 100%;
 	border-radius: 0.5vmin;
+	position: absolute;
 }
 
 #progress-current.transition {
@@ -384,7 +372,7 @@ body.nocoloredtext {
 	-webkit-mask-repeat: no-repeat;
 	mask-size: contain;
 	mask-repeat: no-repeat;
-	background-color: rgb(var(--text-color));
+	background-color: var(--color);
 }
 
 #info-symbols > #shuffle {

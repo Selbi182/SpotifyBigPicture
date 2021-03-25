@@ -33,7 +33,6 @@ You might want to use this over [Spotify's own (rather underwhelming) full-scree
 * **Time:** Current progress of the song with properly formatted times (works even for 1h+ songs!)
 * **States:** Whether something is paused, set to shuffle, or repeat/repeat-one
 * **Context:** The playlist/album/artist name and the current device name (your PC, your phone, etc.)
-* **Volume:** Appears on the left when volume is changed (see _Haken - Prothetic_ in the examples)
 
 ### Color
 

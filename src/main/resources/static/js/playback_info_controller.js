@@ -127,9 +127,6 @@ function setDisplayData(changes) {
 	if ('device' in changes) {
 		document.getElementById("device").innerHTML = changes.device;
 	}
-	if ('volume' in changes) {
-		updateVolume(changes.volume);
-	}
 
 	// Time
 	if ('timeCurrent' in changes || 'timeTotal' in changes) {
@@ -209,20 +206,6 @@ function updateArtists(artists) {
 	document.getElementById("artists").innerHTML = artistsString;
 }
 
-const HIDE_VOLUME_TIMEOUT_MS = 2 * 1000;
-var volumeTimeout;
-
-function updateVolume(volume, force) {
-	if (force !== undefined || (volume != null && volume !== currentData.volume)) {
-		let volumeBox = document.getElementById("volume");
-		let state = force !== undefined ? force : visualPreferences[PARAM_SHOW_VOLUME];
-		showHide(volumeBox, state);
-		clearTimeout(volumeTimeout);
-		volumeTimeout = setTimeout(() => showHide(volumeBox, false), HIDE_VOLUME_TIMEOUT_MS);
-
-		document.getElementById("volume-current").style.height = volume + "%";
-	}
-}
 
 ///////////////////////////////
 // IMAGE
@@ -250,8 +233,8 @@ function changeImage(newImage, colors) {
 
 			let artworkUrl = artwork.src;
 			
-			let rgbText = normalizeColor(colors[0], 1.0);
-			let rgbOverlay = colors[1];
+			let rgbOverlay = colors.primary;
+			let rgbText = normalizeColor(colors.secondary, 1.0);
 
 			// Main Artwork
 			setArtworkVisibility(false);
@@ -267,7 +250,7 @@ function changeImage(newImage, colors) {
 						setArtworkVisibility(true);
 
 						// Colored Text
-						document.documentElement.style.setProperty("--text-color", `${rgbText.r}, ${rgbText.g}, ${rgbText.b}`);
+						document.documentElement.style.setProperty("--color", `rgb(${rgbText.r}, ${rgbText.g}, ${rgbText.b})`);
 					};
 					artwork.src = newImage;
 				});
@@ -307,9 +290,9 @@ function setArtworkVisibility(state) {
 function normalizeColor(rgb, targetFactor) {
 	let normalizationFactor = 255 / Math.max(rgb.r, rgb.g, rgb.b) * targetFactor;
 	return {
-		r: rgb.r * normalizationFactor,
-		g: rgb.g * normalizationFactor,
-		b: rgb.b * normalizationFactor
+		r: Math.round(rgb.r * normalizationFactor),
+		g: Math.round(rgb.g * normalizationFactor),
+		b: Math.round(rgb.b * normalizationFactor)
 	};
 }
 
@@ -468,7 +451,6 @@ function setIdle() {
 const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
 const PARAM_BG_ARTWORK = "bgartwork";
-const PARAM_SHOW_VOLUME = "showvolume";
 const PARAM_ARTWORK_GLOW = "artworkglow";
 const PARAM_DARKEN_BACKGROUND = "darkenbackground";
 const PARAM_SCALE_BACKGROUND = "scalebackground";
@@ -479,7 +461,6 @@ var visualPreferences = {
 	[PARAM_DARK_MODE]:         false,
 	[PARAM_TRANSITIONS]:       true,
 	[PARAM_BG_ARTWORK]:        true,
-	[PARAM_SHOW_VOLUME]:       false,
 	[PARAM_ARTWORK_GLOW]:      true,
 	[PARAM_DARKEN_BACKGROUND]: true,
 	[PARAM_SCALE_BACKGROUND]:  true,
@@ -507,9 +488,6 @@ function refreshPreference(preference, state) {
 		case PARAM_BG_ARTWORK:
 			setClass(document.getElementById("background-img"), "forcehide", !state);
 			setClass(document.getElementById("background-img-crossfade"), "forcehide", !state);
-			break;
-		case PARAM_SHOW_VOLUME:
-			updateVolume(currentData.volume, state);
 			break;
 		case PARAM_SCALE_BACKGROUND:
 			setClass(document.getElementById("background"), "scale", state);
@@ -562,7 +540,7 @@ function initVisualPreferencesFromUrlParams() {
 		initPreference(pref);
 	}
 	
-	document.getElementById("fullscreen").onclick = toggleFullscreen;
+	document.querySelector("#fullscreen > a").onclick = toggleFullscreen;
 }
 
 function initPreference(preference) {
@@ -601,9 +579,6 @@ document.onkeydown = (e) => {
 			break;
 		case "a":
 			toggleVisualPreference(PARAM_BG_ARTWORK);
-			break;
-		case "v":
-			toggleVisualPreference(PARAM_SHOW_VOLUME);
 			break;
 		case "g":
 			toggleVisualPreference(PARAM_ARTWORK_GLOW);

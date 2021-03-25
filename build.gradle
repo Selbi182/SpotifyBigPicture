@@ -39,4 +39,5 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web:2.2.6.RELEASE'
     implementation 'de.androidpit:color-thief:1.1.2'
 	implementation 'org.jsoup:jsoup:1.13.1'
+    implementation 'com.github.trickl:palette:0.1.1'
 }

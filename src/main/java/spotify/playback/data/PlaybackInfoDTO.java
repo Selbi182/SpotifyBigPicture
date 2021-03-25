@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import spotify.playback.data.special.ColorProvider.RGB;
+import spotify.playback.data.special.color.DominantRGBs;
 
 /**
  * Wrapper class for the playback info to be sent via SSEEmitter to the
@@ -30,14 +30,13 @@ public class PlaybackInfoDTO {
 	private Boolean shuffle;
 	private String repeat;
 	private String device;
-	private Integer volume;
 	private String context;
 	private List<String> artists;
 	private String title;
 	private String album;
 	private String release;
 	private String image;
-	private List<RGB> imageColors;
+	private DominantRGBs imageColors;
 	private Integer timeCurrent;
 	private Integer timeTotal;
 
@@ -93,14 +92,6 @@ public class PlaybackInfoDTO {
 		this.device = device;
 	}
 
-	public Integer getVolume() {
-		return volume;
-	}
-
-	public void setVolume(Integer volume) {
-		this.volume = volume;
-	}
-
 	public String getContext() {
 		return context;
 	}
@@ -149,11 +140,11 @@ public class PlaybackInfoDTO {
 		this.image = image;
 	}
 
-	public List<RGB> getImageColors() {
+	public DominantRGBs getImageColors() {
 		return imageColors;
 	}
 
-	public void setImageColors(List<RGB> imageColors) {
+	public void setImageColors(DominantRGBs imageColors) {
 		this.imageColors = imageColors;
 	}
 

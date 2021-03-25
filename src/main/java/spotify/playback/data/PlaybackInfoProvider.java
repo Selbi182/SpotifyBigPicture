@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.CurrentlyPlayingType;
+import com.wrapper.spotify.model_objects.IPlaylistItem;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import com.wrapper.spotify.model_objects.specification.Episode;
 import com.wrapper.spotify.model_objects.specification.Track;
@@ -24,8 +25,9 @@ import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO.Type;
 import spotify.playback.data.help.PlaybackInfoUtils;
 import spotify.playback.data.special.ArtworkUrlProvider;
-import spotify.playback.data.special.ColorProvider;
 import spotify.playback.data.special.ContextProvider;
+import spotify.playback.data.special.color.ColorProvider;
+import spotify.playback.data.special.color.ColorThiefColorProvider;
 
 @Component
 public class PlaybackInfoProvider {
@@ -39,8 +41,7 @@ public class PlaybackInfoProvider {
 	@Autowired
 	private ArtworkUrlProvider artworkUrlProvider;
 
-	@Autowired
-	private ColorProvider dominantColorProvider;
+	private ColorProvider dominantColorProvider = new ColorThiefColorProvider(); // simply the better implementation, all downsides considered
 
 	private PlaybackInfoDTO previous;
 	private static final List<Field> DTO_FIELDS;
@@ -57,14 +58,13 @@ public class PlaybackInfoProvider {
 		}
 		try {
 			CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
-			System.out.println();
 			if (info != null) {
 				PlaybackInfoDTO currentPlaybackInfo = null;
 				CurrentlyPlayingType type = info.getCurrentlyPlayingType();
 				if (type.equals(CurrentlyPlayingType.TRACK)) {
-					currentPlaybackInfo = buildInfoTrack(info, full);
+					currentPlaybackInfo = buildInfoTrack(info);
 				} else if (type.equals(CurrentlyPlayingType.EPISODE)) {
-					currentPlaybackInfo = buildInfoEpisode(info, full);
+					currentPlaybackInfo = buildInfoEpisode(info);
 				}
 				if (full) {
 					this.previous = currentPlaybackInfo;
@@ -115,57 +115,44 @@ public class PlaybackInfoProvider {
 		return diff;
 	}
 
-	private PlaybackInfoDTO buildInfoTrack(CurrentlyPlayingContext info, boolean forceContextCheck) {
+	private PlaybackInfoDTO buildInfoTrack(CurrentlyPlayingContext info) {
+		PlaybackInfoDTO pInfo = buildBaseInfo(info);
+
 		Track track = (Track) info.getItem();
-		PlaybackInfoDTO pInfo = new PlaybackInfoDTO(Type.DATA);
-
-		pInfo.setPaused(!info.getIs_playing());
-		pInfo.setShuffle(info.getShuffle_state());
-		pInfo.setRepeat(info.getRepeat_state());
-
-		pInfo.setContext(playbackContextProvider.findContextName(info, previous));
-		pInfo.setDevice(info.getDevice().getName());
-		pInfo.setVolume(info.getDevice().getVolume_percent());
-
 		pInfo.setArtists(BotUtils.toArtistNamesList(track.getArtists()));
 		pInfo.setTitle(track.getName());
 		pInfo.setAlbum(track.getAlbum().getName());
 		pInfo.setRelease(PlaybackInfoUtils.findReleaseYear(track));
 
-		pInfo.setTimeCurrent(info.getProgress_ms());
-		pInfo.setTimeTotal(track.getDurationMs());
-
-		String artworkUrl = artworkUrlProvider.findArtworkUrl(track);
-		if (artworkUrl != null && !artworkUrl.isEmpty()) {
-			pInfo.setImage(artworkUrl);
-			pInfo.setImageColors(dominantColorProvider.getDominantColorFromImageUrl(artworkUrl));
-		} else {
-			pInfo.setImage("BLANK");
-		}
-
 		return pInfo;
 	}
-	
-	private PlaybackInfoDTO buildInfoEpisode(CurrentlyPlayingContext info, boolean forceContextCheck) {
+
+	private PlaybackInfoDTO buildInfoEpisode(CurrentlyPlayingContext info) {
+		PlaybackInfoDTO pInfo = buildBaseInfo(info);
+
 		Episode episode = (Episode) info.getItem();
-		PlaybackInfoDTO pInfo = new PlaybackInfoDTO(Type.DATA);
-		
-		pInfo.setPaused(!info.getIs_playing());
-		pInfo.setShuffle(info.getShuffle_state());
-		pInfo.setRepeat(info.getRepeat_state());
-		
-		pInfo.setContext(playbackContextProvider.findContextName(info, previous));
-		pInfo.setDevice(info.getDevice().getName());
-		pInfo.setVolume(info.getDevice().getVolume_percent());
-		
 		pInfo.setArtists(List.of(episode.getShow().getPublisher()));
 		pInfo.setTitle(episode.getName());
 		pInfo.setAlbum(episode.getShow().getName());
 		pInfo.setRelease(episode.getReleaseDate());
-		
+
+		return pInfo;
+	}
+
+	private PlaybackInfoDTO buildBaseInfo(CurrentlyPlayingContext info) {
+		IPlaylistItem episode = info.getItem();
+		PlaybackInfoDTO pInfo = new PlaybackInfoDTO(Type.DATA);
+
+		pInfo.setPaused(!info.getIs_playing());
+		pInfo.setShuffle(info.getShuffle_state());
+		pInfo.setRepeat(info.getRepeat_state());
+
+		pInfo.setContext(playbackContextProvider.findContextName(info, previous));
+		pInfo.setDevice(info.getDevice().getName());
+
 		pInfo.setTimeCurrent(info.getProgress_ms());
 		pInfo.setTimeTotal(episode.getDurationMs());
-		
+
 		String artworkUrl = artworkUrlProvider.findArtworkUrl(episode);
 		if (artworkUrl != null && !artworkUrl.isEmpty()) {
 			pInfo.setImage(artworkUrl);
@@ -173,7 +160,7 @@ public class PlaybackInfoProvider {
 		} else {
 			pInfo.setImage("BLANK");
 		}
-		
+
 		return pInfo;
 	}
 }
