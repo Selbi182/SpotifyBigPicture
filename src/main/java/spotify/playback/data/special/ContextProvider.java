@@ -2,11 +2,11 @@ package spotify.playback.data.special;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Iterables;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.ModelObjectType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
@@ -97,11 +97,10 @@ public class ContextProvider {
 			}
 		}
 		if (currentContextAlbumTracks != null) {
-			Optional<TrackSimplified> currentTrackOfAlbum = currentContextAlbumTracks.stream()
-				.filter(t -> t.getId().equals(track.getId()))
-				.findFirst();
-			if (currentTrackOfAlbum.isPresent()) {
-				return String.format("Track: %02d / %02d", currentTrackOfAlbum.get().getTrackNumber(), currentContextAlbum.getTracks().getTotal());
+			// Unfortunately, can't simply use track numbers because of disc numbers
+			int currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> t.getId().equals(track.getId())) + 1;
+			if (currentlyPlayingTrackNumber > 0) {
+				return String.format("Track: %02d / %02d", currentlyPlayingTrackNumber, currentContextAlbum.getTracks().getTotal());
 			}
 		}
 		return "ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName();

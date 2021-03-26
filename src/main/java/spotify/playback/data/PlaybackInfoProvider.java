@@ -1,6 +1,5 @@
 package spotify.playback.data;
 
-import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -27,7 +26,6 @@ import spotify.playback.data.help.PlaybackInfoUtils;
 import spotify.playback.data.special.ArtworkUrlProvider;
 import spotify.playback.data.special.ContextProvider;
 import spotify.playback.data.special.color.ColorProvider;
-import spotify.playback.data.special.color.ColorThiefColorProvider;
 
 @Component
 public class PlaybackInfoProvider {
@@ -41,7 +39,8 @@ public class PlaybackInfoProvider {
 	@Autowired
 	private ArtworkUrlProvider artworkUrlProvider;
 
-	private ColorProvider dominantColorProvider = new ColorThiefColorProvider(); // simply the better implementation, all downsides considered
+	@Autowired
+	private ColorProvider dominantColorProvider;
 
 	private PlaybackInfoDTO previous;
 	private static final List<Field> DTO_FIELDS;
@@ -73,7 +72,7 @@ public class PlaybackInfoProvider {
 					try {
 						PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
 						return changedInfos;
-					} catch (IllegalArgumentException | IntrospectionException | ReflectiveOperationException e) {
+					} catch (Exception e) {
 						throw new BotException(e);
 					}
 				}
@@ -85,7 +84,7 @@ public class PlaybackInfoProvider {
 		return PlaybackInfoDTO.EMPTY;
 	}
 
-	private void checkDifferences(PlaybackInfoDTO differences, PlaybackInfoDTO previous, PlaybackInfoDTO current, String field) throws IntrospectionException, ReflectiveOperationException, IllegalArgumentException {
+	private void checkDifferences(PlaybackInfoDTO differences, PlaybackInfoDTO previous, PlaybackInfoDTO current, String field) throws Exception {
 		PropertyDescriptor propertyDescriptor = new PropertyDescriptor(field, PlaybackInfoDTO.class);
 		Object previousObject = propertyDescriptor.getReadMethod().invoke(previous);
 		Object currentObject = propertyDescriptor.getReadMethod().invoke(current);
@@ -96,13 +95,13 @@ public class PlaybackInfoProvider {
 		}
 	}
 
-	private PlaybackInfoDTO findInfoDifferencesAndUpdateCurrent(PlaybackInfoDTO current) throws IllegalArgumentException, IntrospectionException, ReflectiveOperationException {
+	private PlaybackInfoDTO findInfoDifferencesAndUpdateCurrent(PlaybackInfoDTO current) throws Exception {
 		PlaybackInfoDTO diff = new PlaybackInfoDTO(Type.EMTPY);
 		for (Field field : DTO_FIELDS) {
 			String fieldName = field.getName();
 			if (fieldName.equals("timeCurrent")) {
-				// Progress always needs to get updated, so it's handled separately
-				if (!PlaybackInfoUtils.isWithinEstimatedProgressMs(previous, current)) {
+				// Estimated progress always needs to get updated, so it's handled separately
+				if (!previous.getTimeTotal().equals(current.getTimeTotal()) || !PlaybackInfoUtils.isWithinEstimatedProgressMs(previous, current)) {
 					diff.setType(Type.DATA);
 					diff.setTimeCurrent(current.getTimeCurrent());
 				}
@@ -113,30 +112,6 @@ public class PlaybackInfoProvider {
 		}
 
 		return diff;
-	}
-
-	private PlaybackInfoDTO buildInfoTrack(CurrentlyPlayingContext info) {
-		PlaybackInfoDTO pInfo = buildBaseInfo(info);
-
-		Track track = (Track) info.getItem();
-		pInfo.setArtists(BotUtils.toArtistNamesList(track.getArtists()));
-		pInfo.setTitle(track.getName());
-		pInfo.setAlbum(track.getAlbum().getName());
-		pInfo.setRelease(PlaybackInfoUtils.findReleaseYear(track));
-
-		return pInfo;
-	}
-
-	private PlaybackInfoDTO buildInfoEpisode(CurrentlyPlayingContext info) {
-		PlaybackInfoDTO pInfo = buildBaseInfo(info);
-
-		Episode episode = (Episode) info.getItem();
-		pInfo.setArtists(List.of(episode.getShow().getPublisher()));
-		pInfo.setTitle(episode.getName());
-		pInfo.setAlbum(episode.getShow().getName());
-		pInfo.setRelease(episode.getReleaseDate());
-
-		return pInfo;
 	}
 
 	private PlaybackInfoDTO buildBaseInfo(CurrentlyPlayingContext info) {
@@ -163,4 +138,29 @@ public class PlaybackInfoProvider {
 
 		return pInfo;
 	}
+
+	private PlaybackInfoDTO buildInfoTrack(CurrentlyPlayingContext info) {
+		PlaybackInfoDTO pInfo = buildBaseInfo(info);
+
+		Track track = (Track) info.getItem();
+		pInfo.setArtists(BotUtils.toArtistNamesList(track.getArtists()));
+		pInfo.setTitle(track.getName());
+		pInfo.setAlbum(track.getAlbum().getName());
+		pInfo.setRelease(PlaybackInfoUtils.findReleaseYear(track));
+
+		return pInfo;
+	}
+
+	private PlaybackInfoDTO buildInfoEpisode(CurrentlyPlayingContext info) {
+		PlaybackInfoDTO pInfo = buildBaseInfo(info);
+
+		Episode episode = (Episode) info.getItem();
+		pInfo.setArtists(List.of(episode.getShow().getPublisher()));
+		pInfo.setTitle(episode.getName());
+		pInfo.setAlbum(episode.getShow().getName());
+		pInfo.setRelease(episode.getReleaseDate());
+
+		return pInfo;
+	}
+
 }

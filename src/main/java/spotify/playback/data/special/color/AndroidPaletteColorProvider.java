@@ -10,6 +10,8 @@ import java.util.concurrent.ExecutionException;
 
 import javax.imageio.ImageIO;
 
+import org.springframework.stereotype.Component;
+
 import com.google.common.annotations.Beta;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -31,6 +33,7 @@ import com.trickl.palette.Target;
  * Note: This implementation is in very early beta!
  */
 @Beta
+@Component
 public class AndroidPaletteColorProvider implements ColorProvider {
 
 	private static final double MIN_BRIGHTNESS = 0.2;

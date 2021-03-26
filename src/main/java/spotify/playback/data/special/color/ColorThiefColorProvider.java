@@ -11,6 +11,9 @@ import java.util.concurrent.ExecutionException;
 
 import javax.imageio.ImageIO;
 
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -26,11 +29,14 @@ import spotify.playback.data.special.color.DominantRGBs.RGB;
  * that don't necessarily have one particular color stand out, but it should
  * still do a decent job.
  */
+@Primary // as of now, simply the more reliable implementation, all downsides considered
+@Component
 public class ColorThiefColorProvider implements ColorProvider {
 
 	private static final int PALETTE_SAMPLE_SIZE = 10;
 	private static final int PALETTE_SAMPLE_QUALITY = 5;
 	private static final double MIN_BRIGHTNESS = 0.15;
+	private static final double MIN_COLORFULNESS = 0.1;
 	private static final int MIN_POPULATION = 1000;
 
 	private LoadingCache<String, DominantRGBs> cachedDominantColorsForUrl;
@@ -60,7 +66,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 	private DominantRGBs getDominantColors(String imageUrl) throws IOException {
 		BufferedImage img = ImageIO.read(new URL(imageUrl));
 
-		List<VBox> vboxes = new ArrayList<>(ColorThief.getColorMap(img, PALETTE_SAMPLE_SIZE, PALETTE_SAMPLE_QUALITY, false).vboxes);
+		List<VBox> vboxes = new ArrayList<>(ColorThief.getColorMap(img, PALETTE_SAMPLE_SIZE, PALETTE_SAMPLE_QUALITY, true).vboxes);
 		vboxes.removeIf(vBox -> !isValidVbox(vBox));
 		Collections.sort(vboxes, new Comparator<VBox>() {
 			@Override
@@ -97,8 +103,9 @@ public class ColorThiefColorProvider implements ColorProvider {
 
 		double brightness = ColorUtil.calculateBrightness(r, g, b);
 		int population = vBox.count(false);
+		double colorfulness = ColorUtil.calculateColorfulness(r, g, b);
 
-		return (population > MIN_POPULATION && brightness > MIN_BRIGHTNESS);
+		return (population > MIN_POPULATION && brightness > MIN_BRIGHTNESS && colorfulness > MIN_COLORFULNESS);
 	}
 
 	private int calculateWeightedPopulation(VBox vBox) {
@@ -108,6 +115,6 @@ public class ColorThiefColorProvider implements ColorProvider {
 		int b = pal[2];
 		int population = vBox.count(false);
 		double colorfulness = ColorUtil.calculateColorfulness(r, g, b);
-		return (int) (population + (population * Math.pow(colorfulness, 2)));
+		return (int) (population + (population * colorfulness));
 	}
 }

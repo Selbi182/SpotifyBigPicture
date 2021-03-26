@@ -233,8 +233,8 @@ function changeImage(newImage, colors) {
 
 			let artworkUrl = artwork.src;
 			
-			let rgbOverlay = colors.primary;
-			let rgbText = normalizeColor(colors.secondary, 1.0);
+			let rgbText = normalizeColor(colors.primary, 1.0);
+			let rgbOverlay = colors.secondary;
 
 			// Main Artwork
 			setArtworkVisibility(false);
