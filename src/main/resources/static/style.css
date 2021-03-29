@@ -119,7 +119,7 @@ body.transition * {
 	opacity: 1;
 }
 
-#background-img.forcehide, #background-img-crossfade.forcehide {
+#background.coloronly #background-img, #background.coloronly #background-img-crossfade {
 	opacity: 0 !important;
 }
 

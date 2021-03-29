@@ -268,6 +268,7 @@ function setBackgroundArtwork(oldImage, newImage, rgbOverlay) {
 			window.requestAnimationFrame(() => {
 				setClass(backgroundCrossfade, "show", true);
 				backgroundImg.onload = () => {
+					backgroundWrapper.style.setProperty("background-color", `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`);
 					let brightness = calculateBrightness(rgbOverlay);
 					let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${brightness})`;
 					backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
@@ -492,8 +493,7 @@ function refreshPreference(preference, state) {
 			setTransitions(state);
 			break;
 		case PARAM_BG_ARTWORK:
-			setClass(document.getElementById("background-img"), "forcehide", !state);
-			setClass(document.getElementById("background-img-crossfade"), "forcehide", !state);
+			setClass(document.getElementById("background"), "coloronly", !state);
 			break;
 		case PARAM_SCALE_BACKGROUND:
 			setClass(document.getElementById("background"), "scale", state);
