@@ -16,12 +16,10 @@ import spotify.playback.data.special.color.DominantRGBs;
 public class PlaybackInfoDTO {
 	public static final PlaybackInfoDTO EMPTY = new PlaybackInfoDTO(Type.EMTPY);
 	public static final PlaybackInfoDTO HEARTBEAT = new PlaybackInfoDTO(Type.HEARTBEAT);
-	public static final PlaybackInfoDTO IDLE = new PlaybackInfoDTO(Type.IDLE);
 
 	enum Type {
 		EMTPY,
 		HEARTBEAT,
-		IDLE,
 		DATA
 	}
 

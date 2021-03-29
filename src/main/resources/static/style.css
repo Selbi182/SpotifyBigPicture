@@ -15,8 +15,8 @@
 }
 
 :root {
-	--image-transition: 0.5s;
 	--color: #ffffff;
+	--transition: 0.5s;
 }
 
 html, body {
@@ -45,8 +45,16 @@ body.nocoloredtext {
 	box-sizing: border-box;
 }
 
-.transition {
-	transition: opacity var(--image-transition);
+body.transition * {
+	transition:
+		opacity var(--transition),
+		color var(--transition),
+		background-color var(--transition),
+		box-shadow var(--transition);
+}
+
+.skiptransition {
+	transition: unset !important;
 }
 
 
@@ -313,7 +321,7 @@ body.nocoloredtext {
 }
 
 #progress-background {
-	background: var(--color);
+	background-color: var(--color);
 	width: 100%;
 	height: 100%;
 	position: absolute;
@@ -329,7 +337,7 @@ body.nocoloredtext {
 }
 
 #progress-current.transition {
-	transition: width 0.5s linear;
+	transition: width var(--transition) linear;
 }
 
 #bottom-left {

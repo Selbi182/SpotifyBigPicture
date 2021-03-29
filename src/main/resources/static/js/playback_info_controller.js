@@ -81,8 +81,6 @@ function processJson(json) {
 			currentData[prop] = json[prop];
 		}
 		startTimers();
-	} else if (json.type == "IDLE") {
-		setIdle();
 	}
 }
 
@@ -101,9 +99,13 @@ function createHeartbeatTimeout() {
 // MAIN DISPLAY STUFF
 ///////////////////////////////
 
-function setDisplayData(changes) {
+async function setDisplayData(changes) {
 	console.debug(changes);
+	changeImage(changes);
+	setTextData(changes);
+}
 
+function setTextData(changes) {
 	// Main Info
 	if ('title' in changes) {
 		document.getElementById("title").innerHTML = removeFeatures(changes.title);
@@ -150,23 +152,6 @@ function setDisplayData(changes) {
 		} else {
 			repeat.classList.remove("once");
 		}
-	}
-
-	// Image
-	if (changes.type == "IDLE") {
-		let artworkImg = document.getElementById("artwork-img");
-		let backgroundImg = document.getElementById("background-img");
-		artworkImg.src = "";
-		backgroundImg.src = "";
-		setArtworkVisibility(false);
-	} else if ('image' in changes || 'imageColors' in changes) {
-		if (changes.image == "BLANK") {
-			changes.image = DEFAULT_IMAGE;
-			changes.imageColors = [DEFAULT_RGB, DEFAULT_RGB];
-		}
-		let image = changes.image != null ? changes.image : currentData.image;
-		let imageColors = changes.imageColors != null ? changes.imageColors : currentData.imageColors;
-		changeImage(image, imageColors);
 	}
 }
 
@@ -222,70 +207,91 @@ const DEFAULT_RGB = {
 var preloadImg;
 var fadeOutTimeout;
 
-function changeImage(newImage, colors) {
-	if (newImage) {
-		let artwork = document.getElementById("artwork-img");
-		let artworkCrossfade = document.getElementById("artwork-img-crossfade");
-
-		let oldImg = document.getElementById("artwork-img").src;
-		if (!oldImg.includes(newImage)) {
-			clearTimeout(fadeOutTimeout);
-
-			let artworkUrl = artwork.src;
-			
-			let rgbText = normalizeColor(colors.primary, 1.0);
-			let rgbOverlay = colors.secondary;
-
-			// Main Artwork
-			setArtworkVisibility(false);
-			artworkCrossfade.onload = () => {
-				setClass(artworkCrossfade, "transition", false);
-				window.requestAnimationFrame(() => {
-					setClass(artworkCrossfade, "show", true);
-					artwork.onload = () => {
-						let brightness = calculateBrightness(rgbOverlay);
-						let glowAlpha = (1 - (brightness * 0.8)) / 2;
-						let glow = `var(--artwork-shadow) rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${glowAlpha})`;
-						artwork.style.boxShadow = glow;
-						setArtworkVisibility(true);
-
-						// Colored Text
-						document.documentElement.style.setProperty("--color", `rgb(${rgbText.r}, ${rgbText.g}, ${rgbText.b})`);
-					};
-					artwork.src = newImage;
-				});
-			};
-			artworkCrossfade.src = oldImg ? oldImg : EMPTY_IMAGE_DATA;
-			
-			// Background Artwork
-			let backgroundWrapper = document.getElementById("background");
-			let backgroundOverlay = document.getElementById("background-overlay");
-			let backgroundImg = document.getElementById("background-img");
-			let backgroundCrossfade = document.getElementById("background-img-crossfade");
-			backgroundCrossfade.onload = () => {
-				setClass(backgroundCrossfade, "transition", false);
-				window.requestAnimationFrame(() => {
-					setClass(backgroundCrossfade, "show", true);
-					backgroundImg.onload = () => {
-						let brightness = calculateBrightness(rgbOverlay);
-						let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${brightness})`;
-						backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
-						setClass(backgroundCrossfade, "transition", true);
-						setClass(backgroundCrossfade, "show", false);
-					};
-					backgroundImg.src = newImage;
-				});
-			};
-			backgroundCrossfade.src = oldImg ? oldImg : EMPTY_IMAGE_DATA;
+async function changeImage(changes, colors) {
+	if ('image' in changes || 'imageColors' in changes) {
+		if (changes.image == "BLANK") {
+			changes.image = DEFAULT_IMAGE;
+			changes.imageColors = [DEFAULT_RGB, DEFAULT_RGB];
+		}
+		let newImage = changes.image != null ? changes.image : currentData.image;
+		let colors = changes.imageColors != null ? changes.imageColors : currentData.imageColors;
+		if (newImage) {
+			let oldImage = document.getElementById("artwork-img").src;
+			if (!oldImage.includes(newImage)) {
+				clearTimeout(fadeOutTimeout);
+		
+				let artworkUrl = artwork.src;
+				let rgbOverlay = colors.secondary;
+		
+				const promiseArtwork = setMainArtwork(oldImage, newImage, rgbOverlay);
+				const promiseBackground = setBackgroundArtwork(oldImage, newImage, rgbOverlay);
+				const promiseColor = setTextColor(colors.primary);
+				await Promise.all([promiseArtwork, promiseBackground, promiseColor]);
+			}
 		}
 	}
 }
 
+function setMainArtwork(oldImage, newImage, rgbGlow) {
+	return new Promise(resolve => {
+		let artwork = document.getElementById("artwork-img");
+		let artworkCrossfade = document.getElementById("artwork-img-crossfade");
+		setArtworkVisibility(false);
+		artworkCrossfade.onload = () => {
+			setClass(artworkCrossfade, "skiptransition", true);
+			window.requestAnimationFrame(() => {
+				setClass(artworkCrossfade, "show", true);
+				artwork.onload = () => {
+					let brightness = calculateBrightness(rgbGlow);
+					let glowAlpha = (1 - (brightness * 0.8)) / 2;
+					let glow = `var(--artwork-shadow) rgba(${rgbGlow.r}, ${rgbGlow.g}, ${rgbGlow.b}, ${glowAlpha})`;
+					artwork.style.boxShadow = glow;
+					setArtworkVisibility(true);
+					
+					resolve();
+				};
+				artwork.src = newImage;
+			});
+		};
+		artworkCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
+	});
+}
+
+function setBackgroundArtwork(oldImage, newImage, rgbOverlay) {
+	return new Promise(resolve => {
+		let backgroundWrapper = document.getElementById("background");
+		let backgroundOverlay = document.getElementById("background-overlay");
+		let backgroundImg = document.getElementById("background-img");
+		let backgroundCrossfade = document.getElementById("background-img-crossfade");
+		backgroundCrossfade.onload = () => {
+			setClass(backgroundCrossfade, "skiptransition", true);
+			window.requestAnimationFrame(() => {
+				setClass(backgroundCrossfade, "show", true);
+				backgroundImg.onload = () => {
+					let brightness = calculateBrightness(rgbOverlay);
+					let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${brightness})`;
+					backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
+					setClass(backgroundCrossfade, "skiptransition", false);
+					setClass(backgroundCrossfade, "show", false);
+					
+					resolve();
+				};
+				backgroundImg.src = newImage;
+			});
+		};
+		backgroundCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
+	});
+}
+
 function setArtworkVisibility(state) {
-	setClass(document.getElementById("artwork-img-crossfade"), "transition", state);
+	setClass(document.getElementById("artwork-img-crossfade"), "skiptransition", !state);
 	setClass(document.getElementById("artwork-img-crossfade"), "show", !state);
 }
 
+function setTextColor(color) {
+	let rgbText = normalizeColor(color, 1.0);
+	document.documentElement.style.setProperty("--color", `rgb(${rgbText.r}, ${rgbText.g}, ${rgbText.b})`);
+}
 
 function normalizeColor(rgb, targetFactor) {
 	let normalizationFactor = 255 / Math.max(rgb.r, rgb.g, rgb.b) * targetFactor;
@@ -520,16 +526,8 @@ function refreshPreference(preference, state) {
 }
 
 function setTransitions(state) {
-	setClass(document.getElementById("dark-overlay"), "transition", state);
-	setClass(document.getElementById("progress-current"), "transition", state);
-	setClass(document.getElementById("settings"), "transition", state);
-	
-	setClass(document.getElementById("artwork-img"), "transition", state);
+	setClass(document.body, "transition", state);
 	showHide(document.getElementById("artwork-img-crossfade"), state, true);
-	
-	setClass(document.getElementById("background"), "transition", state);
-	setClass(document.getElementById("background-overlay"), "transition", state);
-	setClass(document.getElementById("background-img"), "transition", state);
 	showHide(document.getElementById("background-img-crossfade"), state, true);
 }
 
