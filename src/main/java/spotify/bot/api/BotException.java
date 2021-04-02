@@ -14,7 +14,6 @@ public class BotException extends RuntimeException {
 	private Exception baseException;
 
 	public BotException(Exception e) {
-		e.printStackTrace();
 		this.baseException = e;
 	}
 

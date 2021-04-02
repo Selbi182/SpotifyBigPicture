@@ -233,55 +233,47 @@ async function changeImage(changes, colors) {
 }
 
 function setMainArtwork(oldImage, newImage, rgbGlow) {
-	return new Promise(resolve => {
-		let artwork = document.getElementById("artwork-img");
-		let artworkCrossfade = document.getElementById("artwork-img-crossfade");
-		setArtworkVisibility(false);
-		artworkCrossfade.onload = () => {
-			setClass(artworkCrossfade, "skiptransition", true);
-			window.requestAnimationFrame(() => {
-				setClass(artworkCrossfade, "show", true);
-				artwork.onload = () => {
-					let brightness = calculateBrightness(rgbGlow);
-					let glowAlpha = (1 - (brightness * 0.8)) / 2;
-					let glow = `var(--artwork-shadow) rgba(${rgbGlow.r}, ${rgbGlow.g}, ${rgbGlow.b}, ${glowAlpha})`;
-					artwork.style.boxShadow = glow;
-					setArtworkVisibility(true);
-					
-					resolve();
-				};
-				artwork.src = newImage;
-			});
-		};
-		artworkCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
-	});
+	let artwork = document.getElementById("artwork-img");
+	let artworkCrossfade = document.getElementById("artwork-img-crossfade");
+	setArtworkVisibility(false);
+	artworkCrossfade.onload = () => {
+		setClass(artworkCrossfade, "skiptransition", true);
+		window.requestAnimationFrame(() => {
+			setClass(artworkCrossfade, "show", true);
+			artwork.onload = () => {
+				let brightness = calculateBrightness(rgbGlow);
+				let glowAlpha = (1 - (brightness * 0.8)) / 2;
+				let glow = `var(--artwork-shadow) rgba(${rgbGlow.r}, ${rgbGlow.g}, ${rgbGlow.b}, ${glowAlpha})`;
+				artwork.style.boxShadow = glow;
+				setArtworkVisibility(true);
+			};
+			artwork.src = newImage;
+		});
+	};
+	artworkCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
 }
 
 function setBackgroundArtwork(oldImage, newImage, rgbOverlay) {
-	return new Promise(resolve => {
-		let backgroundWrapper = document.getElementById("background");
-		let backgroundOverlay = document.getElementById("background-overlay");
-		let backgroundImg = document.getElementById("background-img");
-		let backgroundCrossfade = document.getElementById("background-img-crossfade");
-		backgroundCrossfade.onload = () => {
-			setClass(backgroundCrossfade, "skiptransition", true);
-			window.requestAnimationFrame(() => {
-				setClass(backgroundCrossfade, "show", true);
-				backgroundImg.onload = () => {
-					backgroundWrapper.style.setProperty("background-color", `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`);
-					let brightness = calculateBrightness(rgbOverlay);
-					let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${brightness})`;
-					backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
-					setClass(backgroundCrossfade, "skiptransition", false);
-					setClass(backgroundCrossfade, "show", false);
-					
-					resolve();
-				};
-				backgroundImg.src = newImage;
-			});
-		};
-		backgroundCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
-	});
+	let backgroundWrapper = document.getElementById("background");
+	let backgroundOverlay = document.getElementById("background-overlay");
+	let backgroundImg = document.getElementById("background-img");
+	let backgroundCrossfade = document.getElementById("background-img-crossfade");
+	backgroundCrossfade.onload = () => {
+		setClass(backgroundCrossfade, "skiptransition", true);
+		window.requestAnimationFrame(() => {
+			setClass(backgroundCrossfade, "show", true);
+			backgroundImg.onload = () => {
+				backgroundWrapper.style.setProperty("background-color", `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`);
+				let brightness = calculateBrightness(rgbOverlay);
+				let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${brightness})`;
+				backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
+				setClass(backgroundCrossfade, "skiptransition", false);
+				setClass(backgroundCrossfade, "show", false);
+			};
+			backgroundImg.src = newImage;
+		});
+	};
+	backgroundCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
 }
 
 function setArtworkVisibility(state) {

@@ -68,7 +68,7 @@ public class PlaybackInfoProvider {
 				if (full) {
 					this.previous = currentPlaybackInfo;
 					return currentPlaybackInfo;
-				} else {
+				} else if (currentPlaybackInfo != null) {
 					try {
 						PlaybackInfoDTO changedInfos = findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
 						return changedInfos;
@@ -76,7 +76,6 @@ public class PlaybackInfoProvider {
 						throw new BotException(e);
 					}
 				}
-
 			}
 		} catch (BotException e) {
 			e.printStackTrace();

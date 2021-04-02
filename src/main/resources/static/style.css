@@ -50,7 +50,8 @@ body.transition * {
 		opacity var(--transition),
 		color var(--transition),
 		background-color var(--transition),
-		box-shadow var(--transition);
+		box-shadow var(--transition),
+		width var(--transition) linear;
 }
 
 .skiptransition {
@@ -334,10 +335,6 @@ body.transition * {
 	height: 100%;
 	border-radius: 0.5vmin;
 	position: absolute;
-}
-
-#progress-current.transition {
-	transition: width var(--transition) linear;
 }
 
 #bottom-left {
