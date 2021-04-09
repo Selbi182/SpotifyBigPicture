@@ -281,18 +281,8 @@ function setArtworkVisibility(state) {
 	setClass(document.getElementById("artwork-img-crossfade"), "show", !state);
 }
 
-function setTextColor(color) {
-	let rgbText = normalizeColor(color, 1.0);
+function setTextColor(rgbText) {
 	document.documentElement.style.setProperty("--color", `rgb(${rgbText.r}, ${rgbText.g}, ${rgbText.b})`);
-}
-
-function normalizeColor(rgb, targetFactor) {
-	let normalizationFactor = 255 / Math.max(rgb.r, rgb.g, rgb.b) * targetFactor;
-	return {
-		r: Math.round(rgb.r * normalizationFactor),
-		g: Math.round(rgb.g * normalizationFactor),
-		b: Math.round(rgb.b * normalizationFactor)
-	};
 }
 
 function calculateBrightness(rgb) {

@@ -40,6 +40,10 @@ public class DominantRGBs {
 		public static RGB of(int r, int g, int b) {
 			return new RGB(r, g, b);
 		}
+		
+		public static RGB of(int[] rgb) {
+			return new RGB(rgb[0], rgb[1], rgb[2]);
+		}
 
 		public static RGB of(Color c) {
 			return new RGB(c.getRed(), c.getGreen(), c.getBlue());

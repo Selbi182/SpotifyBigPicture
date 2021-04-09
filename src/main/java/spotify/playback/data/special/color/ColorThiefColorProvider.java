@@ -46,7 +46,9 @@ public class ColorThiefColorProvider implements ColorProvider {
 			.build(new CacheLoader<String, DominantRGBs>() {
 				@Override
 				public DominantRGBs load(String imageUrl) throws IOException {
-					return getDominantColors(imageUrl);
+					DominantRGBs colors = getDominantColors(imageUrl);
+					colors.setPrimary(ColorUtil.normalizeForReadibility(colors.getPrimary()));
+					return colors;
 				}
 			});
 	}

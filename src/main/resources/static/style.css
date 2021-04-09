@@ -275,7 +275,7 @@ body.transition * {
 
 #settings > .settings-links > div.preference-on:before {
 	content: "\2713";
-	margin-right: 1em;
+	margin-right: 1vmin;
 }
 
 /* CENTER */
@@ -294,12 +294,11 @@ body.transition * {
 
 #artists {
 	font-size: 3vmin;
+	margin-bottom: 1.5vmin;
 	opacity: 0.85;
-	margin-bottom: 0.5vmin;
 }
 
 #album {
-	margin-top: 0.5em;
 	font-size: 2vmin;
 	opacity: 0.65;
 }
@@ -314,7 +313,7 @@ body.transition * {
 
 #progress {
 	width: 100%;
-	margin: 1em;
+	margin: 2vmin;
 	border-radius: 0.5vmin;
 	height: 0.5vmin;
 	min-height: 1px;
@@ -369,7 +368,7 @@ body.transition * {
 }
 
 #info-symbols > div {
-	margin: 1em;
+	margin: 1vmin;
 	height: 100%;
 	width: 4vmin;
 	opacity: 0.5;

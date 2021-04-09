@@ -26,6 +26,7 @@ import spotify.playback.data.help.PlaybackInfoUtils;
 import spotify.playback.data.special.ArtworkUrlProvider;
 import spotify.playback.data.special.ContextProvider;
 import spotify.playback.data.special.color.ColorProvider;
+import spotify.playback.data.special.color.DominantRGBs;
 
 @Component
 public class PlaybackInfoProvider {
@@ -130,7 +131,8 @@ public class PlaybackInfoProvider {
 		String artworkUrl = artworkUrlProvider.findArtworkUrl(episode);
 		if (artworkUrl != null && !artworkUrl.isEmpty()) {
 			pInfo.setImage(artworkUrl);
-			pInfo.setImageColors(dominantColorProvider.getDominantColorFromImageUrl(artworkUrl));
+			DominantRGBs colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl);
+			pInfo.setImageColors(colors);
 		} else {
 			pInfo.setImage("BLANK");
 		}

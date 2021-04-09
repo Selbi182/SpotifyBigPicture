@@ -1,3 +1,4 @@
+
 package spotify.playback.data.special.color;
 
 public interface ColorProvider {

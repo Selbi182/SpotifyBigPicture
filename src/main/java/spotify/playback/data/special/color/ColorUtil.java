@@ -48,4 +48,31 @@ public class ColorUtil {
 	private static float[] rgbToHsb(int r, int g, int b) {
 		return Color.RGBtoHSB(r, g, b, null);
 	}
+	
+	/**
+	 * @return float[0: hue, 1: saturation, 2: brightness]
+	 */
+	private static int[] hsbToRgb(float[] hsb) {
+		int rgb = Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]);
+		int red = (rgb >> 16) & 0xFF;
+		int green = (rgb >> 8) & 0xFF;
+		int blue = rgb & 0xFF;
+		return new int[] { red, green, blue };
+	}
+
+	/**
+	 * Normalize the given color to improve readability. This is done by increasing
+	 * the brightness to the maximum.
+	 * 
+	 * @param color
+	 * @return a new, nornalized RBG object
+	 */
+	public static RGB normalizeForReadibility(RGB color) {
+		int r = color.getR();
+		int g = color.getG();
+		int b = color.getB();
+		float[] hsb = rgbToHsb(r, g, b);
+		hsb[2] = 1.0f; // Set brightness to max
+		return RGB.of(hsbToRgb(hsb));
+	}
 }
