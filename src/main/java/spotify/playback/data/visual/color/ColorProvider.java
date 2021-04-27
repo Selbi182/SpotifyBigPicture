@@ -1,5 +1,5 @@
 
-package spotify.playback.data.special.color;
+package spotify.playback.data.visual.color;
 
 public interface ColorProvider {
 	/**

@@ -23,10 +23,10 @@ import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO.Type;
 import spotify.playback.data.help.PlaybackInfoUtils;
-import spotify.playback.data.special.ArtworkUrlProvider;
-import spotify.playback.data.special.ContextProvider;
-import spotify.playback.data.special.color.ColorProvider;
-import spotify.playback.data.special.color.DominantRGBs;
+import spotify.playback.data.visual.ContextProvider;
+import spotify.playback.data.visual.artwork.ArtworkUrlProvider;
+import spotify.playback.data.visual.color.ColorProvider;
+import spotify.playback.data.visual.color.DominantRGBs;
 
 @Component
 public class PlaybackInfoProvider {

@@ -1,4 +1,4 @@
-package spotify.playback.data.special.color;
+package spotify.playback.data.visual.color;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;

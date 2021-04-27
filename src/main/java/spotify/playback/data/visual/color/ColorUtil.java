@@ -1,8 +1,8 @@
-package spotify.playback.data.special.color;
+package spotify.playback.data.visual.color;
 
 import java.awt.Color;
 
-import spotify.playback.data.special.color.DominantRGBs.RGB;
+import spotify.playback.data.visual.color.DominantRGBs.RGB;
 
 public class ColorUtil {
 	private ColorUtil() {

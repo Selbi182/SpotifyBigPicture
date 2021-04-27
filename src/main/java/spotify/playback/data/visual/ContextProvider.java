@@ -1,4 +1,4 @@
-package spotify.playback.data.special;
+package spotify.playback.data.visual;
 
 import java.util.Arrays;
 import java.util.List;
