@@ -24,7 +24,7 @@ public class DictionaryArtworkUrlProvider {
 		Map.entry("spotify:local:Manowar:Warriors+Of+The+World:Fight+Until+We+Die:243", "https://steamuserimages-a.akamaihd.net/ugc/960857516894251734/49040CDDB67718B571E38B022F4C1FC8C47E7AEF/"),
 		Map.entry("spotify:local:Efence:Lost+Future:Cassette:230", "https://f4.bcbits.com/img/a0533575606_10.jpg"),
 		Map.entry("spotify:local:Yhdarl:Ave+Maria:Ave+Maria:3007", "https://i.imgur.com/x06NWEZ.png"),
-		Map.entry("spotify:local:Yhdarl:Ave+Maria:The+Last+...:87", "https://i.imgur.com/x06NWEZ.png")
+		Map.entry("spotify:local:Yhdarl:Ave+Maria:The+Last+...:871", "https://i.imgur.com/x06NWEZ.png")
 	);
 
 	public static String getUrlFromList(Track track) {

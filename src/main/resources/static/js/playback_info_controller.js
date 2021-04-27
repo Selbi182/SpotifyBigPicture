@@ -209,7 +209,7 @@ async function changeImage(changes, colors) {
 	if ('image' in changes || 'imageColors' in changes) {
 		if (changes.image == "BLANK") {
 			changes.image = DEFAULT_IMAGE;
-			changes.imageColors = [DEFAULT_RGB, DEFAULT_RGB];
+			changes.imageColors = {primary: DEFAULT_RGB, secondary: DEFAULT_RGB};
 		}
 		let newImage = changes.image != null ? changes.image : currentData.image;
 		let colors = changes.imageColors != null ? changes.imageColors : currentData.imageColors;

@@ -135,6 +135,7 @@ public class PlaybackInfoProvider {
 			pInfo.setImageColors(colors);
 		} else {
 			pInfo.setImage("BLANK");
+			pInfo.setImageColors(DominantRGBs.DEFAULT);
 		}
 
 		return pInfo;
