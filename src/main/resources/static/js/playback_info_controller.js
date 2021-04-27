@@ -116,10 +116,8 @@ function setTextData(changes) {
 	if ('album' in changes || 'release' in changes) {
 		let album = 'album' in changes ? changes.album : currentData.album;
 		let release = 'release' in changes ? changes.release : currentData.release;
-		if (release && release.length > 0) {
-			release = "(" + release + ")";
-		}
-		document.getElementById("album").innerHTML = album + " " + release;
+		document.getElementById("album-title").innerHTML = album;
+		document.getElementById("album-release").innerHTML = release;
 	}
 
 	// Meta Info

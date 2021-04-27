@@ -28,8 +28,8 @@ html, body {
 	width: 100%;
 	height: 100%;
 	text-shadow: 4px 4px 8px #000000aa;
-	user-select: none;
 	font-size: 2vmin;
+	user-select: none;
 }
 
 body.hidecursor {
@@ -160,7 +160,6 @@ body.transition * {
 	width: 100%;
 	height: 100%;
 	text-align: center;
-	z-index: -1;
 }
 
 #artwork-img, #artwork-img-crossfade {
@@ -182,6 +181,7 @@ body.transition * {
 	z-index: 1;
 	box-shadow: none !important;
 	opacity: 0;
+	pointer-events: none;
 }
 
 #artwork-img.show, #artwork-img-crossfade.show {
@@ -204,6 +204,7 @@ body.transition * {
 	text-align: left;
 	font-size: 2vmin;
 	word-break: break-word;
+	user-select: text;
 }
 
 #context {
@@ -220,6 +221,7 @@ body.transition * {
 	order: 3;
 	text-align: right;
 	position: relative;
+	pointer-events: none;
 }
 
 #logo {
@@ -238,11 +240,13 @@ body.transition * {
 
 #settings {
 	position: absolute;
-	width: 100%;
+	right: 0;
+	width: min-content;
 	height: 100%;
 	font-size: 2vmin;
 	line-height: 4vmin;
 	opacity: 0;
+	pointer-events: auto;
 }
 
 #settings.show {
@@ -285,6 +289,7 @@ body.transition * {
 	text-align: center;
 	flex-direction: column;
 	padding: 2vmin;
+	user-select: text;
 }
 
 #title {
