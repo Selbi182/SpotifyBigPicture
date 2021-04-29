@@ -18,6 +18,7 @@ apply plugin: 'org.springframework.boot.experimental.thin-launcher'
 jar {
     baseName = 'SpotifyPlaybackInfo'
     version = '1.0'
+    bootJar.dependsOn = [thinProperties]
 }
 
 springBoot {
