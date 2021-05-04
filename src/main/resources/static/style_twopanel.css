@@ -45,6 +45,10 @@ body.nocoloredtext {
 	box-sizing: border-box;
 }
 
+a, a:visited, a:hover, a:active {
+	color: var(--color);
+}
+
 body.transition * {
 	transition:
 		opacity var(--transition),
@@ -148,10 +152,9 @@ body.transition * {
 /* ARTWORK */
 
 #artwork {
-	width: 100%;
-	height: 100%;
-	flex: 1.3;
+	flex-grow: 1.224;
 	position: relative;
+	margin-right: 6vmin;
 }
 
 #artwork-img, #artwork-img-crossfade {
@@ -159,7 +162,7 @@ body.transition * {
 	height: 100%;
 	max-width: 100%;
 	max-height: 100%;
-	object-fit: contain;
+	/* object-fit: contain; */
 	--artwork-shadow: 0 0 10vmin 3vmin;
 	position: absolute;
 }
@@ -179,7 +182,7 @@ body.transition * {
 	opacity: 1;
 }
 
-@media only screen and (orientation:portrait) {
+@media only screen and (orientation:portrait or orientation:landscape) {
   #artwork-img {
     box-shadow: none !important;
   }
@@ -192,9 +195,10 @@ body.transition * {
 /* INFO */
 
 #info {
-	flex: 1;
+	flex-grow: 1;
 	display: flex;
 	flex-direction: column;
+	width: 0%;
 }
 
 /* TOP */
@@ -203,7 +207,6 @@ body.transition * {
 	flex: 1;
 	flex-direction: row;
 	position: relative;
-	margin-bottom: 1vmin;
 }
 
 #meta-left {
@@ -248,13 +251,15 @@ body.transition * {
 
 #settings {
 	position: absolute;
-	right: 0;
 	width: min-content;
-	height: 100%;
+	height: calc(100% - 12vmin);
 	font-size: 2vmin;
 	line-height: 4vmin;
 	opacity: 0;
 	pointer-events: auto;
+	z-index: 1;
+	background: #000000dd;
+	padding: 6vmin;
 }
 
 #settings.show {
@@ -295,28 +300,40 @@ body.transition * {
 #center-info {
 	align-items: center;
 	text-align: center;
+	justify-content: center;
 	flex-direction: column;
-	padding: 2vmin;
 	user-select: text;
 	flex: 1;
 }
 
 #title {
-	font-size: 5vmin;
-	margin-top: 5vmin;
-	margin-bottom: 5vmin;
+	font-size: 8vmin;
+	margin-top: 6vmin;
+	margin-bottom: 6vmin;
 }
 
 #artists {
-	font-size: 3vmin;
+	font-size: 4vmin;
 	opacity: 0.85;
 }
 
 #album {
-	font-size: 2vmin;
+	font-size: 4vmin;
 	opacity: 0.65;
 }
 
+#album-release {
+	margin-left: 0.5em;
+}
+#album-release::before {
+	content: "(";
+}
+#album-release::after {
+	content: ")";
+}
+#album-release:empty {
+	display: none;
+}
 
 /* BOTTOM */
 

@@ -437,27 +437,70 @@ function setIdle() {
 
 const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
-const PARAM_BG_ARTWORK = "bgartwork";
+const PARAM_COLORED_TEXT = "coloredtext";
 const PARAM_ARTWORK_GLOW = "artworkglow";
+const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_DARKEN_BACKGROUND = "darkenbackground";
 const PARAM_SCALE_BACKGROUND = "scalebackground";
-const PARAM_COLORED_TEXT = "coloredtext";
+
+const SETTINGS_ORDER = [
+	PARAM_DARK_MODE,
+	PARAM_TRANSITIONS,
+	PARAM_COLORED_TEXT,
+	PARAM_ARTWORK_GLOW,
+	PARAM_BG_ARTWORK,
+	PARAM_DARKEN_BACKGROUND,
+	PARAM_SCALE_BACKGROUND
+];
+
+const PREFS_URL_PARAM = "prefs";
 
 // Settings with defaults
-var visualPreferences = {
-	[PARAM_DARK_MODE]:         false,
-	[PARAM_TRANSITIONS]:       true,
-	[PARAM_BG_ARTWORK]:        true,
-	[PARAM_ARTWORK_GLOW]:      true,
-	[PARAM_DARKEN_BACKGROUND]: true,
-	[PARAM_SCALE_BACKGROUND]:  true,
-	[PARAM_COLORED_TEXT]:      true
-};
+var visualPreferences = {};
+
+window.addEventListener('load', initVisualPreferencesFromUrlParams);
+function initVisualPreferencesFromUrlParams() {
+	const urlParams = new URLSearchParams(window.location.search);
+	let prefs = urlParams.get(PREFS_URL_PARAM);
+	for (let prefIndex in SETTINGS_ORDER) {
+		let pref = SETTINGS_ORDER[prefIndex];
+		
+		// Set state on site load
+		let state = pref != PARAM_DARK_MODE; // everything other than dark mode defaults to true
+		if (prefs) {
+			let fromSettings = !!parseInt(prefs[parseInt(prefIndex)]);
+			state = fromSettings;
+		}
+		visualPreferences[pref] = state;
+		
+		// Attach event listener when clicking it
+		document.getElementById(pref).firstChild.onclick = () => toggleVisualPreference(pref);
+		
+		// Init setting
+		refreshPreference(pref, state);
+	}	
+	document.querySelector("#fullscreen > a").onclick = toggleFullscreen;
+	
+	refreshPrefsQueryParam();
+}
+
+function refreshPrefsQueryParam() {
+	var prefsString = "";
+	for (let pref of SETTINGS_ORDER) {
+		let prefBool = visualPreferences[pref] ? "1" : "0";
+		prefsString += prefBool;
+	}
+	
+	const url = new URL(window.location);
+	url.searchParams.set(PREFS_URL_PARAM, prefsString);
+	window.history.replaceState({}, 'Spotify Playback Info', url.toString());
+}
 
 function toggleVisualPreference(key) {
 	if (visualPreferences.hasOwnProperty(key)) {
 		let newState = !visualPreferences[key];
 		refreshPreference(key, newState);
+		refreshPrefsQueryParam();
 	}
 }
 
@@ -490,11 +533,6 @@ function refreshPreference(preference, state) {
 			setClass(document.body, "nocoloredtext", !state);
 			break;
 	}
-
-	// URL Params
-	const url = new URL(window.location);
-	url.searchParams.set(preference, state);
-	window.history.replaceState({}, 'Spotify Playback Info', url.toString());
 	
 	// Toggle Checkmark
 	let classList = document.getElementById(preference).classList;
@@ -509,25 +547,6 @@ function setTransitions(state) {
 	setClass(document.body, "transition", state);
 	showHide(document.getElementById("artwork-img-crossfade"), state, true);
 	showHide(document.getElementById("background-img-crossfade"), state, true);
-}
-
-window.addEventListener('load', initVisualPreferencesFromUrlParams);
-function initVisualPreferencesFromUrlParams() {
-	for (let pref in visualPreferences) {
-		document.getElementById(pref).firstChild.onclick = () => toggleVisualPreference(pref);
-		initPreference(pref);
-	}
-	
-	document.querySelector("#fullscreen > a").onclick = toggleFullscreen;
-}
-
-function initPreference(preference) {
-	const urlParams = new URLSearchParams(window.location.search);
-	let state = visualPreferences[preference];
-	if (urlParams.get(preference) != null) {
-		state = (urlParams.get(preference) == "true");
-	}
-	refreshPreference(preference, state);
 }
 
 function toggleFullscreen() {

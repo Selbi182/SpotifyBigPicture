@@ -3,6 +3,7 @@ package spotify.playback.data;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -49,6 +50,7 @@ public class PlaybackInfoProvider {
 		DTO_FIELDS = Stream.of(PlaybackInfoDTO.class.getDeclaredFields())
 			.filter(f -> !Modifier.isFinal(f.getModifiers()))
 			.filter(f -> !f.getType().equals(PlaybackInfoDTO.Type.class))
+			.sorted(Comparator.comparing(Field::getName))
 			.collect(Collectors.toList());
 	}
 
@@ -101,7 +103,7 @@ public class PlaybackInfoProvider {
 			String fieldName = field.getName();
 			if (fieldName.equals("timeCurrent")) {
 				// Estimated progress always needs to get updated, so it's handled separately
-				if (!previous.getTimeTotal().equals(current.getTimeTotal()) || !PlaybackInfoUtils.isWithinEstimatedProgressMs(previous, current)) {
+				if (diff.isPaused() != null	|| !previous.getTimeTotal().equals(current.getTimeTotal()) || !PlaybackInfoUtils.isWithinEstimatedProgressMs(previous, current)) {
 					diff.setType(Type.DATA);
 					diff.setTimeCurrent(current.getTimeCurrent());
 				}

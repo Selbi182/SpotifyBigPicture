@@ -45,6 +45,10 @@ body.nocoloredtext {
 	box-sizing: border-box;
 }
 
+a, a:visited, a:hover, a:active {
+	color: var(--color);
+}
+
 body.transition * {
 	transition:
 		opacity var(--transition),
@@ -306,6 +310,19 @@ body.transition * {
 #album {
 	font-size: 2vmin;
 	opacity: 0.65;
+}
+
+#album-release {
+	margin-left: 0.5em;
+}
+#album-release::before {
+	content: "(";
+}
+#album-release::after {
+	content: ")";
+}
+#album-release:empty {
+	display: none;
 }
 
 
