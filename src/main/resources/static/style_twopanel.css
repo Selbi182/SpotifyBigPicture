@@ -32,7 +32,7 @@ html, body {
 	font-family: "Gotham Light", sans-serif;
 	width: 100%;
 	height: 100%;
-	text-shadow: 4px 4px 8px #000000aa;
+	text-shadow: 3px 3px 3px #000000aa;
 	font-size: 2vmin;
 	user-select: none;
 }
@@ -68,20 +68,21 @@ body.transition * {
 }
 
 
-/* DARK OVERLAY */
+/* DARK OVERLAY (Blue Light Filter at 3400K and -25% brightness) */
 
 #dark-overlay {
-	background: black;
+	background: rgb(191, 141, 101);
 	position: absolute;
 	width: 100%;
 	height: 100%;
 	z-index: 2;
 	pointer-events: none;
 	opacity: 0;
+	mix-blend-mode: multiply;
 }
 
 #dark-overlay.show {
-	opacity: 0.5;
+	opacity: 1;
 }
 
 
@@ -266,48 +267,48 @@ body.transition * {
 
 #settings {
 	position: absolute;
-	width: min-content;
-	height: 100%;
+	width: 100%;
+	height: min-content;
 	font-size: 2vmin;
-	line-height: 4vmin;
 	opacity: 0;
 	pointer-events: auto;
 	z-index: 1;
-	background: #000000dd;
-	padding: 6vmin;
+	background: linear-gradient(to bottom, transparent 0%, black 100%);
+	bottom: 0;
+	display: flex;
+	justify-content: space-evenly;
 }
 
 #settings.show {
 	opacity: 1;
 }
 
-#settings > .settings-header {
-	padding-top: 2vmin;
-	padding-bottom: 2vmin;
-	font-size: 3vmin;
+#settings > div {
+	margin: 1vmin;
 }
 
-#settings > .settings-links > div > a {
+#settings > div > a {
 	text-decoration: none;
 	opacity: 0.65;
 	white-space: pre;
 }
 
-#settings > .settings-links > div > a:hover {
+#settings > div > a:hover {
 	opacity: 1;
 }
 
-#settings > .settings-links > .spacer {
+#settings > .spacer {
 	height: 2vmin;
 }
 
-#settings > .settings-links > #fullscreen {
-	font-size: 3vmin;
-}
-
-#settings > .settings-links > div.preference-on:before {
+#settings > div:before {
 	content: "\2713";
 	margin-right: 1vmin;
+	opacity: 0;
+}
+
+#settings > div.preference-on:before {
+	opacity: 1;
 }
 
 /* CENTER */
@@ -342,7 +343,7 @@ body.transition * {
 
 #album {
 	font-size: 3vmin;
-	text-align: center;
+	text-align: left;
 }
 
 #album-release {
@@ -403,6 +404,7 @@ body.transition * {
 	align-items: center;
 	flex: 1;
 	margin-top: 6vmin;
+	font-family: "Gotham Medium", sans-serif;
 }
 
 #progress {

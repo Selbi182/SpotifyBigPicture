@@ -68,20 +68,21 @@ body.transition * {
 }
 
 
-/* DARK OVERLAY */
+/* DARK OVERLAY (Blue Light Filter at 3400K and -25% brightness) */
 
 #dark-overlay {
-	background: black;
+	background: rgb(191, 141, 101);
 	position: absolute;
 	width: 100%;
 	height: 100%;
 	z-index: 2;
 	pointer-events: none;
 	opacity: 0;
+	mix-blend-mode: multiply;
 }
 
 #dark-overlay.show {
-	opacity: 0.5;
+	opacity: 1;
 }
 
 
