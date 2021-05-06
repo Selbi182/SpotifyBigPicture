@@ -312,7 +312,9 @@ function updateProgress(changes) {
 	let formattedTotalTime = formattedTimes.total;
 
 	document.getElementById("time-current").innerHTML = formattedCurrentTime;
-	document.getElementById("time-total").innerHTML = formattedTotalTime;
+	if (total != currentData.timeTotal) {
+		document.getElementById("time-total").innerHTML = formattedTotalTime;
+	}
 
 	// Progress Bar
 	let progressPercent = Math.min(1, ((current / total))) * 100;
