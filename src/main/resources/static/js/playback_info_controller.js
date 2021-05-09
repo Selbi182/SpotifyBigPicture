@@ -108,15 +108,25 @@ async function setDisplayData(changes) {
 function setTextData(changes) {
 	// Main Info
 	if ('title' in changes) {
-		document.getElementById("title").innerHTML = removeFeatures(changes.title);
+		let titleNoFeat = removeFeatures(changes.title);
+		let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
+		let titleMain = splitTitle[0];
+		let titleExtra = splitTitle[1];
+		document.getElementById("title-main").innerHTML = titleMain;
+		document.getElementById("title-extra").innerHTML = titleExtra;
 	}
 	if ('artists' in changes) {
 		updateArtists(changes.artists);
 	}
 	if ('album' in changes || 'release' in changes) {
 		let album = 'album' in changes ? changes.album : currentData.album;
+		let splitTitle = separateUnimportantTitleInfo(album);
+		let albumTitleMain = splitTitle[0];
+		let albumTitleExtra = splitTitle[1];
+		document.getElementById("album-title-main").innerHTML = albumTitleMain;
+		document.getElementById("album-title-extra").innerHTML = albumTitleExtra;
+
 		let release = 'release' in changes ? changes.release : currentData.release;
-		document.getElementById("album-title").innerHTML = album;
 		document.getElementById("album-release").innerHTML = release;
 	}
 
@@ -173,6 +183,17 @@ function showHide(elem, show, useInvisibility) {
 			elem.classList.add("hidden");
 			elem.classList.remove("invisible");
 		}
+	}
+}
+
+function separateUnimportantTitleInfo(title) {
+	let index = title.search(/\s?(\(|\[|\s\-\s).*?(radio|edit|anniversary|bonus|deluxe|special|remaster|extended|re.?issue|\d{4}).*/ig);
+	if (index < 0) {
+		return [title, ""];
+	} else {
+		let mainTitle = title.substring(0, index);
+		let extra = title.substring(index, title.length);
+		return [mainTitle, extra];
 	}
 }
 
@@ -442,8 +463,7 @@ const PARAM_TRANSITIONS = "transitions";
 const PARAM_COLORED_TEXT = "coloredtext";
 const PARAM_ARTWORK_GLOW = "artworkglow";
 const PARAM_BG_ARTWORK = "bgartwork";
-const PARAM_DARKEN_BACKGROUND = "darkenbackground";
-const PARAM_SCALE_BACKGROUND = "scalebackground";
+const PARAM_STRIP_TITLES = "striptitles";
 
 const SETTINGS_ORDER = [
 	PARAM_DARK_MODE,
@@ -451,8 +471,15 @@ const SETTINGS_ORDER = [
 	PARAM_COLORED_TEXT,
 	PARAM_ARTWORK_GLOW,
 	PARAM_BG_ARTWORK,
-	PARAM_DARKEN_BACKGROUND,
-	PARAM_SCALE_BACKGROUND
+	PARAM_STRIP_TITLES
+];
+
+const DEFAULT_SETTINGS = [
+	PARAM_TRANSITIONS,
+	PARAM_COLORED_TEXT,
+	PARAM_ARTWORK_GLOW,
+	PARAM_BG_ARTWORK,
+	PARAM_STRIP_TITLES
 ];
 
 const PREFS_URL_PARAM = "prefs";
@@ -468,7 +495,7 @@ function initVisualPreferencesFromUrlParams() {
 		let pref = SETTINGS_ORDER[prefIndex];
 		
 		// Set state on site load
-		let state = pref != PARAM_DARK_MODE; // everything other than dark mode defaults to true
+		let state = DEFAULT_SETTINGS.includes(pref);
 		if (prefs) {
 			let fromSettings = !!parseInt(prefs[parseInt(prefIndex)]);
 			state = fromSettings;
@@ -506,6 +533,9 @@ function toggleVisualPreference(key) {
 	}
 }
 
+var darkModeTimeout;
+const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 6 * 60 * 60 * 1000;
+
 function refreshPreference(preference, state) {
 	visualPreferences[preference] = state;
 
@@ -513,6 +543,13 @@ function refreshPreference(preference, state) {
 	switch (preference) {
 		case PARAM_DARK_MODE:
 			setClass(document.getElementById("dark-overlay"), "show", state);
+			clearTimeout(darkModeTimeout);
+			if (state) {
+				darkModeTimeout = setTimeout(() => {
+					refreshPreference(PARAM_DARK_MODE, false);
+					refreshPrefsQueryParam();
+				}, DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT);
+			}
 			break;
 		case PARAM_TRANSITIONS:
 			setTransitions(state);
@@ -520,19 +557,15 @@ function refreshPreference(preference, state) {
 		case PARAM_BG_ARTWORK:
 			setClass(document.getElementById("background"), "coloronly", !state);
 			break;
-		case PARAM_SCALE_BACKGROUND:
-			setClass(document.getElementById("background"), "scale", state);
-			setClass(document.getElementById("background-img"), "scale", state);
-			setClass(document.getElementById("background-img-crossfade"), "scale", state);
-			break;
-		case PARAM_DARKEN_BACKGROUND:
-			setClass(document.getElementById("background"), "darken", state);
-			break;
 		case PARAM_ARTWORK_GLOW:
 			setClass(document.getElementById("artwork-img"), "noshadow", !state);
 			break;
 		case PARAM_COLORED_TEXT:
 			setClass(document.body, "nocoloredtext", !state);
+			break;
+		case PARAM_STRIP_TITLES:
+			setClass(document.getElementById("title-extra"), "hide", state);
+			setClass(document.getElementById("album-title-extra"), "hide", state);
 			break;
 	}
 	
@@ -582,14 +615,8 @@ document.onkeydown = (e) => {
 		case "g":
 			toggleVisualPreference(PARAM_ARTWORK_GLOW);
 			break;
-		case "b":
-			toggleVisualPreference(PARAM_DARKEN_BACKGROUND);
-			break;
-		case "z":
-			toggleVisualPreference(PARAM_SCALE_BACKGROUND);
-			break;
-		case "c":
-			toggleVisualPreference(PARAM_SCALE_BACKGROUND);
+		case "s":
+			toggleVisualPreference(PARAM_STRIP_TITLES);
 			break;
 	}
 };

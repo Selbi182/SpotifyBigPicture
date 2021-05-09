@@ -307,6 +307,10 @@ body.transition * {
 	margin-bottom: 0.5vmin;
 }
 
+#title-extra.hide {
+	display: none;
+}
+
 #artists {
 	font-size: 3vmin;
 	margin-bottom: 1.5vmin;
@@ -318,8 +322,12 @@ body.transition * {
 	opacity: 0.65;
 }
 
+#album-title-extra.hide {
+	display: none;
+}
+
 #album-release {
-	margin-left: 0.5em;
+	margin-left: 1ch;
 }
 #album-release::before {
 	content: "(";

@@ -98,12 +98,13 @@ body.transition * {
 	filter: blur(20px);
 }
 
-#background.scale {
+#background {
  	transform: scale(1.05);
+	opacity: 0.65;
 }
 
-#background-img.scale, #background-img-crossfade.scale {
- 	transform: scale(1.3);
+#background-img, #background-img-crossfade {
+	transform: scale(1.3);
 }
 
 #background-overlay {
@@ -132,10 +133,6 @@ body.transition * {
 
 #background.coloronly #background-img, #background.coloronly #background-img-crossfade {
 	opacity: 0 !important;
-}
-
-#background.darken {
-	opacity: 0.65;
 }
 
 
@@ -235,11 +232,10 @@ body.transition * {
 }
 
 #context {
-	opacity: 0.8;
+	font-family: "Gotham Medium", sans-serif;
 }
 
 #device {
-	opacity: 0.5;
 	margin-top: 1vmin;
 }
 
@@ -329,6 +325,10 @@ body.transition * {
 	font-family: "Gotham Medium", sans-serif;
 }
 
+#title-extra.hide {
+	display: none;
+}
+
 #artists {
 	font-size: 3.5vmin;
 	font-family: "Gotham Medium", sans-serif;
@@ -346,8 +346,12 @@ body.transition * {
 	text-align: left;
 }
 
+#album-title-extra.hide {
+	display: none;
+}
+
 #album-release {
-	margin-left: 0.25em;
+	margin-left: 0.5ch;
 }
 #album-release::before {
 	content: "(";
