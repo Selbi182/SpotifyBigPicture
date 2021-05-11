@@ -149,9 +149,10 @@ function setTextData(changes) {
 		let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
 		let repeat = changes.repeat != null ? changes.repeat : currentData.repeat;
 
-		showHide(document.getElementById("pause"), paused, paused);
-		showHide(document.getElementById("shuffle"), shuffle, paused);
-		showHide(document.getElementById("repeat"), repeat != "off", paused);
+		setClass(document.getElementById("playpause"), "play", !paused);
+		setClass(document.getElementById("playpause"), "pause", paused);
+		showHide(document.getElementById("shuffle"), shuffle, false);
+		showHide(document.getElementById("repeat"), repeat != "off", false);
 	}
 	if ('repeat' in changes) {
 		let repeat = document.getElementById("repeat");

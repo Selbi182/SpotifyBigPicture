@@ -421,7 +421,13 @@ body.transition * {
 	mask-image: url("img/symbols/shuffle.png");
 }
 
-#info-symbols > #pause {
+#info-symbols > #playpause.play {
+	-webkit-mask-image: url("img/symbols/play.png");
+	mask-image: url("img/symbols/play.png");
+	opacity: 0.5;
+}
+
+#info-symbols > #playpause.pause {
 	-webkit-mask-image: url("img/symbols/pause.png");
 	mask-image: url("img/symbols/pause.png");
 	opacity: 0.9;
