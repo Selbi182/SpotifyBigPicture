@@ -187,8 +187,17 @@ function showHide(elem, show, useInvisibility) {
 	}
 }
 
+const USELESS_WORDS = ["radio", "edit", "anniversary", "bonus", "deluxe", "special", "remaster", "extended", "expansion", "expanded", "version", "original", "motion\spicture", "re.?issue", "\d{4}"];
+
+// Two regexes for readability, cause otherwise it'd be a nightmare to decypher brackets from hyphens
+const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[).*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
+const USELESS_WORDS_REGEX_HYPHEN = new RegExp("\\s-\\s.*?(" + USELESS_WORDS.join("|") + ").*", "ig");
+
 function separateUnimportantTitleInfo(title) {
-	let index = title.search(/\s?(\(|\[|\s\-\s).*?(radio|edit|anniversary|bonus|deluxe|special|remaster|extended|re.?issue|\d{4}).*/ig);
+	let index = title.search(USELESS_WORDS_REGEX_BRACKETS);
+	if (index < 0)  {
+		index = title.search(USELESS_WORDS_REGEX_HYPHEN);
+	}
 	if (index < 0) {
 		return [title, ""];
 	} else {
@@ -199,7 +208,7 @@ function separateUnimportantTitleInfo(title) {
 }
 
 function removeFeatures(title) {
-	return title.replace(/[\(|\[]feat.+?[\)|\]]/g, "").trim();
+	return title.replace(/[\(|\[](f(ea)?t|with).+?[\)|\]]/ig, "").trim();
 }
 
 function updateArtists(artists) {
@@ -535,7 +544,7 @@ function toggleVisualPreference(key) {
 }
 
 var darkModeTimeout;
-const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 6 * 60 * 60 * 1000;
+const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 8 * 60 * 60 * 1000;
 
 function refreshPreference(preference, state) {
 	visualPreferences[preference] = state;
