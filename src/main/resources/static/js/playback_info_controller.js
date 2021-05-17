@@ -187,7 +187,7 @@ function showHide(elem, show, useInvisibility) {
 	}
 }
 
-const USELESS_WORDS = ["radio", "edit", "anniversary", "bonus", "deluxe", "special", "remaster", "extended", "expansion", "expanded", "version", "original", "motion\spicture", "re.?issue", "\d{4}"];
+const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "extended", "expansion", "expanded", "version", "original", "motion\\spicture", "re.?issue", "\\d{4}"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decypher brackets from hyphens
 const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[).*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");

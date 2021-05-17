@@ -1,0 +1,82 @@
+#top-info {
+	display: flex;
+	flex-grow: 1;
+	flex-direction: row;
+	position: relative;
+	margin-bottom: 1vmin;
+}
+
+#artwork {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+}
+
+#artwork-img, #artwork-img-crossfade {
+	transform: translate(-50%, 0);
+	object-fit: contain;
+}
+
+#settings {
+	right: 0;
+	width: min-content;
+	height: 100%;
+	line-height: 4vmin;
+}
+
+#settings > .settings-header {
+	padding-top: 2vmin;
+	padding-bottom: 2vmin;
+	font-size: 3vmin;
+}
+
+#settings > .settings-links > .spacer {
+	height: 2vmin;
+}
+
+#settings > .settings-links > #fullscreen {
+	font-size: 3vmin;
+}
+
+#center-info {
+	padding: 2vmin;
+}
+
+#title {
+	font-size: 5vmin;
+	margin-bottom: 0.5vmin;
+}
+
+#artists {
+	font-size: 3vmin;
+	margin-bottom: 1.5vmin;
+	opacity: 0.85;
+}
+
+#album {
+	font-size: 2vmin;
+}
+
+#info-symbols {
+	display: flex;
+	flex: 1;
+	justify-content: center;
+	flex-direction: row;
+	align-items: center;
+}
+
+#info-symbols > div {
+	margin: 1vmin;
+	width: 4vmin;
+}
+
+#bottom-info {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+#progress {
+	margin: 2vmin;
+}

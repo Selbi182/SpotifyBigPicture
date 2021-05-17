@@ -1,14 +1,3 @@
-
-/* GLOBAL */
-
-.hidden {
-	display: none !important;
-}
-
-.invisible {
-	visibility: hidden !important;
-}
-
 @font-face {
 	font-family: "Gotham Medium";
 	src: url("fonts/Gotham Medium Regular.ttf");
@@ -22,6 +11,8 @@
 :root {
 	--color: #ffffff;
 	--transition: 0.5s;
+	--font-normal: "Gotham Light", sans-serif;
+	--font-bold: "Gotham Medium", sans-serif;
 }
 
 html, body {
@@ -29,19 +20,27 @@ html, body {
 	overflow: hidden;
 	background: black;
 	color: var(--color);
-	font-family: "Gotham Medium", sans-serif;
+	font-family: var(--font-normal);
 	width: 100%;
 	height: 100%;
-	text-shadow: 4px 4px 8px #000000aa;
+	text-shadow: 3px 3px 3px #000000aa;
 	font-size: 2vmin;
 	user-select: none;
 }
 
-body.hidecursor {
+.hidden {
+	display: none !important;
+}
+
+.invisible {
+	visibility: hidden !important;
+}
+
+.hidecursor {
 	cursor: none !important;
 }
 
-body.nocoloredtext {
+.nocoloredtext {
 	--color: #ffffff;
 }
 
@@ -67,9 +66,6 @@ body.transition * {
 	transition: unset !important;
 }
 
-
-/* DARK OVERLAY (Blue Light Filter at 3400K and -25% brightness) */
-
 #dark-overlay {
 	background: rgb(191, 141, 101);
 	position: absolute;
@@ -86,8 +82,6 @@ body.transition * {
 }
 
 
-/* BACKGROUND */
-
 #background {
 	position: absolute;
 	width: 100%;
@@ -95,15 +89,9 @@ body.transition * {
 	overflow: hidden;
 	background-size: cover !important;
 	background-position: center !important;
-	filter: blur(10px);
-}
-
-#background.scale {
+	filter: blur(20px);
  	transform: scale(1.05);
-}
-
-#background-img.scale, #background-img-crossfade.scale {
- 	transform: scale(1.3);
+	opacity: 0.65;
 }
 
 #background-overlay {
@@ -114,7 +102,8 @@ body.transition * {
 	mix-blend-mode: hard-light;
 	background: var(--background-gradients), var(--background-overlay-color);
 	--background-overlay-color: white;
-	--background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%), linear-gradient(to bottom, transparent 0%, black 100%);
+	--background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%),
+	                        linear-gradient(to bottom, transparent 0%, black 100%);
 }
 
 #background-img, #background-img-crossfade {
@@ -124,6 +113,7 @@ body.transition * {
 	object-fit: cover;
 	position: absolute;
 	opacity: 0;
+	transform: scale(1.3);
 }
 
 #background-img.show, #background-img-crossfade.show {
@@ -134,42 +124,14 @@ body.transition * {
 	opacity: 0 !important;
 }
 
-#background.darken {
-	opacity: 0.65;
-}
-
-
-/* MAIN */
-
-#content, #top-info, #center-info, #bottom-info, #time, #info-symbols, #bottom-left {
-	display: flex;
-}
-
 #content {
+	display: flex;
 	flex-direction: column;
-	justify-items: space-between;
 	z-index: 1;
 	width: 100%;
 	height: 100%;
 	position: absolute;
 	padding: 6vmin;
-}
-
-
-/* TOP */
-
-#top-info {
-	flex-grow: 1;
-	flex-direction: row;
-	position: relative;
-	margin-bottom: 1vmin;
-}
-
-#artwork {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	text-align: center;
 }
 
 #artwork-img, #artwork-img-crossfade {
@@ -178,8 +140,6 @@ body.transition * {
 	height: 100%;
 	max-width: 100%;
 	max-height: 100%;
-	transform: translate(-50%, 0);
-	object-fit: contain;
 	--artwork-shadow: 0 0 10vmin 3vmin;
 }
 
@@ -199,8 +159,13 @@ body.transition * {
 }
 
 @media only screen and (orientation:portrait) {
+  #artwork {
+    flex-shrink: 1 !important;
+  }
+  
   #artwork-img {
     box-shadow: none !important;
+    object-fit: contain;
   }
   
   #artworkglow {
@@ -208,27 +173,19 @@ body.transition * {
   }
 }
 
+#context {
+	margin-bottom: 1vmin;
+}
+
 #meta-left {
 	flex: 1;
-	order: 1;
 	text-align: left;
 	font-size: 2vmin;
 	word-break: break-word;
 	user-select: text;
 }
 
-#context {
-	opacity: 0.8;
-}
-
-#device {
-	margin-top: 1vmin;
-	opacity: 0.5;
-}
-
 #meta-right {
-	flex: 1;
-	order: 3;
 	text-align: right;
 	position: relative;
 	pointer-events: none;
@@ -245,81 +202,29 @@ body.transition * {
 	mask-repeat: no-repeat;
 	background-color: var(--color);
 	height: 6vmin;
+	width: 6vmin;
 	opacity: 0.65;
-}
-
-#settings {
-	position: absolute;
-	right: 0;
-	width: min-content;
-	height: 100%;
-	font-size: 2vmin;
-	line-height: 4vmin;
-	opacity: 0;
-	pointer-events: auto;
 }
 
 #settings.show {
 	opacity: 1;
 }
 
-#settings > .settings-header {
-	padding-top: 2vmin;
-	padding-bottom: 2vmin;
-	font-size: 3vmin;
-}
-
-#settings > .settings-links > div > a {
-	text-decoration: none;
-	opacity: 0.65;
-	white-space: pre;
-}
-
-#settings > .settings-links > div > a:hover {
-	opacity: 1;
-}
-
-#settings > .settings-links > .spacer {
-	height: 2vmin;
-}
-
-#settings > .settings-links > #fullscreen {
-	font-size: 3vmin;
-}
-
-#settings > .settings-links > div.preference-on:before {
-	content: "\2713";
-	margin-right: 1vmin;
-}
-
-/* CENTER */
 
 #center-info {
+	display: flex;
 	align-items: center;
 	text-align: center;
 	flex-direction: column;
-	padding: 2vmin;
 	user-select: text;
 }
 
-#title {
-	font-size: 5vmin;
-	margin-bottom: 0.5vmin;
+#title, #artists, #time-current, #time-total {
+	font-family: var(--font-bold);
 }
 
 #title-extra.hide {
 	display: none;
-}
-
-#artists {
-	font-size: 3vmin;
-	margin-bottom: 1.5vmin;
-	opacity: 0.85;
-}
-
-#album {
-	font-size: 2vmin;
-	opacity: 0.65;
 }
 
 #album-title-extra.hide {
@@ -327,7 +232,7 @@ body.transition * {
 }
 
 #album-release {
-	margin-left: 1ch;
+	margin-left: 0.5ch;
 }
 #album-release::before {
 	content: "(";
@@ -339,75 +244,8 @@ body.transition * {
 	display: none;
 }
 
-
-/* BOTTOM */
-
-#bottom-info {
-	align-items: center;
-	flex-direction: column;
-}
-
-#progress {
-	width: 100%;
-	margin: 2vmin;
-	border-radius: 0.5vmin;
-	height: 0.5vmin;
-	min-height: 1px;
-	position: relative;
-}
-
-#progress-background {
-	background-color: var(--color);
-	width: 100%;
-	height: 100%;
-	border-radius: inherit;
-	position: absolute;
-	opacity: 0.25;
-}
-
-#progress-current {
-	background-color: var(--color);
-	width: 0%;
-	height: 100%;
-	border-radius: inherit;
-	position: absolute;
-}
-
-#bottom-left {
-	flex: 1;
-	text-align: left;
-	order: 1;
-}
-
-#bottom-right {
-	flex: 1;
-	text-align: right;
-	order: 3;
-}
-
-#time {
-	flex-direction: row;
-	width: 100%;
-	justify-content: space-between;
-}
-
-#time-current, #time-total {
-	font-size: 4vmin;
-	opacity: 0.85;
-}
-
-#info-symbols {
-	flex: 1;
-	justify-content: center;
-	flex-direction: row;
-	align-items: center;
-	order: 2;
-}
-
 #info-symbols > div {
-	margin: 1vmin;
 	height: 100%;
-	width: 4vmin;
 	opacity: 0.5;
 	-webkit-mask-size: contain;
 	-webkit-mask-repeat: no-repeat;
@@ -441,4 +279,79 @@ body.transition * {
 #info-symbols > #repeat.once {
 	-webkit-mask-image: url("img/symbols/repeat-once.png");
 	mask-image: url("img/symbols/repeat-once.png");
+}
+
+#progress {
+	width: 100%;
+	border-radius: 0.5vmin;
+	height: 0.5vmin;
+	min-height: 1px;
+	position: relative;
+}
+
+#progress-background {
+	background-color: var(--color);
+	width: 100%;
+	height: 100%;
+	border-radius: inherit;
+	position: absolute;
+	opacity: 0.25;
+}
+
+#progress-current {
+	background-color: var(--color);
+	width: 0;
+	height: 100%;
+	border-radius: inherit;
+	position: absolute;
+}
+
+#bottom-left {
+	display: flex;
+	flex: 1;
+	text-align: left;
+}
+
+#bottom-right {
+	flex: 1;
+	text-align: right;
+}
+
+#time {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	justify-content: space-between;
+}
+
+#time-current, #time-total {
+	font-size: 4vmin;
+	opacity: 0.85;
+}
+
+#settings {
+	position: absolute;
+	font-size: 2vmin;
+	opacity: 0;
+	pointer-events: auto;
+}
+
+#settings > .settings-links > div > a {
+	text-decoration: none;
+	opacity: 0.65;
+	white-space: pre;
+}
+
+#settings > .settings-links > div > a:hover {
+	opacity: 1;
+}
+
+#settings > .settings-links > div:before {
+	content: "\2713";
+	margin-right: 1vmin;
+	opacity: 0;
+}
+
+#settings > .settings-links > .preference-on:before {
+	opacity: 1;
 }
