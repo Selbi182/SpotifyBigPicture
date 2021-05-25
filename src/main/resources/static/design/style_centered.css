@@ -18,27 +18,6 @@
 	object-fit: contain;
 }
 
-#settings {
-	right: 0;
-	width: min-content;
-	height: 100%;
-	line-height: 4vmin;
-}
-
-#settings > .settings-header {
-	padding-top: 2vmin;
-	padding-bottom: 2vmin;
-	font-size: 3vmin;
-}
-
-#settings > .settings-links > .spacer {
-	height: 2vmin;
-}
-
-#settings > .settings-links > #fullscreen {
-	font-size: 3vmin;
-}
-
 #center-info {
 	padding: 2vmin;
 }

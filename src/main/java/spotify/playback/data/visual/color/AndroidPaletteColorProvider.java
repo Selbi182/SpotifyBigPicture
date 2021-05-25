@@ -60,7 +60,7 @@ public class AndroidPaletteColorProvider implements ColorProvider {
 				e.printStackTrace();
 			}
 		}
-		return DominantRGBs.DEFAULT;
+		return DominantRGBs.FALLBACK;
 	}
 
 	private DominantRGBs getDominantColors(String imageUrl) throws IOException {

@@ -25,26 +25,6 @@
 	flex: 0;
 }
 
-#settings {
-	width: 100%;
-	height: min-content;
-	z-index: 1;
-	background: linear-gradient(to bottom, transparent 0%, black 100%);
-	bottom: 0;
-	display: flex;
-	justify-content: space-evenly;
-}
-
-#settings > .settings-links {
-	display: inherit;
-	justify-content: inherit;
-	width: inherit;
-}
-
-#settings > .settings-links > div {
-	margin: 1vmin;
-}
-
 #center-info {
 	justify-content: center;
 	flex-direction: column;
@@ -91,5 +71,13 @@
 }
 
 #progress {
+	flex: 13;
+}
+
+#progress.tenminutes {
+	flex: 10;
+}
+
+#progress.tenminutes.hour {
 	flex: 7;
 }

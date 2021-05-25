@@ -6,7 +6,7 @@ import com.trickl.palette.Palette.Swatch;
 
 public class DominantRGBs {
 
-	public static final DominantRGBs DEFAULT = DominantRGBs.of(RGB.DEFAULT_RGB, RGB.DEFAULT_RGB);
+	public static final DominantRGBs FALLBACK = DominantRGBs.of(RGB.DEFAULT_RGB, RGB.DEFAULT_RGB);
 	
 	private RGB primary;
 	private RGB secondary;
@@ -25,7 +25,7 @@ public class DominantRGBs {
 	}
 
 	public static class RGB {
-		private static final RGB DEFAULT_RGB = RGB.of(Color.WHITE);
+		public static final RGB DEFAULT_RGB = RGB.of(Color.WHITE);
 
 		private final int r;
 		private final int g;

@@ -150,7 +150,6 @@ function setTextData(changes) {
 		let repeat = changes.repeat != null ? changes.repeat : currentData.repeat;
 
 		setClass(document.getElementById("playpause"), "play", !paused);
-		setClass(document.getElementById("playpause"), "pause", paused);
 		showHide(document.getElementById("shuffle"), shuffle, false);
 		showHide(document.getElementById("repeat"), repeat != "off", false);
 	}
@@ -363,19 +362,26 @@ function updateProgress(changes) {
 }
 
 function formatTime(current, total) {
+	let progressBar = document.getElementById("progress");
+	
 	let currentHMS = calcHMS(current);
 	let totalHMS = calcHMS(total);
 
 	let formattedCurrent = `${pad2(currentHMS.seconds)}`;
 	let formattedTotal = `${pad2(totalHMS.seconds)}`;
 	if (totalHMS.minutes >= 10 || totalHMS.hours >= 1) {
+		progressBar.classList.add("tenminutes");
 		formattedCurrent = `${pad2(currentHMS.minutes)}:${formattedCurrent}`;
 		formattedTotal = `${pad2(totalHMS.minutes)}:${formattedTotal}`;
 		if (totalHMS.hours > 0) {
+			progressBar.classList.add("hour");
 			formattedCurrent = `${currentHMS.hours}:${formattedCurrent}`;
 			formattedTotal = `${totalHMS.hours}:${formattedTotal}`;
+		} else {
+			progressBar.classList.remove("hour");
 		}
 	} else {
+		progressBar.classList = "";
 		formattedCurrent = `${currentHMS.minutes}:${formattedCurrent}`;
 		formattedTotal = `${totalHMS.minutes}:${formattedTotal}`;
 	}

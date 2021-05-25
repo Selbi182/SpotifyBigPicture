@@ -259,17 +259,18 @@ body.transition * {
 	mask-image: url("img/symbols/shuffle.png");
 }
 
+#info-symbols > #playpause {
+	-webkit-mask-image: url("img/symbols/pause.png");
+	mask-image: url("img/symbols/pause.png");
+	opacity: 0.9;
+}
+
 #info-symbols > #playpause.play {
 	-webkit-mask-image: url("img/symbols/play.png");
 	mask-image: url("img/symbols/play.png");
 	opacity: 0.5;
 }
 
-#info-symbols > #playpause.pause {
-	-webkit-mask-image: url("img/symbols/pause.png");
-	mask-image: url("img/symbols/pause.png");
-	opacity: 0.9;
-}
 
 #info-symbols > #repeat {
 	-webkit-mask-image: url("img/symbols/repeat.png");
@@ -330,28 +331,39 @@ body.transition * {
 }
 
 #settings {
+	width: 100%;
+	height: min-content;
+	z-index: 1;
+	background: linear-gradient(to bottom, transparent 0%, black 100%);
+	bottom: 0;
+	display: flex;
+	justify-content: space-evenly;
 	position: absolute;
 	font-size: 2vmin;
 	opacity: 0;
 	pointer-events: auto;
 }
 
-#settings > .settings-links > div > a {
+#settings > div {
+	margin: 1vmin;
+}
+
+#settings > div > a {
 	text-decoration: none;
 	opacity: 0.65;
 	white-space: pre;
 }
 
-#settings > .settings-links > div > a:hover {
+#settings > div > a:hover {
 	opacity: 1;
 }
 
-#settings > .settings-links > div:before {
+#settings > div:before {
 	content: "\2713";
 	margin-right: 1vmin;
 	opacity: 0;
 }
 
-#settings > .settings-links > .preference-on:before {
+#settings > .preference-on:before {
 	opacity: 1;
 }

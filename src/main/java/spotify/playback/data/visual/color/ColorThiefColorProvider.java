@@ -62,7 +62,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 				e.printStackTrace();
 			}
 		}
-		return DominantRGBs.DEFAULT;
+		return DominantRGBs.FALLBACK;
 	}
 
 	private DominantRGBs getDominantColors(String imageUrl) throws IOException {
@@ -79,12 +79,21 @@ public class ColorThiefColorProvider implements ColorProvider {
 		Collections.reverse(vboxes);
 
 		if (vboxes.isEmpty()) {
-			return DominantRGBs.DEFAULT;
+			// Grayscale image
+			RGB textColor = DominantRGBs.RGB.DEFAULT_RGB;
+			double avgImageBrightness = Math.max(0.2, calculateAvgImageBrightnessGrayscale(img));
+			RGB backgroundOverlay = RGB.of(
+				(int) (textColor.getR() * avgImageBrightness),
+				(int) (textColor.getG() * avgImageBrightness),
+				(int) (textColor.getB() * avgImageBrightness));
+			return DominantRGBs.of(textColor, backgroundOverlay);
 		} else if (vboxes.size() == 1) {
+			// Unicolor image
 			int[] pal = vboxes.get(0).avg(false);
 			RGB rgb = RGB.of(pal[0], pal[1], pal[2]);
 			return DominantRGBs.of(rgb, rgb);
 		} else {
+			// Normal image
 			int[] pal1 = vboxes.get(0).avg(false);
 			int[] pal2 = vboxes.get(1).avg(false);
 			RGB rgb1 = RGB.of(pal1[0], pal1[1], pal1[2]);
@@ -118,5 +127,22 @@ public class ColorThiefColorProvider implements ColorProvider {
 		int population = vBox.count(false);
 		double colorfulness = ColorUtil.calculateColorfulness(r, g, b);
 		return (int) (population + (population * colorfulness));
+	}
+
+	private double calculateAvgImageBrightnessGrayscale(BufferedImage img) {
+		final int sampleRange = 64;
+		long acc = 0;
+		long samples = 0;
+		
+		for (int x = 0; x < img.getWidth(); x += sampleRange) {
+			for (int y = 0; y < img.getHeight(); y += sampleRange) {
+				int blue = img.getRGB(x, y) & 0xFF; // we assume the image is grayscale, so only one channel is necessary
+				acc += blue;
+				samples++;
+			}
+		}
+		
+		double avg = ((double) acc / (double) samples) / 255.0;
+		return avg;
 	}
 }
