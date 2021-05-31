@@ -160,6 +160,7 @@ function setTextData(changes) {
 		} else {
 			repeat.classList.remove("once");
 		}
+		handleAlternateDarkModeToggle();
 	}
 }
 
@@ -607,6 +608,20 @@ function toggleFullscreen() {
 		} else {
 			document.exitFullscreen();
 		}
+	}
+}
+
+const TOGGLE_DARK_MODE_COUNT = 3;
+var toggleDarkModeCount = 0;
+var toggleDarkModeTimeout;
+function handleAlternateDarkModeToggle() {
+	clearTimeout(toggleDarkModeTimeout);
+	toggleDarkModeCount++;
+	if (toggleDarkModeCount >= TOGGLE_DARK_MODE_COUNT) {
+		toggleVisualPreference(PARAM_DARK_MODE);
+		toggleDarkModeCount = 0;
+	} else {
+		toggleDarkModeTimeout = setTimeout(() => toggleDarkModeCount = 0, TOGGLE_DARK_MODE_COUNT * 1000 * 2);
 	}
 }
 

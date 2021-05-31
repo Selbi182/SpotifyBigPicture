@@ -71,13 +71,14 @@
 }
 
 #progress {
-	flex: 13;
+	--progress-width-base: 3;
+	flex: calc(var(--progress-width-base) * 4);
 }
 
 #progress.tenminutes {
-	flex: 10;
+	flex: calc(var(--progress-width-base) * 3);
 }
 
 #progress.tenminutes.hour {
-	flex: 7;
+	flex: calc(var(--progress-width-base) * 2);
 }
