@@ -16,13 +16,13 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.springframework.boot.experimental.thin-launcher'
 
 jar {
-    baseName = 'SpotifyPlaybackInfo'
+    baseName = 'SpotifyBigPicture'
     version = '1.0'
     bootJar.dependsOn = [thinProperties]
 }
 
 springBoot {
-    mainClassName = 'spotify.SpotifyPlaybackInfo'
+    mainClassName = 'spotify.SpotifyBigPicture'
 }
 
 sourceCompatibility = 1.11

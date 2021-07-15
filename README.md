@@ -1,5 +1,5 @@
 
-# Spotify Playback Info
+# Spotify Big Picture
 
 An interface that checks for your current playback status on Spotify and displays the information in a beautiful little browser page.
 

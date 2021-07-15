@@ -160,7 +160,9 @@ function setTextData(changes) {
 		} else {
 			repeat.classList.remove("once");
 		}
-		handleAlternateDarkModeToggle();
+		if (currentData.repeat != changes.repeat) {
+			handleAlternateDarkModeToggle();
+		}
 	}
 }
 
@@ -350,11 +352,11 @@ function updateProgress(changes) {
 	document.getElementById("progress-current").style.width = progressPercent + "%";
 	
 	// Title
-	if (idle || !currentData.artists || !currentData.title) {
-		document.title = "Spotify Playback Info";
-	} else {
-		document.title = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artists[0]} - ${removeFeatures(currentData.title)}`;
+	let newTitle = "Spotify Big Picture";
+	if (!idle && currentData.artists && currentData.title) {
+		newTitle = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artists[0]} - ${removeFeatures(currentData.title)} | ${newTitle}`;
 	}
+	document.title = newTitle;
 }
 
 function formatTime(current, total) {
@@ -473,7 +475,7 @@ function setIdle() {
 const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
 const PARAM_COLORED_TEXT = "coloredtext";
-const PARAM_ARTWORK_OUTLINE = "artworkoutline";
+const PARAM_ARTWORK_BORDER = "artworkborder";
 const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_STRIP_TITLES = "striptitles";
 
@@ -481,7 +483,7 @@ const SETTINGS_ORDER = [
 	PARAM_DARK_MODE,
 	PARAM_TRANSITIONS,
 	PARAM_COLORED_TEXT,
-	PARAM_ARTWORK_OUTLINE,
+	PARAM_ARTWORK_BORDER,
 	PARAM_BG_ARTWORK,
 	PARAM_STRIP_TITLES
 ];
@@ -489,7 +491,7 @@ const SETTINGS_ORDER = [
 const DEFAULT_SETTINGS = [
 	PARAM_TRANSITIONS,
 	PARAM_COLORED_TEXT,
-	PARAM_ARTWORK_OUTLINE,
+	PARAM_ARTWORK_BORDER,
 	PARAM_BG_ARTWORK,
 	PARAM_STRIP_TITLES
 ];
@@ -534,7 +536,12 @@ function refreshPrefsQueryParam() {
 	
 	const url = new URL(window.location);
 	url.searchParams.set(PREFS_URL_PARAM, prefsString);
-	window.history.replaceState({}, 'Spotify Playback Info', url.toString());
+	window.history.replaceState({}, 'Spotify Big Picture', url.toString());
+	
+	let swapLayoutButton = document.querySelector("#swaplayout");
+	let newUrl = new URL(swapLayoutButton.href);
+	newUrl.searchParams.set(PREFS_URL_PARAM, prefsString);
+	swapLayoutButton.href = newUrl;
 }
 
 function toggleVisualPreference(key) {
@@ -569,8 +576,8 @@ function refreshPreference(preference, state) {
 		case PARAM_BG_ARTWORK:
 			setClass(document.getElementById("background"), "coloronly", !state);
 			break;
-		case PARAM_ARTWORK_OUTLINE:
-			setClass(document.getElementById("artwork-img"), "nooutline", !state);
+		case PARAM_ARTWORK_BORDER:
+			setClass(document.getElementById("artwork-img"), "noborder", !state);
 			break;
 		case PARAM_COLORED_TEXT:
 			setClass(document.body, "nocoloredtext", !state);
@@ -626,23 +633,26 @@ function handleAlternateDarkModeToggle() {
 
 document.onkeydown = (e) => {
 	switch (e.key) {
-		case "f":
-			toggleFullscreen();
-			break;
 		case "d":
 			toggleVisualPreference(PARAM_DARK_MODE);
 			break;
 		case "t":
 			toggleVisualPreference(PARAM_TRANSITIONS);
 			break;
+		case "c":
+			toggleVisualPreference(PARAM_COLORED_TEXT);
+			break;
+		case "b":
+			toggleVisualPreference(PARAM_ARTWORK_BORDER);
+			break;
 		case "a":
 			toggleVisualPreference(PARAM_BG_ARTWORK);
 			break;
-		case "g":
-			toggleVisualPreference(PARAM_ARTWORK_OUTLINE);
-			break;
 		case "s":
 			toggleVisualPreference(PARAM_STRIP_TITLES);
+			break;
+		case "f":
+			toggleFullscreen();
 			break;
 	}
 };
