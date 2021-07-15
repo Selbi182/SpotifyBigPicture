@@ -10,6 +10,7 @@
 
 :root {
 	--color: #ffffff;
+	--text-shadow: 3px 3px 3px #000000aa;
 	--transition: 0.5s;
 	--font-normal: "Gotham Light", sans-serif;
 	--font-bold: "Gotham Medium", sans-serif;
@@ -21,9 +22,9 @@ html, body {
 	background: black;
 	color: var(--color);
 	font-family: var(--font-normal);
+	text-shadow: var(--text-shadow);
 	width: 100%;
 	height: 100%;
-	text-shadow: 3px 3px 3px #000000aa;
 	font-size: 2vmin;
 	user-select: none;
 }
@@ -58,12 +59,12 @@ body.transition * {
 		opacity var(--transition),
 		color var(--transition),
 		background-color var(--transition),
-		box-shadow var(--transition),
+		border-color var(--transition),
 		width var(--transition) linear;
 }
 
 .skiptransition {
-	transition: unset !important;
+	transition: border-color var(--transition) !important;
 }
 
 #dark-overlay {
@@ -132,6 +133,8 @@ body.transition * {
 	height: 100%;
 	position: absolute;
 	padding: 6vmin;
+	color: transparent;
+	text-shadow: 0 0 0 var(--color), var(--text-shadow);
 }
 
 #artwork-img, #artwork-img-crossfade {
@@ -140,16 +143,15 @@ body.transition * {
 	height: 100%;
 	max-width: 100%;
 	max-height: 100%;
-	--artwork-shadow: 0 0 10vmin 3vmin;
+	border: 0.1vmin solid var(--color);
 }
 
-#artwork-img.noshadow {
-	box-shadow: none !important;
+#artwork-img.nooutline {
+	border: none !important;
 }
 
 #artwork-img-crossfade {
 	z-index: 1;
-	box-shadow: none !important;
 	opacity: 0;
 	pointer-events: none;
 }
@@ -164,12 +166,8 @@ body.transition * {
   }
   
   #artwork-img {
-    box-shadow: none !important;
+    border: none !important;
     object-fit: contain;
-  }
-  
-  #artworkglow {
-  	display: none;
   }
 }
 

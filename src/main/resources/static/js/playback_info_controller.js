@@ -249,10 +249,9 @@ async function changeImage(changes, colors) {
 			if (!oldImage.includes(newImage)) {
 				clearTimeout(fadeOutTimeout);
 		
-				let artworkUrl = artwork.src;
 				let rgbOverlay = colors.secondary;
 		
-				const promiseArtwork = setMainArtwork(oldImage, newImage, rgbOverlay);
+				const promiseArtwork = setMainArtwork(oldImage, newImage);
 				const promiseBackground = setBackgroundArtwork(oldImage, newImage, rgbOverlay);
 				const promiseColor = setTextColor(colors.primary);
 				await Promise.all([promiseArtwork, promiseBackground, promiseColor]);
@@ -261,7 +260,7 @@ async function changeImage(changes, colors) {
 	}
 }
 
-function setMainArtwork(oldImage, newImage, rgbGlow) {
+function setMainArtwork(oldImage, newImage) {
 	let artwork = document.getElementById("artwork-img");
 	let artworkCrossfade = document.getElementById("artwork-img-crossfade");
 	setArtworkVisibility(false);
@@ -270,10 +269,6 @@ function setMainArtwork(oldImage, newImage, rgbGlow) {
 		window.requestAnimationFrame(() => {
 			setClass(artworkCrossfade, "show", true);
 			artwork.onload = () => {
-				let brightness = calculateBrightness(rgbGlow);
-				let glowAlpha = (1 - (brightness * 0.8)) / 2;
-				let glow = `var(--artwork-shadow) rgba(${rgbGlow.r}, ${rgbGlow.g}, ${rgbGlow.b}, ${glowAlpha})`;
-				artwork.style.boxShadow = glow;
 				setArtworkVisibility(true);
 			};
 			artwork.src = newImage;
@@ -478,7 +473,7 @@ function setIdle() {
 const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
 const PARAM_COLORED_TEXT = "coloredtext";
-const PARAM_ARTWORK_GLOW = "artworkglow";
+const PARAM_ARTWORK_OUTLINE = "artworkoutline";
 const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_STRIP_TITLES = "striptitles";
 
@@ -486,7 +481,7 @@ const SETTINGS_ORDER = [
 	PARAM_DARK_MODE,
 	PARAM_TRANSITIONS,
 	PARAM_COLORED_TEXT,
-	PARAM_ARTWORK_GLOW,
+	PARAM_ARTWORK_OUTLINE,
 	PARAM_BG_ARTWORK,
 	PARAM_STRIP_TITLES
 ];
@@ -494,7 +489,7 @@ const SETTINGS_ORDER = [
 const DEFAULT_SETTINGS = [
 	PARAM_TRANSITIONS,
 	PARAM_COLORED_TEXT,
-	PARAM_ARTWORK_GLOW,
+	PARAM_ARTWORK_OUTLINE,
 	PARAM_BG_ARTWORK,
 	PARAM_STRIP_TITLES
 ];
@@ -574,8 +569,8 @@ function refreshPreference(preference, state) {
 		case PARAM_BG_ARTWORK:
 			setClass(document.getElementById("background"), "coloronly", !state);
 			break;
-		case PARAM_ARTWORK_GLOW:
-			setClass(document.getElementById("artwork-img"), "noshadow", !state);
+		case PARAM_ARTWORK_OUTLINE:
+			setClass(document.getElementById("artwork-img"), "nooutline", !state);
 			break;
 		case PARAM_COLORED_TEXT:
 			setClass(document.body, "nocoloredtext", !state);
@@ -644,7 +639,7 @@ document.onkeydown = (e) => {
 			toggleVisualPreference(PARAM_BG_ARTWORK);
 			break;
 		case "g":
-			toggleVisualPreference(PARAM_ARTWORK_GLOW);
+			toggleVisualPreference(PARAM_ARTWORK_OUTLINE);
 			break;
 		case "s":
 			toggleVisualPreference(PARAM_STRIP_TITLES);
