@@ -228,7 +228,7 @@ function updateArtists(artists) {
 ///////////////////////////////
 
 const EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-const DEFAULT_IMAGE = 'img/idle.png';
+const DEFAULT_IMAGE = 'design/img/idle.png';
 const DEFAULT_RGB = {
 	r: 255,
 	g: 255,
