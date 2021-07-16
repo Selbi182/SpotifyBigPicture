@@ -5,6 +5,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,20 +46,23 @@ public class PlaybackController {
 	}
 
 	/**
-	 * Return an infinte SSEEmitter stream of any changes to the playback info
+	 * Return an infinite SSEEmitter stream of any changes to the playback info
 	 * (observer pattern)
 	 * 
 	 * @return the emitter
 	 * @throws IOException
 	 */
 	@GetMapping("/playbackinfoflux")
-	public SseEmitter createAndRegisterNewFlux() throws IOException {
+	public ResponseEntity<SseEmitter> createAndRegisterNewFlux() throws IOException {
 		SseEmitter emitter = new SseEmitter();
 		emitter.onError(e -> emitter.complete());
 		emitter.onCompletion(() -> removeDeadEmitter(emitter));
 		emitter.send(getCurrentPlaybackInfo(true));
 		this.emitters.add(emitter);
-		return emitter;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("X-Accel-Buffering", "no");
+		return new ResponseEntity<SseEmitter>(emitter, headers, HttpStatus.OK);
 	}
 
 	/**
