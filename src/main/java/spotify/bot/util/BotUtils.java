@@ -209,4 +209,15 @@ public final class BotUtils {
 			target.addAll(asList);
 		}
 	}
+	
+	/**
+	 * Return the ID of a URI in the format spotify:album:123456789 -> 123456789
+	 * 
+	 * @param uri the uri
+	 * @return the ID of the uri
+	 */
+	public static String getIdFromUri(String uri) {
+		String[] split = uri.split(":");
+		return split[split.length - 1];
+	}
 }

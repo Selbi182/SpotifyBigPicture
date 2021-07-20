@@ -8,17 +8,20 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
 import com.wrapper.spotify.SpotifyApi;
+import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.enums.ModelObjectType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import com.wrapper.spotify.model_objects.specification.Album;
 import com.wrapper.spotify.model_objects.specification.Artist;
 import com.wrapper.spotify.model_objects.specification.Context;
 import com.wrapper.spotify.model_objects.specification.Playlist;
+import com.wrapper.spotify.model_objects.specification.Show;
 import com.wrapper.spotify.model_objects.specification.Track;
 import com.wrapper.spotify.model_objects.specification.TrackSimplified;
 
 import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
+import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.help.PlaybackInfoConstants;
 
@@ -47,14 +50,15 @@ public class ContextProvider {
 		try {
 			Context context = info.getContext();
 			if (context != null) {
-				if (ModelObjectType.PLAYLIST.equals(context.getType())) {
+				ModelObjectType type = context.getType();
+				if (ModelObjectType.PLAYLIST.equals(type)) {
 					contextName = getPlaylistContext(context);
-				} else if (ModelObjectType.ARTIST.equals(context.getType())) {
+				} else if (ModelObjectType.ARTIST.equals(type)) {
 					contextName = getArtistContext(context);
-				} else if (ModelObjectType.ALBUM.equals(context.getType())) {
-					contextName = getAlbumContext(info, context);
-				} else if (ModelObjectType.SHOW.equals(context.getType())) {
-					contextName = getPodcastContext(info, context);
+				} else if (ModelObjectType.ALBUM.equals(type)) {
+					contextName = getAlbumContext(info);
+				} else if (ModelObjectType.SHOW.equals(type)) {
+					contextName = getPodcastContext(info);
 				}
 			}
 		} catch (BotException e) {
@@ -85,29 +89,45 @@ public class ContextProvider {
 		return null;
 	}
 
-	private String getAlbumContext(CurrentlyPlayingContext info, Context context) {
-		Track track = (Track) info.getItem();
+	private String getAlbumContext(CurrentlyPlayingContext info) {
+		Context context = info.getContext();
 		if (didContextChange(context)) {
-			String albumId = track.getAlbum().getId();
+			Track track = null;
+			String albumId;
+			if (info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
+				track = (Track) info.getItem();
+				albumId = track.getAlbum().getId();
+			} else {
+				albumId = BotUtils.getIdFromUri(context.getUri());
+			}
+			
 			currentContextAlbum = SpotifyCall.execute(spotifyApi.getAlbum(albumId));
 			if (currentContextAlbum.getTracks().getTotal() > MAX_IMMEDIATE_TRACKS) {
 				currentContextAlbumTracks = SpotifyCall.executePaging(spotifyApi.getAlbumsTracks(albumId));
 			} else {
 				currentContextAlbumTracks = (List<TrackSimplified>) Arrays.asList(currentContextAlbum.getTracks().getItems());
 			}
-		}
-		if (currentContextAlbumTracks != null) {
-			// Unfortunately, can't simply use track numbers because of disc numbers
-			int currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> t.getId().equals(track.getId())) + 1;
-			if (currentlyPlayingTrackNumber > 0) {
-				return String.format("Track: %02d / %02d", currentlyPlayingTrackNumber, currentContextAlbum.getTracks().getTotal());
+			
+			if (currentContextAlbumTracks != null && track != null) {
+				// Unfortunately, can't simply use track numbers because of disc numbers
+				final String trackId = track.getId();
+				int currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> t.getId().equals(trackId)) + 1;
+				if (currentlyPlayingTrackNumber > 0) {
+					return String.format("Track: %02d / %02d", currentlyPlayingTrackNumber, currentContextAlbum.getTracks().getTotal());
+				}
 			}
 		}
 		return "ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName();
 	}
 
-	private String getPodcastContext(CurrentlyPlayingContext info, Context context) {
-		return "PODCAST";
+	private String getPodcastContext(CurrentlyPlayingContext info) {
+		Context context = info.getContext();
+		String showId = BotUtils.getIdFromUri(context.getUri());
+		if (didContextChange(context)) {
+			Show show = SpotifyCall.execute(spotifyApi.getShow(showId));
+			return "PODCAST: " + show.getName();
+		}
+		return null;
 	}
 
 	private boolean didContextChange(Context context) {
