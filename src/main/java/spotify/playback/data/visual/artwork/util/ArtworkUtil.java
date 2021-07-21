@@ -1,5 +1,5 @@
 
-package spotify.playback.data.visual.artwork;
+package spotify.playback.data.visual.artwork.util;
 
 import com.wrapper.spotify.model_objects.specification.Image;
 

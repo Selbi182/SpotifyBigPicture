@@ -91,30 +91,29 @@ public class ContextProvider {
 
 	private String getAlbumContext(CurrentlyPlayingContext info) {
 		Context context = info.getContext();
+		Track track = null;
+		String albumId;
+		if (info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
+			track = (Track) info.getItem();
+			albumId = track.getAlbum().getId();
+		} else {
+			albumId = BotUtils.getIdFromUri(context.getUri());
+		}
+		
 		if (didContextChange(context)) {
-			Track track = null;
-			String albumId;
-			if (info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
-				track = (Track) info.getItem();
-				albumId = track.getAlbum().getId();
-			} else {
-				albumId = BotUtils.getIdFromUri(context.getUri());
-			}
-			
 			currentContextAlbum = SpotifyCall.execute(spotifyApi.getAlbum(albumId));
 			if (currentContextAlbum.getTracks().getTotal() > MAX_IMMEDIATE_TRACKS) {
 				currentContextAlbumTracks = SpotifyCall.executePaging(spotifyApi.getAlbumsTracks(albumId));
 			} else {
 				currentContextAlbumTracks = (List<TrackSimplified>) Arrays.asList(currentContextAlbum.getTracks().getItems());
 			}
-			
-			if (currentContextAlbumTracks != null && track != null) {
-				// Unfortunately, can't simply use track numbers because of disc numbers
-				final String trackId = track.getId();
-				int currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> t.getId().equals(trackId)) + 1;
-				if (currentlyPlayingTrackNumber > 0) {
-					return String.format("Track: %02d / %02d", currentlyPlayingTrackNumber, currentContextAlbum.getTracks().getTotal());
-				}
+		}
+		if (currentContextAlbumTracks != null && track != null) {
+			// Unfortunately, can't simply use track numbers because of disc numbers
+			final String trackId = track.getId();
+			int currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> t.getId().equals(trackId)) + 1;
+			if (currentlyPlayingTrackNumber > 0) {
+				return String.format("Album Track: %02d / %02d", currentlyPlayingTrackNumber, currentContextAlbum.getTracks().getTotal());
 			}
 		}
 		return "ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName();

@@ -1,9 +1,10 @@
-package spotify.playback.data.visual.artwork;
+package spotify.playback.data.visual.artwork.service;
 
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.annotations.Beta;
-import com.wrapper.spotify.model_objects.specification.Track;
+import com.wrapper.spotify.model_objects.IPlaylistItem;
 
 /**
  * This was thrown together in a few minutes because Discogs suddenly decided to
@@ -29,8 +30,8 @@ public class DictionaryArtworkUrlProvider {
 		Map.entry("spotify:local:Mesarthim:CLG+J02182%E2%80%9305102:Infinite+Density:255", "https://f4.bcbits.com/img/a3404054915_10.jpg")
 	);
 
-	public static String getUrlFromList(Track track) {
-		return URLS.get(track.getUri());
+	public static Optional<String> getUrlFromList(IPlaylistItem item) {
+		return Optional.ofNullable(URLS.get(item.getUri()));
 	}
 
 }

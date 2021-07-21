@@ -1,4 +1,4 @@
-package spotify.playback.data.visual.artwork;
+package spotify.playback.data.visual.artwork.util;
 
 import com.wrapper.spotify.model_objects.IPlaylistItem;
 import com.wrapper.spotify.model_objects.specification.Episode;
@@ -8,7 +8,7 @@ public class ComparablePlaybackItem implements Comparable<IPlaylistItem> {
 
 	private final IPlaylistItem item;
 
-	ComparablePlaybackItem(IPlaylistItem item) {
+	public ComparablePlaybackItem(IPlaylistItem item) {
 		this.item = item;
 	}
 
