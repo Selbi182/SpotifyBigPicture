@@ -238,7 +238,7 @@ const DEFAULT_RGB = {
 var preloadImg;
 var fadeOutTimeout;
 
-async function changeImage(changes, colors) {
+async function changeImage(changes) {
 	if ('image' in changes || 'imageColors' in changes) {
 		if (changes.image == "BLANK") {
 			changes.image = DEFAULT_IMAGE;
@@ -253,7 +253,7 @@ async function changeImage(changes, colors) {
 		
 				let rgbOverlay = colors.secondary;
 		
-				const promiseArtwork = setMainArtwork(oldImage, newImage);
+				const promiseArtwork = setMainArtwork(oldImage, newImage, colors.borderBrightness);
 				const promiseBackground = setBackgroundArtwork(oldImage, newImage, rgbOverlay);
 				const promiseColor = setTextColor(colors.primary);
 				await Promise.all([promiseArtwork, promiseBackground, promiseColor]);
@@ -262,7 +262,8 @@ async function changeImage(changes, colors) {
 	}
 }
 
-function setMainArtwork(oldImage, newImage) {
+const DRAW_BORDER_THRESHOLD = 0.3;
+function setMainArtwork(oldImage, newImage, borderBrightness) {
 	let artwork = document.getElementById("artwork-img");
 	let artworkCrossfade = document.getElementById("artwork-img-crossfade");
 	setArtworkVisibility(false);
@@ -272,6 +273,7 @@ function setMainArtwork(oldImage, newImage) {
 			setClass(artworkCrossfade, "show", true);
 			artwork.onload = () => {
 				setArtworkVisibility(true);
+				setClass(artwork, "drawborder", borderBrightness < DRAW_BORDER_THRESHOLD);
 			};
 			artwork.src = newImage;
 		});

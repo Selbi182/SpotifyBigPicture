@@ -144,11 +144,15 @@ body.transition * {
 	height: 100%;
 	max-width: 100%;
 	max-height: 100%;
+	border: 0.1vmin solid transparent;
+}
+
+#artwork-img.drawborder {
 	border: 0.1vmin solid var(--color);
 }
 
 #artwork-img.noborder {
-	border: none !important;
+	border: 0.1vmin solid transparent;
 }
 
 #artwork-img-crossfade {

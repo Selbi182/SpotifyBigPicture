@@ -1,5 +1,6 @@
 package spotify.playback.data.visual.color;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -78,20 +79,21 @@ public class ColorThiefColorProvider implements ColorProvider {
 		});
 		Collections.reverse(vboxes);
 
+		double borderBrightness = calculateAvgBorderBrightness(img);
 		if (vboxes.isEmpty()) {
 			// Grayscale image
 			RGB textColor = DominantRGBs.RGB.DEFAULT_RGB;
-			double avgImageBrightness = Math.max(0.2, calculateAvgImageBrightnessGrayscale(img));
+			double borderBrightnessWithMin = Math.max(MIN_BRIGHTNESS, borderBrightness);
 			RGB backgroundOverlay = RGB.of(
-				(int) (textColor.getR() * avgImageBrightness),
-				(int) (textColor.getG() * avgImageBrightness),
-				(int) (textColor.getB() * avgImageBrightness));
-			return DominantRGBs.of(textColor, backgroundOverlay);
+				(int) (textColor.getR() * borderBrightnessWithMin),
+				(int) (textColor.getG() * borderBrightnessWithMin),
+				(int) (textColor.getB() * borderBrightnessWithMin));
+			return DominantRGBs.of(textColor, backgroundOverlay, borderBrightness);
 		} else if (vboxes.size() == 1) {
 			// Unicolor image
 			int[] pal = vboxes.get(0).avg(false);
 			RGB rgb = RGB.of(pal[0], pal[1], pal[2]);
-			return DominantRGBs.of(rgb, rgb);
+			return DominantRGBs.of(rgb, rgb, borderBrightness);
 		} else {
 			// Normal image
 			int[] pal1 = vboxes.get(0).avg(false);
@@ -99,9 +101,9 @@ public class ColorThiefColorProvider implements ColorProvider {
 			RGB rgb1 = RGB.of(pal1[0], pal1[1], pal1[2]);
 			RGB rgb2 = RGB.of(pal2[0], pal2[1], pal2[2]);
 			if (ColorUtil.calculateBrightness(rgb1) > ColorUtil.calculateBrightness(rgb2)) {
-				return DominantRGBs.of(rgb1, rgb2);
+				return DominantRGBs.of(rgb1, rgb2, borderBrightness);
 			} else {
-				return DominantRGBs.of(rgb2, rgb1);
+				return DominantRGBs.of(rgb2, rgb1, borderBrightness);
 			}
 		}
 	}
@@ -129,20 +131,33 @@ public class ColorThiefColorProvider implements ColorProvider {
 		return (int) (population + (population * colorfulness));
 	}
 
-	private double calculateAvgImageBrightnessGrayscale(BufferedImage img) {
-		final int sampleRange = 64;
-		long acc = 0;
+	private double calculateAvgBorderBrightness(BufferedImage img) {
+		final int sampleRange = img.getWidth() / 10;
+		double acc = 0;
 		long samples = 0;
-		
+
 		for (int x = 0; x < img.getWidth(); x += sampleRange) {
-			for (int y = 0; y < img.getHeight(); y += sampleRange) {
-				int blue = img.getRGB(x, y) & 0xFF; // we assume the image is grayscale, so only one channel is necessary
-				acc += blue;
-				samples++;
-			}
+			acc += calcBrightnessAtLocation(img, x, 0);
+			acc += calcBrightnessAtLocation(img, x, img.getHeight() - 1);
+			samples += 2;
 		}
 		
-		double avg = ((double) acc / (double) samples) / 255.0;
+		for (int y = 0; y < img.getHeight(); y += sampleRange) {
+			acc += calcBrightnessAtLocation(img, 0, y);
+			acc += calcBrightnessAtLocation(img, img.getWidth() - 1, y);
+			samples += 2;
+		}
+
+		double avg = ((double) acc / (double) samples);
+		System.out.println(avg);
 		return avg;
+	}
+
+	private double calcBrightnessAtLocation(BufferedImage img, int x, int y) {
+		Color color = new Color(img.getRGB(x, y));
+		int r = color.getRed();
+		int g = color.getGreen();
+		int b = color.getBlue();
+		return ColorUtil.calculateBrightness(r, g, b);
 	}
 }

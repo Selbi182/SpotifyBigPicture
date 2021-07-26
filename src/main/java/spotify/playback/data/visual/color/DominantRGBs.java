@@ -6,22 +6,24 @@ import com.trickl.palette.Palette.Swatch;
 
 public class DominantRGBs {
 
-	public static final DominantRGBs FALLBACK = DominantRGBs.of(RGB.DEFAULT_RGB, RGB.DEFAULT_RGB);
-	
+	public static final DominantRGBs FALLBACK = DominantRGBs.of(RGB.DEFAULT_RGB, RGB.DEFAULT_RGB, ColorUtil.calculateBrightness(RGB.DEFAULT_RGB));
+
 	private RGB primary;
 	private RGB secondary;
-	
-	private DominantRGBs(RGB primary, RGB secondary) {
+	private double borderBrightness;
+
+	private DominantRGBs(RGB primary, RGB secondary, double borderBrightness) {
 		this.primary = primary;
 		this.secondary = secondary;
+		this.borderBrightness = borderBrightness;
 	}
-	
-	public static DominantRGBs of(RGB primary, RGB secondary) {
-		return new DominantRGBs(primary, secondary);
+
+	public static DominantRGBs of(RGB primary, RGB secondary, double borderBrightness) {
+		return new DominantRGBs(primary, secondary, borderBrightness);
 	}
-	
-	public static DominantRGBs of(Color primary, Color secondary) {
-		return new DominantRGBs(RGB.of(primary), RGB.of(secondary));
+
+	public static DominantRGBs of(Color primary, Color secondary, double borderBrightness) {
+		return new DominantRGBs(RGB.of(primary), RGB.of(secondary), borderBrightness);
 	}
 
 	public static class RGB {
@@ -40,7 +42,7 @@ public class DominantRGBs {
 		public static RGB of(int r, int g, int b) {
 			return new RGB(r, g, b);
 		}
-		
+
 		public static RGB of(int[] rgb) {
 			return new RGB(rgb[0], rgb[1], rgb[2]);
 		}
@@ -85,5 +87,9 @@ public class DominantRGBs {
 
 	public void setSecondary(RGB secondary) {
 		this.secondary = secondary;
+	}
+
+	public double getBorderBrightness() {
+		return borderBrightness;
 	}
 }

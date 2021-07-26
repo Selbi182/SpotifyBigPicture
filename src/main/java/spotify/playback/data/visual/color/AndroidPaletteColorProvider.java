@@ -68,7 +68,7 @@ public class AndroidPaletteColorProvider implements ColorProvider {
 
 		Palette palette = Palette.from(img).generate();
 		List<Color> bestSwatches = getBestSwatch(palette, false);
-		return DominantRGBs.of(bestSwatches.get(0), bestSwatches.get(1));
+		return DominantRGBs.of(bestSwatches.get(0), bestSwatches.get(1), 0.5);
 	}
 
 	Map<Target, Integer> WEIGHTED_SWATCHES = Map.of(
