@@ -39,6 +39,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 	private static final double MIN_BRIGHTNESS = 0.15;
 	private static final double MIN_COLORFULNESS = 0.1;
 	private static final int MIN_POPULATION = 1000;
+	private static final double EPSILON = 0.001;
 
 	private LoadingCache<String, DominantRGBs> cachedDominantColorsForUrl;
 
@@ -137,27 +138,28 @@ public class ColorThiefColorProvider implements ColorProvider {
 		long samples = 0;
 
 		for (int x = 0; x < img.getWidth(); x += sampleRange) {
-			acc += calcBrightnessAtLocation(img, x, 0);
-			acc += calcBrightnessAtLocation(img, x, img.getHeight() - 1);
+			acc += calcWeightedBrightnessAtLocation(img, x, 0);
+			acc += calcWeightedBrightnessAtLocation(img, x, img.getHeight() - 1);
 			samples += 2;
 		}
 		
 		for (int y = 0; y < img.getHeight(); y += sampleRange) {
-			acc += calcBrightnessAtLocation(img, 0, y);
-			acc += calcBrightnessAtLocation(img, img.getWidth() - 1, y);
+			acc += calcWeightedBrightnessAtLocation(img, 0, y);
+			acc += calcWeightedBrightnessAtLocation(img, img.getWidth() - 1, y);
 			samples += 2;
 		}
 
 		double avg = ((double) acc / (double) samples);
-		System.out.println(avg);
 		return avg;
 	}
 
-	private double calcBrightnessAtLocation(BufferedImage img, int x, int y) {
+	private double calcWeightedBrightnessAtLocation(BufferedImage img, int x, int y) {
 		Color color = new Color(img.getRGB(x, y));
 		int r = color.getRed();
 		int g = color.getGreen();
 		int b = color.getBlue();
-		return ColorUtil.calculateBrightness(r, g, b);
+		double brightnessAtLocation = ColorUtil.calculateBrightness(r, g, b);
+		double brightnessAfterMin = Math.max(brightnessAtLocation, EPSILON);
+		return Math.pow(brightnessAfterMin, 2);
 	}
 }

@@ -68,7 +68,6 @@ public class ColorUtil {
 	 * @return a new, nornalized RBG object
 	 */
 	public static RGB normalizeForReadibility(RGB color) {
-		// TODO improve readability on certain dark-blues
 		int r = color.getR();
 		int g = color.getG();
 		int b = color.getB();

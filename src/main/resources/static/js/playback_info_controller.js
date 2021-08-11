@@ -189,24 +189,27 @@ function showHide(elem, show, useInvisibility) {
 	}
 }
 
-const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "extended", "expansion", "expanded", "version", "original", "motion\\spicture", "re.?issue", "\\d{4}"];
+const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "\\d{4}"];
+const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decypher brackets from hyphens
 const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[).*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
 const USELESS_WORDS_REGEX_HYPHEN = new RegExp("\\s-\\s.*?(" + USELESS_WORDS.join("|") + ").*", "ig");
+const WHITELISTED_WORDS_REGEXP = new RegExp(".*(" + WHITELISTED_WORDS.join("|") + ").*", "ig");
 
 function separateUnimportantTitleInfo(title) {
-	let index = title.search(USELESS_WORDS_REGEX_BRACKETS);
-	if (index < 0)  {
-		index = title.search(USELESS_WORDS_REGEX_HYPHEN);
+	if (title.search(WHITELISTED_WORDS_REGEXP) < 0) {
+		let index = title.search(USELESS_WORDS_REGEX_BRACKETS);
+		if (index < 0)  {
+			index = title.search(USELESS_WORDS_REGEX_HYPHEN);
+		}
+		if (index >= 0) {
+			let mainTitle = title.substring(0, index);
+			let extra = title.substring(index, title.length);
+			return [mainTitle, extra];
+		}
 	}
-	if (index < 0) {
-		return [title, ""];
-	} else {
-		let mainTitle = title.substring(0, index);
-		let extra = title.substring(index, title.length);
-		return [mainTitle, extra];
-	}
+	return [title, ""];
 }
 
 function removeFeatures(title) {
@@ -262,7 +265,7 @@ async function changeImage(changes) {
 	}
 }
 
-const DRAW_BORDER_THRESHOLD = 0.3;
+const DRAW_BORDER_THRESHOLD = 0.25;
 function setMainArtwork(oldImage, newImage, borderBrightness) {
 	let artwork = document.getElementById("artwork-img");
 	let artworkCrossfade = document.getElementById("artwork-img-crossfade");
@@ -412,7 +415,7 @@ function pad2(time) {
 // TIMERS
 ///////////////////////////////
 
-const PROGRESS_BAR_UPDATE_MS = 500;
+const PROGRESS_BAR_UPDATE_MS = 250;
 const IDLE_TIMEOUT_MS = 1 * 60 * 60 * 1000;
 const REQUEST_ON_SONG_END_MS = 200;
 const MAX_POST_SONG_END_AUTO_REQUEST_COUNT = 4;

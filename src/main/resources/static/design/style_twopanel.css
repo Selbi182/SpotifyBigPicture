@@ -7,7 +7,7 @@
 }
 
 #artwork {
-	flex-basis: 77.7vh;
+	flex-basis: calc(100vmin - 8vmin - 8vmin - 6vmin - 4vmin - 6px);
 	flex-shrink: 0;
 	position: relative;
 }

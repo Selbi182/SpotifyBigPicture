@@ -133,7 +133,7 @@ body.transition * {
 	width: 100%;
 	height: 100%;
 	position: absolute;
-	padding: 6vmin;
+	padding: 8vmin;
 	color: transparent;
 	text-shadow: 0 0 0 var(--color), var(--text-shadow);
 }
