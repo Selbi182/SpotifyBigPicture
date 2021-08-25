@@ -91,7 +91,7 @@ body.transition * {
 	overflow: hidden;
 	background-size: cover !important;
 	background-position: center !important;
-	filter: blur(20px);
+	filter: blur(1vmin);
  	transform: scale(1.05);
 	opacity: 0.65;
 }
@@ -111,11 +111,13 @@ body.transition * {
 #background-img, #background-img-crossfade {
 	width: 100%;
 	height: 100%;
-	image-rendering: crisp-edges;
 	object-fit: cover;
 	position: absolute;
 	opacity: 0;
 	transform: scale(1.3);
+    image-rendering: crisp-edges;
+	image-rendering: pixelated;
+    image-rendering: optimizeSpeed;
 }
 
 #background-img.show, #background-img-crossfade.show {
@@ -133,7 +135,7 @@ body.transition * {
 	width: 100%;
 	height: 100%;
 	position: absolute;
-	padding: 8vmin;
+	padding: 6vmin;
 	color: transparent;
 	text-shadow: 0 0 0 var(--color), var(--text-shadow);
 }
@@ -148,11 +150,11 @@ body.transition * {
 }
 
 #artwork-img.drawborder {
-	border: 0.1vmin solid var(--color);
+	border: 0.2vmin solid var(--color);
 }
 
 #artwork-img.noborder {
-	border: 0.1vmin solid transparent;
+	border: 0.2vmin solid transparent;
 }
 
 #artwork-img-crossfade {

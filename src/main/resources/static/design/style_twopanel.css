@@ -7,7 +7,7 @@
 }
 
 #artwork {
-	flex-basis: calc(100vmin - 8vmin - 8vmin - 6vmin - 4vmin - 6px);
+	flex-basis: calc(100vmin - 6vmin - 6vmin - 6vmin - 4vmin - 6px);
 	flex-shrink: 0;
 	position: relative;
 }
@@ -71,7 +71,7 @@
 }
 
 #progress {
-	--progress-width-base: 3;
+	--progress-width-base: 2.5;
 	flex: calc(var(--progress-width-base) * 4);
 }
 
