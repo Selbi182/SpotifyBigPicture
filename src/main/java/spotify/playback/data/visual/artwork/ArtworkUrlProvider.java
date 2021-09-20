@@ -21,8 +21,8 @@ public class ArtworkUrlProvider {
 
 	public ArtworkUrlProvider() {
 		final CacheLoader<ComparablePlaybackItem, String> cacheLoader = CacheLoader.from((item) -> {
-			return SpotifyArtworkUrlProvider.getDefaultSpotifyImage(item.getItem())
-				.or(() -> DictionaryArtworkUrlProvider.getUrlFromList(item.getItem()))
+			return DictionaryArtworkUrlProvider.getUrlFromList(item.getItem())
+				.or(() -> SpotifyArtworkUrlProvider.getDefaultSpotifyImage(item.getItem()))
 				.or(() -> DiscogsArtworkUrlProvider.getArtworkFromDiscogs(item.getItem()))
 				.orElse("");
 		});

@@ -96,12 +96,12 @@ public class ColorThiefColorProvider implements ColorProvider {
 			RGB rgb = RGB.of(pal[0], pal[1], pal[2]);
 			return DominantRGBs.of(rgb, rgb, borderBrightness);
 		} else {
-			// Normal image
+			// Normal image (at least two colors)
 			int[] pal1 = vboxes.get(0).avg(false);
 			int[] pal2 = vboxes.get(1).avg(false);
 			RGB rgb1 = RGB.of(pal1[0], pal1[1], pal1[2]);
 			RGB rgb2 = RGB.of(pal2[0], pal2[1], pal2[2]);
-			if (ColorUtil.calculateBrightness(rgb1) > ColorUtil.calculateBrightness(rgb2)) {
+			if (ColorUtil.calculatePerceivedBrightness(rgb1) > ColorUtil.calculatePerceivedBrightness(rgb2)) {
 				return DominantRGBs.of(rgb1, rgb2, borderBrightness);
 			} else {
 				return DominantRGBs.of(rgb2, rgb1, borderBrightness);

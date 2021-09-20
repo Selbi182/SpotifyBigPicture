@@ -75,4 +75,17 @@ public class ColorUtil {
 		hsb[2] = 1.0f; // Set brightness to max
 		return RGB.of(hsbToRgb(hsb));
 	}
+	
+	/**
+	 * Calculate a rough perceived brightness for the human eye based on this color (e.g. we see green brighter than blue)
+	 * Taken from: https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
+	 * @param color
+	 * @return the rough perceived brightness 0.0..1.0
+	 */
+	public static double calculatePerceivedBrightness(RGB color) {
+		int r = color.getR();
+		int g = color.getG();
+		int b = color.getB();
+		return Math.sqrt(0.299 * Math.pow(r, 2) + 0.587 * Math.pow(g, 2) + 0.114 * Math.pow(b, 2)) / 255;
+	}
 }

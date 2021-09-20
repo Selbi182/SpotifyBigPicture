@@ -27,7 +27,9 @@ public class DictionaryArtworkUrlProvider {
 		Map.entry("spotify:local:Yhdarl:Ave+Maria:Ave+Maria:3007", "https://i.imgur.com/x06NWEZ.png"),
 		Map.entry("spotify:local:Yhdarl:Ave+Maria:The+Last+...:871", "https://i.imgur.com/x06NWEZ.png"),
 		Map.entry("spotify:local:Mesarthim:Vacuum+Solution+%28E.P.%29:Vacuum+Solution:468", "https://f4.bcbits.com/img/a3054134247_10.jpg"),
-		Map.entry("spotify:local:Mesarthim:CLG+J02182%E2%80%9305102:Infinite+Density:255", "https://f4.bcbits.com/img/a3404054915_10.jpg")
+		Map.entry("spotify:local:Mesarthim:CLG+J02182%E2%80%9305102:Infinite+Density:255", "https://f4.bcbits.com/img/a3404054915_10.jpg"),
+		Map.entry("spotify:track:76gpTl7jhkNUjTWM172Dd8", "https://i.imgur.com/6oDtFg6.png"),
+		Map.entry("spotify:track:3k7FwlH8Fyvv6pevyd55An", "https://i.imgur.com/6oDtFg6.png")
 	);
 
 	public static Optional<String> getUrlFromList(IPlaylistItem item) {
