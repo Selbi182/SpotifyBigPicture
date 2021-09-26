@@ -1,3 +1,18 @@
+#background {
+	opacity: 0.25;
+}
+
+#background-overlay {
+	opacity: var(--background-brightness);
+	--background-brightness: 0.5;
+}
+
+#content {
+	--padding-top-bottom: 12vmin;
+	padding-top: var(--padding-top-bottom);
+	padding-bottom: var(--padding-top-bottom);	
+}
+
 #content-top {
 	flex-direction: row;
 	width: 100%;
@@ -7,7 +22,7 @@
 }
 
 #artwork {
-	flex-basis: calc(100vmin - 6vmin - 6vmin - 6vmin - 4vmin - 6px);
+	flex-basis: calc(100vmin - var(--padding-top-bottom) - var(--padding-top-bottom) - 6vmin - 4vmin - 6px);
 	flex-shrink: 0;
 	position: relative;
 }
@@ -44,6 +59,7 @@
 #bottom-info {
 	display: flex;
 	justify-content: space-between;
+	align-items: flex-end;
 }
 
 #album {

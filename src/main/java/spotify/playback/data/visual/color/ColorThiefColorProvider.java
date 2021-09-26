@@ -49,7 +49,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 				@Override
 				public DominantRGBs load(String imageUrl) throws IOException {
 					DominantRGBs colors = getDominantColors(imageUrl);
-					colors.setPrimary(ColorUtil.normalizeForReadibility(colors.getPrimary()));
+					ColorUtil.normalizeAllForReadability(colors);
 					return colors;
 				}
 			});

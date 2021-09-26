@@ -88,4 +88,14 @@ public class ColorUtil {
 		int b = color.getB();
 		return Math.sqrt(0.299 * Math.pow(r, 2) + 0.587 * Math.pow(g, 2) + 0.114 * Math.pow(b, 2)) / 255;
 	}
+
+	/**
+	 * Convenience method to normalize all colors for readability
+	 * 
+	 * @param colors
+	 */
+	public static void normalizeAllForReadability(DominantRGBs colors) {
+		colors.setPrimary(normalizeForReadibility(colors.getPrimary()));
+		colors.setSecondary(normalizeForReadibility(colors.getSecondary()));
+	}
 }

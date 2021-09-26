@@ -189,7 +189,7 @@ function showHide(elem, show, useInvisibility) {
 	}
 }
 
-const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "\\d{4}"];
+const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "explicit", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "\\d{4}"];
 const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decypher brackets from hyphens
@@ -256,8 +256,8 @@ async function changeImage(changes) {
 		
 				let rgbOverlay = colors.secondary;
 		
-				const promiseArtwork = setMainArtwork(oldImage, newImage, colors.borderBrightness);
-				const promiseBackground = setBackgroundArtwork(oldImage, newImage, rgbOverlay);
+				const promiseArtwork = setMainArtwork(oldImage, newImage);
+				const promiseBackground = setBackgroundArtwork(oldImage, newImage, rgbOverlay, colors.borderBrightness);
 				const promiseColor = setTextColor(colors.primary);
 				await Promise.all([promiseArtwork, promiseBackground, promiseColor]);
 			}
@@ -266,7 +266,7 @@ async function changeImage(changes) {
 }
 
 const DRAW_BORDER_THRESHOLD = 0.25;
-function setMainArtwork(oldImage, newImage, borderBrightness) {
+function setMainArtwork(oldImage, newImage) {
 	let artwork = document.getElementById("artwork-img");
 	let artworkCrossfade = document.getElementById("artwork-img-crossfade");
 	setArtworkVisibility(false);
@@ -276,7 +276,6 @@ function setMainArtwork(oldImage, newImage, borderBrightness) {
 			setClass(artworkCrossfade, "show", true);
 			artwork.onload = () => {
 				setArtworkVisibility(true);
-				setClass(artwork, "drawborder", borderBrightness < DRAW_BORDER_THRESHOLD);
 			};
 			artwork.src = newImage;
 		});
@@ -284,8 +283,8 @@ function setMainArtwork(oldImage, newImage, borderBrightness) {
 	artworkCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
 }
 
-function setBackgroundArtwork(oldImage, newImage, rgbOverlay) {
-	let backgroundWrapper = document.getElementById("background");
+const MIN_BACKGROUND_OVERLAY_BRIGHTNESS = 0.25;
+function setBackgroundArtwork(oldImage, newImage, rgbOverlay, borderBrightness) {
 	let backgroundOverlay = document.getElementById("background-overlay");
 	let backgroundImg = document.getElementById("background-img");
 	let backgroundCrossfade = document.getElementById("background-img-crossfade");
@@ -294,10 +293,9 @@ function setBackgroundArtwork(oldImage, newImage, rgbOverlay) {
 		window.requestAnimationFrame(() => {
 			setClass(backgroundCrossfade, "show", true);
 			backgroundImg.onload = () => {
-				backgroundWrapper.style.setProperty("background-color", `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`);
-				let brightness = calculateBrightness(rgbOverlay);
-				let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, ${brightness})`;
+				let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
 				backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
+				backgroundOverlay.style.setProperty("--background-brightness", Math.max(MIN_BACKGROUND_OVERLAY_BRIGHTNESS, borderBrightness));
 				setClass(backgroundCrossfade, "skiptransition", false);
 				setClass(backgroundCrossfade, "show", false);
 			};
@@ -480,7 +478,7 @@ function setIdle() {
 const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
 const PARAM_COLORED_TEXT = "coloredtext";
-const PARAM_ARTWORK_BORDER = "artworkborder";
+const PARAM_GRADIENTS = "backgroundgradients";
 const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_STRIP_TITLES = "striptitles";
 
@@ -488,7 +486,7 @@ const SETTINGS_ORDER = [
 	PARAM_DARK_MODE,
 	PARAM_TRANSITIONS,
 	PARAM_COLORED_TEXT,
-	PARAM_ARTWORK_BORDER,
+	PARAM_GRADIENTS,
 	PARAM_BG_ARTWORK,
 	PARAM_STRIP_TITLES
 ];
@@ -496,7 +494,7 @@ const SETTINGS_ORDER = [
 const DEFAULT_SETTINGS = [
 	PARAM_TRANSITIONS,
 	PARAM_COLORED_TEXT,
-	PARAM_ARTWORK_BORDER,
+	PARAM_GRADIENTS,
 	PARAM_BG_ARTWORK,
 	PARAM_STRIP_TITLES
 ];
@@ -581,8 +579,8 @@ function refreshPreference(preference, state) {
 		case PARAM_BG_ARTWORK:
 			setClass(document.getElementById("background"), "coloronly", !state);
 			break;
-		case PARAM_ARTWORK_BORDER:
-			setClass(document.getElementById("artwork-img"), "noborder", !state);
+		case PARAM_GRADIENTS:
+			setClass(document.getElementById("background-overlay"), "hidegradients", !state);
 			break;
 		case PARAM_COLORED_TEXT:
 			setClass(document.body, "nocoloredtext", !state);
@@ -647,8 +645,8 @@ document.onkeydown = (e) => {
 		case "c":
 			toggleVisualPreference(PARAM_COLORED_TEXT);
 			break;
-		case "b":
-			toggleVisualPreference(PARAM_ARTWORK_BORDER);
+		case "g":
+			toggleVisualPreference(PARAM_GRADIENTS);
 			break;
 		case "a":
 			toggleVisualPreference(PARAM_BG_ARTWORK);
