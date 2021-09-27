@@ -39,8 +39,8 @@ public class PlaybackController {
 	 * @return the playback info
 	 */
 	@GetMapping("/playbackinfo")
-	public PlaybackInfoDTO getCurrentPlaybackInfo(@RequestParam(defaultValue = "false") boolean full) {
-		return currentPlaybackInfo.getCurrentPlaybackInfo(full);
+	public ResponseEntity<PlaybackInfoDTO> getCurrentPlaybackInfo(@RequestParam(defaultValue = "false") boolean full) {
+		return ResponseEntity.ok(currentPlaybackInfo.getCurrentPlaybackInfo(full));
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class PlaybackController {
 	@Scheduled(initialDelay = PlaybackInfoConstants.INTERVAL_MS, fixedRate = PlaybackInfoConstants.INTERVAL_MS)
 	private void fetchAndPublishCurrentPlaybackInfo() {
 		if (false || isAnyoneListening()) {
-			PlaybackInfoDTO info = getCurrentPlaybackInfo(false);
+			PlaybackInfoDTO info = currentPlaybackInfo.getCurrentPlaybackInfo(false);
 			if (info != null && !info.isEmpty()) {
 				sseSend(info);
 			}

@@ -150,8 +150,8 @@ function setTextData(changes) {
 		let repeat = changes.repeat != null ? changes.repeat : currentData.repeat;
 
 		setClass(document.getElementById("playpause"), "play", !paused);
-		showHide(document.getElementById("shuffle"), shuffle, false);
-		showHide(document.getElementById("repeat"), repeat != "off", false);
+		showHide(document.getElementById("shuffle"), shuffle, true);
+		showHide(document.getElementById("repeat"), repeat != "off", true);
 	}
 	if ('repeat' in changes) {
 		let repeat = document.getElementById("repeat");
@@ -293,7 +293,7 @@ function setBackgroundArtwork(oldImage, newImage, rgbOverlay, borderBrightness) 
 		window.requestAnimationFrame(() => {
 			setClass(backgroundCrossfade, "show", true);
 			backgroundImg.onload = () => {
-				let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
+				let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
 				backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
 				backgroundOverlay.style.setProperty("--background-brightness", Math.max(MIN_BACKGROUND_OVERLAY_BRIGHTNESS, borderBrightness));
 				setClass(backgroundCrossfade, "skiptransition", false);
@@ -371,18 +371,13 @@ function formatTime(current, total) {
 	let formattedCurrent = `${pad2(currentHMS.seconds)}`;
 	let formattedTotal = `${pad2(totalHMS.seconds)}`;
 	if (totalHMS.minutes >= 10 || totalHMS.hours >= 1) {
-		progressBar.classList.add("tenminutes");
 		formattedCurrent = `${pad2(currentHMS.minutes)}:${formattedCurrent}`;
 		formattedTotal = `${pad2(totalHMS.minutes)}:${formattedTotal}`;
 		if (totalHMS.hours > 0) {
-			progressBar.classList.add("hour");
 			formattedCurrent = `${currentHMS.hours}:${formattedCurrent}`;
 			formattedTotal = `${totalHMS.hours}:${formattedTotal}`;
-		} else {
-			progressBar.classList.remove("hour");
-		}
+		} 
 	} else {
-		progressBar.classList = "";
 		formattedCurrent = `${currentHMS.minutes}:${formattedCurrent}`;
 		formattedTotal = `${totalHMS.minutes}:${formattedTotal}`;
 	}
@@ -478,7 +473,7 @@ function setIdle() {
 const PARAM_DARK_MODE = "darkmode";
 const PARAM_TRANSITIONS = "transitions";
 const PARAM_COLORED_TEXT = "coloredtext";
-const PARAM_GRADIENTS = "backgroundgradients";
+const PARAM_CLOCK = "showclock";
 const PARAM_BG_ARTWORK = "bgartwork";
 const PARAM_STRIP_TITLES = "striptitles";
 
@@ -486,7 +481,7 @@ const SETTINGS_ORDER = [
 	PARAM_DARK_MODE,
 	PARAM_TRANSITIONS,
 	PARAM_COLORED_TEXT,
-	PARAM_GRADIENTS,
+	PARAM_CLOCK,
 	PARAM_BG_ARTWORK,
 	PARAM_STRIP_TITLES
 ];
@@ -494,7 +489,7 @@ const SETTINGS_ORDER = [
 const DEFAULT_SETTINGS = [
 	PARAM_TRANSITIONS,
 	PARAM_COLORED_TEXT,
-	PARAM_GRADIENTS,
+	PARAM_CLOCK,
 	PARAM_BG_ARTWORK,
 	PARAM_STRIP_TITLES
 ];
@@ -579,8 +574,8 @@ function refreshPreference(preference, state) {
 		case PARAM_BG_ARTWORK:
 			setClass(document.getElementById("background"), "coloronly", !state);
 			break;
-		case PARAM_GRADIENTS:
-			setClass(document.getElementById("background-overlay"), "hidegradients", !state);
+		case PARAM_CLOCK:
+			showHide(document.getElementById("clock"), state);
 			break;
 		case PARAM_COLORED_TEXT:
 			setClass(document.body, "nocoloredtext", !state);
@@ -645,8 +640,8 @@ document.onkeydown = (e) => {
 		case "c":
 			toggleVisualPreference(PARAM_COLORED_TEXT);
 			break;
-		case "g":
-			toggleVisualPreference(PARAM_GRADIENTS);
+		case "w":
+			toggleVisualPreference(PARAM_CLOCK);
 			break;
 		case "a":
 			toggleVisualPreference(PARAM_BG_ARTWORK);
@@ -678,3 +673,21 @@ function handleMouseEvent() {
 		setClass(document.getElementById("settings"), "show", false);
 	}, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }
+
+
+///////////////////////////////
+// CLOCK
+///////////////////////////////
+
+var prevTime;
+setInterval(() => {
+	let date = new Date();
+	let hh = date.getHours();
+	let mm = date.getMinutes();
+	let time = `${pad2(hh)}:${pad2(mm)}`;
+	if (time != prevTime) {
+		prevTime = time;
+		let clock = document.querySelector("#clock");
+		clock.innerHTML = time;
+	}
+}, 1000);
