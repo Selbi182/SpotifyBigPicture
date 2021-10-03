@@ -265,7 +265,6 @@ async function changeImage(changes) {
 	}
 }
 
-const DRAW_BORDER_THRESHOLD = 0.25;
 function setMainArtwork(oldImage, newImage) {
 	let artwork = document.getElementById("artwork-img");
 	let artworkCrossfade = document.getElementById("artwork-img-crossfade");
@@ -283,9 +282,8 @@ function setMainArtwork(oldImage, newImage) {
 	artworkCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
 }
 
-const MIN_BACKGROUND_OVERLAY_BRIGHTNESS = 0.25;
 function setBackgroundArtwork(oldImage, newImage, rgbOverlay, borderBrightness) {
-	let backgroundOverlay = document.getElementById("background-overlay");
+	let backgroundOverlay = document.getElementById("background");
 	let backgroundImg = document.getElementById("background-img");
 	let backgroundCrossfade = document.getElementById("background-img-crossfade");
 	backgroundCrossfade.onload = () => {
@@ -293,9 +291,9 @@ function setBackgroundArtwork(oldImage, newImage, rgbOverlay, borderBrightness) 
 		window.requestAnimationFrame(() => {
 			setClass(backgroundCrossfade, "show", true);
 			backgroundImg.onload = () => {
-				let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
-				backgroundOverlay.style.setProperty("--background-overlay-color", backgroundColorOverlay);
-				backgroundOverlay.style.setProperty("--background-brightness", Math.max(MIN_BACKGROUND_OVERLAY_BRIGHTNESS, borderBrightness));
+				let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, var(--background-brightness-adjusted))`;
+				backgroundOverlay.style.setProperty("--background-color", backgroundColorOverlay);
+				backgroundOverlay.style.setProperty("--background-brightness", borderBrightness);
 				setClass(backgroundCrossfade, "skiptransition", false);
 				setClass(backgroundCrossfade, "show", false);
 			};

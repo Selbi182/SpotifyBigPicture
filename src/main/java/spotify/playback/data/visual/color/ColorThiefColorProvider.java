@@ -84,7 +84,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 		if (vboxes.isEmpty()) {
 			// Grayscale image
 			RGB textColor = DominantRGBs.RGB.DEFAULT_RGB;
-			double borderBrightnessWithMin = Math.max(MIN_BRIGHTNESS, borderBrightness);
+			double borderBrightnessWithMin = borderBrightness;
 			RGB backgroundOverlay = RGB.of(
 				(int) (textColor.getR() * borderBrightnessWithMin),
 				(int) (textColor.getG() * borderBrightnessWithMin),
