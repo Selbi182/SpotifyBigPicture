@@ -77,9 +77,6 @@ window.addEventListener('beforeunload', closeFlux);
 function processJson(json) {
 	if (json.type == "DATA") {
 		setDisplayData(json);
-		for (let prop in json) {
-			currentData[prop] = json[prop];
-		}
 		startTimers();
 	}
 }
@@ -101,11 +98,16 @@ function createHeartbeatTimeout() {
 
 async function setDisplayData(changes) {
 	console.debug(changes);
-	changeImage(changes);
-	setTextData(changes);
+	changeImage(changes)
+		.then(() => setTextData(changes));
 }
 
 function setTextData(changes) {
+	// Update properties in local storage
+	for (let prop in changes) {
+		currentData[prop] = changes[prop];
+	}
+	
 	// Main Info
 	if ('title' in changes) {
 		let titleNoFeat = removeFeatures(changes.title);
@@ -163,6 +165,11 @@ function setTextData(changes) {
 		if (currentData.repeat != changes.repeat) {
 			handleAlternateDarkModeToggle();
 		}
+	}
+	
+	// Color
+	if ('imageColors' in changes) {
+		setTextColor(changes.imageColors.primary);
 	}
 }
 
@@ -238,74 +245,66 @@ const DEFAULT_RGB = {
 	b: 255
 };
 
-var preloadImg;
-var fadeOutTimeout;
-
-async function changeImage(changes) {
-	if ('image' in changes || 'imageColors' in changes) {
-		if (changes.image == "BLANK") {
-			changes.image = DEFAULT_IMAGE;
-			changes.imageColors = {primary: DEFAULT_RGB, secondary: DEFAULT_RGB};
-		}
-		let newImage = changes.image != null ? changes.image : currentData.image;
-		let colors = changes.imageColors != null ? changes.imageColors : currentData.imageColors;
-		if (newImage) {
-			let oldImage = document.getElementById("artwork-img").src;
-			if (!oldImage.includes(newImage)) {
-				clearTimeout(fadeOutTimeout);
-		
-				let rgbOverlay = colors.secondary;
-		
-				const promiseArtwork = setMainArtwork(oldImage, newImage);
-				const promiseBackground = setBackgroundArtwork(oldImage, newImage, rgbOverlay, colors.borderBrightness);
-				const promiseColor = setTextColor(colors.primary);
-				await Promise.all([promiseArtwork, promiseBackground, promiseColor]);
+function changeImage(changes) {
+	return new Promise((resolve, reject) => {
+		if ('image' in changes || 'imageColors' in changes) {
+			if (changes.image == "BLANK") {
+				changes.image = DEFAULT_IMAGE;
+				changes.imageColors = {primary: DEFAULT_RGB, secondary: DEFAULT_RGB};
 			}
+			let newImage = changes.image != null ? changes.image : currentData.image;
+			let colors = changes.imageColors != null ? changes.imageColors : currentData.imageColors;
+			if (newImage) {
+				let oldImage = document.getElementById("artwork-img").src;
+				if (!oldImage.includes(newImage)) {
+			
+					let rgbOverlay = colors.secondary;
+					let borderBrightness = colors.borderBrightness;
+			
+					let artwork = document.getElementById("artwork-img");
+					artwork.src = newImage;
+					
+					let prerenderCanvas = document.getElementById("prerender-canvas");
+					let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
+					let backgroundCanvasImg = document.getElementById("background-canvas-img");
+					backgroundCanvasImg.onload = () => {
+						setClass(prerenderCanvas, "show", true);
+						let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
+						backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
+						backgroundCanvasOverlay.style.setProperty("--background-brightness", borderBrightness);
+						
+						domtoimage.toPng(prerenderCanvas)
+							.then((dataBase64Png) => {
+								let backgroundImg = document.getElementById("background-img");
+								let backgroundCrossfade = document.getElementById("background-img-crossfade");
+								setClass(backgroundCrossfade, "skiptransition", true);
+								setClass(backgroundCrossfade, "show", true);
+								backgroundCrossfade.onload = () => {
+									window.requestAnimationFrame(() => {
+										backgroundImg.onload = () => {
+											setClass(backgroundCrossfade, "skiptransition", false);
+											setClass(backgroundCrossfade, "show", false);
+											resolve('Image updated');
+										};
+										backgroundImg.src = dataBase64Png;
+									});
+								};
+								backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
+						    })
+						    .catch((error) => {
+						        console.error('Failed to render background image', error);
+						    })
+							.finally(() => {
+								setClass(prerenderCanvas, "show", false);
+							});
+					};
+					backgroundCanvasImg.src = newImage;
+				}
+			}
+		} else {
+			resolve('No new image to load')
 		}
-	}
-}
-
-function setMainArtwork(oldImage, newImage) {
-	let artwork = document.getElementById("artwork-img");
-	let artworkCrossfade = document.getElementById("artwork-img-crossfade");
-	setArtworkVisibility(false);
-	artworkCrossfade.onload = () => {
-		setClass(artworkCrossfade, "skiptransition", true);
-		window.requestAnimationFrame(() => {
-			setClass(artworkCrossfade, "show", true);
-			artwork.onload = () => {
-				setArtworkVisibility(true);
-			};
-			artwork.src = newImage;
-		});
-	};
-	artworkCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
-}
-
-function setBackgroundArtwork(oldImage, newImage, rgbOverlay, borderBrightness) {
-	let backgroundOverlay = document.getElementById("background");
-	let backgroundImg = document.getElementById("background-img");
-	let backgroundCrossfade = document.getElementById("background-img-crossfade");
-	backgroundCrossfade.onload = () => {
-		setClass(backgroundCrossfade, "skiptransition", true);
-		window.requestAnimationFrame(() => {
-			setClass(backgroundCrossfade, "show", true);
-			backgroundImg.onload = () => {
-				let backgroundColorOverlay = `rgba(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b}, var(--background-brightness-adjusted))`;
-				backgroundOverlay.style.setProperty("--background-color", backgroundColorOverlay);
-				backgroundOverlay.style.setProperty("--background-brightness", borderBrightness);
-				setClass(backgroundCrossfade, "skiptransition", false);
-				setClass(backgroundCrossfade, "show", false);
-			};
-			backgroundImg.src = newImage;
-		});
-	};
-	backgroundCrossfade.src = oldImage ? oldImage : EMPTY_IMAGE_DATA;
-}
-
-function setArtworkVisibility(state) {
-	setClass(document.getElementById("artwork-img-crossfade"), "skiptransition", !state);
-	setClass(document.getElementById("artwork-img-crossfade"), "show", !state);
+	});
 }
 
 function setTextColor(rgbText) {
@@ -340,9 +339,12 @@ function updateProgress(changes) {
 	let formattedCurrentTime = formattedTimes.current;
 	let formattedTotalTime = formattedTimes.total;
 
-	document.getElementById("time-current").innerHTML = formattedCurrentTime;
-	if (total != currentData.timeTotal) {
-		document.getElementById("time-total").innerHTML = formattedTotalTime;
+	let elemTimeCurrent = document.getElementById("time-current");
+	elemTimeCurrent.innerHTML = formattedCurrentTime;
+	
+	let elemTimeTotal = document.getElementById("time-total");	
+	if (formattedTotalTime != elemTimeTotal.innerHTML) {
+		elemTimeTotal.innerHTML = formattedTotalTime;
 	}
 
 	// Progress Bar
@@ -570,7 +572,7 @@ function refreshPreference(preference, state) {
 			setTransitions(state);
 			break;
 		case PARAM_BG_ARTWORK:
-			setClass(document.getElementById("background"), "coloronly", !state);
+			setClass(document.getElementById("background-rendered"), "coloronly", !state);
 			break;
 		case PARAM_CLOCK:
 			showHide(document.getElementById("clock"), state);
@@ -595,7 +597,7 @@ function refreshPreference(preference, state) {
 
 function setTransitions(state) {
 	setClass(document.body, "transition", state);
-	showHide(document.getElementById("artwork-img-crossfade"), state, true);
+//	showHide(document.getElementById("artwork-img-crossfade"), state, true);
 	showHide(document.getElementById("background-img-crossfade"), state, true);
 }
 

@@ -13,9 +13,13 @@
 }
 
 #artwork {
-	flex-basis: calc(100vmin - var(--padding-top-bottom) - var(--padding-top-bottom) - 6vmin - 3vmin - 4.9vmin);
-	flex-shrink: 0;
 	position: relative;
+	width: 73vh;
+	height: 73vh;
+	display: block;
+	position: relative;
+	margin-left: 6vmin;
+	margin-top: 6vmin;
 }
 
 #artwork-img {
@@ -48,6 +52,8 @@
 	justify-content: center;
 	flex-direction: column;
 	flex: 1;
+	align-self: flex-end;
+	width: 50vw;
 }
 
 #title {
