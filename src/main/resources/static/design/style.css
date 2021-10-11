@@ -145,6 +145,25 @@ body.transition * {
 	text-shadow: 0 0 0 var(--color), var(--text-shadow);
 }
 
+#content-top {
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-grow: 1;
+}
+
+#artwork {
+  position: relative;
+  width: 73vh;
+  height: 73vh;
+  display: block;
+  margin-left: 6vmin;
+  margin-top: 6vmin;
+  filter: drop-shadow(1vmin 1vmin 1vmin #00000080);
+  overflow: hidden;
+}
+
 #artwork-img {
 	position: absolute;
 	width: auto;
@@ -152,6 +171,7 @@ body.transition * {
 	max-width: 100%;
 	max-height: 100%;
 	border: 0.2vmin solid transparent;
+  scale: 1.02;
 }
 
 #artwork-img.show {
@@ -164,10 +184,10 @@ body.transition * {
 
 #meta-left {
 	flex: 1;
-	text-align: left;
 	font-size: 2vmin;
 	word-break: break-word;
 	user-select: text;
+  text-align: right;
 }
 
 #meta-right {
@@ -189,6 +209,7 @@ body.transition * {
 	height: 6vmin;
 	width: 6vmin;
 	opacity: 0.65;
+  margin-left: 3vmin;
 }
 
 #settings.show {
@@ -202,6 +223,21 @@ body.transition * {
 	text-align: center;
 	flex-direction: column;
 	user-select: text;
+	justify-content: center;
+  flex: 1;
+  align-self: flex-end;
+  width: 48.9vw;
+}
+
+#title {
+  font-size: 6vmin;
+  margin-top: 6vmin;
+  margin-bottom: 6vmin;
+}
+
+#artists {
+  font-family: var(--font-normal);
+  font-size: 4vmin;
 }
 
 #title, #artists, #time-current, #time-total {
@@ -212,26 +248,41 @@ body.transition * {
 	display: none;
 }
 
-#album-title {
-	margin-right: 0.5ch;
+#album {
+  font-size: 3vmin;
+}
+
+#album-release {
+  opacity: 0.5;
 }
 
 #album-title-extra.hide {
 	display: none;
 }
 
-#album-release::before {
-	content: "(";
+#info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin-left: 6vmin;
 }
-#album-release::after {
-	content: ")";
+
+#top-info {
+  display: flex;
+  flex: 0;
 }
-#album-release:empty {
-	display: none;
+
+#info-symbols {
+  display: flex;
+  height: 3vmin;
 }
 
 #info-symbols > div {
 	height: 100%;
+  width: 3vmin;
+  margin-left: 1em;
+  margin-right: 1em;
 	opacity: 0.5;
 	-webkit-mask-size: contain;
 	-webkit-mask-repeat: no-repeat;
@@ -274,6 +325,8 @@ body.transition * {
 	height: 0.5vmin;
 	min-height: 1px;
 	position: relative;
+  flex: 0 0 100%;
+  margin-bottom: 3vmin;
 }
 
 #progress-background {
@@ -294,6 +347,12 @@ body.transition * {
 	position: absolute;
 }
 
+#bottom-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
 #bottom-left {
 	display: flex;
 	flex: 1;
@@ -310,6 +369,14 @@ body.transition * {
 	flex-direction: row;
 	width: 100%;
 	justify-content: space-between;
+}
+
+#time-container {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-top: 6vmin;
+  flex-wrap: wrap;
 }
 
 #time-current, #time-total {
@@ -359,4 +426,6 @@ body.transition * {
 #clock {
 	font-family: monospace;
 	opacity: 0.8;
+  text-align: right;
+  margin-top: 2vmin;
 }

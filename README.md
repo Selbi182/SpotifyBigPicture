@@ -6,12 +6,6 @@ You might want to use this over [Spotify's own (in my opinion, rather underwhelm
 
 ## Examples
 
-### Animation (Centered)
-
-![Sample Animation](https://i.imgur.com/CuPz1eJ.gif)
-
-(I had to dramatically reduce the GIF's quality to have it be allowed on GitHub)
-
 ### Pictures
 
 ![Rammstein - Mein Herz brennt](https://i.imgur.com/eLpoG0B.png)
@@ -21,12 +15,6 @@ You might want to use this over [Spotify's own (in my opinion, rather underwhelm
 ![Deafheaven - Dream House](https://i.imgur.com/zGN1Las.png)
 
 ![Finsterforst - Ecce Homo](https://i.imgur.com/1vcOF1D.png)
-
-### Centered
-
-If you prefer a symmetrical, centered layout, we've got you covered as well!
-
-![Haken - Invasion (centered)](https://i.imgur.com/KUyan82.png)
 
 ## Features
 

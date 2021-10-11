@@ -10,7 +10,7 @@ public class ViewController {
 
 	@GetMapping("/")
 	public ModelAndView createSpotifyPlaybackInterfaceView(@RequestParam(required = false) String prefs) {
-		return createView("twopanel.html", prefs);
+		return createView("layout.html", prefs);
 	}
 
 	private ModelAndView createView(String viewFileName, String prefs) {

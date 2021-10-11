@@ -554,11 +554,6 @@ function refreshPrefsQueryParam() {
 	const url = new URL(window.location);
 	url.searchParams.set(PREFS_URL_PARAM, prefsString);
 	window.history.replaceState({}, 'Spotify Big Picture', url.toString());
-	
-	let swapLayoutButton = document.querySelector("#swaplayout");
-	let newUrl = new URL(swapLayoutButton.href);
-	newUrl.searchParams.set(PREFS_URL_PARAM, prefsString);
-	swapLayoutButton.href = newUrl;
 }
 
 function toggleVisualPreference(key) {
