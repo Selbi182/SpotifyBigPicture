@@ -1,7 +1,9 @@
 package spotify.playback.data.visual;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,16 +51,17 @@ public class ContextProvider {
 		String contextName = null;
 		try {
 			Context context = info.getContext();
+			boolean force = previous == null || previous.getContext() == null || previous.getContext().isEmpty();
 			if (context != null) {
 				ModelObjectType type = context.getType();
 				if (ModelObjectType.PLAYLIST.equals(type)) {
-					contextName = getPlaylistContext(context);
+					contextName = getPlaylistContext(context, force);
 				} else if (ModelObjectType.ARTIST.equals(type)) {
-					contextName = getArtistContext(context);
+					contextName = getArtistContext(context, force);
 				} else if (ModelObjectType.ALBUM.equals(type)) {
-					contextName = getAlbumContext(info);
+					contextName = getAlbumContext(info, force);
 				} else if (ModelObjectType.SHOW.equals(type)) {
-					contextName = getPodcastContext(info);
+					contextName = getPodcastContext(info, force);
 				}
 			}
 		} catch (BotException e) {
@@ -67,12 +70,12 @@ public class ContextProvider {
 		if (contextName != null) {
 			return contextName;
 		} else {
-			return previous != null && previous.getContext() != null ? previous.getContext() : "";
+			return previous != null && previous.getContext() != null ? previous.getContext() : "[context not found]";
 		}
 	}
 
-	private String getArtistContext(Context context) {
-		if (didContextChange(context)) {
+	private String getArtistContext(Context context, boolean force) {
+		if (force || didContextChange(context)) {
 			String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
 			Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
 			return "ARTIST: " + contextArtist.getName();
@@ -80,8 +83,8 @@ public class ContextProvider {
 		return null;
 	}
 
-	private String getPlaylistContext(Context context) {
-		if (didContextChange(context)) {
+	private String getPlaylistContext(Context context, boolean force) {
+		if (force || didContextChange(context)) {
 			String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
 			Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 			return contextPlaylist.getName();
@@ -89,7 +92,7 @@ public class ContextProvider {
 		return null;
 	}
 
-	private String getAlbumContext(CurrentlyPlayingContext info) {
+	private String getAlbumContext(CurrentlyPlayingContext info, boolean force) {
 		Context context = info.getContext();
 		Track track = null;
 		String albumId;
@@ -99,8 +102,8 @@ public class ContextProvider {
 		} else {
 			albumId = BotUtils.getIdFromUri(context.getUri());
 		}
-		
-		if (didContextChange(context)) {
+
+		if (force || didContextChange(context)) {
 			currentContextAlbum = SpotifyCall.execute(spotifyApi.getAlbum(albumId));
 			if (currentContextAlbum.getTracks().getTotal() > MAX_IMMEDIATE_TRACKS) {
 				currentContextAlbumTracks = SpotifyCall.executePaging(spotifyApi.getAlbumsTracks(albumId));
@@ -109,20 +112,29 @@ public class ContextProvider {
 			}
 		}
 		if (currentContextAlbumTracks != null && track != null) {
-			// Unfortunately, can't simply use track numbers because of disc numbers
+			// Track number (unfortunately, can't simply use track numbers because of disc
+			// numbers)
 			final String trackId = track.getId();
 			int currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> t.getId().equals(trackId)) + 1;
+
+			// Total album duration
+			Integer totalDurationMs = currentContextAlbumTracks.stream().collect(Collectors.summingInt(TrackSimplified::getDurationMs));
+			String totalDurationFormatted = formatTime(totalDurationMs);
+
+			// Assemble it all
 			if (currentlyPlayingTrackNumber > 0) {
-				return String.format("Album Track: %02d / %02d", currentlyPlayingTrackNumber, currentContextAlbum.getTracks().getTotal());
+				return String.format("Total Time: %s // Track: %02d of %02d", totalDurationFormatted, currentlyPlayingTrackNumber, currentContextAlbum.getTracks().getTotal());
 			}
 		}
-		return "ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName();
+
+		// Fallback when playing back from the queue
+		return "Queue (ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName() + ")";
 	}
 
-	private String getPodcastContext(CurrentlyPlayingContext info) {
+	private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {
 		Context context = info.getContext();
 		String showId = BotUtils.getIdFromUri(context.getUri());
-		if (didContextChange(context)) {
+		if (force || didContextChange(context)) {
 			Show show = SpotifyCall.execute(spotifyApi.getShow(showId));
 			return "PODCAST: " + show.getName();
 		}
@@ -135,5 +147,17 @@ public class ContextProvider {
 			return true;
 		}
 		return false;
+	}
+
+	private String formatTime(Integer timeInMs) {
+		Duration duration = Duration.ofMillis(timeInMs);
+		long hours = duration.toHours();
+		int minutesPart = duration.toMinutesPart();
+		if (hours > 0) {
+			return String.format("%d hr %d min", hours, minutesPart);
+		} else {
+			int secondsPart = duration.toSecondsPart();
+			return String.format("%d min %d sec", minutesPart, secondsPart);
+		}
 	}
 }
