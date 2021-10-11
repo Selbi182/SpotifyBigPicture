@@ -11,9 +11,6 @@
 	width: 100%;
 	height: 100%;
 	text-align: center;
-}
-
-#artwork-img, #artwork-img-crossfade {
 	transform: translate(-50%, 0);
 	object-fit: contain;
 }

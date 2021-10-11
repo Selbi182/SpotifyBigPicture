@@ -13,11 +13,6 @@ public class ViewController {
 		return createView("twopanel.html", prefs);
 	}
 
-	@GetMapping("/centered")
-	public ModelAndView createSpotifyPlaybackInterfaceViewCentered(@RequestParam(required = false) String prefs) {
-		return createView("centered.html", prefs);
-	}
-
 	private ModelAndView createView(String viewFileName, String prefs) {
 		ModelAndView modelAndView = new ModelAndView();
 		if (prefs != null) {

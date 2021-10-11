@@ -39,7 +39,10 @@ function startFlux() {
 		try {
 			closeFlux();
 			flux = new EventSource(FLUX_URL);
-			flux.onopen = () => console.info("Flux connected!");
+			flux.onopen = () => {
+				console.info("Flux connected!");
+				singleRequest(true);
+			};
 			flux.onmessage = (event) => {
 				try {
 					createHeartbeatTimeout();
@@ -146,6 +149,8 @@ function setTextData(changes) {
 	}
 
 	// States
+	let repeat = document.getElementById("repeat");
+	let prevRepeatState = repeat.classList;
 	if ('paused' in changes || 'shuffle' in changes || 'repeat' in changes) {
 		let paused = changes.paused != null ? changes.paused : currentData.paused;
 		let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
@@ -156,13 +161,12 @@ function setTextData(changes) {
 		showHide(document.getElementById("repeat"), repeat != "off", true);
 	}
 	if ('repeat' in changes) {
-		let repeat = document.getElementById("repeat");
 		if (changes.repeat == "track") {
 			repeat.classList.add("once");
 		} else {
 			repeat.classList.remove("once");
 		}
-		if (currentData.repeat != changes.repeat) {
+		if (!prevRepeatState.contains(changes.repeat)) {
 			handleAlternateDarkModeToggle();
 		}
 	}
@@ -257,54 +261,69 @@ function changeImage(changes) {
 			if (newImage) {
 				let oldImage = document.getElementById("artwork-img").src;
 				if (!oldImage.includes(newImage)) {
-			
-					let rgbOverlay = colors.secondary;
-					let borderBrightness = colors.borderBrightness;
-			
-					let artwork = document.getElementById("artwork-img");
-					artwork.src = newImage;
-					
-					let prerenderCanvas = document.getElementById("prerender-canvas");
-					let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
-					let backgroundCanvasImg = document.getElementById("background-canvas-img");
-					backgroundCanvasImg.onload = () => {
-						setClass(prerenderCanvas, "show", true);
-						let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
-						backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
-						backgroundCanvasOverlay.style.setProperty("--background-brightness", borderBrightness);
-						
-						domtoimage.toPng(prerenderCanvas)
-							.then((dataBase64Png) => {
-								let backgroundImg = document.getElementById("background-img");
-								let backgroundCrossfade = document.getElementById("background-img-crossfade");
-								setClass(backgroundCrossfade, "skiptransition", true);
-								setClass(backgroundCrossfade, "show", true);
-								backgroundCrossfade.onload = () => {
-									window.requestAnimationFrame(() => {
-										backgroundImg.onload = () => {
-											setClass(backgroundCrossfade, "skiptransition", false);
-											setClass(backgroundCrossfade, "show", false);
-											resolve('Image updated');
-										};
-										backgroundImg.src = dataBase64Png;
-									});
-								};
-								backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
-						    })
-						    .catch((error) => {
-						        console.error('Failed to render background image', error);
-						    })
-							.finally(() => {
-								setClass(prerenderCanvas, "show", false);
-							});
-					};
-					backgroundCanvasImg.src = newImage;
+					prerenderAndSetArtwork(newImage, colors)
+						.then(resolve('Image changed'));
 				}
 			}
 		} else {
 			resolve('No new image to load')
 		}
 	});
+}
+
+function prerenderAndSetArtwork(newImage, colors) {
+	return new Promise((resolve, reject) => {
+		let rgbOverlay = colors.secondary;
+		let borderBrightness = colors.borderBrightness;
+
+		let artwork = document.getElementById("artwork-img");
+		artwork.src = newImage;
+		
+		let prerenderCanvas = document.getElementById("prerender-canvas");
+		let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
+		let backgroundCanvasImg = document.getElementById("background-canvas-img");
+		backgroundCanvasImg.onload = () => {
+			setClass(prerenderCanvas, "show", true);
+			let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
+			backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
+			backgroundCanvasOverlay.style.setProperty("--background-brightness", borderBrightness);
+			
+			domtoimage.toPng(prerenderCanvas, { width: window.innerWidth, height: window.innerHeight })
+				.then((dataBase64Png) => {
+					if (dataBase64Png.length < 10) {
+						throw 'Rendered image data is invalid';
+					}
+					let backgroundImg = document.getElementById("background-img");
+					let backgroundCrossfade = document.getElementById("background-img-crossfade");
+					setClass(backgroundCrossfade, "skiptransition", true);
+					setClass(backgroundCrossfade, "show", true);
+					backgroundCrossfade.onload = () => {
+						window.requestAnimationFrame(() => {
+							backgroundImg.onload = () => {
+								setClass(backgroundCrossfade, "skiptransition", false);
+								setClass(backgroundCrossfade, "show", false);
+								resolve('Image updated');
+							};
+							backgroundImg.src = dataBase64Png;
+						});
+					};
+					backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
+			    })
+			    .catch((error) => {
+					reject(error);
+			    })
+				.finally(() => {
+					setClass(prerenderCanvas, "show", false);
+				});
+		};
+		backgroundCanvasImg.src = newImage;
+	});
+}
+
+function refreshArtworkRender() {
+	if (currentData.image && currentData.imageColors) {		
+		prerenderAndSetArtwork(currentData.image, currentData.imageColors);
+	}
 }
 
 function setTextColor(rgbText) {
@@ -572,7 +591,8 @@ function refreshPreference(preference, state) {
 			setTransitions(state);
 			break;
 		case PARAM_BG_ARTWORK:
-			setClass(document.getElementById("background-rendered"), "coloronly", !state);
+			setClass(document.getElementById("background-canvas-img"), "coloronly", !state);
+			refreshArtworkRender();
 			break;
 		case PARAM_CLOCK:
 			showHide(document.getElementById("clock"), state);
@@ -597,7 +617,6 @@ function refreshPreference(preference, state) {
 
 function setTransitions(state) {
 	setClass(document.body, "transition", state);
-//	showHide(document.getElementById("artwork-img-crossfade"), state, true);
 	showHide(document.getElementById("background-img-crossfade"), state, true);
 }
 
@@ -624,6 +643,20 @@ function handleAlternateDarkModeToggle() {
 		toggleDarkModeTimeout = setTimeout(() => toggleDarkModeCount = 0, TOGGLE_DARK_MODE_COUNT * 1000 * 2);
 	}
 }
+
+
+///////////////////////////////
+// REFRESH IMAGE ON RESIZE
+///////////////////////////////
+
+const REFRESH_BACKGROUND_ON_RESIZE_DELAY = 500;
+var refreshBackgroundEvent;
+window.onresize = () => {
+	clearTimeout(refreshBackgroundEvent);
+	refreshBackgroundEvent = setTimeout(() => {
+		refreshArtworkRender();
+	}, REFRESH_BACKGROUND_ON_RESIZE_DELAY);
+};
 
 ///////////////////////////////
 // HOTKEYS

@@ -4,23 +4,28 @@
         <meta charset="utf-8">
         <title>Spotify Big Picture</title>
         <script src="js/playback_info_controller.js"></script>
+        <script src="js/dom-to-image.min.js"></script>
         <link rel="stylesheet" href="design/_style_shared.css">
         <link rel="stylesheet" href="design/style_centered.css">
         <link rel="icon" href="/favicon.png" type="image/x-icon">
     </head>
     <body>
     	<div id="dark-overlay"></div>
-        <div id="background">
-            <img id="background-overlay" class="show" />
+       <div id="background-rendered">
             <img id="background-img" class="show" />
             <img id="background-img-crossfade" />
         </div>
+        <div id="prerender-canvas">        
+          <div id="background-canvas">
+            <img id="background-canvas-img" />
+            <div id="background-canvas-overlay"></div>
+          </div>
+          <div id="artwork">
+              <img id="artwork-img" />
+          </div>
+        </div>
         <div id="content">
             <div id="top-info">
-                <div id="artwork">
-                    <img id="artwork-img" src="design/img/idle.png" />
-                    <img id="artwork-img-crossfade" />
-                </div>
                 <div id="meta-left">
                     <div id="context"></div>
                     <div id="device"></div>

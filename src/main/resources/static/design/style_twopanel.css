@@ -20,10 +20,12 @@
 	position: relative;
 	margin-left: 6vmin;
 	margin-top: 6vmin;
+  filter: drop-shadow(1vmin 1vmin 1vmin #00000080);
+  overflow: hidden;
 }
 
 #artwork-img {
-	filter: drop-shadow(1vmin 1vmin 1vmin #00000080);
+	scale: 1.02;
 }
 
 #info {
@@ -53,7 +55,7 @@
 	flex-direction: column;
 	flex: 1;
 	align-self: flex-end;
-	width: 50vw;
+	width: 48.9vw;
 }
 
 #title {
