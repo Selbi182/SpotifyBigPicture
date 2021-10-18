@@ -10,10 +10,11 @@
 
 :root {
 	--color: #ffffff;
-	--text-shadow: 3px 3px 3px #000000aa;
 	--transition: 0.5s;
 	--font-normal: "Gotham Light", sans-serif;
 	--font-bold: "Gotham Medium", sans-serif;
+	--margin-main: 6vmin;
+	--artwork-size: 73vh;
 }
 
 html, body {
@@ -22,7 +23,7 @@ html, body {
 	background: black;
 	color: var(--color);
 	font-family: var(--font-normal);
-	text-shadow: var(--text-shadow);
+	text-shadow: 3px 3px 3px #000000aa;
 	width: 100%;
 	height: 100%;
 	font-size: 2vmin;
@@ -58,7 +59,6 @@ body.transition * {
 	transition:
 		opacity var(--transition),
 		color var(--transition),
-		text-shadow var(--transition),
 		background-color var(--transition);
 }
 
@@ -99,8 +99,12 @@ body.transition * {
   overflow: hidden;
 }
 
-#prerender-canvas.show {
+#prerender-canvas.show, #prerender-canvas.noprerender {
   display: unset;
+}
+
+#prerender-canvas.noprerender {
+  z-index: unset;
 }
 
 #background-canvas {
@@ -140,9 +144,8 @@ body.transition * {
 	width: 100%;
 	height: 100%;
 	position: absolute;
-	padding: 6vmin;
-	color: transparent;
-	text-shadow: 0 0 0 var(--color), var(--text-shadow);
+	padding: var(--margin-main);
+	color: var(--color);
 }
 
 #content-top {
@@ -151,15 +154,15 @@ body.transition * {
   height: 100%;
   display: flex;
   flex-grow: 1;
+  justify-content: right;
 }
 
 #artwork {
   position: relative;
-  width: 73vh;
-  height: 73vh;
+  width: var(--artwork-size);
+  height: var(--artwork-size);
   display: block;
-  margin-left: 6vmin;
-  margin-top: 6vmin;
+  margin: var(--margin-main);
   filter: drop-shadow(1vmin 1vmin 1vmin #00000080);
   overflow: hidden;
 }
@@ -206,8 +209,8 @@ body.transition * {
 	mask-position: right;
 	mask-repeat: no-repeat;
 	background-color: var(--color);
-	height: 6vmin;
-	width: 6vmin;
+	height: var(--margin-main);
+	width: var(--margin-main);
 	opacity: 0.65;
   margin-left: 3vmin;
 }
@@ -225,14 +228,11 @@ body.transition * {
 	user-select: text;
 	justify-content: center;
   flex: 1;
-  align-self: flex-end;
-  width: 48.9vw;
 }
 
 #title {
   font-size: 6vmin;
-  margin-top: 6vmin;
-  margin-bottom: 6vmin;
+  margin: var(--margin-main) 0;
 }
 
 #artists {
@@ -261,11 +261,10 @@ body.transition * {
 }
 
 #info {
-  flex-grow: 1;
+	width: calc(100vw - var(--artwork-size) - (var(--margin-main) * 3));
   display: flex;
   flex-direction: column;
   position: relative;
-  margin-left: 6vmin;
 }
 
 #top-info {
@@ -375,7 +374,7 @@ body.transition * {
   display: flex;
   align-items: center;
   flex: 1;
-  margin-top: 6vmin;
+  margin-top: var(--margin-main);
   flex-wrap: wrap;
 }
 
@@ -388,7 +387,7 @@ body.transition * {
 	width: 100%;
 	height: min-content;
 	z-index: 1;
-	background: linear-gradient(to bottom, transparent 0%, black 100%);
+	background: linear-gradient(to bottom, transparent 0%, #00000080 100%);
 	bottom: 0;
 	display: flex;
 	justify-content: space-evenly;
@@ -423,9 +422,29 @@ body.transition * {
 	opacity: 1;
 }
 
+#clock-wrapper {
+  height: var(--margin-main);
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: column;
+}
+
 #clock {
-	font-family: monospace;
-	opacity: 0.8;
+  font-family: 'Consolas', monospace;
+  opacity: 0.8;
   text-align: right;
-  margin-top: 2vmin;
+}
+
+#clock.hide {
+	opacity: 0;
+}
+
+@media only screen and (orientation: portrait) {
+	#artwork, #background-canvas-overlay {
+	  display: none;
+	}
+	
+	#info {
+	  width: 100%;
+	}
 }

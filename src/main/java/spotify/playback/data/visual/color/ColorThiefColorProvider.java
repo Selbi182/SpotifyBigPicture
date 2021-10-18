@@ -39,6 +39,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 	private static final double MIN_BRIGHTNESS = 0.15;
 	private static final double MIN_COLORFULNESS = 0.1;
 	private static final int MIN_POPULATION = 1000;
+	private static final int MIN_COLORED_PIXELS = 3000;
 	private static final double EPSILON = 0.001;
 
 	private LoadingCache<String, DominantRGBs> cachedDominantColorsForUrl;
@@ -80,6 +81,14 @@ public class ColorThiefColorProvider implements ColorProvider {
 		});
 		Collections.reverse(vboxes);
 
+		int totalPopulationOfColor = 0;
+		for (VBox vBox2 : vboxes) {
+			totalPopulationOfColor += vBox2.count(false);
+		}
+		if (totalPopulationOfColor < MIN_COLORED_PIXELS) {
+			vboxes.clear();
+		}
+
 		double borderBrightness = calculateAvgBorderBrightness(img);
 		if (vboxes.isEmpty()) {
 			// Grayscale image
@@ -115,7 +124,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 		int g = pal[1];
 		int b = pal[2];
 
-		double brightness = ColorUtil.calculateBrightness(r, g, b);
+		double brightness = ColorUtil.calculatePerceivedBrightness(RGB.of(r, g, b));
 		int population = vBox.count(false);
 		double colorfulness = ColorUtil.calculateColorfulness(r, g, b);
 
@@ -128,8 +137,8 @@ public class ColorThiefColorProvider implements ColorProvider {
 		int g = pal[1];
 		int b = pal[2];
 		int population = vBox.count(false);
-		double colorfulness = ColorUtil.calculateColorfulness(r, g, b);
-		return (int) (population + (population * colorfulness));
+		double brightness = ColorUtil.calculatePerceivedBrightness(RGB.of(r, g, b));
+		return (int) (population * Math.pow(brightness, 2.0));
 	}
 
 	private double calculateAvgBorderBrightness(BufferedImage img) {
@@ -142,7 +151,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 			acc += calcWeightedBrightnessAtLocation(img, x, img.getHeight() - 1);
 			samples += 2;
 		}
-		
+
 		for (int y = 0; y < img.getHeight(); y += sampleRange) {
 			acc += calcWeightedBrightnessAtLocation(img, 0, y);
 			acc += calcWeightedBrightnessAtLocation(img, img.getWidth() - 1, y);

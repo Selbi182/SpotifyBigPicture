@@ -113,7 +113,8 @@ function setTextData(changes) {
 	
 	// Main Info
 	if ('title' in changes) {
-		let titleNoFeat = removeFeatures(changes.title);
+		let normalizedEmoji = convertToTextEmoji(changes.title);
+		let titleNoFeat = removeFeaturedArtists(normalizedEmoji);
 		let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
 		let titleMain = splitTitle[0];
 		let titleExtra = splitTitle[1];
@@ -125,7 +126,8 @@ function setTextData(changes) {
 	}
 	if ('album' in changes || 'release' in changes) {
 		let album = 'album' in changes ? changes.album : currentData.album;
-		let splitTitle = separateUnimportantTitleInfo(album);
+		let normalizedEmoji = convertToTextEmoji(album);
+		let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
 		let albumTitleMain = splitTitle[0];
 		let albumTitleExtra = splitTitle[1];
 		document.getElementById("album-title-main").innerHTML = albumTitleMain;
@@ -137,10 +139,12 @@ function setTextData(changes) {
 
 	// Meta Info
 	if ('context' in changes) {
-		document.getElementById("context").innerHTML = changes.context;
+		let normalizedEmoji = convertToTextEmoji(changes.context);
+		document.getElementById("context").innerHTML = normalizedEmoji;
 	}
 	if ('device' in changes) {
-		document.getElementById("device").innerHTML = changes.device;
+		let normalizedEmoji = convertToTextEmoji(changes.device);
+		document.getElementById("device").innerHTML = normalizedEmoji;
 	}
 
 	// Time
@@ -223,7 +227,13 @@ function separateUnimportantTitleInfo(title) {
 	return [title, ""];
 }
 
-function removeFeatures(title) {
+function convertToTextEmoji(text) {
+	return [...text]
+		.map((char) => char.codePointAt() > 127 ? `&#${char.codePointAt()};&#xFE0E;` : char)
+		.join('');
+}
+
+function removeFeaturedArtists(title) {
 	return title.replace(/[\(|\[](f(ea)?t|with).+?[\)|\]]/ig, "").trim();
 }
 
@@ -233,7 +243,8 @@ function updateArtists(artists) {
 		let featuredArtists = artists.slice(1).join(" & ");
 		artistsString += ` (feat. ${featuredArtists})`;
 	}
-	document.getElementById("artists").innerHTML = artistsString;
+	let normalizedEmoji = convertToTextEmoji(artistsString);
+	document.getElementById("artists").innerHTML = normalizedEmoji;
 }
 
 
@@ -321,7 +332,7 @@ function prerenderAndSetArtwork(newImage, colors) {
 }
 
 function refreshArtworkRender() {
-	if (currentData.image && currentData.imageColors) {		
+	if (currentData.image && currentData.imageColors && visualPreferences[PARAM_PRERENDER]) {		
 		prerenderAndSetArtwork(currentData.image, currentData.imageColors);
 	}
 }
@@ -376,7 +387,7 @@ function updateProgress(changes) {
 	// Title
 	let newTitle = "Spotify Big Picture";
 	if (!idle && currentData.artists && currentData.title) {
-		newTitle = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artists[0]} - ${removeFeatures(currentData.title)} | ${newTitle}`;
+		newTitle = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artists[0]} - ${removeFeaturedArtists(currentData.title)} | ${newTitle}`;
 	}
 	document.title = newTitle;
 }
@@ -494,6 +505,7 @@ const PARAM_TRANSITIONS = "transitions";
 const PARAM_COLORED_TEXT = "coloredtext";
 const PARAM_CLOCK = "showclock";
 const PARAM_BG_ARTWORK = "bgartwork";
+const PARAM_PRERENDER = "prerender";
 const PARAM_STRIP_TITLES = "striptitles";
 
 const SETTINGS_ORDER = [
@@ -502,6 +514,7 @@ const SETTINGS_ORDER = [
 	PARAM_COLORED_TEXT,
 	PARAM_CLOCK,
 	PARAM_BG_ARTWORK,
+	PARAM_PRERENDER,
 	PARAM_STRIP_TITLES
 ];
 
@@ -510,6 +523,7 @@ const DEFAULT_SETTINGS = [
 	PARAM_COLORED_TEXT,
 	PARAM_CLOCK,
 	PARAM_BG_ARTWORK,
+	PARAM_PRERENDER,
 	PARAM_STRIP_TITLES
 ];
 
@@ -589,8 +603,12 @@ function refreshPreference(preference, state) {
 			setClass(document.getElementById("background-canvas-img"), "coloronly", !state);
 			refreshArtworkRender();
 			break;
+		case PARAM_PRERENDER:
+			showHide(document.getElementById("background-rendered"), state);
+			setClass(document.getElementById("prerender-canvas"), "noprerender", !state);
+			break;
 		case PARAM_CLOCK:
-			showHide(document.getElementById("clock"), state);
+			setClass(document.getElementById("clock"), "hide", !state);
 			break;
 		case PARAM_COLORED_TEXT:
 			setClass(document.body, "nocoloredtext", !state);
@@ -644,7 +662,7 @@ function handleAlternateDarkModeToggle() {
 // REFRESH IMAGE ON RESIZE
 ///////////////////////////////
 
-const REFRESH_BACKGROUND_ON_RESIZE_DELAY = 500;
+const REFRESH_BACKGROUND_ON_RESIZE_DELAY = 100;
 var refreshBackgroundEvent;
 window.onresize = () => {
 	clearTimeout(refreshBackgroundEvent);
@@ -673,6 +691,9 @@ document.onkeydown = (e) => {
 			break;
 		case "a":
 			toggleVisualPreference(PARAM_BG_ARTWORK);
+			break;
+		case "p":
+			toggleVisualPreference(PARAM_PRERENDER);
 			break;
 		case "s":
 			toggleVisualPreference(PARAM_STRIP_TITLES);
