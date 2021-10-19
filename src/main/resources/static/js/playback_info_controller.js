@@ -150,6 +150,9 @@ function setTextData(changes) {
 	// Time
 	if ('timeCurrent' in changes || 'timeTotal' in changes) {
 		updateProgress(changes);
+		if ('id' in changes) {
+			finishAnimations(document.querySelector("#progress-current"));
+		}
 	}
 
 	// States
@@ -247,6 +250,10 @@ function updateArtists(artists) {
 	document.getElementById("artists").innerHTML = normalizedEmoji;
 }
 
+function finishAnimations(elem) {
+	elem.getAnimations().forEach(ani => ani.finish());
+}
+
 
 ///////////////////////////////
 // IMAGE
@@ -299,24 +306,21 @@ function prerenderAndSetArtwork(newImage, colors) {
 			backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
 			backgroundCanvasOverlay.style.setProperty("--background-brightness", borderBrightness);
 			
-			domtoimage.toPng(prerenderCanvas, { width: window.innerWidth, height: window.innerHeight })
-				.then((dataBase64Png) => {
-					if (dataBase64Png.length < 10) {
+			domtoimage.toSvg(prerenderCanvas, {width: window.innerWidth, height: window.innerHeight})
+				.then((imgDataBase64) => {
+					if (imgDataBase64.length < 10) {
 						throw 'Rendered image data is invalid';
 					}
 					let backgroundImg = document.getElementById("background-img");
 					let backgroundCrossfade = document.getElementById("background-img-crossfade");
-					setClass(backgroundCrossfade, "skiptransition", true);
 					setClass(backgroundCrossfade, "show", true);
 					backgroundCrossfade.onload = () => {
-						window.requestAnimationFrame(() => {
-							backgroundImg.onload = () => {
-								setClass(backgroundCrossfade, "skiptransition", false);
-								setClass(backgroundCrossfade, "show", false);
-								resolve('Image updated');
-							};
-							backgroundImg.src = dataBase64Png;
-						});
+						finishAnimations(backgroundCrossfade);
+						backgroundImg.onload = () => {
+							setClass(backgroundCrossfade, "show", false);
+							resolve('Image updated');
+						};
+						backgroundImg.src = imgDataBase64;
 					};
 					backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
 			    })
@@ -332,19 +336,13 @@ function prerenderAndSetArtwork(newImage, colors) {
 }
 
 function refreshArtworkRender() {
-	if (currentData.image && currentData.imageColors && visualPreferences[PARAM_PRERENDER]) {		
+	if (currentData.image && currentData.imageColors && visualPreferences[PARAM_PRERENDER]) {
 		prerenderAndSetArtwork(currentData.image, currentData.imageColors);
 	}
 }
 
 function setTextColor(rgbText) {
 	document.documentElement.style.setProperty("--color", `rgb(${rgbText.r}, ${rgbText.g}, ${rgbText.b})`);
-}
-
-function calculateBrightness(rgb) {
-	// Very rough brightness calculation based on the HSP Color Model
-	// Taken from: http://alienryderflex.com/hsp.html
-	return Math.sqrt(0.299 * Math.pow(rgb.r, 2) + 0.587 * Math.pow(rgb.g, 2) + 0.114 * Math.pow(rgb.b, 2)) / 255;
 }
 
 function extractUrl(url) {
@@ -447,8 +445,10 @@ var autoTimer;
 var idleTimeout;
 var postSongEndRequestCount = 0;
 
+
 function startTimers() {
 	clearTimers();
+	document.querySelector("#progress-current").style.setProperty("--progress-speed", PROGRESS_BAR_UPDATE_MS + "ms");
 
 	startTime = Date.now();
 	autoTimer = setInterval(() => advanceProgressBar(), PROGRESS_BAR_UPDATE_MS);

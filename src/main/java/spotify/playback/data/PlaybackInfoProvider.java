@@ -117,9 +117,11 @@ public class PlaybackInfoProvider {
 	}
 
 	private PlaybackInfoDTO buildBaseInfo(CurrentlyPlayingContext info) {
-		IPlaylistItem episode = info.getItem();
+		IPlaylistItem playlistItem = info.getItem();
 		PlaybackInfoDTO pInfo = new PlaybackInfoDTO(Type.DATA);
 
+		pInfo.setId(playlistItem.getId());
+		
 		pInfo.setPaused(!info.getIs_playing());
 		pInfo.setShuffle(info.getShuffle_state());
 		pInfo.setRepeat(info.getRepeat_state());
@@ -128,9 +130,9 @@ public class PlaybackInfoProvider {
 		pInfo.setDevice(info.getDevice().getName());
 
 		pInfo.setTimeCurrent(info.getProgress_ms());
-		pInfo.setTimeTotal(episode.getDurationMs());
+		pInfo.setTimeTotal(playlistItem.getDurationMs());
 
-		String artworkUrl = artworkUrlProvider.findArtworkUrl(episode);
+		String artworkUrl = artworkUrlProvider.findArtworkUrl(playlistItem);
 		if (artworkUrl != null && !artworkUrl.isEmpty()) {
 			pInfo.setImage(artworkUrl);
 			DominantRGBs colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl);

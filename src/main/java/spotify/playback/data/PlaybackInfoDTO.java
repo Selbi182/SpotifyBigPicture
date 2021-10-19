@@ -24,6 +24,7 @@ public class PlaybackInfoDTO {
 	}
 
 	private Type type;
+	private String id;
 	private Boolean paused;
 	private Boolean shuffle;
 	private String repeat;
@@ -56,6 +57,14 @@ public class PlaybackInfoDTO {
 
 	public void setType(Type type) {
 		this.type = type;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public Boolean isPaused() {
@@ -160,5 +169,11 @@ public class PlaybackInfoDTO {
 
 	public void setTimeTotal(Integer timeTotal) {
 		this.timeTotal = timeTotal;
+	}
+
+	@Override
+	public String toString() {
+		return "PlaybackInfoDTO [type=" + type + ", id=" + id + ", paused=" + paused + ", shuffle=" + shuffle + ", repeat=" + repeat + ", device=" + device + ", context=" + context + ", artists=" + artists + ", title=" + title + ", album="
+			+ album + ", release=" + release + ", image=" + image + ", imageColors=" + imageColors + ", timeCurrent=" + timeCurrent + ", timeTotal=" + timeTotal + "]";
 	}
 }

@@ -36,7 +36,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 
 	private static final int PALETTE_SAMPLE_SIZE = 10;
 	private static final int PALETTE_SAMPLE_QUALITY = 5;
-	private static final double MIN_BRIGHTNESS = 0.15;
+	private static final double MIN_BRIGHTNESS = 0.075;
 	private static final double MIN_COLORFULNESS = 0.1;
 	private static final int MIN_POPULATION = 1000;
 	private static final int MIN_COLORED_PIXELS = 3000;
