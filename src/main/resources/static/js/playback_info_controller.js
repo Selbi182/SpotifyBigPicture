@@ -259,7 +259,7 @@ function finishAnimations(elem) {
 // IMAGE
 ///////////////////////////////
 
-const EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+const EMPTY_IMAGE_DATA = "https://i.scdn.co/image/ab67616d0000b273f292ec02a050dd8a6174cd4e"; // 640x640 black square
 const DEFAULT_IMAGE = 'design/img/idle.png';
 const DEFAULT_RGB = {
 	r: 255,
@@ -305,8 +305,10 @@ function prerenderAndSetArtwork(newImage, colors) {
 			let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
 			backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
 			backgroundCanvasOverlay.style.setProperty("--background-brightness", borderBrightness);
-			
-			domtoimage.toSvg(prerenderCanvas, {width: window.innerWidth, height: window.innerHeight})
+
+			// While PNG produces the bar far largest Base64 image data, the actual conversion process
+			// is significantly faster than with JPEG or SVG (still not perfect though)
+			domtoimage.toPng(prerenderCanvas, {width: window.innerWidth, height: window.innerHeight})
 				.then((imgDataBase64) => {
 					if (imgDataBase64.length < 10) {
 						throw 'Rendered image data is invalid';

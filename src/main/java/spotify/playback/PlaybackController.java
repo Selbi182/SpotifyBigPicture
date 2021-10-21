@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import spotify.SpotifyBigPicture;
 import spotify.bot.api.events.LoggedInEvent;
 import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.PlaybackInfoProvider;
@@ -30,12 +31,10 @@ public class PlaybackController {
 
 	private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
-	private boolean scheduledPollingEnabled = true;
-
 	@EventListener(LoggedInEvent.class)
 	private void ready() {
 		System.out.println("Spotify Playback Info ready!");
-		System.out.println("Scheduled polling is " + (scheduledPollingEnabled ? "enabled" : "disabled"));
+		System.out.println("Scheduled polling is " + (SpotifyBigPicture.scheduledPollingDisabled ? "disabled" : "enabled"));
 	}
 
 	/**
@@ -54,7 +53,7 @@ public class PlaybackController {
 	 * (observer pattern)
 	 * 
 	 * @return the emitter
-	 * @throws IOException
+	 * @throws IOException when the send event fails
 	 */
 	@GetMapping("/playbackinfoflux")
 	public ResponseEntity<SseEmitter> createAndRegisterNewFlux() throws IOException {
@@ -119,7 +118,7 @@ public class PlaybackController {
 	 */
 	@Scheduled(initialDelay = PlaybackInfoConstants.INTERVAL_MS, fixedRate = PlaybackInfoConstants.INTERVAL_MS)
 	private void fetchAndPublishCurrentPlaybackInfo() {
-		if (scheduledPollingEnabled) {
+		if (!SpotifyBigPicture.scheduledPollingDisabled) {
 			if (isAnyoneListening()) {
 				PlaybackInfoDTO info = currentPlaybackInfo.getCurrentPlaybackInfo(false);
 				if (info != null && !info.isEmpty()) {

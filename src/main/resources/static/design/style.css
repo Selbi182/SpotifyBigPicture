@@ -108,7 +108,7 @@ body.transition * {
 }
 
 #background-canvas {
-  transform: scale(1.05);
+  transform: scale(1.3);
   filter: brightness(35%);
 }
 
@@ -339,7 +339,7 @@ body.transition * {
 
 #progress-current {
 	--progress-speed: 250ms;
-	transition: width var(--progress-speed) linear;
+	transition: width var(--progress-speed) linear, background-color var(--transition);
 	background-color: var(--color);
 	width: 0;
 	height: 100%;
@@ -446,5 +446,10 @@ body.transition * {
 	
 	#info {
 	  width: 100%;
+	}
+	
+	
+	#background-canvas {
+	  transform: scale(1.05);
 	}
 }
