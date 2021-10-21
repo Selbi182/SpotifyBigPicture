@@ -1,16 +1,13 @@
 package spotify.bot.api;
 
-import java.net.URI;
-import java.net.UnknownHostException;
-
+import com.wrapper.spotify.SpotifyApi;
+import com.wrapper.spotify.SpotifyHttpManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.SpotifyHttpManager;
-
 import spotify.bot.config.Config;
+
+import java.net.URI;
 
 @Configuration
 public class SpotifyApiWrapper {
@@ -23,7 +20,6 @@ public class SpotifyApiWrapper {
 	 * preconfiguration from the settings is taken first.
 	 * 
 	 * @return the API instance
-	 * @throws UnknownHostException 
 	 */
 	@Bean
 	SpotifyApi spotifyApi() {

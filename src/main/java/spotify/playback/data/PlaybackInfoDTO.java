@@ -1,12 +1,11 @@
 package spotify.playback.data;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import spotify.playback.data.visual.color.DominantRGBs;
+
+import java.util.List;
 
 /**
  * Wrapper class for the playback info to be sent via SSEEmitter to the
@@ -14,11 +13,11 @@ import spotify.playback.data.visual.color.DominantRGBs;
  */
 @JsonInclude(Include.NON_NULL)
 public class PlaybackInfoDTO {
-	public static final PlaybackInfoDTO EMPTY = new PlaybackInfoDTO(Type.EMTPY);
+	public static final PlaybackInfoDTO EMPTY = new PlaybackInfoDTO(Type.EMPTY);
 	public static final PlaybackInfoDTO HEARTBEAT = new PlaybackInfoDTO(Type.HEARTBEAT);
 
 	enum Type {
-		EMTPY,
+		EMPTY,
 		HEARTBEAT,
 		DATA
 	}
@@ -28,8 +27,8 @@ public class PlaybackInfoDTO {
 	private Boolean paused;
 	private Boolean shuffle;
 	private String repeat;
-	private String device;
 	private String context;
+	private String device;
 	private List<String> artists;
 	private String title;
 	private String album;
@@ -47,8 +46,8 @@ public class PlaybackInfoDTO {
 	}
 
 	@JsonIgnore
-	public boolean isEmpty() {
-		return getType().equals(Type.EMTPY);
+	public boolean hasPayload() {
+		return !getType().equals(Type.EMPTY);
 	}
 
 	public Type getType() {

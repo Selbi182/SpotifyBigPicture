@@ -34,7 +34,6 @@ proguard/
 .gradletasknamecache
 .gradle/
 build/
-bin/
 
 # Spotify Bot
 templates/READY

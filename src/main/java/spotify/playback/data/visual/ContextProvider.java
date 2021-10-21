@@ -1,31 +1,22 @@
 package spotify.playback.data.visual;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.google.common.collect.Iterables;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.enums.ModelObjectType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
-import com.wrapper.spotify.model_objects.specification.Album;
-import com.wrapper.spotify.model_objects.specification.Artist;
-import com.wrapper.spotify.model_objects.specification.Context;
-import com.wrapper.spotify.model_objects.specification.Playlist;
-import com.wrapper.spotify.model_objects.specification.Show;
-import com.wrapper.spotify.model_objects.specification.Track;
-import com.wrapper.spotify.model_objects.specification.TrackSimplified;
-
+import com.wrapper.spotify.model_objects.specification.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.help.PlaybackInfoConstants;
+
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class ContextProvider {
@@ -108,7 +99,7 @@ public class ContextProvider {
 			if (currentContextAlbum.getTracks().getTotal() > MAX_IMMEDIATE_TRACKS) {
 				currentContextAlbumTracks = SpotifyCall.executePaging(spotifyApi.getAlbumsTracks(albumId));
 			} else {
-				currentContextAlbumTracks = (List<TrackSimplified>) Arrays.asList(currentContextAlbum.getTracks().getItems());
+				currentContextAlbumTracks = Arrays.asList(currentContextAlbum.getTracks().getItems());
 			}
 		}
 		if (currentContextAlbumTracks != null && track != null) {
@@ -118,7 +109,7 @@ public class ContextProvider {
 			int currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> t.getId().equals(trackId)) + 1;
 
 			// Total album duration
-			Integer totalDurationMs = currentContextAlbumTracks.stream().collect(Collectors.summingInt(TrackSimplified::getDurationMs));
+			Integer totalDurationMs = currentContextAlbumTracks.stream().mapToInt(TrackSimplified::getDurationMs).sum();
 			String totalDurationFormatted = formatTime(totalDurationMs);
 
 			// Assemble it all

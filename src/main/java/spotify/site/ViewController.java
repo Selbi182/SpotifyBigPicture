@@ -10,10 +10,7 @@ public class ViewController {
 
 	@GetMapping("/")
 	public ModelAndView createSpotifyPlaybackInterfaceView(@RequestParam(required = false) String prefs) {
-		return createView("layout.html", prefs);
-	}
-
-	private ModelAndView createView(String viewFileName, String prefs) {
+		String viewFileName = "layout.html";
 		ModelAndView modelAndView = new ModelAndView();
 		if (prefs != null) {
 			viewFileName += "?prefs=" + prefs;

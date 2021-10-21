@@ -1,6 +1,16 @@
 package spotify.playback.data.visual.color;
 
-import java.awt.Color;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import de.androidpit.colorthief.ColorThief;
+import de.androidpit.colorthief.MMCQ.VBox;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+import spotify.playback.data.visual.color.DominantRGBs.RGB;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -9,19 +19,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-
-import javax.imageio.ImageIO;
-
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
-import de.androidpit.colorthief.ColorThief;
-import de.androidpit.colorthief.MMCQ.VBox;
-import spotify.playback.data.visual.color.DominantRGBs.RGB;
 
 /**
  * Implementation of the dominant color finding algorithm using ColorThief. This
@@ -42,18 +39,20 @@ public class ColorThiefColorProvider implements ColorProvider {
 	private static final int MIN_COLORED_PIXELS = 3000;
 	private static final double EPSILON = 0.001;
 
-	private LoadingCache<String, DominantRGBs> cachedDominantColorsForUrl;
+	private final LoadingCache<String, DominantRGBs> cachedDominantColorsForUrl;
 
 	public ColorThiefColorProvider() {
 		this.cachedDominantColorsForUrl = CacheBuilder.newBuilder()
-			.build(new CacheLoader<String, DominantRGBs>() {
-				@Override
-				public DominantRGBs load(String imageUrl) throws IOException {
+			.build(CacheLoader.from((imageUrl) -> {
+				try {
 					DominantRGBs colors = getDominantColors(imageUrl);
 					ColorUtil.normalizeAllForReadability(colors);
 					return colors;
+				} catch (IOException e) {
+					e.printStackTrace();
+					return null;
 				}
-			});
+			}));
 	}
 
 	@Override
@@ -71,43 +70,37 @@ public class ColorThiefColorProvider implements ColorProvider {
 	private DominantRGBs getDominantColors(String imageUrl) throws IOException {
 		BufferedImage img = ImageIO.read(new URL(imageUrl));
 
-		List<VBox> vboxes = new ArrayList<>(ColorThief.getColorMap(img, PALETTE_SAMPLE_SIZE, PALETTE_SAMPLE_QUALITY, true).vboxes);
-		vboxes.removeIf(vBox -> !isValidVbox(vBox));
-		Collections.sort(vboxes, new Comparator<VBox>() {
-			@Override
-			public int compare(VBox v1, VBox v2) {
-				return Integer.compare(calculateWeightedPopulation(v1), calculateWeightedPopulation(v2));
-			}
-		});
-		Collections.reverse(vboxes);
+		List<VBox> vBoxes = new ArrayList<>(ColorThief.getColorMap(img, PALETTE_SAMPLE_SIZE, PALETTE_SAMPLE_QUALITY, true).vboxes);
+		vBoxes.removeIf(vBox -> !isValidVbox(vBox));
+		vBoxes.sort(Comparator.comparingInt(this::calculateWeightedPopulation));
+		Collections.reverse(vBoxes);
 
 		int totalPopulationOfColor = 0;
-		for (VBox vBox2 : vboxes) {
+		for (VBox vBox2 : vBoxes) {
 			totalPopulationOfColor += vBox2.count(false);
 		}
 		if (totalPopulationOfColor < MIN_COLORED_PIXELS) {
-			vboxes.clear();
+			vBoxes.clear();
 		}
 
 		double borderBrightness = calculateAvgBorderBrightness(img);
-		if (vboxes.isEmpty()) {
+		if (vBoxes.isEmpty()) {
 			// Grayscale image
 			RGB textColor = DominantRGBs.RGB.DEFAULT_RGB;
-			double borderBrightnessWithMin = borderBrightness;
 			RGB backgroundOverlay = RGB.of(
-				(int) (textColor.getR() * borderBrightnessWithMin),
-				(int) (textColor.getG() * borderBrightnessWithMin),
-				(int) (textColor.getB() * borderBrightnessWithMin));
+				(int) (textColor.getR() * borderBrightness),
+				(int) (textColor.getG() * borderBrightness),
+				(int) (textColor.getB() * borderBrightness));
 			return DominantRGBs.of(textColor, backgroundOverlay, borderBrightness);
-		} else if (vboxes.size() == 1) {
-			// Unicolor image
-			int[] pal = vboxes.get(0).avg(false);
+		} else if (vBoxes.size() == 1) {
+			// Monochrome image
+			int[] pal = vBoxes.get(0).avg(false);
 			RGB rgb = RGB.of(pal[0], pal[1], pal[2]);
 			return DominantRGBs.of(rgb, rgb, borderBrightness);
 		} else {
 			// Normal image (at least two colors)
-			int[] pal1 = vboxes.get(0).avg(false);
-			int[] pal2 = vboxes.get(1).avg(false);
+			int[] pal1 = vBoxes.get(0).avg(false);
+			int[] pal2 = vBoxes.get(1).avg(false);
 			RGB rgb1 = RGB.of(pal1[0], pal1[1], pal1[2]);
 			RGB rgb2 = RGB.of(pal2[0], pal2[1], pal2[2]);
 			if (ColorUtil.calculatePerceivedBrightness(rgb1) > ColorUtil.calculatePerceivedBrightness(rgb2)) {
@@ -158,8 +151,7 @@ public class ColorThiefColorProvider implements ColorProvider {
 			samples += 2;
 		}
 
-		double avg = ((double) acc / (double) samples);
-		return avg;
+		return (acc / (double) samples);
 	}
 
 	private double calcWeightedBrightnessAtLocation(BufferedImage img, int x, int y) {

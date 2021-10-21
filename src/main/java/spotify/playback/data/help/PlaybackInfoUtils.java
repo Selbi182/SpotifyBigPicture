@@ -1,13 +1,12 @@
 package spotify.playback.data.help;
 
 import com.wrapper.spotify.model_objects.specification.Track;
-
 import spotify.playback.data.PlaybackInfoDTO;
 
 public class PlaybackInfoUtils {
 
 	/**
-	 * Get the year of the currently playing's release date (which is in ISO format,
+	 * Get the year of the currently playing track's release date (which is in ISO format,
 	 * so it's always the first four characters).
 	 * 
 	 * @param track the track
@@ -21,7 +20,7 @@ public class PlaybackInfoUtils {
 	}
 
 	/**
-	 * Guess the ellapsed progress of the current song. Return true if it's still
+	 * Guess the elapsed progress of the current song. Return true if it's still
 	 * within tolerance.
 	 * 
 	 * @param previous the previous info

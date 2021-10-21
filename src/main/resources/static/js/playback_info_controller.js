@@ -210,7 +210,7 @@ function showHide(elem, show, useInvisibility) {
 const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "explicit", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "\\d{4}"];
 const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic"];
 
-// Two regexes for readability, cause otherwise it'd be a nightmare to decypher brackets from hyphens
+// Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
 const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[).*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
 const USELESS_WORDS_REGEX_HYPHEN = new RegExp("\\s-\\s.*?(" + USELESS_WORDS.join("|") + ").*", "ig");
 const WHITELISTED_WORDS_REGEXP = new RegExp(".*(" + WHITELISTED_WORDS.join("|") + ").*", "ig");
@@ -268,7 +268,7 @@ const DEFAULT_RGB = {
 };
 
 function changeImage(changes) {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		if ('image' in changes || 'imageColors' in changes) {
 			if (changes.image == "BLANK") {
 				changes.image = DEFAULT_IMAGE;
@@ -392,9 +392,7 @@ function updateProgress(changes) {
 	document.title = newTitle;
 }
 
-function formatTime(current, total) {
-	let progressBar = document.getElementById("progress");
-	
+function formatTime(current, total) {	
 	let currentHMS = calcHMS(current);
 	let totalHMS = calcHMS(total);
 
@@ -469,9 +467,9 @@ var startTime;
 function advanceProgressBar() {
 	if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
 		let now = Date.now();
-		let ellapsedTime = now - startTime;
+		let elapsedTime = now - startTime;
 		startTime = now;
-		let newTime = currentData.timeCurrent + ellapsedTime;
+		let newTime = currentData.timeCurrent + elapsedTime;
 		if (newTime > currentData.timeTotal) {
 			postSongEndRequestCount++;
 			if (postSongEndRequestCount > MAX_POST_SONG_END_AUTO_REQUEST_COUNT) {
@@ -637,7 +635,7 @@ function setTransitions(state) {
 
 function toggleFullscreen() {
 	if (document.fullscreenEnabled) {
-		if (!document.fullscreen) {
+		if (!document.fullscreenElement) {
 			document.documentElement.requestFullscreen();
 		} else {
 			document.exitFullscreen();

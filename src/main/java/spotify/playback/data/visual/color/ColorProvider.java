@@ -8,8 +8,8 @@ public interface ColorProvider {
 	 * whereas the secondary one is to be used as the background overlay.<br/>
 	 * <br/>
 	 * The algorithm favors bright, vibrant colors over dull ones and will
-	 * completely ignore colors that fall below a certain threshold in regards to
-	 * pixel population or brightness. For particularily dull images that don't even
+	 * completely ignore colors that fall below a certain threshold in regard to
+	 * pixel population or brightness. For particularly dull images that don't even
 	 * manage to find two colors meeting the minimum requirement at all, WHITE is
 	 * returned for any blank ones.
 	 * 
@@ -17,5 +17,5 @@ public interface ColorProvider {
 	 * @return the two most dominant colors as a RGB list of exactly two entries
 	 *         (note: all results are indefinitely cached)
 	 */
-	public DominantRGBs getDominantColorFromImageUrl(String imageUrl);
+	DominantRGBs getDominantColorFromImageUrl(String imageUrl);
 }

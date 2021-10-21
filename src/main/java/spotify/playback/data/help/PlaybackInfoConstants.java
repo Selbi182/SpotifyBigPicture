@@ -7,7 +7,6 @@ public class PlaybackInfoConstants {
 	public static final long ESTIMATED_PROGRESS_TOLERANCE_MS = 3 * 1000;
 
 	public static final String PLAYLIST_PREFIX = "https://api.spotify.com/v1/playlists/";
-	public static final String ALBUM_PREFIX = "https://api.spotify.com/v1/albums/";
 	public static final String ARTIST_PREFIX = "https://api.spotify.com/v1/artists/";
 
 }

@@ -1,36 +1,26 @@
 package spotify.bot.api;
 
-import java.awt.Desktop;
-import java.awt.HeadlessException;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpConnectTimeoutException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import javax.annotation.PostConstruct;
-
+import com.wrapper.spotify.SpotifyApi;
+import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
-import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials;
-
 import spotify.bot.api.events.LoggedInEvent;
 import spotify.bot.config.Config;
 import spotify.bot.util.BotLogger;
+
+import javax.annotation.PostConstruct;
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpConnectTimeoutException;
+import java.util.concurrent.*;
 
 @Component
 @RestController
@@ -81,12 +71,10 @@ public class SpotifyApiAuthorization {
 	/**
 	 * Authentication mutex to be used while the user is being prompted to log in
 	 */
-	private static Semaphore lock = new Semaphore(0);
+	private static final Semaphore lock = new Semaphore(0);
 
 	/**
 	 * Authentication process
-	 * 
-	 * @param api
 	 */
 	private void authenticate() {
 		try {
@@ -97,16 +85,14 @@ public class SpotifyApiAuthorization {
 				}
 				Desktop.getDesktop().browse(uri);
 			} catch (IOException | HeadlessException e) {
-				log.warning("Couldn't open browser window. Please login at this URL:");
+				log.warning("Couldn't open browser window. Please log in at this URL:");
 				System.out.println(uri.toString());
 			}
-			try {
-				lock.tryAcquire(LOGIN_TIMEOUT, TimeUnit.MINUTES);
-			} catch (InterruptedException e) {
-				log.error("Login timeout! Shutting down application in case of a Spotify Web API anomaly!");
-				System.exit(1);
+			if (!lock.tryAcquire(LOGIN_TIMEOUT, TimeUnit.MINUTES)) {
+				throw new InterruptedException();
 			}
-		} catch (BotException e) {
+		} catch (InterruptedException | BotException e) {
+			log.error("Login timeout! Shutting down application in case of a Spotify Web API anomaly!");
 			System.exit(182);
 		}
 	}
@@ -114,18 +100,15 @@ public class SpotifyApiAuthorization {
 	/**
 	 * Callback receiver for logins
 	 * 
-	 * @param code
-	 * @return
-	 * @throws SpotifyWebApiException 
-	 * @throws BotException
-	 * @throws IOException
+	 * @param code the authorization code from the Spotify API
+	 * @return a response entity indicating that the login was successful
 	 */
 	@RequestMapping(LOGIN_CALLBACK_URI)
-	private ResponseEntity<String> loginCallback(@RequestParam String code) throws SpotifyWebApiException {
+	private ResponseEntity<String> loginCallback(@RequestParam String code) {
 		AuthorizationCodeCredentials acc = SpotifyCall.execute(spotifyApi.authorizationCode(code));
 		updateTokens(acc);
 		lock.release();
-		return new ResponseEntity<String>("Successfully logged in!", HttpStatus.OK);
+		return ResponseEntity.ok("Successfully logged in!");
 	}
 
 	///////////////////////

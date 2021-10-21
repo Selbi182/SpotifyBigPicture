@@ -1,13 +1,12 @@
 package spotify.playback.data.visual.artwork.service;
 
-import java.util.Optional;
-
 import com.wrapper.spotify.model_objects.IPlaylistItem;
 import com.wrapper.spotify.model_objects.specification.Episode;
 import com.wrapper.spotify.model_objects.specification.Image;
 import com.wrapper.spotify.model_objects.specification.Track;
-
 import spotify.playback.data.visual.artwork.util.ArtworkUtil;
+
+import java.util.Optional;
 
 public class SpotifyArtworkUrlProvider {
 	public static Optional<String> getDefaultSpotifyImage(IPlaylistItem track) {

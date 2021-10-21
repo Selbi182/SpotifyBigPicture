@@ -1,8 +1,6 @@
 package spotify.playback.data.visual.color;
 
-import java.awt.Color;
-
-import com.trickl.palette.Palette.Swatch;
+import java.awt.*;
 
 public class DominantRGBs {
 
@@ -10,7 +8,7 @@ public class DominantRGBs {
 
 	private RGB primary;
 	private RGB secondary;
-	private double borderBrightness;
+	private final double borderBrightness;
 
 	private DominantRGBs(RGB primary, RGB secondary, double borderBrightness) {
 		this.primary = primary;
@@ -49,10 +47,6 @@ public class DominantRGBs {
 
 		public static RGB of(Color c) {
 			return new RGB(c.getRed(), c.getGreen(), c.getBlue());
-		}
-
-		public static RGB of(Swatch swatch) {
-			return of(swatch.getColor());
 		}
 
 		public int getR() {

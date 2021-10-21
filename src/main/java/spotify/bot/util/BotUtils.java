@@ -1,23 +1,16 @@
 package spotify.bot.util;
 
-import java.io.File;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.wrapper.spotify.enums.AlbumGroup;
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
 import com.wrapper.spotify.model_objects.specification.Track;
+
+import java.io.File;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class BotUtils {
 
@@ -54,15 +47,14 @@ public final class BotUtils {
 	public static boolean isWithinTimeoutWindow(Date baseDate, int timeoutInHours) {
 		Instant baseTime = Instant.ofEpochMilli(baseDate.getTime());
 		Instant currentTime = Instant.now();
-		boolean isWithinTimeoutWindow = currentTime.minus(timeoutInHours, ChronoUnit.HOURS).isBefore(baseTime);
-		return isWithinTimeoutWindow;
+		return currentTime.minus(timeoutInHours, ChronoUnit.HOURS).isBefore(baseTime);
 	}
 
 	/**
 	 * Creates a map with a full AlbumGroup -> List<T> relationship (the lists are
 	 * empty)
 	 * 
-	 * @return
+	 * @return the album group
 	 */
 	public static <T> Map<AlbumGroup, List<T>> createAlbumGroupToListOfTMap() {
 		Map<AlbumGroup, List<T>> albumGroupToList = new HashMap<>();
@@ -75,8 +67,8 @@ public final class BotUtils {
 	/**
 	 * Returns true if all mappings just contain an empty list (not null)
 	 * 
-	 * @param listsByMap
-	 * @return
+	 * @param listsByMap the map
+	 * @return true if is empty
 	 */
 	public static <T, K> boolean isAllEmptyLists(Map<K, List<T>> listsByMap) {
 		return listsByMap.values().stream().allMatch(List::isEmpty);
@@ -86,25 +78,25 @@ public final class BotUtils {
 	 * Remove all items from this list that are either <i>null</i> or "null" (a
 	 * literal String)
 	 * 
-	 * @param followedArtists
+	 * @param collection the collection
 	 */
 	public static void removeNullStrings(Collection<String> collection) {
-		collection.removeIf(e -> e == null || e.toLowerCase().equals("null"));
+		collection.removeIf(e -> e == null || e.equalsIgnoreCase("null"));
 	}
 
 	/**
 	 * Remove all items from this collection that are null
 	 * 
-	 * @param collection
+	 * @param collection the collection
 	 */
 	public static void removeNulls(Collection<?> collection) {
-		collection.removeIf(e -> e == null);
+		collection.removeIf(Objects::isNull);
 	}
 
 	/**
 	 * Return the current time as unix timestamp
 	 * 
-	 * @return
+	 * @return the current time as long
 	 */
 	public static long currentTime() {
 		Calendar cal = Calendar.getInstance();
@@ -114,8 +106,8 @@ public final class BotUtils {
 	/**
 	 * Build a readable String for an AlbumSimplified
 	 * 
-	 * @param as
-	 * @return
+	 * @param as the album
+	 * @return the string
 	 */
 	public static String formatAlbum(AlbumSimplified as) {
 		return String.format("[%s] %s - %s (%s)",
@@ -128,8 +120,8 @@ public final class BotUtils {
 	/**
 	 * Build a readable String for a Track
 	 * 
-	 * @param as
-	 * @return
+	 * @param t the track
+	 * @return the string
 	 */
 	public static String formatTrack(Track t) {
 		return String.format("%s - %s",
@@ -140,8 +132,8 @@ public final class BotUtils {
 	/**
 	 * Return a string representation of all artist names, separated by ", "
 	 * 
-	 * @param artists
-	 * @return
+	 * @param artists the artists
+	 * @return the string
 	 */
 	public static String joinArtists(ArtistSimplified[] artists) {
 		return Stream.of(artists)
@@ -152,8 +144,8 @@ public final class BotUtils {
 	/**
 	 * Convert the ArtistSimplified to a list of the names
 	 * 
-	 * @param artists
-	 * @return
+	 * @param artists the artists
+	 * @return the list of strings
 	 */
 	public static List<String> toArtistNamesList(ArtistSimplified[] artists) {
 		return Stream.of(artists)
@@ -164,8 +156,8 @@ public final class BotUtils {
 	/**
 	 * Returns the name of the first artist of this album (usually the only one)
 	 * 
-	 * @param as
-	 * @return
+	 * @param as the album
+	 * @return the name of the first artist
 	 */
 	public static String getFirstArtistName(AlbumSimplified as) {
 		return as.getArtists()[0].getName();
@@ -174,8 +166,8 @@ public final class BotUtils {
 	/**
 	 * Returns the name of the last artist of this album
 	 * 
-	 * @param as
-	 * @return
+	 * @param as the album
+	 * @return the name of the last artist
 	 */
 	public static String getLastArtistName(AlbumSimplified as) {
 		return as.getArtists()[as.getArtists().length - 1].getName();
@@ -185,8 +177,8 @@ public final class BotUtils {
 	 * Normalizes a file by converting it to a Path object, calling .normalize(),
 	 * and returning it back as file.
 	 * 
-	 * @param file
-	 * @return
+	 * @param file the file
+	 * @return the normalized file
 	 */
 	public static File normalizeFile(File file) {
 		if (file != null) {

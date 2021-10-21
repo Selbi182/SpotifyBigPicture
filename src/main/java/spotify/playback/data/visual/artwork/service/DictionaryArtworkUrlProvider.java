@@ -1,19 +1,19 @@
 package spotify.playback.data.visual.artwork.service;
 
-import java.util.Map;
-import java.util.Optional;
-
 import com.google.common.annotations.Beta;
 import com.wrapper.spotify.model_objects.IPlaylistItem;
 
+import java.util.Map;
+import java.util.Optional;
+
 /**
  * This was thrown together in a few minutes because Discogs suddenly decided to
- * Ccompletely die for local files. Will need to find a better solution in the
+ * Completely die for local files. Will need to find a better solution in the
  * long rung.
  */
 @Beta
 public class DictionaryArtworkUrlProvider {
-	private static Map<String, String> URLS = Map.ofEntries(
+	private static final Map<String, String> URLS = Map.ofEntries(
 		Map.entry("spotify:local:Yhdarl:%C3%98:%C3%98:2400", "https://f4.bcbits.com/img/a1003975092_10.jpg"),
 		Map.entry("spotify:local:Crimson+Shadows:Glory+on+the+Battlefield:Lost+in+a+Dark+Forest:382", "https://i.imgur.com/TwhnDXy.png"),
 		Map.entry("spotify:local:DragonForce:Inhuman+Rampage:Lost+Souls+In+Endless+Time:381", "https://images-na.ssl-images-amazon.com/images/I/81vhNC4oZNL._SL1425_.jpg"),

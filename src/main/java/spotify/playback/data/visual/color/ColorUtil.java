@@ -1,8 +1,8 @@
 package spotify.playback.data.visual.color;
 
-import java.awt.Color;
-
 import spotify.playback.data.visual.color.DominantRGBs.RGB;
+
+import java.awt.*;
 
 public class ColorUtil {
 	private ColorUtil() {
@@ -10,7 +10,7 @@ public class ColorUtil {
 
 	/**
 	 * Convenience method for {@link ColorUtil#calculateBrightness(int, int, int)}
-	 * 
+	 *
 	 * @param rgb the RGB object
 	 * @return the brightness as double (range 0.0..1.0)
 	 */
@@ -20,7 +20,7 @@ public class ColorUtil {
 
 	/**
 	 * Get the brightness of this color.
-	 * 
+	 *
 	 * @param r red 0..255
 	 * @param g green 0..255
 	 * @param b blue 0..255
@@ -32,7 +32,7 @@ public class ColorUtil {
 
 	/**
 	 * Get the colorfulness (saturation) of this color.
-	 * 
+	 *
 	 * @param r red 0..255
 	 * @param g green 0..255
 	 * @param b blue 0..255
@@ -48,7 +48,7 @@ public class ColorUtil {
 	private static float[] rgbToHsb(int r, int g, int b) {
 		return Color.RGBtoHSB(r, g, b, null);
 	}
-	
+
 	/**
 	 * @return float[0: hue, 1: saturation, 2: brightness]
 	 */
@@ -63,11 +63,11 @@ public class ColorUtil {
 	/**
 	 * Normalize the given color to improve readability. This is done by increasing
 	 * the brightness to the maximum.
-	 * 
-	 * @param color
-	 * @return a new, nornalized RBG object
+	 *
+	 * @param color the color
+	 * @return a new, normalized RBG object
 	 */
-	public static RGB normalizeForReadibility(RGB color) {
+	public static RGB normalizeForReadability(RGB color) {
 		int r = color.getR();
 		int g = color.getG();
 		int b = color.getB();
@@ -75,11 +75,11 @@ public class ColorUtil {
 		hsb[2] = 1.0f; // Set brightness to max
 		return RGB.of(hsbToRgb(hsb));
 	}
-	
+
 	/**
 	 * Calculate a rough perceived brightness for the human eye based on this color (e.g. we see green brighter than blue)
 	 * Taken from: https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
-	 * @param color
+	 * @param color the color
 	 * @return the rough perceived brightness 0.0..1.0
 	 */
 	public static double calculatePerceivedBrightness(RGB color) {
@@ -91,11 +91,11 @@ public class ColorUtil {
 
 	/**
 	 * Convenience method to normalize all colors for readability
-	 * 
-	 * @param colors
+	 *
+	 * @param colors the colors
 	 */
 	public static void normalizeAllForReadability(DominantRGBs colors) {
-		colors.setPrimary(normalizeForReadibility(colors.getPrimary()));
-		colors.setSecondary(normalizeForReadibility(colors.getSecondary()));
+		colors.setPrimary(normalizeForReadability(colors.getPrimary()));
+		colors.setSecondary(normalizeForReadability(colors.getSecondary()));
 	}
 }

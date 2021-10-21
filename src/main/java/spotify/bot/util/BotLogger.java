@@ -1,25 +1,18 @@
 package spotify.bot.util;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-
-import javax.annotation.PostConstruct;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import com.google.common.base.Strings;
 
 @Component
 public class BotLogger {
@@ -119,7 +112,7 @@ public class BotLogger {
 	}
 
 	/**
-	 * Print a line of of the given symbol as INFO-level log message
+	 * Print a line of the given symbol as INFO-level log message
 	 */
 	private void printLine(String lineCharacter) {
 		info(Strings.repeat(lineCharacter, MAX_LINE_LENGTH - ELLIPSIS.length()));
@@ -128,8 +121,8 @@ public class BotLogger {
 	/**
 	 * Chop off the message if it exceeds the maximum line length of 160 characters
 	 * 
-	 * @param message
-	 * @return
+	 * @param message the message
+	 * @return the truncated message
 	 */
 	private String truncateToEllipsis(String message) {
 		if (message.length() <= MAX_LINE_LENGTH - ELLIPSIS.length()) {
@@ -148,7 +141,9 @@ public class BotLogger {
 	private void writeToExternalLog(String message) throws IOException {
 		File logFile = new File(LOG_FILE_PATH);
 		if (!logFile.exists()) {
-			logFile.createNewFile();
+			if (!logFile.createNewFile()) {
+				throw new IOException("Couldn't create log file");
+			}
 		}
 		String logMessage = String.format("[%s] %s", DATE_FORMAT.format(Date.from(Instant.now())), message);
 		if (logFile.canWrite()) {
@@ -180,10 +175,9 @@ public class BotLogger {
 				}
 				try {
 					List<String> logFileLines = Files.readAllLines(logFile.toPath(), StandardCharsets.UTF_8);
-					List<String> logFileLinesRecent = logFileLines.subList(Math.max(0, logFileLines.size() - limit), logFileLines.size());
-					return logFileLinesRecent;
+					return logFileLines.subList(Math.max(0, logFileLines.size() - limit), logFileLines.size());
 				} catch (IOException e) {
-					throw new IOException("Failed to read log file (malformed encoding?): " + e.toString());
+					throw new IOException("Failed to read log file (malformed encoding?): " + e);
 				}
 			} else {
 				throw new IOException("Log file is currently locked, likely because it is being written to. Try again.");
@@ -198,7 +192,7 @@ public class BotLogger {
 	/**
 	 * Log and print the given exception's stack trace
 	 * 
-	 * @param e
+	 * @param e the exception
 	 */
 	public void stackTrace(Exception e) {
 		StringWriter stringWriter = new StringWriter();

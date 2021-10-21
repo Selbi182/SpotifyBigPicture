@@ -4,11 +4,13 @@ import com.wrapper.spotify.model_objects.IPlaylistItem;
 import com.wrapper.spotify.model_objects.specification.Episode;
 import com.wrapper.spotify.model_objects.specification.Track;
 
+import javax.annotation.Nonnull;
+
 public class ComparablePlaybackItem implements Comparable<IPlaylistItem> {
 
 	private final IPlaylistItem item;
 
-	public ComparablePlaybackItem(IPlaylistItem item) {
+	public ComparablePlaybackItem(@Nonnull IPlaylistItem item) {
 		this.item = item;
 	}
 
@@ -21,7 +23,7 @@ public class ComparablePlaybackItem implements Comparable<IPlaylistItem> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((item == null) ? 0 : item.getUri().hashCode());
+		result = prime * result + item.getUri().hashCode();
 		return result;
 	}
 
@@ -38,6 +40,7 @@ public class ComparablePlaybackItem implements Comparable<IPlaylistItem> {
 		return this.getItem().getUri().equals(id);
 	}
 
+	@Nonnull
 	public IPlaylistItem getItem() {
 		return item;
 	}
