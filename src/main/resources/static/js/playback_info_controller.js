@@ -441,7 +441,7 @@ function pad2(time) {
 const PROGRESS_BAR_UPDATE_MS = 250;
 const IDLE_TIMEOUT_MS = 1 * 60 * 60 * 1000;
 const REQUEST_ON_SONG_END_MS = 200;
-const MAX_POST_SONG_END_AUTO_REQUEST_COUNT = 4;
+const MAX_POST_SONG_END_AUTO_REQUEST_COUNT = 8;
 
 var autoTimer;
 var idleTimeout;
@@ -474,7 +474,7 @@ function advanceProgressBar() {
 		let newTime = currentData.timeCurrent + elapsedTime;
 		if (newTime > currentData.timeTotal) {
 			postSongEndRequestCount++;
-			if (postSongEndRequestCount > MAX_POST_SONG_END_AUTO_REQUEST_COUNT) {
+			if (postSongEndRequestCount == MAX_POST_SONG_END_AUTO_REQUEST_COUNT) {
 				singleRequest(true);
 			} else if (currentData.timeCurrent < currentData.timeTotal) {
 				setTimeout(() => singleRequest(false), REQUEST_ON_SONG_END_MS);
