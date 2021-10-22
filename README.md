@@ -43,8 +43,8 @@ These options are currently available (the letter in the brackets denotes a hotk
 * **Dark Mode (d):** Dims the screen and applies a blue-light filter similar to what you'd accomplish with tools like f.lux (I had to implement this because my TV was too cumbersome to control on-the-fly)
 * **Transitions (t):** Toggles the transition animations between songs and the smoothness of the progress bar. One might want to disable these when the app is run on something like Raspberry Pi, where fancy CSS is often too expensive
 * **Colored Text (c):** Whether the texts, progress bar, and icons should be adjusted to the most dominant color of the currently playing track's album cover art. White if disabled.
-* **Artwork Border (b):** Draws a thin, colored line around the cover art image. This is especially useful for darker images, so that they won't blend in with the background. One might want to disable it for aesthetic preference though. ([see here for an example](https://i.imgur.com/jmSsbyo.png))
 * **BG Artwork (a):** Whether the album artwork should be re-used for the background as a blurry picture, or if a simple gradient background should be used
+* **Prerender (p):** Used to capture a screenshot of the artwork image (and background) whenever it changes to indefinitely display that until the next song change. This saves a lot of processing time and is especially useful for weaker hardware.
 * **Strip Titles (s):** Throws away anything of the song titles one might not care about, such as "Remastered Version" or "Anniversary Edition". Might be overzealous depending on how much information you wish to have.
 * **Fullscreen (f):** Take a wild guess.
 

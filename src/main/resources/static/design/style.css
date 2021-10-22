@@ -115,11 +115,18 @@ body.transition * {
 #background-canvas-overlay {
   background: var(--background-gradients), var(--background-color);
 	--background-brightness: 0.5;
-	--background-brightness-adjusted: clamp(0.1, calc(1 - var(--background-brightness)), 0.35);
-	--background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%), linear-gradient(to bottom, transparent 0%, black 100%);
-	background-blend-mode: overlay;
-	opacity: var(--background-brightness-adjusted);
+	--background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%), linear-gradient(to bottom, transparent 0%, rgba(0,0,0,var(--background-brightness)) 100%);
+	background-blend-mode: color-burn;
+	opacity: var(--background-brightness);
 	transition: unset !important;
+}
+
+#background-canvas-overlay.boost {
+  opacity: calc(0.5 - var(--background-brightness));
+}
+
+#background-canvas-overlay.soften {
+	background-blend-mode: hard-light;
 }
 
 #background-canvas-img {

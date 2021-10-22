@@ -8,20 +8,20 @@ public class DominantRGBs {
 
 	private RGB primary;
 	private RGB secondary;
-	private final double borderBrightness;
+	private final double averageBrightness;
 
-	private DominantRGBs(RGB primary, RGB secondary, double borderBrightness) {
+	private DominantRGBs(RGB primary, RGB secondary, double averageBrightness) {
 		this.primary = primary;
 		this.secondary = secondary;
-		this.borderBrightness = borderBrightness;
+		this.averageBrightness = averageBrightness;
 	}
 
-	public static DominantRGBs of(RGB primary, RGB secondary, double borderBrightness) {
-		return new DominantRGBs(primary, secondary, borderBrightness);
+	public static DominantRGBs of(RGB primary, RGB secondary, double averageBrightness) {
+		return new DominantRGBs(primary, secondary, averageBrightness);
 	}
 
-	public static DominantRGBs of(Color primary, Color secondary, double borderBrightness) {
-		return new DominantRGBs(RGB.of(primary), RGB.of(secondary), borderBrightness);
+	public static DominantRGBs of(Color primary, Color secondary, double averageBrightness) {
+		return new DominantRGBs(RGB.of(primary), RGB.of(secondary), averageBrightness);
 	}
 
 	public static class RGB {
@@ -83,7 +83,7 @@ public class DominantRGBs {
 		this.secondary = secondary;
 	}
 
-	public double getBorderBrightness() {
-		return borderBrightness;
+	public double getAverageBrightness() {
+		return averageBrightness;
 	}
 }

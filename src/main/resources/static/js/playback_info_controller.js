@@ -218,7 +218,7 @@ const WHITELISTED_WORDS_REGEXP = new RegExp(".*(" + WHITELISTED_WORDS.join("|") 
 function separateUnimportantTitleInfo(title) {
 	if (title.search(WHITELISTED_WORDS_REGEXP) < 0) {
 		let index = title.search(USELESS_WORDS_REGEX_BRACKETS);
-		if (index < 0)  {
+		if (index < 0) {
 			index = title.search(USELESS_WORDS_REGEX_HYPHEN);
 		}
 		if (index >= 0) {
@@ -292,7 +292,7 @@ function changeImage(changes) {
 function prerenderAndSetArtwork(newImage, colors) {
 	return new Promise((resolve, reject) => {
 		let rgbOverlay = colors.secondary;
-		let borderBrightness = colors.borderBrightness;
+		let averageBrightness = colors.averageBrightness;
 
 		let artwork = document.getElementById("artwork-img");
 		artwork.src = newImage;
@@ -304,9 +304,11 @@ function prerenderAndSetArtwork(newImage, colors) {
 			setClass(prerenderCanvas, "show", true);
 			let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
 			backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
-			backgroundCanvasOverlay.style.setProperty("--background-brightness", borderBrightness);
+			backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
+			setClass(backgroundCanvasOverlay, "boost", averageBrightness < 0.2);
+			setClass(backgroundCanvasOverlay, "soften", averageBrightness > 0.7);
 
-			// While PNG produces the bar far largest Base64 image data, the actual conversion process
+			// While PNG produces the by far largest Base64 image data, the actual conversion process
 			// is significantly faster than with JPEG or SVG (still not perfect though)
 			domtoimage.toPng(prerenderCanvas, {width: window.innerWidth, height: window.innerHeight})
 				.then((imgDataBase64) => {
@@ -325,10 +327,10 @@ function prerenderAndSetArtwork(newImage, colors) {
 						backgroundImg.src = imgDataBase64;
 					};
 					backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
-			    })
-			    .catch((error) => {
+				})
+				.catch((error) => {
 					reject(error);
-			    })
+				})
 				.finally(() => {
 					setClass(prerenderCanvas, "show", false);
 				});

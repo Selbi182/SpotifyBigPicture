@@ -1,8 +1,8 @@
 package spotify.playback.data.visual.color;
 
-import spotify.playback.data.visual.color.DominantRGBs.RGB;
+import java.awt.Color;
 
-import java.awt.*;
+import spotify.playback.data.visual.color.DominantRGBs.RGB;
 
 public class ColorUtil {
 	private ColorUtil() {
@@ -78,7 +78,7 @@ public class ColorUtil {
 
 	/**
 	 * Calculate a rough perceived brightness for the human eye based on this color (e.g. we see green brighter than blue)
-	 * Taken from: https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
+	 * Taken from: http://alienryderflex.com/hsp.html
 	 * @param color the color
 	 * @return the rough perceived brightness 0.0..1.0
 	 */

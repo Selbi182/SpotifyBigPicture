@@ -1,22 +1,30 @@
 package spotify.playback.data.visual;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.google.common.collect.Iterables;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.enums.ModelObjectType;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
-import com.wrapper.spotify.model_objects.specification.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import com.wrapper.spotify.model_objects.specification.Album;
+import com.wrapper.spotify.model_objects.specification.Artist;
+import com.wrapper.spotify.model_objects.specification.Context;
+import com.wrapper.spotify.model_objects.specification.Playlist;
+import com.wrapper.spotify.model_objects.specification.Show;
+import com.wrapper.spotify.model_objects.specification.Track;
+import com.wrapper.spotify.model_objects.specification.TrackSimplified;
+
 import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
 import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.help.PlaybackInfoConstants;
-
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
 
 @Component
 public class ContextProvider {
@@ -119,7 +127,7 @@ public class ContextProvider {
 		}
 
 		// Fallback when playing back from the queue
-		return "Queue (ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName() + ")";
+		return "Queue >> ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName();
 	}
 
 	private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {

@@ -34,6 +34,7 @@ repositories {
 }
 
 dependencies {
+    // Do not update from 2.4.5! It's tempting, but there will be a million compatibility issues with Gradle and the Thin JAR builder!
     implementation 'org.springframework.boot:spring-boot-starter-web:2.4.5'
     implementation 'org.springframework.boot:spring-boot-starter-webflux:2.4.5'
     
