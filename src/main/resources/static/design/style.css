@@ -42,6 +42,10 @@ html, body {
 	cursor: none !important;
 }
 
+.transparent {
+	opacity: 0 !important;
+}
+
 .nocoloredtext {
 	--color: #ffffff;
 }
@@ -64,6 +68,10 @@ body.transition * {
 
 .skiptransition {
 	transition: unset !important;
+}
+
+img:not([src]) {
+  visibility: hidden;
 }
 
 #dark-overlay {
@@ -352,6 +360,7 @@ body.transition * {
 	height: 100%;
 	border-radius: inherit;
 	position: absolute;
+	z-index: 1;
 }
 
 #bottom-info {
@@ -388,7 +397,6 @@ body.transition * {
 
 #time-current, #time-total {
 	font-size: 4vmin;
-	opacity: 0.85;
 }
 
 #settings {

@@ -106,13 +106,8 @@ async function setDisplayData(changes) {
 }
 
 function setTextData(changes) {
-	// Update properties in local storage
-	for (let prop in changes) {
-		currentData[prop] = changes[prop];
-	}
-	
 	// Main Info
-	if ('title' in changes) {
+	if ('title' in changes && changes.title != currentData.title) {
 		let normalizedEmoji = convertToTextEmoji(changes.title);
 		let titleNoFeat = removeFeaturedArtists(normalizedEmoji);
 		let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
@@ -120,11 +115,24 @@ function setTextData(changes) {
 		let titleExtra = splitTitle[1];
 		document.getElementById("title-main").innerHTML = titleMain;
 		document.getElementById("title-extra").innerHTML = titleExtra;
+		
+		fadeIn(document.getElementById("title"));
 	}
-	if ('artists' in changes) {
-		updateArtists(changes.artists);
+	
+	if ('artists' in changes && changes.artists != currentData.artists) {
+		let artists = changes.artists;
+		let artistsString = artists[0];
+		if (artists.length > 1) {
+			let featuredArtists = artists.slice(1).join(" & ");
+			artistsString += ` (feat. ${featuredArtists})`;
+		}
+		let normalizedEmoji = convertToTextEmoji(artistsString);
+		document.getElementById("artists").innerHTML = normalizedEmoji;
+		
+		fadeIn(document.getElementById("artists"));
 	}
-	if ('album' in changes || 'release' in changes) {
+	
+	if (('album' in changes && changes.album != currentData.album) || ('release' in changes && changes.release != currentData.release)) {
 		let album = 'album' in changes ? changes.album : currentData.album;
 		let normalizedEmoji = convertToTextEmoji(album);
 		let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
@@ -135,16 +143,21 @@ function setTextData(changes) {
 
 		let release = 'release' in changes ? changes.release : currentData.release;
 		document.getElementById("album-release").innerHTML = release;
+		
+		fadeIn(document.getElementById("album"));
 	}
 
 	// Meta Info
-	if ('context' in changes) {
+	if ('context' in changes && changes.context != currentData.context) {
 		let normalizedEmoji = convertToTextEmoji(changes.context);
 		document.getElementById("context").innerHTML = normalizedEmoji;
+		fadeIn(document.getElementById("context"));
 	}
-	if ('device' in changes) {
+	
+	if ('device' in changes && changes.device != currentData.device) {
 		let normalizedEmoji = convertToTextEmoji(changes.device);
 		document.getElementById("device").innerHTML = normalizedEmoji;
+		fadeIn(document.getElementById("device"));
 	}
 
 	// Time
@@ -156,31 +169,41 @@ function setTextData(changes) {
 	}
 
 	// States
-	let repeat = document.getElementById("repeat");
-	let prevRepeatState = repeat.classList;
-	if ('paused' in changes || 'shuffle' in changes || 'repeat' in changes) {
+	if ('paused' in changes && changes.paused != currentData.paused) {
 		let paused = changes.paused != null ? changes.paused : currentData.paused;
-		let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
-		let repeat = changes.repeat != null ? changes.repeat : currentData.repeat;
-
-		setClass(document.getElementById("playpause"), "play", !paused);
-		showHide(document.getElementById("shuffle"), shuffle, true);
-		showHide(document.getElementById("repeat"), repeat != "off", true);
+		let pauseElem = document.getElementById("playpause");
+		setClass(pauseElem, "play", !paused);
+		fadeIn(pauseElem);
 	}
-	if ('repeat' in changes) {
+	
+	if ('shuffle' in changes && changes.shuffle != currentData.shuffle) {
+		let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
+		let shuffleElem = document.getElementById("shuffle");
+		showHide(shuffleElem, shuffle, true);
+		fadeIn(shuffleElem);
+	}
+	
+	if ('repeat' in changes && changes.repeat != currentData.repeat) {
+		let repeat = changes.repeat != null ? changes.repeat : currentData.repeat;
+		let repeatElem = document.getElementById("repeat");
+		showHide(repeatElem, repeat != "off", true);
 		if (changes.repeat == "track") {
-			repeat.classList.add("once");
+			repeatElem.classList.add("once");
 		} else {
-			repeat.classList.remove("once");
+			repeatElem.classList.remove("once");
 		}
-		if (!prevRepeatState.contains(changes.repeat)) {
-			handleAlternateDarkModeToggle();
-		}
+		fadeIn(repeatElem);
+		handleAlternateDarkModeToggle();
 	}
 	
 	// Color
 	if ('imageColors' in changes) {
 		setTextColor(changes.imageColors.primary);
+	}
+	
+	// Update properties in local storage
+	for (let prop in changes) {
+		currentData[prop] = changes[prop];
 	}
 }
 
@@ -240,18 +263,14 @@ function removeFeaturedArtists(title) {
 	return title.replace(/[\(|\[](f(ea)?t|with).+?[\)|\]]/ig, "").trim();
 }
 
-function updateArtists(artists) {
-	let artistsString = artists[0];
-	if (artists.length > 1) {
-		let featuredArtists = artists.slice(1).join(" & ");
-		artistsString += ` (feat. ${featuredArtists})`;
-	}
-	let normalizedEmoji = convertToTextEmoji(artistsString);
-	document.getElementById("artists").innerHTML = normalizedEmoji;
-}
-
 function finishAnimations(elem) {
 	elem.getAnimations().forEach(ani => ani.finish());
+}
+
+function fadeIn(elem) {
+	elem.classList.add("transparent");
+	finishAnimations(elem);
+	elem.classList.remove("transparent");
 }
 
 
@@ -474,7 +493,7 @@ function advanceProgressBar() {
 		let newTime = currentData.timeCurrent + elapsedTime;
 		if (newTime > currentData.timeTotal) {
 			postSongEndRequestCount++;
-			if (postSongEndRequestCount == MAX_POST_SONG_END_AUTO_REQUEST_COUNT) {
+			if (postSongEndRequestCount % MAX_POST_SONG_END_AUTO_REQUEST_COUNT == 0) {
 				singleRequest(true);
 			} else if (currentData.timeCurrent < currentData.timeTotal) {
 				setTimeout(() => singleRequest(false), REQUEST_ON_SONG_END_MS);
