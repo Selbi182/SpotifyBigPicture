@@ -1,11 +1,12 @@
 package spotify.playback.data;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import spotify.playback.data.visual.color.DominantRGBs;
 
-import java.util.List;
+import spotify.playback.data.visual.color.DominantRGBs;
 
 /**
  * Wrapper class for the playback info to be sent via SSEEmitter to the
@@ -37,6 +38,7 @@ public class PlaybackInfoDTO {
 	private DominantRGBs imageColors;
 	private Integer timeCurrent;
 	private Integer timeTotal;
+	private String description;
 
 	protected PlaybackInfoDTO() {
 	}
@@ -170,9 +172,17 @@ public class PlaybackInfoDTO {
 		this.timeTotal = timeTotal;
 	}
 
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	@Override
 	public String toString() {
 		return "PlaybackInfoDTO [type=" + type + ", id=" + id + ", paused=" + paused + ", shuffle=" + shuffle + ", repeat=" + repeat + ", device=" + device + ", context=" + context + ", artists=" + artists + ", title=" + title + ", album="
-			+ album + ", release=" + release + ", image=" + image + ", imageColors=" + imageColors + ", timeCurrent=" + timeCurrent + ", timeTotal=" + timeTotal + "]";
+			+ album + ", release=" + release + ", image=" + image + ", imageColors=" + imageColors + ", timeCurrent=" + timeCurrent + ", timeTotal=" + timeTotal + ", description=" + description + "]";
 	}
 }

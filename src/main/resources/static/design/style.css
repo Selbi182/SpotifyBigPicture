@@ -277,6 +277,15 @@ img:not([src]) {
 	display: none;
 }
 
+#album.podcast {
+	font-size: 2vmin;
+	text-align: justify;
+	margin: 0vmin 6vmin 3vmin 6vmin;
+}
+#album.podcast > div:last-child {
+	float: right;
+}
+
 #info {
 	width: calc(100vw - var(--artwork-size) - (var(--margin-main) * 3));
   display: flex;
@@ -450,8 +459,7 @@ img:not([src]) {
 }
 
 #clock {
-  font-family: 'Consolas', monospace;
-  opacity: 0.8;
+  opacity: 0.5;
   text-align: right;
 }
 

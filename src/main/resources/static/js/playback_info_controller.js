@@ -146,6 +146,14 @@ function setTextData(changes) {
 		
 		fadeIn(document.getElementById("album"));
 	}
+	
+	if ('description' in changes) {
+		let isPodcast = changes.description != "BLANK";
+		if (isPodcast) {
+			document.getElementById("album-title-main").innerHTML = changes.description;
+		}
+		setClass(document.getElementById("album"), "podcast", isPodcast);
+	}
 
 	// Meta Info
 	if ('context' in changes && changes.context != currentData.context) {
@@ -162,7 +170,7 @@ function setTextData(changes) {
 
 	// Time
 	if ('timeCurrent' in changes || 'timeTotal' in changes) {
-		updateProgress(changes);
+		updateProgress(changes, true);
 		if ('id' in changes) {
 			finishAnimations(document.querySelector("#progress-current"));
 		}
@@ -403,7 +411,7 @@ function makeUrl(url) {
 // PROGRESS
 ///////////////////////////////
 
-function updateProgress(changes) {
+function updateProgress(changes, updateProgressBar) {
 	let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
 	let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
 
@@ -419,13 +427,6 @@ function updateProgress(changes) {
 	if (formattedTotalTime != elemTimeTotal.innerHTML) {
 		elemTimeTotal.innerHTML = formattedTotalTime;
 	}
-
-	// Progress Bar
-	let progressPercent = Math.min(1, ((current / total))) * 100;
-	if (isNaN(progressPercent)) {
-		progressPercent = 0;
-	}
-	document.getElementById("progress-current").style.width = progressPercent + "%";
 	
 	// Title
 	let newTitle = "Spotify Big Picture";
@@ -433,6 +434,28 @@ function updateProgress(changes) {
 		newTitle = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artists[0]} - ${removeFeaturedArtists(currentData.title)} | ${newTitle}`;
 	}
 	document.title = newTitle;
+	
+	// Progress Bar
+	if (updateProgressBar) {
+		setProgressBarTarget(current, total);
+	}
+}
+
+function setProgressBarTarget(current, total) {
+	let progressBarElem = document.getElementById("progress-current");
+	
+	let progressPercent = Math.min(1, ((current / total))) * 100;
+	if (isNaN(progressPercent)) {
+		progressPercent = 0;
+	}
+	progressBarElem.style.width = progressPercent + "%";
+	finishAnimations(progressBarElem);
+	
+	let remainingTimeMs = total - current;
+	progressBarElem.style.setProperty("--progress-speed", remainingTimeMs + "ms");
+	requestAnimationFrame(() => {
+		progressBarElem.style.width = "100%";
+	});
 }
 
 function formatTime(current, total) {	
@@ -479,7 +502,7 @@ function pad2(time) {
 // TIMERS
 ///////////////////////////////
 
-const PROGRESS_BAR_UPDATE_MS = 250;
+const ADVANCE_CURRENT_TIME_MS = 1000;
 const IDLE_TIMEOUT_MS = 1 * 60 * 60 * 1000;
 const REQUEST_ON_SONG_END_MS = 200;
 
@@ -490,10 +513,9 @@ var postSongEndRequestCount = 0;
 
 function startTimers() {
 	clearTimers();
-	document.querySelector("#progress-current").style.setProperty("--progress-speed", PROGRESS_BAR_UPDATE_MS + "ms");
 
 	startTime = Date.now();
-	autoTimer = setInterval(() => advanceProgressBar(), PROGRESS_BAR_UPDATE_MS);
+	autoTimer = setInterval(() => advanceCurrentTime(), ADVANCE_CURRENT_TIME_MS);
 
 	idleTimeout = setTimeout(() => setIdle(), IDLE_TIMEOUT_MS);
 	this.idle = false;
@@ -506,7 +528,7 @@ function clearTimers() {
 }
 
 var startTime;
-function advanceProgressBar() {
+function advanceCurrentTime() {
 	if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
 		let now = Date.now();
 		let elapsedTime = now - startTime;
@@ -516,7 +538,7 @@ function advanceProgressBar() {
 			setTimeout(() => singleRequest(false), REQUEST_ON_SONG_END_MS);
 		}
 		currentData.timeCurrent = Math.min(currentData.timeTotal, newTime);
-		updateProgress(currentData);
+		updateProgress(currentData, false);
 	}
 }
 
@@ -748,11 +770,11 @@ document.addEventListener("click", handleMouseEvent);
 var cursorTimeout;
 const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 function handleMouseEvent() {
-	setClass(document.querySelector("body"), "hidecursor", false);
+	setClass(document.querySelector("html"), "hidecursor", false);
 	setClass(document.getElementById("settings"), "show", true);
 	clearTimeout(cursorTimeout);
 	cursorTimeout = setTimeout(() => {
-		setClass(document.querySelector("body"), "hidecursor", true);
+		setClass(document.querySelector("html"), "hidecursor", true);
 		setClass(document.getElementById("settings"), "show", false);
 	}, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }

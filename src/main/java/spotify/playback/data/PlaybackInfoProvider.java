@@ -32,6 +32,8 @@ import spotify.playback.data.visual.color.DominantRGBs;
 @Component
 public class PlaybackInfoProvider {
 
+	private static final String BLANK = "BLANK";
+
 	@Autowired
 	private SpotifyApi spotifyApi;
 
@@ -137,7 +139,7 @@ public class PlaybackInfoProvider {
 			DominantRGBs colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl);
 			pInfo.setImageColors(colors);
 		} else {
-			pInfo.setImage("BLANK");
+			pInfo.setImage(BLANK);
 			pInfo.setImageColors(DominantRGBs.FALLBACK);
 		}
 
@@ -152,6 +154,7 @@ public class PlaybackInfoProvider {
 		pInfo.setTitle(track.getName());
 		pInfo.setAlbum(track.getAlbum().getName());
 		pInfo.setRelease(PlaybackInfoUtils.findReleaseYear(track));
+		pInfo.setDescription(BLANK);
 
 		return pInfo;
 	}
@@ -162,8 +165,8 @@ public class PlaybackInfoProvider {
 		Episode episode = (Episode) info.getItem();
 		pInfo.setArtists(List.of(episode.getShow().getPublisher()));
 		pInfo.setTitle(episode.getName());
-		//pInfo.setAlbum(episode.getShow().getName());
-		pInfo.setAlbum(episode.getShow().getDescription());
+		pInfo.setAlbum(episode.getShow().getName());
+		pInfo.setDescription(episode.getShow().getDescription());
 		pInfo.setRelease(episode.getReleaseDate());
 
 		return pInfo;
