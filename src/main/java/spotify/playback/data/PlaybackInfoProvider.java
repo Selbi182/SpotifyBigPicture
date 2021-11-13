@@ -1,13 +1,24 @@
 package spotify.playback.data;
 
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.enums.CurrentlyPlayingType;
 import com.wrapper.spotify.model_objects.IPlaylistItem;
 import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import com.wrapper.spotify.model_objects.specification.Episode;
 import com.wrapper.spotify.model_objects.specification.Track;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+
 import spotify.bot.api.BotException;
 import spotify.bot.api.SpotifyCall;
 import spotify.bot.util.BotUtils;
@@ -17,15 +28,6 @@ import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlProvider;
 import spotify.playback.data.visual.color.ColorProvider;
 import spotify.playback.data.visual.color.DominantRGBs;
-
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 public class PlaybackInfoProvider {
@@ -160,7 +162,8 @@ public class PlaybackInfoProvider {
 		Episode episode = (Episode) info.getItem();
 		pInfo.setArtists(List.of(episode.getShow().getPublisher()));
 		pInfo.setTitle(episode.getName());
-		pInfo.setAlbum(episode.getShow().getName());
+		//pInfo.setAlbum(episode.getShow().getName());
+		pInfo.setAlbum(episode.getShow().getDescription());
 		pInfo.setRelease(episode.getReleaseDate());
 
 		return pInfo;

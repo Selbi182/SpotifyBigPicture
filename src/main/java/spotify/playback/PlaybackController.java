@@ -1,20 +1,26 @@
 package spotify.playback;
 
+import java.io.IOException;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import spotify.SpotifyBigPicture;
 import spotify.bot.api.events.LoggedInEvent;
 import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.help.PlaybackInfoConstants;
-
-import java.io.IOException;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @EnableScheduling
 @RestController
@@ -74,36 +80,6 @@ public class PlaybackController {
 			}
 		}
 		return ResponseEntity.noContent().build();
-		
-		/* TODO
-	    	Spicetify.Player.addEventListener("songchange", () => {
-		        const data = Spicetify.Player.data || Spicetify.Queue;
-		
-		        const jsonData = {
-		              type: "DATA",
-		              paused: data.is_paused,
-		              shuffle: data.options.shuffling_context,
-		              repeat: data.options.repeating_context || data.options.repeating_track,
-		              device: data.play_origin.view_uri,
-		              context: data.context_metadata.context_description,
-		              artists: [data.track.metadata.artist_name],
-		              title: data.track.metadata.title,
-		              album: data.track.metadata.album_title,
-		              release: "1970",
-		              image: data.track.metadata.image_xlarge_url.replace("spotify:image:", "https://i.scdn.co/image/"),
-		              imageColors: null,
-		              timeCurrent: 0,
-		              timeTotal: data.track.metadata.duration
-		        };
-		
-		        var xmlhttp = new XMLHttpRequest();
-		        var theUrl = "http://localhost:8183/playbackinfolistner";
-		        xmlhttp.open("POST", theUrl);
-		        xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-		        xmlhttp.send(JSON.stringify(jsonData));
-		        console.log(data);
-		    });
-		*/
 	}
 
 	/**

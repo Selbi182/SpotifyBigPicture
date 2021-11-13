@@ -119,7 +119,7 @@ function setTextData(changes) {
 		fadeIn(document.getElementById("title"));
 	}
 	
-	if ('artists' in changes && changes.artists != currentData.artists) {
+	if ('artists' in changes && JSON.stringify(changes.artists) != JSON.stringify(currentData.artists)) {
 		let artists = changes.artists;
 		let artistsString = artists[0];
 		if (artists.length > 1) {
@@ -287,74 +287,96 @@ const DEFAULT_RGB = {
 };
 
 function changeImage(changes) {
-	return new Promise((resolve) => {
+	return new Promise(async (resolve, reject) => {
 		if ('image' in changes || 'imageColors' in changes) {
 			if (changes.image == "BLANK") {
 				changes.image = DEFAULT_IMAGE;
-				changes.imageColors = {primary: DEFAULT_RGB, secondary: DEFAULT_RGB};
+				changes.imageColors = { primary: DEFAULT_RGB, secondary: DEFAULT_RGB };
 			}
 			let newImage = changes.image != null ? changes.image : currentData.image;
 			let colors = changes.imageColors != null ? changes.imageColors : currentData.imageColors;
 			if (newImage) {
 				let oldImage = document.getElementById("artwork-img").src;
 				if (!oldImage.includes(newImage)) {
-					prerenderAndSetArtwork(newImage, colors)
-						.then(resolve('Image changed'));
+					await prerenderAndSetArtwork(newImage, colors);
 				}
 			}
-		} else {
-			resolve('No new image to load')
 		}
+		resolve();
 	});
 }
 
 function prerenderAndSetArtwork(newImage, colors) {
 	return new Promise((resolve, reject) => {
-		let rgbOverlay = colors.secondary;
-		let averageBrightness = colors.averageBrightness;
+		loadBackground(newImage, colors)
+			.then(() => renderAndShow())
+			.then(() => loadArtwork(newImage))
+			.then(resolve);
+	});
+}
 
+
+function loadArtwork(newImage) {
+	return new Promise((resolve, reject) => {
 		let artwork = document.getElementById("artwork-img");
+		setClass(artwork, "transparent", true);
+		finishAnimations(artwork);
+		artwork.onload = () => {
+			setClass(artwork, "transparent", false);
+			resolve();
+		}
 		artwork.src = newImage;
-		
-		let prerenderCanvas = document.getElementById("prerender-canvas");
-		let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
+	});
+}
+
+
+function loadBackground(newImage, colors) {
+	return new Promise((resolve, reject) => {
 		let backgroundCanvasImg = document.getElementById("background-canvas-img");
 		backgroundCanvasImg.onload = () => {
+			let rgbOverlay = colors.secondary;
+			let averageBrightness = colors.averageBrightness;
+			let prerenderCanvas = document.getElementById("prerender-canvas");
+			let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
+
 			setClass(prerenderCanvas, "show", true);
 			let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
 			backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
 			backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
 			setClass(backgroundCanvasOverlay, "boost", averageBrightness < 0.2);
 			setClass(backgroundCanvasOverlay, "soften", averageBrightness > 0.7);
-
-			// While PNG produces the by far largest Base64 image data, the actual conversion process
-			// is significantly faster than with JPEG or SVG (still not perfect though)
-			domtoimage.toPng(prerenderCanvas, {width: window.innerWidth, height: window.innerHeight})
-				.then((imgDataBase64) => {
-					if (imgDataBase64.length < 10) {
-						throw 'Rendered image data is invalid';
-					}
-					let backgroundImg = document.getElementById("background-img");
-					let backgroundCrossfade = document.getElementById("background-img-crossfade");
-					setClass(backgroundCrossfade, "show", true);
-					backgroundCrossfade.onload = () => {
-						finishAnimations(backgroundCrossfade);
-						backgroundImg.onload = () => {
-							setClass(backgroundCrossfade, "show", false);
-							resolve('Image updated');
-						};
-						backgroundImg.src = imgDataBase64;
-					};
-					backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
-				})
-				.catch((error) => {
-					reject(error);
-				})
-				.finally(() => {
-					setClass(prerenderCanvas, "show", false);
-				});
+			resolve();
 		};
 		backgroundCanvasImg.src = newImage;
+	});
+}
+
+function renderAndShow() {
+	return new Promise((resolve, reject) => {
+		let backgroundImg = document.getElementById("background-img");
+		let backgroundCrossfade = document.getElementById("background-img-crossfade");
+		let prerenderCanvas = document.getElementById("prerender-canvas");
+
+		// While PNG produces the by far largest Base64 image data, the actual conversion process
+		// is significantly faster than with JPEG or SVG (still not perfect though)
+		domtoimage.toPng(prerenderCanvas, { width: window.innerWidth / 2.0, height: window.innerHeight / 2.0 })
+			.then((imgDataBase64) => {
+				if (imgDataBase64.length < 10) {
+					throw 'Rendered image data is invalid';
+				}
+				setClass(backgroundCrossfade, "show", true);
+				backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
+				backgroundCrossfade.onload = () => {
+					finishAnimations(backgroundCrossfade);
+					backgroundImg.onload = () => {
+						setClass(backgroundCrossfade, "show", false);
+						resolve();
+					};
+					backgroundImg.src = imgDataBase64;
+				};
+			})
+			.catch((error) => reject(error))
+			.finally(() => setClass(prerenderCanvas, "show", false));
 	});
 }
 
@@ -460,7 +482,6 @@ function pad2(time) {
 const PROGRESS_BAR_UPDATE_MS = 250;
 const IDLE_TIMEOUT_MS = 1 * 60 * 60 * 1000;
 const REQUEST_ON_SONG_END_MS = 200;
-const MAX_POST_SONG_END_AUTO_REQUEST_COUNT = 8;
 
 var autoTimer;
 var idleTimeout;
@@ -491,18 +512,10 @@ function advanceProgressBar() {
 		let elapsedTime = now - startTime;
 		startTime = now;
 		let newTime = currentData.timeCurrent + elapsedTime;
-		if (newTime > currentData.timeTotal) {
-			postSongEndRequestCount++;
-			if (postSongEndRequestCount % MAX_POST_SONG_END_AUTO_REQUEST_COUNT == 0) {
-				singleRequest(true);
-			} else if (currentData.timeCurrent < currentData.timeTotal) {
-				setTimeout(() => singleRequest(false), REQUEST_ON_SONG_END_MS);
-			}
-			newTime = currentData.timeTotal;
-		} else {
-			postSongEndRequestCount = 0;
+		if (newTime > currentData.timeTotal && currentData.timeCurrent < currentData.timeTotal) {
+			setTimeout(() => singleRequest(false), REQUEST_ON_SONG_END_MS);
 		}
-		currentData.timeCurrent = newTime;
+		currentData.timeCurrent = Math.min(currentData.timeTotal, newTime);
 		updateProgress(currentData);
 	}
 }
@@ -683,7 +696,7 @@ function handleAlternateDarkModeToggle() {
 // REFRESH IMAGE ON RESIZE
 ///////////////////////////////
 
-const REFRESH_BACKGROUND_ON_RESIZE_DELAY = 100;
+const REFRESH_BACKGROUND_ON_RESIZE_DELAY = 1000;
 var refreshBackgroundEvent;
 window.onresize = () => {
 	clearTimeout(refreshBackgroundEvent);
@@ -710,7 +723,7 @@ document.onkeydown = (e) => {
 		case "w":
 			toggleVisualPreference(PARAM_CLOCK);
 			break;
-		case "a":
+		case "b":
 			toggleVisualPreference(PARAM_BG_ARTWORK);
 			break;
 		case "p":
@@ -749,12 +762,19 @@ function handleMouseEvent() {
 // CLOCK
 ///////////////////////////////
 
+const DATE_OPTIONS = {
+	weekday: 'short',
+	year: 'numeric',
+	month: 'short',
+	day: 'numeric',
+	hour: '2-digit',
+	minute: '2-digit',
+  hourCycle: 'h23'
+};
 var prevTime;
 setInterval(() => {
 	let date = new Date();
-	let hh = date.getHours();
-	let mm = date.getMinutes();
-	let time = `${pad2(hh)}:${pad2(mm)}`;
+	let time = date.toLocaleDateString('en-UK', DATE_OPTIONS);
 	if (time != prevTime) {
 		prevTime = time;
 		let clock = document.querySelector("#clock");
