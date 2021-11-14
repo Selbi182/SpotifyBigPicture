@@ -147,12 +147,11 @@ function setTextData(changes) {
 		fadeIn(document.getElementById("album"));
 	}
 	
-	if ('description' in changes) {
+	if ('description' in changes && changes.description != currentData.description) {
+		let descriptionElem = document.getElementById("description");
 		let isPodcast = changes.description != "BLANK";
-		if (isPodcast) {
-			document.getElementById("album-title-main").innerHTML = changes.description;
-		}
-		setClass(document.getElementById("album"), "podcast", isPodcast);
+		descriptionElem.innerHTML = isPodcast ? changes.description : "";
+		fadeIn(descriptionElem);
 	}
 
 	// Meta Info

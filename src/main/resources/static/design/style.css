@@ -277,13 +277,16 @@ img:not([src]) {
 	display: none;
 }
 
-#album.podcast {
+#description {
 	font-size: 2vmin;
 	text-align: justify;
-	margin: 0vmin 6vmin 3vmin 6vmin;
+	text-align-last: center;
+	margin-top: -6vmin;
+	margin-bottom: var(--margin-main);
 }
-#album.podcast > div:last-child {
-	float: right;
+
+#description:empty {
+	display: none;
 }
 
 #info {
@@ -453,14 +456,12 @@ img:not([src]) {
 }
 
 #clock-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  flex-direction: column;
-}
-
-#clock {
-  opacity: 0.5;
-  text-align: right;
+	position: absolute;
+	bottom: 3vmin;
+	width: 100%;
+	text-align: center;
+	font-weight: bold;
+	opacity: 0.5;
 }
 
 #clock.hide {

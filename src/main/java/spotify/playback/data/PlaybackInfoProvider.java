@@ -166,7 +166,7 @@ public class PlaybackInfoProvider {
 		pInfo.setArtists(List.of(episode.getShow().getPublisher()));
 		pInfo.setTitle(episode.getName());
 		pInfo.setAlbum(episode.getShow().getName());
-		pInfo.setDescription(episode.getShow().getDescription());
+		pInfo.setDescription(episode.getDescription());
 		pInfo.setRelease(episode.getReleaseDate());
 
 		return pInfo;
