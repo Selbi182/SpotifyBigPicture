@@ -16,6 +16,7 @@
 	--margin-main: 8vmin;
 	--artwork-size: 68vh;
 	--default-shadow: 0.5vmin 0.5vmin 0.5vmin #000000aa;
+	--blur: 0.5vmin;
 }
 
 html, body {
@@ -64,7 +65,8 @@ body.transition * {
 	transition:
 		opacity var(--transition),
 		color var(--transition),
-		background-color var(--transition);
+		background-color var(--transition),
+		filter var(--transition);
 }
 
 .skiptransition {
@@ -146,7 +148,7 @@ img:not([src]) {
 	image-rendering: crisp-edges;
 	image-rendering: pixelated;
 	image-rendering: optimizeSpeed;
-	filter: blur(0.5vmin);
+	filter: blur(var(--blur));
 }
 
 #background-img-crossfade.show {
@@ -165,6 +167,10 @@ img:not([src]) {
 	height: 100%;
 	position: absolute;
 	padding: var(--margin-main);
+}
+
+#content.blur {
+	filter: blur(var(--blur));
 }
 
 #content-top {
@@ -467,7 +473,7 @@ img:not([src]) {
 	text-align: center;
 	font-weight: bold;
 	opacity: 0.5;
-	z-index: 1;
+	z-index: 2;
 }
 
 #clock.hide {

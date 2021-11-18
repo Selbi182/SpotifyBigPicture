@@ -421,6 +421,7 @@ function makeUrl(url) {
 function updateProgress(changes, updateProgressBar) {
 	let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
 	let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
+	let paused = 'paused' in changes ? changes.paused : currentData.paused;
 
 	// Text
 	let formattedTimes = formatTime(current, total)
@@ -444,7 +445,7 @@ function updateProgress(changes, updateProgressBar) {
 	
 	// Progress Bar
 	if (updateProgressBar) {
-		setProgressBarTarget(current, total, changes.paused);
+		setProgressBarTarget(current, total, paused);
 	}
 }
 
@@ -458,7 +459,7 @@ function setProgressBarTarget(current, total, paused) {
 	progressBarElem.style.width = progressPercent + "%";
 	
 	finishAnimations(progressBarElem);
-	if (paused === false) {
+	if (!paused) {
 		let remainingTimeMs = total - current;
 		progressBarElem.style.setProperty("--progress-speed", remainingTimeMs + "ms");
 		requestAnimationFrame(() => {
@@ -782,10 +783,12 @@ const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 function handleMouseEvent() {
 	setClass(document.querySelector("html"), "hidecursor", false);
 	setClass(document.getElementById("settings"), "show", true);
+	setClass(document.getElementById("content"), "blur", true);
 	clearTimeout(cursorTimeout);
 	cursorTimeout = setTimeout(() => {
 		setClass(document.querySelector("html"), "hidecursor", true);
 		setClass(document.getElementById("settings"), "show", false);
+		setClass(document.getElementById("content"), "blur", false);
 	}, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }
 
