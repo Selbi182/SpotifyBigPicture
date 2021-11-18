@@ -116,6 +116,8 @@ img:not([src]) {
 
 #prerender-canvas.noprerender {
   z-index: unset;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 #background-canvas {
@@ -144,7 +146,7 @@ img:not([src]) {
 	image-rendering: crisp-edges;
 	image-rendering: pixelated;
 	image-rendering: optimizeSpeed;
-	filter: blur(0.35vmin);
+	filter: blur(0.5vmin);
 }
 
 #background-img-crossfade.show {
@@ -231,11 +233,6 @@ img:not([src]) {
   margin-left: 3vmin;
 }
 
-#settings.show {
-	opacity: 1;
-}
-
-
 #center-info {
 	display: flex;
 	align-items: center;
@@ -294,7 +291,6 @@ img:not([src]) {
   display: flex;
   flex-direction: column;
   position: relative;
-  max-height: var(--artwork-size);
   overflow: hidden;
 }
 
@@ -418,27 +414,32 @@ img:not([src]) {
 
 #settings {
 	width: 100%;
-	height: min-content;
+	height: 100%;
 	z-index: 1;
-	background: linear-gradient(to bottom, transparent 0%, #00000080 100%);
+	background: linear-gradient(to right, black 00%, transparent 100%);
 	bottom: 0;
 	display: flex;
-	justify-content: space-evenly;
+	justify-content: flex-start;
 	position: absolute;
-	font-size: 2vmin;
+	font-size: 4vmin;
+	font-family: var(--font-bold);
 	opacity: 0;
-	pointer-events: auto;
 	flex-wrap: wrap-reverse;
+	padding: 6vmin;
+	pointer-events: none;
+	max-width: 50vmax;
 }
 
 #settings > div {
-	margin: 1vmin;
+	margin: auto;
+	width: 100%;
 }
 
 #settings > div > a {
 	text-decoration: none;
 	opacity: 0.65;
 	white-space: pre;
+	pointer-events: auto;
 }
 
 #settings > div > a:hover {
@@ -455,6 +456,10 @@ img:not([src]) {
 	opacity: 1;
 }
 
+#settings.show {
+	opacity: 1;
+}
+
 #clock-wrapper {
 	position: absolute;
 	bottom: 3vmin;
@@ -462,13 +467,14 @@ img:not([src]) {
 	text-align: center;
 	font-weight: bold;
 	opacity: 0.5;
+	z-index: 1;
 }
 
 #clock.hide {
 	opacity: 0;
 }
 
-@media only screen and (orientation: portrait) {
+@media only screen and (max-aspect-ratio: 3/2) {
 	#artwork, #background-canvas-overlay {
 	  display: none;
 	}

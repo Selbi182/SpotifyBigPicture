@@ -171,7 +171,7 @@ function setTextData(changes) {
 	if ('timeCurrent' in changes || 'timeTotal' in changes) {
 		updateProgress(changes, true);
 		if ('id' in changes) {
-			finishAnimations(document.querySelector("#progress-current"));
+			finishAnimations(document.getElementById("progress-current"));
 		}
 	}
 
@@ -274,6 +274,10 @@ function finishAnimations(elem) {
 	elem.getAnimations().forEach(ani => ani.finish());
 }
 
+function pauseAnimations(elem) {
+	elem.getAnimations().forEach(ani => ani.pause());
+}
+
 function fadeIn(elem) {
 	elem.classList.add("transparent");
 	finishAnimations(elem);
@@ -305,7 +309,7 @@ function changeImage(changes) {
 			if (newImage) {
 				let oldImage = document.getElementById("artwork-img").src;
 				if (!oldImage.includes(newImage)) {
-					await prerenderAndSetArtwork(newImage, colors);
+					await prerenderAndSetArtwork(newImage, colors, true);
 				}
 			}
 		}
@@ -313,18 +317,22 @@ function changeImage(changes) {
 	});
 }
 
-function prerenderAndSetArtwork(newImage, colors) {
-	return new Promise((resolve, reject) => {
+function prerenderAndSetArtwork(newImage, colors, refreshArtwork) {
+	return new Promise((resolve) => {
 		loadBackground(newImage, colors)
 			.then(() => renderAndShow())
-			.then(() => loadArtwork(newImage))
+			.then(() => loadArtwork(newImage, refreshArtwork))
 			.then(resolve);
 	});
 }
 
 
-function loadArtwork(newImage) {
-	return new Promise((resolve, reject) => {
+function loadArtwork(newImage, refreshArtwork) {
+	return new Promise((resolve) => {
+		if (!refreshArtwork) {
+			resolve();
+			return;
+		}
 		let artwork = document.getElementById("artwork-img");
 		setClass(artwork, "transparent", true);
 		finishAnimations(artwork);
@@ -387,9 +395,9 @@ function renderAndShow() {
 	});
 }
 
-function refreshArtworkRender() {
+function refreshBackgroundRender() {
 	if (currentData.image && currentData.imageColors && visualPreferences[PARAM_PRERENDER]) {
-		prerenderAndSetArtwork(currentData.image, currentData.imageColors);
+		prerenderAndSetArtwork(currentData.image, currentData.imageColors, false);
 	}
 }
 
@@ -436,11 +444,11 @@ function updateProgress(changes, updateProgressBar) {
 	
 	// Progress Bar
 	if (updateProgressBar) {
-		setProgressBarTarget(current, total);
+		setProgressBarTarget(current, total, changes.paused);
 	}
 }
 
-function setProgressBarTarget(current, total) {
+function setProgressBarTarget(current, total, paused) {
 	let progressBarElem = document.getElementById("progress-current");
 	
 	let progressPercent = Math.min(1, ((current / total))) * 100;
@@ -448,13 +456,15 @@ function setProgressBarTarget(current, total) {
 		progressPercent = 0;
 	}
 	progressBarElem.style.width = progressPercent + "%";
-	finishAnimations(progressBarElem);
 	
-	let remainingTimeMs = total - current;
-	progressBarElem.style.setProperty("--progress-speed", remainingTimeMs + "ms");
-	requestAnimationFrame(() => {
-		progressBarElem.style.width = "100%";
-	});
+	finishAnimations(progressBarElem);
+	if (paused === false) {
+		let remainingTimeMs = total - current;
+		progressBarElem.style.setProperty("--progress-speed", remainingTimeMs + "ms");
+		requestAnimationFrame(() => {
+			progressBarElem.style.width = "100%";
+		});
+	}
 }
 
 function formatTime(current, total) {	
@@ -656,7 +666,7 @@ function refreshPreference(preference, state) {
 			break;
 		case PARAM_BG_ARTWORK:
 			setClass(document.getElementById("background-canvas-img"), "coloronly", !state);
-			refreshArtworkRender();
+			refreshBackgroundRender();
 			break;
 		case PARAM_PRERENDER:
 			showHide(document.getElementById("background-rendered"), state);
@@ -717,14 +727,15 @@ function handleAlternateDarkModeToggle() {
 // REFRESH IMAGE ON RESIZE
 ///////////////////////////////
 
-const REFRESH_BACKGROUND_ON_RESIZE_DELAY = 1000;
+const REFRESH_BACKGROUND_ON_RESIZE_DELAY = 250;
 var refreshBackgroundEvent;
 window.onresize = () => {
 	clearTimeout(refreshBackgroundEvent);
 	refreshBackgroundEvent = setTimeout(() => {
-		refreshArtworkRender();
+		refreshBackgroundRender();
 	}, REFRESH_BACKGROUND_ON_RESIZE_DELAY);
 };
+
 
 ///////////////////////////////
 // HOTKEYS
@@ -788,7 +799,7 @@ const DATE_OPTIONS = {
 	year: 'numeric',
 	month: 'short',
 	day: 'numeric',
-	hour: '2-digit',
+	hour: 'numeric',
 	minute: '2-digit',
   hourCycle: 'h23'
 };
