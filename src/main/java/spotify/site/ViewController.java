@@ -8,14 +8,14 @@ import org.springframework.web.servlet.ModelAndView;
 @RestController
 public class ViewController {
 
-	@GetMapping("/")
-	public ModelAndView createSpotifyPlaybackInterfaceView(@RequestParam(required = false) String prefs) {
-		String viewFileName = "layout.html";
-		ModelAndView modelAndView = new ModelAndView();
-		if (prefs != null) {
-			viewFileName += "?prefs=" + prefs;
-		}
-		modelAndView.setViewName(viewFileName);
-		return modelAndView;
-	}
+  @GetMapping("/")
+  public ModelAndView createSpotifyPlaybackInterfaceView(@RequestParam(required = false) String prefs) {
+    String viewFileName = "layout.html";
+    ModelAndView modelAndView = new ModelAndView();
+    if (prefs != null) {
+      viewFileName += "?prefs=" + prefs;
+    }
+    modelAndView.setViewName(viewFileName);
+    return modelAndView;
+  }
 }
