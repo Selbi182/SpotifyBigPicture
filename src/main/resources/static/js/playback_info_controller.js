@@ -36,8 +36,8 @@ let idle = false;
 // WEB STUFF
 ///////////////////////////////
 
-const FLUX_URL = "/playbackinfoflux";
-const INFO_URL = "/playbackinfo";
+const FLUX_URL = "/playback-info-flux";
+const INFO_URL = "/playback-info";
 const INFO_URL_FULL = INFO_URL + "?full=true";
 const RETRY_TIMEOUT_MS = 5 * 1000;
 
@@ -589,31 +589,6 @@ const PREFERENCES = [
     volatile: true // don't add fullscreen in the URL params, as it won't work (browser security shenanigans)
   },
   {
-    id: "strip-titles",
-    name: "Strip Titles",
-    hotkey: "s",
-    description: "Hides any kind of unnecessary extra information from song tiles and release names " +
-        `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
-    state: true,
-    callback: (state) => {
-      setClass(document.getElementById("title-extra"), "hide", state);
-      setClass(document.getElementById("album-title-extra"), "hide", state);
-    }
-  },
-  {
-    id: "prerender",
-    name: "Prerender BG",
-    hotkey: "p",
-    description: "Captures a screenshot of the background image and displays that instead of the live background. " +
-        "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
-    state: true,
-    callback: (state) => {
-      showHide(document.getElementById("background-rendered"), state);
-      setClass(document.getElementById("prerender-canvas"), "no-prerender", !state);
-      refreshBackgroundRender();
-    }
-  },
-  {
     id: "bg-artwork",
     name: "Background Artwork",
     hotkey: "b",
@@ -633,20 +608,45 @@ const PREFERENCES = [
     callback: (state) => setClass(document.body, "no-colored-text", !state)
   },
   {
-    id: "show-clock",
-    name: "Clock",
-    hotkey: "w",
-    description: "Displays a clock in the bottom center of the page",
-    state: true,
-    callback: (state) => setClass(document.getElementById("clock"), "hide", !state)
-  },
-  {
     id: "transitions",
     name: "Transitions",
     hotkey: "t",
     description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed immediately",
     state: true,
     callback: (state) => setTransitions(state)
+  },
+  {
+    id: "strip-titles",
+    name: "Strip Titles",
+    hotkey: "s",
+    description: "Hides any kind of unnecessary extra information from song tiles and release names " +
+        `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("title-extra"), "hide", state);
+      setClass(document.getElementById("album-title-extra"), "hide", state);
+    }
+  },
+  {
+    id: "prerender",
+    name: "Prerender Background",
+    hotkey: "p",
+    description: "Captures a screenshot of the background image and displays that instead of the live background. " +
+        "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
+    state: true,
+    callback: (state) => {
+      showHide(document.getElementById("background-rendered"), state);
+      setClass(document.getElementById("prerender-canvas"), "no-prerender", !state);
+      refreshBackgroundRender();
+    }
+  },
+  {
+    id: "show-clock",
+    name: "Clock",
+    hotkey: "w",
+    description: "Displays a clock in the bottom center of the page",
+    state: true,
+    callback: (state) => setClass(document.getElementById("clock"), "hide", !state)
   },
   {
     id: "dark-mode",
@@ -672,22 +672,24 @@ function findPreference(id) {
   return PREFERENCES.find(pref => pref.id === id);
 }
 
-const PREFS_URL_PARAM = "prefs";
+const PREFS_URL_PARAM = "p";
 
 window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
-  const urlParams = new URLSearchParams(window.location.search);
-  let urlPrefs = urlParams.get(PREFS_URL_PARAM);
   const settingsWrapper = document.getElementById("settings");
   const settingsDescriptionWrapper = document.getElementById("settings-description");
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlPrefs = urlParams.has(PREFS_URL_PARAM)
+      ? unescape(urlParams.get(PREFS_URL_PARAM)).split(" ")
+      : null;
   for (let prefIndex in PREFERENCES) {
     let pref = PREFERENCES[prefIndex];
 
     // Set state on site load
     let state = pref.state;
     if (urlPrefs) {
-      state = !!parseInt(urlPrefs[parseInt(prefIndex)]);
+      state = urlPrefs.includes(pref.id);
     }
     pref.state = state;
 
@@ -714,24 +716,26 @@ function initVisualPreferences() {
 }
 
 function refreshPrefsQueryParam() {
-  let prefsString = "";
+  let urlPrefs = [];
   for (let pref of PREFERENCES) {
-    if (!pref.volatile) {
-      let prefState = pref.state;
-      let prefBool = prefState ? "1" : "0";
-      prefsString += prefBool;
+    if (!pref.volatile && pref.state) {
+      urlPrefs.push(pref.id);
     }
   }
 
   const url = new URL(window.location);
-  url.searchParams.set(PREFS_URL_PARAM, prefsString);
-  window.history.replaceState({}, 'Spotify Big Picture', url.toString());
+  url.searchParams.set(PREFS_URL_PARAM, urlPrefs.join("+"));
+  window.history.replaceState({}, 'Spotify Big Picture', unescape(url.toString()));
 }
 
-function toggleVisualPreference(preferences) {
-  let newState = !preferences.state;
-  refreshPreference(preferences, newState);
-  refreshPrefsQueryParam();
+function toggleVisualPreference(pref) {
+  if (pref.volatile) {
+    pref.callback();
+  } else {
+    let newState = !pref.state;
+    refreshPreference(pref, newState);
+    refreshPrefsQueryParam();
+  }
 }
 
 let darkModeTimeout;
@@ -744,9 +748,9 @@ function refreshPreference(preference, state) {
     // Toggle Checkmark
     let classList = document.getElementById(preference.id).classList;
     if (state) {
-      classList.add("preference-on");
+      classList.add("on");
     } else {
-      classList.remove("preference-on");
+      classList.remove("on");
     }
   }
 }
@@ -822,7 +826,7 @@ const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 
 function handleMouseEvent(event) {
   clearTimeout(cursorTimeout);
-  setClass(document.querySelector("html"), "hide-cursor", false);
+  setClass(document.documentElement, "hide-cursor", false);
 
   let settingsDescription = document.getElementById("settings-description");
   let target = event.target;
@@ -833,10 +837,9 @@ function handleMouseEvent(event) {
     let targetLabel = document.getElementById(target.id + "-description");
     setClass(targetLabel, "show", true);
   } else {
-    settingsDescription.childNodes
-        .forEach(elem => setClass(elem, "show", false));
+    settingsDescription.childNodes.forEach(elem => setClass(elem, "show", false));
     cursorTimeout = setTimeout(() => {
-      setClass(document.querySelector("html"), "hide-cursor", true);
+      setClass(document.documentElement, "hide-cursor", true);
       setClass(document.getElementById("settings-wrapper"), "show", false);
       setClass(document.getElementById("content"), "blur", false);
     }, MOUSE_MOVE_HIDE_TIMEOUT_MS);

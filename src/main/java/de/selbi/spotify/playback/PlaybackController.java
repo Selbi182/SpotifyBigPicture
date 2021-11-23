@@ -45,7 +45,7 @@ public class PlaybackController {
    * @param full force a full info package, otherwise only the differences
    * @return the playback info
    */
-  @GetMapping("/playbackinfo")
+  @GetMapping("/playback-info")
   public ResponseEntity<PlaybackInfoDTO> getCurrentPlaybackInfo(@RequestParam(defaultValue = "false") boolean full) {
     return ResponseEntity.ok(playbackInfoProvider.getCurrentPlaybackInfo(full));
   }
@@ -57,7 +57,7 @@ public class PlaybackController {
    * @return the emitter
    * @throws IOException when the send event fails
    */
-  @GetMapping("/playbackinfoflux")
+  @GetMapping("/playback-info-flux")
   public ResponseEntity<SseEmitter> createAndRegisterNewFlux() throws IOException {
     SseEmitter emitter = new SseEmitter();
     emitter.onError(e -> emitter.complete());
@@ -74,7 +74,7 @@ public class PlaybackController {
    * @return a 204 no content response
    */
   @CrossOrigin
-  @PostMapping("/playbackinfolistner")
+  @PostMapping("/playback-info-listener")
   public ResponseEntity<Void> playbackInfoListener(@RequestBody PlaybackInfoDTO info) {
     if (isAnyoneListening()) {
       if (info != null && info.hasPayload()) {

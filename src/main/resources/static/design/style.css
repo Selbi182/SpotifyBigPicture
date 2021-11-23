@@ -457,7 +457,7 @@ img:not([src]) {
     opacity: 0;
 }
 
-#settings > .preference-on:before {
+#settings > .on:before {
     opacity: 1;
 }
 
@@ -493,7 +493,7 @@ img:not([src]) {
     z-index: 1;
 }
 
-#clock.hide {
+#clock.hide, #clock:empty {
     opacity: 0;
 }
 
