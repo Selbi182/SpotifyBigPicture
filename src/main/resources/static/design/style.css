@@ -466,7 +466,8 @@ img:not([src]) {
 #clock-wrapper {
     position: absolute;
     bottom: 3vmin;
-    width: 100%;
+    left: 0;
+    right: 0;
     text-align: center;
     font-weight: bold;
     opacity: 0.5;
