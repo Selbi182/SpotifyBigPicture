@@ -44,7 +44,6 @@ const RETRY_TIMEOUT_MS = 5 * 1000;
 window.addEventListener('load', init);
 
 function init() {
-  console.info("Init");
   singleRequest(true);
   closeFlux();
   startFlux();
@@ -204,7 +203,7 @@ function setTextData(changes) {
   // States
   if ('paused' in changes && changes.paused !== currentData.paused) {
     let paused = changes.paused != null ? changes.paused : currentData.paused;
-    let pauseElem = document.getElementById("playpause");
+    let pauseElem = document.getElementById("play-pause");
     setClass(pauseElem, "play", !paused);
     fadeIn(pauseElem);
   }
@@ -418,7 +417,7 @@ function renderAndShow() {
 }
 
 function refreshBackgroundRender() {
-  if (currentData.image && currentData.imageColors && visualPreferences[PARAM_PRERENDER]) {
+  if (currentData.image && currentData.imageColors && findPreference("prerender").state) {
     prerenderAndSetArtwork(currentData.image, currentData.imageColors, false).then();
   }
 }
@@ -579,69 +578,149 @@ function setIdle() {
 // VISUAL PREFERENCES
 ///////////////////////////////
 
-const PARAM_DARK_MODE = "darkmode";
-const PARAM_TRANSITIONS = "transitions";
-const PARAM_COLORED_TEXT = "coloredtext";
-const PARAM_CLOCK = "showclock";
-const PARAM_BG_ARTWORK = "bgartwork";
-const PARAM_PRERENDER = "prerender";
-const PARAM_STRIP_TITLES = "striptitles";
-
-const SETTINGS_ORDER = [
-  PARAM_DARK_MODE,
-  PARAM_TRANSITIONS,
-  PARAM_COLORED_TEXT,
-  PARAM_CLOCK,
-  PARAM_BG_ARTWORK,
-  PARAM_PRERENDER,
-  PARAM_STRIP_TITLES
+const PREFERENCES = [
+  {
+    id: "fullscreen",
+    name: "Fullscreen",
+    hotkey: "f",
+    description: "Toggles fullscreen on and off (this setting is not persisted between sessions for security reasons)",
+    state: false,
+    callback: () => toggleFullscreen(),
+    volatile: true // don't add fullscreen in the URL params, as it won't work (browser security shenanigans)
+  },
+  {
+    id: "strip-titles",
+    name: "Strip Titles",
+    hotkey: "s",
+    description: "Hides any kind of unnecessary extra information from song tiles and release names " +
+        `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("title-extra"), "hide", state);
+      setClass(document.getElementById("album-title-extra"), "hide", state);
+    }
+  },
+  {
+    id: "prerender",
+    name: "Prerender BG",
+    hotkey: "p",
+    description: "Captures a screenshot of the background image and displays that instead of the live background. " +
+        "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
+    state: true,
+    callback: (state) => {
+      showHide(document.getElementById("background-rendered"), state);
+      setClass(document.getElementById("prerender-canvas"), "no-prerender", !state);
+      refreshBackgroundRender();
+    }
+  },
+  {
+    id: "bg-artwork",
+    name: "Background Artwork",
+    hotkey: "b",
+    description: "If enabled, uses the release artwork for the background as a blurry, darkened version. Otherwise, only a gradient color will be displayed",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("background-canvas-img"), "color-only", !state);
+      refreshBackgroundRender();
+    }
+  },
+  {
+    id: "colored-text",
+    name: "Colored Text",
+    hotkey: "c",
+    description: "If enabled, the dominant color of the current artwork will be used as color for all texts and symbols. Otherwise, plain white will be used",
+    state: true,
+    callback: (state) => setClass(document.body, "no-colored-text", !state)
+  },
+  {
+    id: "show-clock",
+    name: "Clock",
+    hotkey: "w",
+    description: "Displays a clock in the bottom center of the page",
+    state: true,
+    callback: (state) => setClass(document.getElementById("clock"), "hide", !state)
+  },
+  {
+    id: "transitions",
+    name: "Transitions",
+    hotkey: "t",
+    description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed immediately",
+    state: true,
+    callback: (state) => setTransitions(state)
+  },
+  {
+    id: "dark-mode",
+    name: "Dark Mode",
+    hotkey: "d",
+    description: "Darkens the entire screen by 50%. This setting will be automatically disabled after 8 hours",
+    state: false,
+    callback: (state) => {
+      const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 8 * 60 * 60 * 1000;
+      setClass(document.getElementById("dark-overlay"), "show", state);
+      clearTimeout(darkModeTimeout);
+      if (this.state) {
+        darkModeTimeout = setTimeout(() => {
+          refreshPreference(id, false);
+          refreshPrefsQueryParam();
+        }, DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT);
+      }
+    }
+  },
 ];
 
-const DEFAULT_SETTINGS = [
-  PARAM_TRANSITIONS,
-  PARAM_COLORED_TEXT,
-  PARAM_CLOCK,
-  PARAM_BG_ARTWORK,
-  PARAM_PRERENDER,
-  PARAM_STRIP_TITLES
-];
+function findPreference(id) {
+  return PREFERENCES.find(pref => pref.id === id);
+}
 
 const PREFS_URL_PARAM = "prefs";
 
-// Settings with defaults
-let visualPreferences = {};
+window.addEventListener('load', initVisualPreferences);
 
-window.addEventListener('load', initVisualPreferencesFromUrlParams);
-
-function initVisualPreferencesFromUrlParams() {
+function initVisualPreferences() {
   const urlParams = new URLSearchParams(window.location.search);
-  let prefs = urlParams.get(PREFS_URL_PARAM);
-  for (let prefIndex in SETTINGS_ORDER) {
-    let pref = SETTINGS_ORDER[prefIndex];
+  let urlPrefs = urlParams.get(PREFS_URL_PARAM);
+  const settingsWrapper = document.getElementById("settings");
+  const settingsDescriptionWrapper = document.getElementById("settings-description");
+  for (let prefIndex in PREFERENCES) {
+    let pref = PREFERENCES[prefIndex];
 
     // Set state on site load
-    let state = DEFAULT_SETTINGS.includes(pref);
-    if (prefs) {
-      state = !!parseInt(prefs[parseInt(prefIndex)]);
+    let state = pref.state;
+    if (urlPrefs) {
+      state = !!parseInt(urlPrefs[parseInt(prefIndex)]);
     }
-    visualPreferences[pref] = state;
+    pref.state = state;
 
-    // Attach event listener when clicking it
-    document.getElementById(pref).firstChild.onclick = () => toggleVisualPreference(pref);
+    // Create button element
+    let prefElem = document.createElement("div");
+    prefElem.id = pref.id;
+    prefElem.classList.add("setting");
+    prefElem.innerHTML = `${pref.name} (${pref.hotkey})`;
+    prefElem.onclick = () => toggleVisualPreference(pref);
+    settingsWrapper.appendChild(prefElem);
+
+    // Create description element
+    let descElem = document.createElement("div");
+    descElem.id = pref.id + "-description";
+    descElem.innerHTML = pref.description;
+    settingsDescriptionWrapper.appendChild(descElem);
 
     // Init setting
     refreshPreference(pref, state);
   }
-  document.querySelector("#fullscreen > a").onclick = toggleFullscreen;
+  document.querySelector("#fullscreen").onclick = toggleFullscreen;
 
   refreshPrefsQueryParam();
 }
 
 function refreshPrefsQueryParam() {
   let prefsString = "";
-  for (let pref of SETTINGS_ORDER) {
-    let prefBool = visualPreferences[pref] ? "1" : "0";
-    prefsString += prefBool;
+  for (let pref of PREFERENCES) {
+    if (!pref.volatile) {
+      let prefState = pref.state;
+      let prefBool = prefState ? "1" : "0";
+      prefsString += prefBool;
+    }
   }
 
   const url = new URL(window.location);
@@ -649,61 +728,26 @@ function refreshPrefsQueryParam() {
   window.history.replaceState({}, 'Spotify Big Picture', url.toString());
 }
 
-function toggleVisualPreference(key) {
-  if (visualPreferences.hasOwnProperty(key)) {
-    let newState = !visualPreferences[key];
-    refreshPreference(key, newState);
-    refreshPrefsQueryParam();
-  }
+function toggleVisualPreference(preferences) {
+  let newState = !preferences.state;
+  refreshPreference(preferences, newState);
+  refreshPrefsQueryParam();
 }
 
 let darkModeTimeout;
-const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 8 * 60 * 60 * 1000;
 
 function refreshPreference(preference, state) {
-  visualPreferences[preference] = state;
+  if (!preference.volatile) {
+    preference.state = state;
+    preference.callback(state);
 
-  // Refresh Preference
-  switch (preference) {
-    case PARAM_DARK_MODE:
-      setClass(document.getElementById("dark-overlay"), "show", state);
-      clearTimeout(darkModeTimeout);
-      if (state) {
-        darkModeTimeout = setTimeout(() => {
-          refreshPreference(PARAM_DARK_MODE, false);
-          refreshPrefsQueryParam();
-        }, DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT);
-      }
-      break;
-    case PARAM_TRANSITIONS:
-      setTransitions(state);
-      break;
-    case PARAM_BG_ARTWORK:
-      setClass(document.getElementById("background-canvas-img"), "coloronly", !state);
-      refreshBackgroundRender();
-      break;
-    case PARAM_PRERENDER:
-      showHide(document.getElementById("background-rendered"), state);
-      setClass(document.getElementById("prerender-canvas"), "noprerender", !state);
-      break;
-    case PARAM_CLOCK:
-      setClass(document.getElementById("clock"), "hide", !state);
-      break;
-    case PARAM_COLORED_TEXT:
-      setClass(document.body, "nocoloredtext", !state);
-      break;
-    case PARAM_STRIP_TITLES:
-      setClass(document.getElementById("title-extra"), "hide", state);
-      setClass(document.getElementById("album-title-extra"), "hide", state);
-      break;
-  }
-
-  // Toggle Checkmark
-  let classList = document.getElementById(preference).classList;
-  if (state) {
-    classList.add("preference-on");
-  } else {
-    classList.remove("preference-on");
+    // Toggle Checkmark
+    let classList = document.getElementById(preference.id).classList;
+    if (state) {
+      classList.add("preference-on");
+    } else {
+      classList.remove("preference-on");
+    }
   }
 }
 
@@ -730,7 +774,10 @@ function handleAlternateDarkModeToggle() {
   clearTimeout(toggleDarkModeTimeout);
   toggleDarkModeCount++;
   if (toggleDarkModeCount >= TOGGLE_DARK_MODE_COUNT) {
-    toggleVisualPreference(PARAM_DARK_MODE);
+    let darkModePref = findPreference("dark-mode");
+    if (darkModePref) {
+      toggleVisualPreference(darkModePref);
+    }
     toggleDarkModeCount = 0;
   } else {
     toggleDarkModeTimeout = setTimeout(() => toggleDarkModeCount = 0, TOGGLE_DARK_MODE_COUNT * 1000 * 2);
@@ -757,31 +804,9 @@ window.onresize = () => {
 ///////////////////////////////
 
 document.onkeydown = (e) => {
-  switch (e.key) {
-    case "d":
-      toggleVisualPreference(PARAM_DARK_MODE);
-      break;
-    case "t":
-      toggleVisualPreference(PARAM_TRANSITIONS);
-      break;
-    case "c":
-      toggleVisualPreference(PARAM_COLORED_TEXT);
-      break;
-    case "w":
-      toggleVisualPreference(PARAM_CLOCK);
-      break;
-    case "b":
-      toggleVisualPreference(PARAM_BG_ARTWORK);
-      break;
-    case "p":
-      toggleVisualPreference(PARAM_PRERENDER);
-      break;
-    case "s":
-      toggleVisualPreference(PARAM_STRIP_TITLES);
-      break;
-    case "f":
-      toggleFullscreen();
-      break;
+  let pref = PREFERENCES.find(element => element.hotkey === e.key);
+  if (pref) {
+    toggleVisualPreference(pref);
   }
 };
 
@@ -795,16 +820,27 @@ document.addEventListener("click", handleMouseEvent);
 let cursorTimeout;
 const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 
-function handleMouseEvent() {
-  setClass(document.querySelector("html"), "hidecursor", false);
-  setClass(document.getElementById("settings"), "show", true);
-  setClass(document.getElementById("content"), "blur", true);
+function handleMouseEvent(event) {
   clearTimeout(cursorTimeout);
-  cursorTimeout = setTimeout(() => {
-    setClass(document.querySelector("html"), "hidecursor", true);
-    setClass(document.getElementById("settings"), "show", false);
-    setClass(document.getElementById("content"), "blur", false);
-  }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
+  setClass(document.querySelector("html"), "hide-cursor", false);
+
+  let settingsDescription = document.getElementById("settings-description");
+  let target = event.target;
+  let isSetting = target.classList.contains("setting");
+  if (isSetting) {
+    setClass(document.getElementById("settings-wrapper"), "show", true);
+    setClass(document.getElementById("content"), "blur", true);
+    let targetLabel = document.getElementById(target.id + "-description");
+    setClass(targetLabel, "show", true);
+  } else {
+    settingsDescription.childNodes
+        .forEach(elem => setClass(elem, "show", false));
+    cursorTimeout = setTimeout(() => {
+      setClass(document.querySelector("html"), "hide-cursor", true);
+      setClass(document.getElementById("settings-wrapper"), "show", false);
+      setClass(document.getElementById("content"), "blur", false);
+    }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
+  }
 }
 
 
