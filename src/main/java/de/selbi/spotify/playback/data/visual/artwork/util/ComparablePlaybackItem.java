@@ -2,9 +2,9 @@ package de.selbi.spotify.playback.data.visual.artwork.util;
 
 import javax.annotation.Nonnull;
 
-import com.wrapper.spotify.model_objects.IPlaylistItem;
-import com.wrapper.spotify.model_objects.specification.Episode;
-import com.wrapper.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.IPlaylistItem;
+import se.michaelthelin.spotify.model_objects.specification.Episode;
+import se.michaelthelin.spotify.model_objects.specification.Track;
 
 public class ComparablePlaybackItem implements Comparable<IPlaylistItem> {
 

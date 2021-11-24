@@ -1,6 +1,6 @@
 package de.selbi.spotify.playback.data.visual.artwork.util;
 
-import com.wrapper.spotify.model_objects.specification.Image;
+import se.michaelthelin.spotify.model_objects.specification.Image;
 
 public class ArtworkUtil {
 

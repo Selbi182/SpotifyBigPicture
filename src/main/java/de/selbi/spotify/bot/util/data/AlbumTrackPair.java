@@ -5,8 +5,8 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
-import com.wrapper.spotify.model_objects.specification.TrackSimplified;
+import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 /**
  * Container class to map a simplified album by its simplified tracks

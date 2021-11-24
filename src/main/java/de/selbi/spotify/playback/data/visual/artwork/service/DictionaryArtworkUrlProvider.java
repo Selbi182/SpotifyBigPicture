@@ -4,7 +4,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.annotations.Beta;
-import com.wrapper.spotify.model_objects.IPlaylistItem;
+
+import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 
 /**
  * This was thrown together in a few minutes because Discogs suddenly decided to

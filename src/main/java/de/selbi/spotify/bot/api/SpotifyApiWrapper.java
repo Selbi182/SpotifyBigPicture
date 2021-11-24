@@ -6,10 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.SpotifyHttpManager;
-
 import de.selbi.spotify.bot.config.Config;
+import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.SpotifyHttpManager;
 
 @Configuration
 public class SpotifyApiWrapper {
@@ -19,7 +18,7 @@ public class SpotifyApiWrapper {
 
 	/**
 	 * Creates a SpotifyApi instance with the most common settings. A
-	 * preconfiguration from the settings is taken first.
+	 * pre-configuration from the settings is taken first.
 	 * 
 	 * @return the API instance
 	 */

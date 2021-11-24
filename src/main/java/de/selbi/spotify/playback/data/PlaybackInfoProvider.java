@@ -11,13 +11,6 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
-import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.enums.CurrentlyPlayingType;
-import com.wrapper.spotify.model_objects.IPlaylistItem;
-import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
-import com.wrapper.spotify.model_objects.specification.Episode;
-import com.wrapper.spotify.model_objects.specification.Track;
-
 import de.selbi.spotify.bot.api.BotException;
 import de.selbi.spotify.bot.api.SpotifyCall;
 import de.selbi.spotify.bot.util.BotUtils;
@@ -26,6 +19,12 @@ import de.selbi.spotify.playback.data.visual.ContextProvider;
 import de.selbi.spotify.playback.data.visual.artwork.ArtworkUrlProvider;
 import de.selbi.spotify.playback.data.visual.color.ColorProvider;
 import de.selbi.spotify.playback.data.visual.color.DominantRGBs;
+import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
+import se.michaelthelin.spotify.model_objects.IPlaylistItem;
+import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
+import se.michaelthelin.spotify.model_objects.specification.Episode;
+import se.michaelthelin.spotify.model_objects.specification.Track;
 
 @Component
 public class PlaybackInfoProvider {

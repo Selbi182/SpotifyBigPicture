@@ -4,14 +4,15 @@ buildscript {
     }
     
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.4.5")
-        classpath("org.springframework.boot.experimental:spring-boot-thin-gradle-plugin:1.0.26.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.5.6")
+        classpath("org.springframework.boot.experimental:spring-boot-thin-gradle-plugin:1.0.27.RELEASE")
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+apply plugin: 'maven'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.springframework.boot.experimental.thin-launcher'
@@ -23,22 +24,23 @@ jar {
 }
 
 springBoot {
-    mainClassName = 'spotify.SpotifyBigPicture'
+    mainClassName = 'de.selbi.spotify.SpotifyBigPicture'
 }
 
 sourceCompatibility = 1.11
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
+    maven {
+        url 'https://jitpack.io'
+    }
 }
 
 dependencies {
-    // Do not update from 2.4.5! It's tempting, but there will be a million compatibility issues with Gradle and the Thin JAR builder!
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.4.5'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux:2.4.5'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.5.6'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux:2.5.6'
     
-    implementation 'se.michaelthelin.spotify:spotify-web-api-java:6.5.4'
+    implementation 'se.michaelthelin.spotify:spotify-web-api-java:7.0.0'
 
     implementation 'com.google.guava:guava:31.0.1-jre'
     implementation 'de.androidpit:color-thief:1.1.2'

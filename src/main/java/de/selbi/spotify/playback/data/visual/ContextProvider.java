@@ -8,23 +8,23 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
-import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.enums.CurrentlyPlayingType;
-import com.wrapper.spotify.enums.ModelObjectType;
-import com.wrapper.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
-import com.wrapper.spotify.model_objects.specification.Album;
-import com.wrapper.spotify.model_objects.specification.Artist;
-import com.wrapper.spotify.model_objects.specification.Context;
-import com.wrapper.spotify.model_objects.specification.Playlist;
-import com.wrapper.spotify.model_objects.specification.Show;
-import com.wrapper.spotify.model_objects.specification.Track;
-import com.wrapper.spotify.model_objects.specification.TrackSimplified;
 
 import de.selbi.spotify.bot.api.BotException;
 import de.selbi.spotify.bot.api.SpotifyCall;
 import de.selbi.spotify.bot.util.BotUtils;
 import de.selbi.spotify.playback.data.PlaybackInfoDTO;
 import de.selbi.spotify.playback.data.help.PlaybackInfoConstants;
+import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
+import se.michaelthelin.spotify.enums.ModelObjectType;
+import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
+import se.michaelthelin.spotify.model_objects.specification.Album;
+import se.michaelthelin.spotify.model_objects.specification.Artist;
+import se.michaelthelin.spotify.model_objects.specification.Context;
+import se.michaelthelin.spotify.model_objects.specification.Playlist;
+import se.michaelthelin.spotify.model_objects.specification.Show;
+import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 @Component
 public class ContextProvider {

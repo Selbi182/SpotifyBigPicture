@@ -1,8 +1,8 @@
 package de.selbi.spotify.playback.data.help;
 
-import com.wrapper.spotify.model_objects.specification.Track;
 
 import de.selbi.spotify.playback.data.PlaybackInfoDTO;
+import se.michaelthelin.spotify.model_objects.specification.Track;
 
 public class PlaybackInfoUtils {
 

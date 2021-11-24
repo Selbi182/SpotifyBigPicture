@@ -8,12 +8,12 @@ import org.springframework.stereotype.Component;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.wrapper.spotify.model_objects.IPlaylistItem;
 
 import de.selbi.spotify.playback.data.visual.artwork.service.DictionaryArtworkUrlProvider;
 import de.selbi.spotify.playback.data.visual.artwork.service.DiscogsArtworkUrlProvider;
 import de.selbi.spotify.playback.data.visual.artwork.service.SpotifyArtworkUrlProvider;
 import de.selbi.spotify.playback.data.visual.artwork.util.ComparablePlaybackItem;
+import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 
 @Component
 public class ArtworkUrlProvider {

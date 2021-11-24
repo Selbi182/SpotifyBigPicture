@@ -13,7 +13,7 @@ public interface ColorProvider {
    * returned for any blank ones.
    *
    * @param imageUrl the URL of the image
-   * @return the two most dominant colors as a RGB list of exactly two entries
+   * @return the two most dominant colors as an RGB list of exactly two entries
    *         (note: all results are indefinitely cached)
    */
   DominantRGBs getDominantColorFromImageUrl(String imageUrl);
