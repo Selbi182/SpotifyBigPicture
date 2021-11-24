@@ -237,6 +237,9 @@ function setTextData(changes) {
   for (let prop in changes) {
     currentData[prop] = changes[prop];
   }
+
+  // Re-balance all updated texts
+  balanceText.updateWatched();
 }
 
 function setClass(elem, className, state) {
@@ -303,6 +306,15 @@ function fadeIn(elem) {
   elem.classList.add("transparent");
   finishAnimations(elem);
   elem.classList.remove("transparent");
+}
+
+const BALANCED_ELEMENTS_TO_WATCH = ["artists", "title", "description", "album", "context", "device"];
+window.addEventListener('load', registerWatchedBalanceTextElements);
+function registerWatchedBalanceTextElements() {
+  for (let id of BALANCED_ELEMENTS_TO_WATCH) {
+    let textElem = document.getElementById(id);
+    balanceText(textElem, {watch: true});
+  }
 }
 
 
