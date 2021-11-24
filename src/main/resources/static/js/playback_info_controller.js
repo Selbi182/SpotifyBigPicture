@@ -211,14 +211,14 @@ function setTextData(changes) {
   if ('shuffle' in changes && changes.shuffle !== currentData.shuffle) {
     let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
     let shuffleElem = document.getElementById("shuffle");
-    showHide(shuffleElem, shuffle, true);
+    setClass(shuffleElem, "show", shuffle);
     fadeIn(shuffleElem);
   }
 
   if ('repeat' in changes && changes.repeat !== currentData.repeat) {
     let repeat = changes.repeat != null ? changes.repeat : currentData.repeat;
     let repeatElem = document.getElementById("repeat");
-    showHide(repeatElem, repeat !== "off", true);
+    setClass(repeatElem, "show", repeat !== "off");
     if (changes.repeat === "track") {
       repeatElem.classList.add("once");
     } else {
@@ -842,8 +842,7 @@ function handleMouseEvent(event) {
 
   let settingsDescription = document.getElementById("settings-description");
   let target = event.target;
-  let isSetting = target.classList.contains("setting");
-  if (isSetting) {
+  if (target && target.classList.contains("setting")) {
     setClass(document.getElementById("settings-wrapper"), "show", true);
     setClass(document.getElementById("content"), "blur", true);
     let targetLabel = document.getElementById(target.id + "-description");

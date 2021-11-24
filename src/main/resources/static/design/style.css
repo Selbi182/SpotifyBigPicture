@@ -53,7 +53,6 @@ html, body {
 }
 
 * {
-    /* border: 1px solid blue; */
     box-sizing: border-box;
 }
 
@@ -308,12 +307,16 @@ img:not([src]) {
     width: 3vmin;
     margin-left: 1em;
     margin-right: 1em;
-    opacity: 0.5;
+    opacity: 0;
     -webkit-mask-size: contain;
     -webkit-mask-repeat: no-repeat;
     mask-size: contain;
     mask-repeat: no-repeat;
     background-color: var(--color);
+}
+
+#info-symbols > div.show {
+    opacity: 0.5;
 }
 
 #info-symbols > #shuffle {
@@ -324,7 +327,7 @@ img:not([src]) {
 #info-symbols > #play-pause {
     -webkit-mask-image: url("img/symbols/pause.png");
     mask-image: url("img/symbols/pause.png");
-    opacity: 0.9;
+    opacity: 1;
 }
 
 #info-symbols > #play-pause.play {
