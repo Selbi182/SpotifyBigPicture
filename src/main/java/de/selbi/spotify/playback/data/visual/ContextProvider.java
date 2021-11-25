@@ -126,8 +126,12 @@ public class ContextProvider {
 
       // Assemble it all
       if (currentlyPlayingTrackNumber > 0) {
-        return String.format("Total Time: %s // Track: %02d of %02d", totalDurationFormatted, currentlyPlayingTrackNumber,
-            currentContextAlbum.getTracks().getTotal());
+        Integer totalTrackCount = currentContextAlbum.getTracks().getTotal();
+        int digits = totalTrackCount.toString().length();
+        return String.format("Total Time: %s // Track: %0" + digits + "d of %0" + digits + "d",
+            totalDurationFormatted,
+            currentlyPlayingTrackNumber,
+            totalTrackCount);
       }
     }
 

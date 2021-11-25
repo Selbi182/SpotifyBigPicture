@@ -30,6 +30,7 @@ html, body {
     height: 100%;
     font-size: 2vmin;
     user-select: none;
+    word-break: break-word;
 }
 
 .hidden {
@@ -172,6 +173,7 @@ img:not([src]) {
     display: flex;
     flex-grow: 1;
     justify-content: right;
+    position: relative;
 }
 
 #artwork {
@@ -181,6 +183,7 @@ img:not([src]) {
     display: block;
     filter: drop-shadow(1vmin 1vmin 1vmin #00000040);
     overflow: hidden;
+    left: 0;
 }
 
 #artwork-img {
@@ -204,8 +207,6 @@ img:not([src]) {
 #meta-left {
     flex: 1;
     font-size: 2vmin;
-    word-break: break-word;
-    user-select: text;
     text-align: right;
 }
 
@@ -236,7 +237,6 @@ img:not([src]) {
     align-items: center;
     text-align: center;
     flex-direction: column;
-    user-select: text;
     justify-content: center;
     flex: 1;
 }
@@ -288,8 +288,8 @@ img:not([src]) {
     width: calc(100vw - var(--artwork-size) - (var(--margin-main) * 3));
     display: flex;
     flex-direction: column;
-    position: relative;
     overflow: hidden;
+    user-select: text;
 }
 
 #top-info {
@@ -421,46 +421,46 @@ img:not([src]) {
     z-index: 1;
     position: absolute;
     padding: var(--margin-main);
-    pointer-events: none;
     background: linear-gradient(to right, black 0%, transparent 150%);
     opacity: 0;
     font-size: 4vmin;
     display: flex;
     gap: var(--margin-main);
+    pointer-events: none;
 }
 
 #settings-wrapper.show {
     opacity: 1;
 }
 
-#settings {
+#settings-buttons {
     width: min-content;
     height: 100%;
     display: flex;
     justify-content: space-between;
     font-family: var(--font-bold);
     flex-direction: column;
+    pointer-events: auto;
 }
 
-#settings > div {
+#settings-buttons > div {
     width: 100%;
     opacity: 0.65;
-    pointer-events: auto;
     cursor: pointer;
     white-space: pre;
 }
 
-#settings > div:hover {
+#settings-buttons > div:hover {
     opacity: 1;
 }
 
-#settings > div:before {
+#settings-buttons > div:before {
     content: "\2713";
     margin-right: 1vmin;
     opacity: 0;
 }
 
-#settings > .on:before {
+#settings-buttons > .on:before {
     opacity: 1;
 }
 
@@ -471,6 +471,7 @@ img:not([src]) {
     flex-direction: column;
     width: 100%;
     font-size: 3vmin;
+    pointer-events: none;
 }
 
 #settings-description div {
@@ -494,6 +495,7 @@ img:not([src]) {
     font-weight: bold;
     opacity: 0.5;
     z-index: 1;
+    font-size: 2.5vmin;
 }
 
 #clock.hide, #clock:empty {
@@ -511,5 +513,29 @@ img:not([src]) {
 
     #background-canvas {
         transform: scale(1.05);
+    }
+
+    #settings-description {
+        justify-content: flex-start;
+    }
+
+    #settings-description div {
+        max-height: 0;
+    }
+}
+
+@media only screen and (max-aspect-ratio: 5/8) {
+    #artwork, #background-canvas-overlay {
+        display: unset !important;
+    }
+
+    #artwork {
+        position: unset;
+        width: 100%;
+        height: 100%;
+    }
+
+    #artwork-img {
+        object-fit: contain;
     }
 }

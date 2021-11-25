@@ -38,6 +38,7 @@ public class PlaybackInfoProvider {
 
   private PlaybackInfoDTO previous;
   private static final List<Field> DTO_FIELDS;
+  private final long deployTime;
 
   static {
     DTO_FIELDS = Stream.of(PlaybackInfoDTO.class.getDeclaredFields())
@@ -55,6 +56,7 @@ public class PlaybackInfoProvider {
     this.contextProvider = contextProvider;
     this.artworkUrlProvider = artworkUrlProvider;
     this.dominantColorProvider = colorProvider;
+    this.deployTime = System.currentTimeMillis();
   }
 
   public PlaybackInfoDTO getCurrentPlaybackInfo(boolean full) {
@@ -146,6 +148,8 @@ public class PlaybackInfoProvider {
       pInfo.setImage(BLANK);
       pInfo.setImageColors(DominantRGBs.FALLBACK);
     }
+
+    pInfo.setDeployTime(deployTime);
 
     return pInfo;
   }

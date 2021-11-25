@@ -39,6 +39,7 @@ public class PlaybackInfoDTO {
   private Integer timeCurrent;
   private Integer timeTotal;
   private String description;
+  private Long deployTime;
 
   public PlaybackInfoDTO() {
   }
@@ -178,6 +179,14 @@ public class PlaybackInfoDTO {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public Long getDeployTime() {
+    return deployTime;
+  }
+
+  public void setDeployTime(Long deployTime) {
+    this.deployTime = deployTime;
   }
 
   @Override

@@ -26,7 +26,8 @@ let currentData = {
   timeCurrent: 0,
   timeTotal: 0,
   title: "",
-  type: ""
+  type: "",
+  deployTime: 0
 };
 
 let idle = false;
@@ -108,8 +109,12 @@ window.addEventListener('beforeunload', closeFlux);
 
 function processJson(json) {
   if (json.type === "DATA") {
-    setDisplayData(json)
-        .then(() => startTimers());
+    if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
+      window.location.reload();
+    } else {
+      setDisplayData(json)
+          .then(() => startTimers());
+    }
   }
 }
 
@@ -407,11 +412,20 @@ function renderAndShow() {
 
     // While PNG produces the by far largest Base64 image data, the actual conversion process
     // is significantly faster than with JPEG or SVG (still not perfect though)
-    domtoimage.toPng(prerenderCanvas, {width: window.innerWidth / 2.0, height: window.innerHeight / 2.0})
+    let pngData;
+    domtoimage
+        .toPng(prerenderCanvas, {width: window.innerWidth / 2.0, height: window.innerHeight / 2.0})
         .then((imgDataBase64) => {
           if (imgDataBase64.length < 10) {
             throw 'Rendered image data is invalid';
           }
+          pngData = imgDataBase64;
+        })
+        .catch((error) => {
+          pngData = EMPTY_IMAGE_DATA;
+          console.error(error)
+        })
+        .finally(() => {
           setClass(backgroundCrossfade, "show", true);
           backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
           backgroundCrossfade.onload = () => {
@@ -420,11 +434,9 @@ function renderAndShow() {
               setClass(backgroundCrossfade, "show", false);
               resolve();
             };
-            backgroundImg.src = imgDataBase64;
+            backgroundImg.src = pngData;
           };
-        })
-        .catch((error) => reject(error))
-        .finally(() => setClass(prerenderCanvas, "show", false));
+        });
   });
 }
 
@@ -595,7 +607,8 @@ const PREFERENCES = [
     id: "fullscreen",
     name: "Fullscreen",
     hotkey: "f",
-    description: "Toggles fullscreen on and off (this setting is not persisted between sessions for security reasons)",
+    description: "Toggles fullscreen on and off (can also be toggled by double clicking anywhere on the screen). " +
+        "This setting is not persisted between sessions due to browser security limitations",
     state: false,
     callback: () => toggleFullscreen(),
     volatile: true // don't add fullscreen in the URL params, as it won't work (browser security shenanigans)
@@ -689,7 +702,7 @@ const PREFS_URL_PARAM = "p";
 window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
-  const settingsWrapper = document.getElementById("settings");
+  const settingsWrapper = document.getElementById("settings-buttons");
   const settingsDescriptionWrapper = document.getElementById("settings-description");
   const urlParams = new URLSearchParams(window.location.search);
   const urlPrefs = urlParams.has(PREFS_URL_PARAM)
@@ -828,35 +841,47 @@ document.onkeydown = (e) => {
 
 
 ///////////////////////////////
-// MOUSE HIDE
+// MOUSE EVENTS
 ///////////////////////////////
 
 document.addEventListener("mousemove", handleMouseEvent);
 document.addEventListener("click", handleMouseEvent);
 let cursorTimeout;
-const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
+const MOUSE_MOVE_HIDE_TIMEOUT_MS = 500;
 
-function handleMouseEvent(event) {
+function handleMouseEvent() {
   clearTimeout(cursorTimeout);
   setClass(document.documentElement, "hide-cursor", false);
+  cursorTimeout = setTimeout(() => {
+    setClass(document.documentElement, "hide-cursor", true);
+  }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
+}
 
-  let settingsDescription = document.getElementById("settings-description");
-  let target = event.target;
-  if (target && target.classList.contains("setting")) {
-    setClass(document.getElementById("settings-wrapper"), "show", true);
-    setClass(document.getElementById("content"), "blur", true);
-    let targetLabel = document.getElementById(target.id + "-description");
-    setClass(targetLabel, "show", true);
-  } else {
-    settingsDescription.childNodes.forEach(elem => setClass(elem, "show", false));
-    cursorTimeout = setTimeout(() => {
-      setClass(document.documentElement, "hide-cursor", true);
-      setClass(document.getElementById("settings-wrapper"), "show", false);
-      setClass(document.getElementById("content"), "blur", false);
-    }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
+window.addEventListener('load', initSettingsMouseMove);
+function initSettingsMouseMove() {
+  let settings = document.getElementById("settings-buttons");
+  let settingsWrapper = document.getElementById("settings-wrapper");
+  let content = document.getElementById("content");
+  settings.onmouseenter = (event) => {
+    setClass(settingsWrapper, "show", true);
+    setClass(content, "blur", true);
+  };
+  settings.onmouseleave = (event) => {
+    setClass(settingsWrapper, "show", false);
+    setClass(content, "blur", false);
+  }
+  settings.onmousemove = (event) => {
+    requestAnimationFrame(() => clearTimeout(cursorTimeout));
+    document.getElementById("settings-description").childNodes
+        .forEach(elem => setClass(elem, "show", false));
+    if (event.target.classList.contains("setting")) {
+      let targetLabel = document.getElementById(event.target.id + "-description");
+      setClass(targetLabel, "show", true);
+    }
   }
 }
 
+document.addEventListener("dblclick", toggleFullscreen);
 
 ///////////////////////////////
 // CLOCK
