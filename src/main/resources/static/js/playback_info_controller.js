@@ -209,7 +209,7 @@ function setTextData(changes) {
   if ('paused' in changes && changes.paused !== currentData.paused) {
     let paused = changes.paused != null ? changes.paused : currentData.paused;
     let pauseElem = document.getElementById("play-pause");
-    setClass(pauseElem, "play", !paused);
+    setClass(pauseElem, "paused", paused);
     fadeIn(pauseElem);
   }
 
@@ -308,9 +308,10 @@ function finishAnimations(elem) {
 }
 
 function fadeIn(elem) {
-  elem.classList.add("transparent");
   finishAnimations(elem);
-  elem.classList.remove("transparent");
+  elem.classList.add("transparent", "text-glow");
+  finishAnimations(elem);
+  elem.classList.remove("transparent", "text-glow");
 }
 
 const BALANCED_ELEMENTS_TO_WATCH = ["artists", "title", "description", "album", "context", "device"];
@@ -423,19 +424,20 @@ function renderAndShow() {
         })
         .catch((error) => {
           pngData = EMPTY_IMAGE_DATA;
-          console.error(error)
+          console.warn("Failed to render background, using black square instead", error);
         })
         .finally(() => {
           setClass(backgroundCrossfade, "show", true);
-          backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
           backgroundCrossfade.onload = () => {
             finishAnimations(backgroundCrossfade);
             backgroundImg.onload = () => {
               setClass(backgroundCrossfade, "show", false);
+              setClass(prerenderCanvas, "show", false);
               resolve();
             };
             backgroundImg.src = pngData;
           };
+          backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
         });
   });
 }
@@ -551,7 +553,7 @@ function pad2(time) {
 
 const ADVANCE_CURRENT_TIME_MS = 1000;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
-const REQUEST_ON_SONG_END_MS = 200;
+const REQUEST_ON_SONG_END_MS = 2 * 1000;
 
 let autoTimer;
 let idleTimeout;
@@ -581,7 +583,7 @@ function advanceCurrentTime() {
     startTime = now;
     let newTime = currentData.timeCurrent + elapsedTime;
     if (newTime > currentData.timeTotal && currentData.timeCurrent < currentData.timeTotal) {
-      setTimeout(() => singleRequest(false), REQUEST_ON_SONG_END_MS);
+      setTimeout(() => singleRequest(true), REQUEST_ON_SONG_END_MS);
     }
     currentData.timeCurrent = Math.min(currentData.timeTotal, newTime);
     updateProgress(currentData, false);
@@ -849,16 +851,21 @@ document.addEventListener("click", handleMouseEvent);
 let cursorTimeout;
 const MOUSE_MOVE_HIDE_TIMEOUT_MS = 500;
 
+function setMouseVisibility(state) {
+  setClass(document.documentElement, "hide-cursor", !state);
+}
+
 function handleMouseEvent() {
   clearTimeout(cursorTimeout);
-  setClass(document.documentElement, "hide-cursor", false);
+  setMouseVisibility(true)
   cursorTimeout = setTimeout(() => {
-    setClass(document.documentElement, "hide-cursor", true);
+    setMouseVisibility(false);
   }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }
 
 window.addEventListener('load', initSettingsMouseMove);
 function initSettingsMouseMove() {
+  setMouseVisibility(false);
   let settings = document.getElementById("settings-buttons");
   let settingsWrapper = document.getElementById("settings-wrapper");
   let content = document.getElementById("content");

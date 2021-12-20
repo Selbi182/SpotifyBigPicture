@@ -11,11 +11,12 @@
 :root {
     --color: #ffffff;
     --transition: 0.5s;
+    --transition-long: 1s;
     --font-normal: "Gotham Light", sans-serif;
     --font-bold: "Gotham Medium", sans-serif;
     --margin-main: 8vmin;
     --artwork-size: 68vh;
-    --default-shadow: 0.5vmin 0.5vmin 0.5vmin #000000aa;
+    --default-shadow: 0.5vmin 0.5vmin 0.5vmin #00000044;
     --blur: 0.5vmin;
 }
 
@@ -53,6 +54,17 @@ html, body {
     --color: #ffffff;
 }
 
+.text-glow {
+    text-shadow: 0 0 6vmin var(--color);
+}
+
+.one-line {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+/* TODO -webkit-line- clamp -webkit-box-orient */
+}
+
 * {
     box-sizing: border-box;
 }
@@ -63,9 +75,10 @@ a, a:visited, a:hover, a:active {
 
 body.transition * {
     transition: opacity var(--transition),
-    color var(--transition),
-    background-color var(--transition),
-    filter var(--transition);
+        color var(--transition),
+        background-color var(--transition),
+        filter var(--transition),
+        text-shadow var(--transition-long);
 }
 
 img:not([src]) {
@@ -141,7 +154,7 @@ img:not([src]) {
 }
 
 #background-canvas-img {
-    filter: blur(var(--blur));
+    filter: blur(var(--blur)) grayscale(100%);
 }
 
 #background-img-crossfade.show {
@@ -181,7 +194,7 @@ img:not([src]) {
     width: var(--artwork-size);
     height: var(--artwork-size);
     display: block;
-    filter: drop-shadow(1vmin 1vmin 1vmin #00000040);
+    filter: drop-shadow(var(--default-shadow));
     overflow: hidden;
     left: 0;
 }
@@ -265,7 +278,7 @@ img:not([src]) {
 }
 
 #album-release {
-    opacity: 0.5;
+    opacity: 0.65;
 }
 
 #album-title-extra.hide {
@@ -316,7 +329,7 @@ img:not([src]) {
 }
 
 #info-symbols > div.show {
-    opacity: 0.5;
+    opacity: 0.65;
 }
 
 #info-symbols > #shuffle {
@@ -325,15 +338,14 @@ img:not([src]) {
 }
 
 #info-symbols > #play-pause {
+    -webkit-mask-image: url("img/symbols/play.png");
+    mask-image: url("img/symbols/play.png");
+}
+
+#info-symbols > #play-pause.paused {
     -webkit-mask-image: url("img/symbols/pause.png");
     mask-image: url("img/symbols/pause.png");
     opacity: 1;
-}
-
-#info-symbols > #play-pause.play {
-    -webkit-mask-image: url("img/symbols/play.png");
-    mask-image: url("img/symbols/play.png");
-    opacity: 0.5;
 }
 
 
@@ -493,7 +505,7 @@ img:not([src]) {
     right: 0;
     text-align: center;
     font-weight: bold;
-    opacity: 0.5;
+    opacity: 0.65;
     z-index: 1;
     font-size: 2.5vmin;
 }

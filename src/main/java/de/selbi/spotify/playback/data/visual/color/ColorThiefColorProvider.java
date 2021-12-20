@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -71,10 +72,10 @@ public class ColorThiefColorProvider implements ColorProvider {
   private DominantRGBs getDominantColors(String imageUrl) throws IOException {
     BufferedImage img = ImageIO.read(new URL(imageUrl));
 
-    List<VBox> vBoxes = new ArrayList<>(ColorThief.getColorMap(img, PALETTE_SAMPLE_SIZE, PALETTE_SAMPLE_QUALITY, true).vboxes);
-    vBoxes.removeIf(vBox -> !isValidVbox(vBox));
-    vBoxes.sort(Comparator.comparingInt(this::calculateWeightedPopulation));
-    Collections.reverse(vBoxes);
+    List<VBox> vBoxes = ColorThief.getColorMap(img, PALETTE_SAMPLE_SIZE, PALETTE_SAMPLE_QUALITY, true).vboxes.stream()
+        .filter(this::isValidVbox)
+        .sorted(Comparator.comparingInt(this::calculateWeightedPopulation).reversed())
+        .collect(Collectors.toList());
 
     int totalPopulationOfColor = 0;
     for (VBox vBox2 : vBoxes) {
@@ -148,7 +149,10 @@ public class ColorThiefColorProvider implements ColorProvider {
       }
     }
 
-    return (acc / (double) samples);
+    double avg = acc / (double) samples;
+
+    // Gamma correction, see: https://stackoverflow.com/a/16521343/3216060
+    return Math.pow(avg, 1 / 2.2) * 0.85;
   }
 
   private double calcPerceivedBrightnessAtLocation(BufferedImage img, int x, int y) {
