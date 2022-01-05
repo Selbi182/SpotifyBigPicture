@@ -1,19 +1,19 @@
 @font-face {
-    font-family: "Gotham Medium";
-    src: url("fonts/Gotham Medium Regular.ttf");
+    font-family: "Spotify Bold";
+    src: url("fonts/CircularSpotify-UI-Latin-Bold.woff2");
 }
 
 @font-face {
-    font-family: "Gotham Light";
-    src: url("fonts/Gotham Light.otf");
+    font-family: "Spotify Book";
+    src: url("fonts/CircularSpotify-UI-Latin-Book.woff2");
 }
 
 :root {
     --color: #ffffff;
     --transition: 0.5s;
     --transition-long: 1s;
-    --font-normal: "Gotham Light", sans-serif;
-    --font-bold: "Gotham Medium", sans-serif;
+    --font-normal: "Spotify Book", sans-serif;
+    --font-bold: "Spotify Bold", sans-serif;
     --margin-main: 8vmin;
     --artwork-size: 68vh;
     --default-shadow: 0.5vmin 0.5vmin 0.5vmin #00000044;
@@ -26,7 +26,7 @@ html, body {
     background: black;
     color: var(--color);
     font-family: var(--font-normal);
-    text-shadow: var(--default-shadow);
+    /* text-shadow: var(--default-shadow); */
     width: 100%;
     height: 100%;
     font-size: 2vmin;
@@ -367,7 +367,7 @@ img:not([src]) {
     position: relative;
     flex: 0 0 100%;
     margin-bottom: 3vmin;
-    filter: drop-shadow(var(--default-shadow));
+    /* filter: drop-shadow(var(--default-shadow)); */
 }
 
 #progress-background {

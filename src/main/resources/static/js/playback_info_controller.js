@@ -564,9 +564,8 @@ function startTimers() {
   startTime = Date.now();
   autoTimer = setInterval(() => advanceCurrentTime(), ADVANCE_CURRENT_TIME_MS);
 
-  idleTimeout = setTimeout(() => setIdle(), IDLE_TIMEOUT_MS);
-  idle = false;
-  showHide(document.body, true);
+  idleTimeout = setTimeout(() => setIdleModeState(true), IDLE_TIMEOUT_MS);
+  setIdleModeState(false);
 }
 
 function clearTimers() {
@@ -590,14 +589,21 @@ function advanceCurrentTime() {
   }
 }
 
-function setIdle() {
-  if (!idle) {
-    idle = true;
-    clearTimers();
-    showHide(document.body, false);
-    currentData = {};
+function setIdleModeState(state) {
+  let content = document.getElementById("main");
+  if (state) {
+    if (!idle) {
+      idle = true;
+      clearTimers();
+      showHide(content, false);
+      currentData = {};
+    }
+  } else {
+    idle = false;
+    showHide(content, true);
   }
 }
+
 
 
 ///////////////////////////////
