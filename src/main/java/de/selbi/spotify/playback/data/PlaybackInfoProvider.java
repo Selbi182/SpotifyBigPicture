@@ -21,6 +21,7 @@ import de.selbi.spotify.playback.data.visual.color.ColorProvider;
 import de.selbi.spotify.playback.data.visual.color.DominantRGBs;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
+import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
@@ -135,6 +136,14 @@ public class PlaybackInfoProvider {
 
     pInfo.setContext(contextProvider.findContextName(info, previous));
     pInfo.setDevice(info.getDevice().getName());
+
+    if (ModelObjectType.ALBUM.equals(info.getContext().getType())) {
+      pInfo.setAlbumTracks(contextProvider.getFormattedAlbumTracks());
+      pInfo.setAlbumTrackNumber(contextProvider.getCurrentlyPlayingTrackNumber());
+      pInfo.setAlbumView(true);
+    } else {
+      pInfo.setAlbumView(false);
+    }
 
     pInfo.setTimeCurrent(info.getProgress_ms());
     pInfo.setTimeTotal(playlistItem.getDurationMs());

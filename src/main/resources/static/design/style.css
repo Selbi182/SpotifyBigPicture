@@ -297,6 +297,34 @@ img:not([src]) {
     display: none;
 }
 
+#track-list {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    margin-top: 2vmin;
+    grid-gap: 0 2vmin;
+}
+
+#track-list .track-elem div {
+    opacity: 0.5;
+}
+
+#track-list .track-elem.current div {
+    opacity: 1;
+}
+
+#track-list .track-elem {
+    display: contents;
+}
+
+#track-list .track-elem div:first-child, #track-list .track-elem div:last-child {
+    text-align: right;
+    font-feature-settings: "tnum";
+}
+
+#track-list .track-elem div:nth-child(2) {
+    text-align: left;
+}
+
 #info {
     width: calc(100vw - var(--artwork-size) - (var(--margin-main) * 3));
     display: flex;

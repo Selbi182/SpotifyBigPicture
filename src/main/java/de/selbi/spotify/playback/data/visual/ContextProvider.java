@@ -1,6 +1,7 @@
 package de.selbi.spotify.playback.data.visual;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -13,6 +14,7 @@ import de.selbi.spotify.bot.api.BotException;
 import de.selbi.spotify.bot.api.SpotifyCall;
 import de.selbi.spotify.bot.util.BotUtils;
 import de.selbi.spotify.playback.data.PlaybackInfoDTO;
+import de.selbi.spotify.playback.data.help.AlbumTrackDTO;
 import de.selbi.spotify.playback.data.help.PlaybackInfoConstants;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
@@ -36,9 +38,12 @@ public class ContextProvider {
   private String previousContextString;
   private Album currentContextAlbum;
   private List<TrackSimplified> currentContextAlbumTracks;
+  private List<AlbumTrackDTO> formattedAlbumTracks;
+  private Integer currentlyPlayingTrackNumber;
 
   ContextProvider(SpotifyApi spotifyApi) {
     this.spotifyApi = spotifyApi;
+    this.formattedAlbumTracks = new ArrayList<>();
   }
 
   /**
@@ -74,6 +79,14 @@ public class ContextProvider {
     } else {
       return previous != null && previous.getContext() != null ? previous.getContext() : "[context not found]";
     }
+  }
+
+  public List<AlbumTrackDTO> getFormattedAlbumTracks() {
+    return formattedAlbumTracks;
+  }
+
+  public Integer getCurrentlyPlayingTrackNumber() {
+    return currentlyPlayingTrackNumber;
   }
 
   private String getArtistContext(Context context, boolean force) {
@@ -112,13 +125,17 @@ public class ContextProvider {
       } else {
         currentContextAlbumTracks = Arrays.asList(currentContextAlbum.getTracks().getItems());
       }
+
+      formattedAlbumTracks = new ArrayList<>();
+      for (int i = 0; i < currentContextAlbumTracks.size(); i++) {
+        TrackSimplified ts = currentContextAlbumTracks.get(i);
+        formattedAlbumTracks.add(new AlbumTrackDTO(i + 1, ts.getName(), ts.getDurationMs()));
+      }
     }
     if (currentContextAlbumTracks != null && track != null) {
-      // Track number (unfortunately, can't simply use track numbers because of disc
-      // numbers)
+      // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
-      int currentlyPlayingTrackNumber =
-          Iterables.indexOf(currentContextAlbumTracks, t -> Objects.requireNonNull(t).getId().equals(trackId)) + 1;
+      currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> Objects.requireNonNull(t).getId().equals(trackId)) + 1;
 
       // Total album duration
       Integer totalDurationMs = currentContextAlbumTracks.stream().mapToInt(TrackSimplified::getDurationMs).sum();

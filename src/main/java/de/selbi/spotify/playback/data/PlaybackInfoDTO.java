@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import de.selbi.spotify.playback.data.help.AlbumTrackDTO;
 import de.selbi.spotify.playback.data.visual.color.DominantRGBs;
 
 /**
@@ -31,6 +32,8 @@ public class PlaybackInfoDTO {
   private String context;
   private String device;
   private List<String> artists;
+  private Integer albumTrackNumber;
+  private Boolean albumView;
   private String title;
   private String album;
   private String release;
@@ -40,6 +43,7 @@ public class PlaybackInfoDTO {
   private Integer timeTotal;
   private String description;
   private Long deployTime;
+  private List<AlbumTrackDTO> albumTracks;
 
   public PlaybackInfoDTO() {
   }
@@ -117,6 +121,22 @@ public class PlaybackInfoDTO {
     this.artists = artists;
   }
 
+  public Integer getAlbumTrackNumber() {
+    return albumTrackNumber;
+  }
+
+  public void setAlbumTrackNumber(Integer albumTrackNumber) {
+    this.albumTrackNumber = albumTrackNumber;
+  }
+
+  public Boolean getAlbumView() {
+    return albumView;
+  }
+
+  public void setAlbumView(Boolean albumView) {
+    this.albumView = albumView;
+  }
+
   public String getTitle() {
     return title;
   }
@@ -189,11 +209,11 @@ public class PlaybackInfoDTO {
     this.deployTime = deployTime;
   }
 
-  @Override
-  public String toString() {
-    return "PlaybackInfoDTO [type=" + type + ", id=" + id + ", paused=" + paused + ", shuffle=" + shuffle + ", repeat=" + repeat
-        + ", device=" + device + ", context=" + context + ", artists=" + artists + ", title=" + title + ", album="
-        + album + ", release=" + release + ", image=" + image + ", imageColors=" + imageColors + ", timeCurrent=" + timeCurrent
-        + ", timeTotal=" + timeTotal + ", description=" + description + "]";
+  public List<AlbumTrackDTO> getAlbumTracks() {
+    return albumTracks;
+  }
+
+  public void setAlbumTracks(List<AlbumTrackDTO> albumTracks) {
+    this.albumTracks = albumTracks;
   }
 }

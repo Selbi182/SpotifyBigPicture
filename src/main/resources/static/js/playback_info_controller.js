@@ -1,5 +1,8 @@
 let currentData = {
   album: "",
+  albumTracks: [],
+  albumTrackNumber: 0,
+  albumView: false,
   artists: [],
   context: "",
   description: "",
@@ -139,10 +142,24 @@ async function setDisplayData(changes) {
       .then(() => setTextData(changes));
 }
 
+const MAX_ALBUM_VIEW_SONGS = 20; // TODO use a sliding window method instead, so that longer albums can also be fully displayed
 function setTextData(changes) {
   // Main Info
-  if ('title' in changes && changes.title !== currentData.title) {
-    let normalizedEmoji = convertToTextEmoji(changes.title);
+  let titleContainer = document.getElementById("title");
+  let trackListContainer = document.getElementById("track-list");
+  if ('albumView' in changes || 'albumTracks' in changes) {
+    let albumTrackCount = (changes.albumTracks || currentData.albumTracks).length
+    let albumViewEnabled = ('albumView' in changes ? changes.albumView : currentData.albumView) && albumTrackCount <= MAX_ALBUM_VIEW_SONGS;
+    showHide(titleContainer, !albumViewEnabled);
+    showHide(trackListContainer, albumViewEnabled);
+  } else if (!changes.albumView && currentData.albumView) {
+    showHide(titleContainer, true);
+    showHide(trackListContainer, false);
+  }
+
+  if (('title' in changes && changes.title !== currentData.title && !changes.albumView) || (!changes.albumView && currentData.albumView)) {
+    let titleBase = changes.title || currentData.title;
+    let normalizedEmoji = convertToTextEmoji(titleBase);
     let titleNoFeat = removeFeaturedArtists(normalizedEmoji);
     let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
     let titleMain = splitTitle[0];
@@ -150,7 +167,43 @@ function setTextData(changes) {
     document.getElementById("title-main").innerHTML = titleMain;
     document.getElementById("title-extra").innerHTML = titleExtra;
 
-    fadeIn(document.getElementById("title"));
+    fadeIn(titleContainer);
+  }
+
+  if ('albumTracks' in changes) {
+    trackListContainer.innerHTML = "";
+    let albumTracks = changes.albumTracks || currentData.albumTracks;
+    let trackNumPadLength = albumTracks.length.toString().length;
+    for (let trackItem of albumTracks) {
+      let trackElem = document.createElement("div");
+      trackElem.className = "track-elem";
+
+      let trackNumberContainer = document.createElement("div");
+      trackNumberContainer.innerHTML = padToLength(trackItem.albumTrackNumber, trackNumPadLength);
+      trackNumberContainer.className = "track-number"
+
+      let trackName = document.createElement("div");
+      trackName.innerHTML = trackItem.title;
+      trackName.className = "track-name"
+
+      let trackLength = document.createElement("div");
+      trackName.className = "track-length"
+      trackLength.innerHTML = formatTime(0, trackItem.length).total;
+
+      trackElem.append(trackNumberContainer, trackName, trackLength);
+      trackListContainer.append(trackElem);
+    }
+    fadeIn(trackListContainer);
+  }
+
+  if ('albumTrackNumber' in changes || currentData.albumView) {
+    let trackNumber = changes.albumTrackNumber || currentData.albumTrackNumber;
+    let currentlyPlayingTrackElem = trackListContainer.childNodes[trackNumber - 1];
+    if (currentlyPlayingTrackElem) {
+      trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
+      currentlyPlayingTrackElem.classList.add("current");
+      fadeIn(currentlyPlayingTrackElem);
+    }
   }
 
   if ('artists' in changes && JSON.stringify(changes.artists) !== JSON.stringify(currentData.artists)) {
@@ -542,8 +595,12 @@ function calcHMS(ms) {
   };
 }
 
-function pad2(time) {
-  return time.toString().padStart(2, '0');
+function pad2(num) {
+  return padToLength(num, 2);
+}
+
+function padToLength(num, length) {
+  return num.toString().padStart(length, '0');
 }
 
 
