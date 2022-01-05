@@ -152,12 +152,10 @@ function setTextData(changes) {
     let albumViewEnabled = ('albumView' in changes ? changes.albumView : currentData.albumView) && albumTrackCount <= MAX_ALBUM_VIEW_SONGS;
     showHide(titleContainer, !albumViewEnabled);
     showHide(trackListContainer, albumViewEnabled);
-  } else if (!changes.albumView && currentData.albumView) {
-    showHide(titleContainer, true);
-    showHide(trackListContainer, false);
   }
 
-  if (('title' in changes && changes.title !== currentData.title && !changes.albumView) || (!changes.albumView && currentData.albumView)) {
+  if (('title' in changes && changes.title !== currentData.title && !changes.albumView)
+      || ('albumView' in changes && !changes.albumView && currentData.albumView)) {
     let titleBase = changes.title || currentData.title;
     let normalizedEmoji = convertToTextEmoji(titleBase);
     let titleNoFeat = removeFeaturedArtists(normalizedEmoji);
@@ -198,11 +196,14 @@ function setTextData(changes) {
 
   if ('albumTrackNumber' in changes || currentData.albumView) {
     let trackNumber = changes.albumTrackNumber || currentData.albumTrackNumber;
-    let currentlyPlayingTrackElem = trackListContainer.childNodes[trackNumber - 1];
-    if (currentlyPlayingTrackElem) {
-      trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
-      currentlyPlayingTrackElem.classList.add("current");
-      fadeIn(currentlyPlayingTrackElem);
+    let currentlyPlayingElem = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
+    if (trackNumber !== currentData.albumTrackNumber || !currentlyPlayingElem) {
+      let currentlyPlayingTrackElem = trackListContainer.childNodes[trackNumber - 1];
+      if (currentlyPlayingTrackElem) {
+        trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
+        currentlyPlayingTrackElem.classList.add("current");
+        fadeIn(currentlyPlayingTrackElem);
+      }
     }
   }
 
