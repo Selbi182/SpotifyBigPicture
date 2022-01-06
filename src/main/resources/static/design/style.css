@@ -187,6 +187,7 @@ img:not([src]) {
     flex-grow: 1;
     justify-content: right;
     position: relative;
+    max-height: var(--artwork-size);
 }
 
 #artwork {
@@ -252,6 +253,7 @@ img:not([src]) {
     flex-direction: column;
     justify-content: center;
     flex: 1;
+    max-height: calc(var(--artwork-size) - 6vmin);
 }
 
 #title {
@@ -301,7 +303,10 @@ img:not([src]) {
     display: grid;
     grid-template-columns: auto auto auto;
     margin-top: 2vmin;
-    grid-gap: 0 2vmin;
+    grid-gap: 0 3vmin;
+    font-size: 3vmin;
+    max-height: 100%;
+    overflow-y: hidden;
 }
 
 #track-list .track-elem div {
@@ -316,13 +321,25 @@ img:not([src]) {
     display: contents;
 }
 
-#track-list .track-elem div:first-child, #track-list .track-elem div:last-child {
+#track-list .track-elem div:is(.track-number, .track-length) {
     text-align: right;
     font-feature-settings: "tnum";
 }
 
-#track-list .track-elem div:nth-child(2) {
+#track-list .track-elem div.track-name {
     text-align: left;
+    font-family: var(--font-bold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#track-list.strip .track-elem div.track-name span.extra {
+    display: none;
+}
+
+#track-list.smaller {
+    font-size: 2vmin;
 }
 
 #info {

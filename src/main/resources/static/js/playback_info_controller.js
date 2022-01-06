@@ -142,16 +142,22 @@ async function setDisplayData(changes) {
       .then(() => setTextData(changes));
 }
 
-const MAX_ALBUM_VIEW_SONGS = 20; // TODO use a sliding window method instead, so that longer albums can also be fully displayed
+// TODO fix album view still being shown when playing something from queue
+const MAX_FULL_SIZE_ALBUM_VIEW_SONGS = 12;
 function setTextData(changes) {
   // Main Info
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
-  if ('albumView' in changes || 'albumTracks' in changes) {
+  if ('albumView' in changes || 'albumTracks' in changes || 'context' in changes) {
     let albumTrackCount = (changes.albumTracks || currentData.albumTracks).length
-    let albumViewEnabled = ('albumView' in changes ? changes.albumView : currentData.albumView) && albumTrackCount <= MAX_ALBUM_VIEW_SONGS;
+    let albumViewEnabled = ('albumView' in changes ? changes.albumView : currentData.albumView)
+        && albumTrackCount > 1
+        && !('context' in changes && changes.context.startsWith("Queue >> "));
     showHide(titleContainer, !albumViewEnabled);
     showHide(trackListContainer, albumViewEnabled);
+    if (albumViewEnabled) {
+      setClass(trackListContainer, "smaller", albumTrackCount > MAX_FULL_SIZE_ALBUM_VIEW_SONGS);
+    }
   }
 
   if (('title' in changes && changes.title !== currentData.title && !changes.albumView)
@@ -160,15 +166,15 @@ function setTextData(changes) {
     let normalizedEmoji = convertToTextEmoji(titleBase);
     let titleNoFeat = removeFeaturedArtists(normalizedEmoji);
     let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
-    let titleMain = splitTitle[0];
-    let titleExtra = splitTitle[1];
+    let titleMain = splitTitle.main;
+    let titleExtra = splitTitle.extra;
     document.getElementById("title-main").innerHTML = titleMain;
     document.getElementById("title-extra").innerHTML = titleExtra;
 
     fadeIn(titleContainer);
   }
 
-  if ('albumTracks' in changes) {
+  if ('albumTracks' in changes && JSON.stringify(changes.albumTracks) !== JSON.stringify(currentData.albumTracks)) {
     trackListContainer.innerHTML = "";
     let albumTracks = changes.albumTracks || currentData.albumTracks;
     let trackNumPadLength = albumTracks.length.toString().length;
@@ -180,12 +186,18 @@ function setTextData(changes) {
       trackNumberContainer.innerHTML = padToLength(trackItem.albumTrackNumber, trackNumPadLength);
       trackNumberContainer.className = "track-number"
 
+      let splitTitle = separateUnimportantTitleInfo(trackItem.title);
       let trackName = document.createElement("div");
-      trackName.innerHTML = trackItem.title;
       trackName.className = "track-name"
+      let trackNameMain = document.createElement("span");
+      trackNameMain.innerHTML = splitTitle.main;
+      let trackNameExtra = document.createElement("span");
+      trackNameExtra.className = "extra";
+      trackNameExtra.innerHTML = splitTitle.extra;
+      trackName.append(trackNameMain, trackNameExtra);
 
       let trackLength = document.createElement("div");
-      trackName.className = "track-length"
+      trackLength.className = "track-length"
       trackLength.innerHTML = formatTime(0, trackItem.length).total;
 
       trackElem.append(trackNumberContainer, trackName, trackLength);
@@ -202,7 +214,15 @@ function setTextData(changes) {
       if (currentlyPlayingTrackElem) {
         trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
         currentlyPlayingTrackElem.classList.add("current");
-        fadeIn(currentlyPlayingTrackElem);
+
+        let scrollUnit = trackListContainer.scrollHeight / trackListContainer.childNodes.length;
+        let scrollMiddleApproximation = Math.round((trackListContainer.offsetHeight / scrollUnit) / 2);
+        let scroll = Math.max(0, scrollUnit * (trackNumber - scrollMiddleApproximation));
+        trackListContainer.scroll({
+          top: scroll,
+          left: 0,
+          behavior: 'smooth'
+        });
       }
     }
   }
@@ -223,8 +243,8 @@ function setTextData(changes) {
     let album = 'album' in changes ? changes.album : currentData.album;
     let normalizedEmoji = convertToTextEmoji(album);
     let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
-    let albumTitleMain = splitTitle[0];
-    let albumTitleExtra = splitTitle[1];
+    let albumTitleMain = splitTitle.main;
+    let albumTitleExtra = splitTitle.extra;
     document.getElementById("album-title-main").innerHTML = albumTitleMain;
     document.getElementById("album-title-extra").innerHTML = albumTitleExtra;
 
@@ -325,7 +345,7 @@ function showHide(elem, show, useInvisibility) {
 }
 
 const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "explicit", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "\\d{4}"];
-const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic"];
+const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
 const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[).*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
@@ -340,11 +360,17 @@ function separateUnimportantTitleInfo(title) {
     }
     if (index >= 0) {
       let mainTitle = title.substring(0, index);
-      let extra = title.substring(index, title.length);
-      return [mainTitle, extra];
+      let extraTitle = title.substring(index, title.length);
+      return {
+        main: mainTitle,
+        extra: extraTitle
+      };
     }
   }
-  return [title, ""];
+  return {
+    main: title,
+    extra: ""
+  };
 }
 
 function convertToTextEmoji(text) {
@@ -460,7 +486,7 @@ function loadBackground(newImage, colors) {
 }
 
 function renderAndShow() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     let backgroundImg = document.getElementById("background-img");
     let backgroundCrossfade = document.getElementById("background-img-crossfade");
     let prerenderCanvas = document.getElementById("prerender-canvas");
@@ -716,6 +742,7 @@ const PREFERENCES = [
     callback: (state) => {
       setClass(document.getElementById("title-extra"), "hide", state);
       setClass(document.getElementById("album-title-extra"), "hide", state);
+      setClass(document.getElementById("track-list"), "strip", state);
     }
   },
   {
@@ -933,11 +960,11 @@ function initSettingsMouseMove() {
   let settings = document.getElementById("settings-buttons");
   let settingsWrapper = document.getElementById("settings-wrapper");
   let content = document.getElementById("content");
-  settings.onmouseenter = (event) => {
+  settings.onmouseenter = () => {
     setClass(settingsWrapper, "show", true);
     setClass(content, "blur", true);
   };
-  settings.onmouseleave = (event) => {
+  settings.onmouseleave = () => {
     setClass(settingsWrapper, "show", false);
     setClass(content, "blur", false);
   }
