@@ -137,7 +137,7 @@ public class PlaybackInfoProvider {
     pInfo.setContext(contextProvider.findContextName(info, previous));
     pInfo.setDevice(info.getDevice().getName());
 
-    if (ModelObjectType.ALBUM.equals(info.getContext().getType())) {
+    if (info.getContext() != null && ModelObjectType.ALBUM.equals(info.getContext().getType())) {
       pInfo.setAlbumTracks(contextProvider.getFormattedAlbumTracks());
       pInfo.setAlbumTrackNumber(contextProvider.getCurrentlyPlayingTrackNumber());
       pInfo.setAlbumView(true);

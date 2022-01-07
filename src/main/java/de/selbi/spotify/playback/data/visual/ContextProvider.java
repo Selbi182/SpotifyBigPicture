@@ -77,7 +77,9 @@ public class ContextProvider {
     if (contextName != null) {
       return contextName;
     } else {
-      return previous != null && previous.getContext() != null ? previous.getContext() : "[context not found]";
+      return previous != null && previous.getContext() != null
+          ? previous.getContext()
+          : info.getCurrentlyPlayingType().toString();
     }
   }
 
