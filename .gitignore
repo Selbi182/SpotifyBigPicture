@@ -40,4 +40,5 @@ templates/READY
 /database.db
 /spring.log
 spotifybot.properties
+custom_images.txt
 log.txt
