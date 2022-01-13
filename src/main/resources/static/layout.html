@@ -2,6 +2,7 @@
 <html lang="en-us">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>Spotify Big Picture</title>
   <script src="js/spotify-big-picture.js"></script>
   <script src="js/lib/dom-to-image.min.js"></script>
@@ -23,6 +24,9 @@
   </div>
   <div id="content">
     <div id="content-top">
+      <div id="artwork">
+        <img id="artwork-img"/>
+      </div>
       <div id="info">
         <div id="top-info">
           <div id="meta-left">
@@ -32,9 +36,6 @@
           <div id="meta-right">
             <div id="logo"></div>
           </div>
-        </div>
-        <div id="artwork">
-          <img id="artwork-img"/>
         </div>
         <div id="center-info">
           <div id="artists"></div>

@@ -142,7 +142,6 @@ async function setDisplayData(changes) {
       .then(() => setTextData(changes));
 }
 
-// TODO fix album view still being shown when playing something from queue
 const MAX_FULL_SIZE_ALBUM_VIEW_SONGS = 12;
 function setTextData(changes) {
   // Main Info
@@ -156,7 +155,7 @@ function setTextData(changes) {
     showHide(titleContainer, !albumViewEnabled);
     showHide(trackListContainer, albumViewEnabled);
     if (albumViewEnabled) {
-      setClass(trackListContainer, "smaller", albumTrackCount > MAX_FULL_SIZE_ALBUM_VIEW_SONGS);
+      setClass(trackListContainer, "compact", albumTrackCount > MAX_FULL_SIZE_ALBUM_VIEW_SONGS);
     }
   }
 
@@ -223,6 +222,7 @@ function setTextData(changes) {
           left: 0,
           behavior: 'smooth'
         });
+        updateScrollGradients();
       }
     }
   }
@@ -350,7 +350,7 @@ const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live"];
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
 const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[).*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
 const USELESS_WORDS_REGEX_HYPHEN = new RegExp("\\s-\\s.*?(" + USELESS_WORDS.join("|") + ").*", "ig");
-const WHITELISTED_WORDS_REGEXP = new RegExp(".*(" + WHITELISTED_WORDS.join("|") + ").*", "ig");
+const WHITELISTED_WORDS_REGEXP = new RegExp("(\\(|\\-|\\[).*?(" +WHITELISTED_WORDS.join("|") + ").*", "ig");
 
 function separateUnimportantTitleInfo(title) {
   if (title.search(WHITELISTED_WORDS_REGEXP) < 0) {
@@ -403,6 +403,19 @@ function registerWatchedBalanceTextElements() {
   }
 }
 
+window.addEventListener('load', setupScrollGradients);
+function setupScrollGradients() {
+  let trackList = document.getElementById("track-list");
+  trackList.onscroll = () => updateScrollGradients();
+}
+
+function updateScrollGradients() {
+  let trackList = document.getElementById("track-list");
+  let topGradient = trackList.scrollTop > 0;
+  let bottomGradient = (trackList.scrollHeight - trackList.clientHeight) > trackList.scrollTop;
+  setClass(trackList, "gradient-top", topGradient);
+  setClass(trackList, "gradient-bottom", bottomGradient);
+}
 
 ///////////////////////////////
 // IMAGE
@@ -918,6 +931,7 @@ window.onresize = () => {
   refreshBackgroundEvent = setTimeout(() => {
     refreshBackgroundRender();
   }, REFRESH_BACKGROUND_ON_RESIZE_DELAY);
+  updateScrollGradients();
 };
 
 
