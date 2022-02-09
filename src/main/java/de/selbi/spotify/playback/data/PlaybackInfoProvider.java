@@ -180,9 +180,9 @@ public class PlaybackInfoProvider {
     PlaybackInfoDTO pInfo = buildBaseInfo(info);
 
     Episode episode = (Episode) info.getItem();
-    pInfo.setArtists(List.of(episode.getShow().getPublisher()));
+    pInfo.setArtists(List.of(episode.getShow().getName()));
     pInfo.setTitle(episode.getName());
-    pInfo.setAlbum(episode.getShow().getName());
+    pInfo.setAlbum(episode.getShow().getPublisher());
     pInfo.setDescription(episode.getDescription());
     pInfo.setRelease(episode.getReleaseDate());
 

@@ -30,7 +30,7 @@ html, body {
     width: 100%;
     height: 100%;
     font-size: 2vh;
-    line-height: 2.6vh;
+    line-height: 1.135;
     user-select: none;
     word-break: break-word;
 }
@@ -215,6 +215,9 @@ img:not([src]) {
 #meta-left {
     flex: 1;
     text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 #meta-right {
@@ -250,7 +253,6 @@ img:not([src]) {
 
 #title {
     font-size: 6vh;
-    line-height: 6.6vh;
     font-weight: bold;
     margin: var(--margin-main) 0;
 }
@@ -258,7 +260,6 @@ img:not([src]) {
 #artists {
     font-family: var(--font-normal);
     font-size: 4vh;
-    line-height: 4.6vh;
 }
 
 #title, #artists, #time-current, #time-total {
@@ -271,7 +272,6 @@ img:not([src]) {
 
 #album {
     font-size: 3vh;
-    line-height: 3.6vh;
 }
 
 #album-release {
@@ -283,8 +283,7 @@ img:not([src]) {
 }
 
 #description {
-    text-align: justify;
-    text-align-last: center;
+    text-align: center;
     margin-top: -6vh;
     margin-bottom: var(--margin-main);
 }
@@ -296,18 +295,23 @@ img:not([src]) {
 #track-list {
     display: grid;
     grid-template-columns: auto auto auto;
+    scrollbar-width: thin;
     margin-top: 2vh;
-    grid-gap: 0 3vh;
-    font-size: 3vh;
-    line-height: 3.6vh;
-    max-height: 100%;
+    grid-gap: 0 2vh;
     overflow-y: hidden;
     mask-repeat: no-repeat;
+    font-size: clamp(2vh, calc(1vh * var(--font-size)), 3vh);
+    --font-size: calc(3 - ((var(--track-count) - 14) * 0.15));
+    --track-count: 0;
     --gradient-height: 6vh;
     --gradient-top: white;
     --gradient-bottom: white;
     mask-image: linear-gradient(to bottom, var(--gradient-top) 0%, white var(--gradient-height),
         white calc(100% - var(--gradient-height)), var(--gradient-bottom)  100%);
+}
+
+#track-list.fit {
+    flex: 1;
 }
 
 #track-list.gradient-top {
@@ -348,9 +352,8 @@ img:not([src]) {
     display: none;
 }
 
-#track-list.compact {
-    font-size: 2vh;
-    line-height: 2.6vh;
+#artists, #title, #description, #album-title, .track-name  {
+    user-select: text;
 }
 
 #info {
@@ -358,7 +361,6 @@ img:not([src]) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    user-select: text;
 }
 
 #top-info {
@@ -479,7 +481,6 @@ img:not([src]) {
 
 #time-current, #time-total {
     font-size: 4vh;
-    line-height: 4.6vh;
 }
 
 
@@ -492,7 +493,6 @@ img:not([src]) {
     background: linear-gradient(to right, black 0%, transparent 150%);
     opacity: 0;
     font-size: 4vh;
-    line-height: 4.6vh;
     display: flex;
     gap: var(--margin-main);
     pointer-events: none;
@@ -540,7 +540,6 @@ img:not([src]) {
     flex-direction: column;
     width: 100%;
     font-size: 3vh;
-    line-height: 3.6vh;
     pointer-events: none;
 }
 
@@ -566,7 +565,6 @@ img:not([src]) {
     opacity: 0.65;
     z-index: 1;
     font-size: 2.6vh;
-    line-height: 3.2vh;
 }
 
 #clock.hide, #clock:empty {
@@ -574,16 +572,24 @@ img:not([src]) {
 }
 
 @media only screen and (max-aspect-ratio: 3/2) {
+    #content {
+        padding: calc(var(--margin-main) / 2);
+    }
+
     #info {
         user-select: none !important;
     }
 
-    #artwork, #settings-wrapper, #clock-wrapper {
+    #artwork, #settings-wrapper, #clock-wrapper, #top-info {
         display: none;
     }
 
     #info {
         width: 100%;
+    }
+
+    #center-info {
+        max-height: 100%;
     }
 
     #background-canvas {
@@ -598,15 +604,12 @@ img:not([src]) {
         max-height: 0;
     }
 
-    #content-top {
-        max-height: unset;
-    }
-
     #track-list {
-        grid-template-columns: auto auto;
+        overflow-y: auto;
     }
 
-    .track-number {
-        display: none;
+    #track-list .track-elem div.track-name {
+        white-space: unset;
+        overflow: unset;
     }
 }

@@ -142,20 +142,23 @@ async function setDisplayData(changes) {
       .then(() => setTextData(changes));
 }
 
-const MAX_FULL_SIZE_ALBUM_VIEW_SONGS = 12;
 function setTextData(changes) {
   // Main Info
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
   if ('albumView' in changes || 'albumTracks' in changes || 'context' in changes) {
-    let albumTrackCount = (changes.albumTracks || currentData.albumTracks).length
+    let albumTrackCount = (changes.albumTracks || currentData.albumTracks || []).length;
     let albumViewEnabled = ('albumView' in changes ? changes.albumView : currentData.albumView)
         && albumTrackCount > 1
         && !('context' in changes && changes.context.startsWith("Queue >> "));
     showHide(titleContainer, !albumViewEnabled);
     showHide(trackListContainer, albumViewEnabled);
     if (albumViewEnabled) {
-      setClass(trackListContainer, "compact", albumTrackCount > MAX_FULL_SIZE_ALBUM_VIEW_SONGS);
+      trackListContainer.style.setProperty("--track-count", albumTrackCount.toString());
+      window.requestAnimationFrame(() => {
+        let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
+        setClass(trackListContainer, "fit", isOverflowing);
+      })
     }
   }
 
@@ -206,25 +209,7 @@ function setTextData(changes) {
   }
 
   if ('albumTrackNumber' in changes || currentData.albumView) {
-    let trackNumber = changes.albumTrackNumber || currentData.albumTrackNumber;
-    let currentlyPlayingElem = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
-    if (trackNumber !== currentData.albumTrackNumber || !currentlyPlayingElem) {
-      let currentlyPlayingTrackElem = trackListContainer.childNodes[trackNumber - 1];
-      if (currentlyPlayingTrackElem) {
-        trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
-        currentlyPlayingTrackElem.classList.add("current");
-
-        let scrollUnit = trackListContainer.scrollHeight / trackListContainer.childNodes.length;
-        let scrollMiddleApproximation = Math.round((trackListContainer.offsetHeight / scrollUnit) / 2);
-        let scroll = Math.max(0, scrollUnit * (trackNumber - scrollMiddleApproximation));
-        trackListContainer.scroll({
-          top: scroll,
-          left: 0,
-          behavior: 'smooth'
-        });
-        updateScrollGradients();
-      }
-    }
+    updateScrollPositions(changes.albumTrackNumber);
   }
 
   if ('artists' in changes && JSON.stringify(changes.artists) !== JSON.stringify(currentData.artists)) {
@@ -318,7 +303,9 @@ function setTextData(changes) {
   }
 
   // Re-balance all updated texts
+  let scrollTopTrackListBackup = trackListContainer.scrollTop; // fix to keep scroll position in place
   balanceText.updateWatched();
+  trackListContainer.scrollTop = scrollTopTrackListBackup;
 }
 
 function setClass(elem, className, state) {
@@ -345,7 +332,7 @@ function showHide(elem, show, useInvisibility) {
 }
 
 const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "explicit", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "\\d{4}"];
-const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live"];
+const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live", "classic", "demo"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
 const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[).*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
@@ -409,12 +396,38 @@ function setupScrollGradients() {
   trackList.onscroll = () => updateScrollGradients();
 }
 
+const SCROLL_GRADIENTS_TOLERANCE = 4;
 function updateScrollGradients() {
   let trackList = document.getElementById("track-list");
-  let topGradient = trackList.scrollTop > 0;
-  let bottomGradient = (trackList.scrollHeight - trackList.clientHeight) > trackList.scrollTop;
+  let topGradient = trackList.scrollTop > SCROLL_GRADIENTS_TOLERANCE;
+  let bottomGradient = (trackList.scrollHeight - trackList.clientHeight) > (trackList.scrollTop + SCROLL_GRADIENTS_TOLERANCE);
   setClass(trackList, "gradient-top", topGradient);
   setClass(trackList, "gradient-bottom", bottomGradient);
+}
+
+function updateScrollPositions(specificTrackNumber) {
+  window.requestAnimationFrame(() => {
+    let trackListContainer = document.getElementById("track-list");
+    let trackNumber = specificTrackNumber ? specificTrackNumber : currentData.albumTrackNumber;
+    let currentlyPlayingElem = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
+    if (specificTrackNumber || trackNumber !== currentData.albumTrackNumber || !currentlyPlayingElem) {
+      let currentlyPlayingTrackElem = trackListContainer.childNodes[trackNumber - 1];
+      if (currentlyPlayingTrackElem) {
+        trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
+        currentlyPlayingTrackElem.classList.add("current");
+
+        let scrollUnit = trackListContainer.scrollHeight / trackListContainer.childNodes.length;
+        let scrollMiddleApproximation = Math.round((trackListContainer.offsetHeight / scrollUnit) / 2);
+        let scroll = Math.max(0, scrollUnit * (trackNumber - scrollMiddleApproximation));
+        trackListContainer.scroll({
+          top: scroll,
+          left: 0,
+          behavior: 'smooth'
+        });
+        updateScrollGradients();
+      }
+    }
+  });
 }
 
 ///////////////////////////////
