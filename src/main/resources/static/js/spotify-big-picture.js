@@ -498,6 +498,7 @@ function loadBackground(newImage, colors) {
       let averageBrightness = colors.averageBrightness;
       let prerenderCanvas = document.getElementById("prerender-canvas");
       let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
+      let noiseOverlay = document.getElementById("noise");
 
       setClass(prerenderCanvas, "show", true);
       let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
@@ -505,12 +506,14 @@ function loadBackground(newImage, colors) {
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
       setClass(backgroundCanvasOverlay, "boost", averageBrightness < 0.2);
       setClass(backgroundCanvasOverlay, "soften", averageBrightness > 0.7);
+      noiseOverlay.style.setProperty("--random-offset", Math.round(Math.random() * 100) + "px");
       resolve();
     };
     backgroundCanvasImg.src = newImage;
   });
 }
 
+const SCREENSHOT_SIZE_FACTOR = 0.5;
 function renderAndShow() {
   return new Promise((resolve) => {
     let backgroundImg = document.getElementById("background-img");
@@ -521,7 +524,10 @@ function renderAndShow() {
     // is significantly faster than with JPEG or SVG (still not perfect though)
     let pngData;
     domtoimage
-        .toPng(prerenderCanvas, {width: window.innerWidth / 2.0, height: window.innerHeight / 2.0})
+        .toPng(prerenderCanvas, {
+          width: window.innerWidth * SCREENSHOT_SIZE_FACTOR,
+          height: window.innerHeight * SCREENSHOT_SIZE_FACTOR
+        })
         .then((imgDataBase64) => {
           if (imgDataBase64.length < 10) {
             throw 'Rendered image data is invalid';

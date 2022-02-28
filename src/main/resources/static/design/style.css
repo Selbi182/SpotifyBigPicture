@@ -100,7 +100,7 @@ img:not([src]) {
     opacity: 0.5;
 }
 
-#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img {
+#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #noise {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -155,7 +155,7 @@ img:not([src]) {
 }
 
 #background-canvas-img {
-    filter: blur(var(--blur)) grayscale(100%);
+    filter: blur(var(--blur)) grayscale(10%);
 }
 
 #background-img-crossfade.show {
@@ -164,6 +164,14 @@ img:not([src]) {
 
 #background-canvas-img.color-only {
     opacity: 0 !important;
+}
+
+#noise {
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    image-rendering: crisp-edges;
+    background: url('img/noise.png') repeat var(--random-offset) var(--random-offset);
+    --random-offset: 10px;
 }
 
 #content {
