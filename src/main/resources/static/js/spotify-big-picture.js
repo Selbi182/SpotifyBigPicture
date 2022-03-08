@@ -506,7 +506,7 @@ function loadBackground(newImage, colors) {
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
       setClass(backgroundCanvasOverlay, "boost", averageBrightness < 0.2);
       setClass(backgroundCanvasOverlay, "soften", averageBrightness > 0.7);
-      noiseOverlay.style.setProperty("--random-offset", Math.round(Math.random() * 100) + "px");
+      noiseOverlay.style.setProperty("--intensity", averageBrightness);
       resolve();
     };
     backgroundCanvasImg.src = newImage;
@@ -775,6 +775,16 @@ const PREFERENCES = [
       setClass(document.getElementById("title-extra"), "hide", state);
       setClass(document.getElementById("album-title-extra"), "hide", state);
       setClass(document.getElementById("track-list"), "strip", state);
+    }
+  },
+  {
+    id: "bg-noise",
+    name: "Noise",
+    hotkey: "n",
+    description: "Adds a subtle layer of noise to the background to increase contrast and prevent color banding for dark images",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("noise"), "show", state);
     }
   },
   {

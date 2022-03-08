@@ -108,7 +108,6 @@ img:not([src]) {
 }
 
 #background-img-crossfade {
-    z-index: 1;
     opacity: 0;
 }
 
@@ -167,11 +166,14 @@ img:not([src]) {
 }
 
 #noise {
-    opacity: 0.05;
-    mix-blend-mode: overlay;
-    image-rendering: crisp-edges;
-    background: url('img/noise.png') repeat var(--random-offset) var(--random-offset);
-    --random-offset: 10px;
+    opacity: 0;
+    mix-blend-mode: screen;
+    background: url('img/noise.png') repeat;
+    --intensity: 1;
+}
+
+#noise.show {
+    opacity: max(0.03, calc(var(--intensity) * 0.15));
 }
 
 #content {
