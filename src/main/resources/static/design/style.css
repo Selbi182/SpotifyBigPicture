@@ -97,7 +97,7 @@ img:not([src]) {
 }
 
 #dark-overlay.show {
-    opacity: 0.5;
+    opacity: 0.65;
 }
 
 #background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #noise {
@@ -140,21 +140,21 @@ img:not([src]) {
     background: var(--background-gradients), var(--background-color);
     --background-brightness: 0.5;
     --background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, var(--background-brightness)) 100%);
-    background-blend-mode: color-burn;
+    background-blend-mode: soft-light;
     opacity: var(--background-brightness);
     transition: unset !important;
 }
 
-#background-canvas-overlay.boost {
+#background-canvas-overlay.brighter {
     opacity: calc(0.5 - var(--background-brightness));
 }
 
-#background-canvas-overlay.soften {
+#background-canvas-overlay.darker {
     background-blend-mode: hard-light;
 }
 
 #background-canvas-img {
-    filter: blur(var(--blur)) grayscale(10%);
+    filter: blur(var(--blur)) grayscale(25%);
 }
 
 #background-img-crossfade.show {

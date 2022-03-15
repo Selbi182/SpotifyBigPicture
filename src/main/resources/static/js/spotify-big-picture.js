@@ -504,8 +504,8 @@ function loadBackground(newImage, colors) {
       let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
       backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
-      setClass(backgroundCanvasOverlay, "boost", averageBrightness < 0.2);
-      setClass(backgroundCanvasOverlay, "soften", averageBrightness > 0.7);
+      setClass(backgroundCanvasOverlay, "brighter", averageBrightness < 0.2);
+      setClass(backgroundCanvasOverlay, "darker", averageBrightness > 0.7);
       noiseOverlay.style.setProperty("--intensity", averageBrightness);
       resolve();
     };
@@ -720,6 +720,11 @@ function setIdleModeState(state) {
   }
 }
 
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    advanceCurrentTime();
+  }
+});
 
 
 ///////////////////////////////
@@ -804,7 +809,7 @@ const PREFERENCES = [
     id: "show-clock",
     name: "Clock",
     hotkey: "w",
-    description: "Displays a clock in the bottom center of the page",
+    description: "Displays a clock at the bottom center of the page",
     state: true,
     callback: (state) => setClass(document.getElementById("clock"), "hide", !state)
   },
@@ -812,16 +817,18 @@ const PREFERENCES = [
     id: "dark-mode",
     name: "Dark Mode",
     hotkey: "d",
-    description: "Darkens the entire screen by 50%. This setting will be automatically disabled after 8 hours",
+    description: "Darkens the entire screen by 65%. This setting will be automatically disabled after 8 hours",
     state: false,
     callback: (state) => {
       const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 8 * 60 * 60 * 1000;
       setClass(document.getElementById("dark-overlay"), "show", state);
       clearTimeout(darkModeTimeout);
-      if (this.state) {
+      if (state) {
         darkModeTimeout = setTimeout(() => {
-          refreshPreference(id, false);
-          refreshPrefsQueryParam();
+          let darkModePref = findPreference("dark-mode");
+          if (darkModePref) {
+            toggleVisualPreference(darkModePref);
+          }
         }, DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT);
       }
     }
@@ -944,7 +951,7 @@ function handleAlternateDarkModeToggle() {
     }
     toggleDarkModeCount = 0;
   } else {
-    toggleDarkModeTimeout = setTimeout(() => toggleDarkModeCount = 0, TOGGLE_DARK_MODE_COUNT * 1000 * 2);
+    toggleDarkModeTimeout = setTimeout(() => toggleDarkModeCount = 0, 1000 * 3);
   }
 }
 
