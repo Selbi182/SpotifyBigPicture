@@ -84,6 +84,16 @@ public class PlaybackController {
     return ResponseEntity.noContent().build();
   }
 
+  @CrossOrigin
+  @GetMapping("/dark")
+  public ResponseEntity<String> globallyToggleDarkMode() {
+    if (isAnyoneListening()) {
+      sseSend(PlaybackInfoDTO.DARK_MODE);
+      return ResponseEntity.ok("Dark mode toggled on " + this.emitters.size() + " listener(s)!");
+    }
+    return ResponseEntity.ok("No listeners available!");
+  }
+
   /**
    * Poll the Spotify API for changed playback info and set it to the listeners if
    * anything was changed
@@ -106,7 +116,9 @@ public class PlaybackController {
    */
   @Scheduled(initialDelay = PlaybackInfoConstants.HEARTBEAT_MS, fixedRate = PlaybackInfoConstants.HEARTBEAT_MS)
   private void sendHeartbeat() {
-    sseSend(PlaybackInfoDTO.HEARTBEAT);
+    if (isAnyoneListening()) {
+      sseSend(PlaybackInfoDTO.HEARTBEAT);
+    }
   }
 
   private void sseSend(PlaybackInfoDTO info) {

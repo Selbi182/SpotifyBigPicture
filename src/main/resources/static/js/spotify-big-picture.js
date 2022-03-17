@@ -57,12 +57,12 @@ function init() {
 function singleRequest(forceFull) {
   let url = forceFull ? INFO_URL_FULL : INFO_URL;
   fetch(url)
-      .then(response => response.json())
-      .then(json => processJson(json))
-      .catch(ex => {
-        console.error("Single request", ex);
-        setTimeout(() => singleRequest(forceFull), RETRY_TIMEOUT_MS);
-      });
+    .then(response => response.json())
+    .then(json => processJson(json))
+    .catch(ex => {
+      console.error("Single request", ex);
+      setTimeout(() => singleRequest(forceFull), RETRY_TIMEOUT_MS);
+    });
 }
 
 let flux;
@@ -111,12 +111,17 @@ function closeFlux() {
 window.addEventListener('beforeunload', closeFlux);
 
 function processJson(json) {
-  if (json.type === "DATA") {
-    if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
-      window.location.reload();
-    } else {
-      setDisplayData(json)
+  if (json.type !== "HEARTBEAT") {
+    console.debug(json);
+    if (json.type === "DATA") {
+      if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
+        window.location.reload();
+      } else {
+        setDisplayData(json)
           .then(() => startTimers());
+      }
+    } else if (json.type === "DARK_MODE") {
+      toggleDarkMode();
     }
   }
 }
@@ -137,9 +142,8 @@ function createHeartbeatTimeout() {
 ///////////////////////////////
 
 async function setDisplayData(changes) {
-  console.debug(changes);
   changeImage(changes)
-      .then(() => setTextData(changes));
+    .then(() => setTextData(changes));
 }
 
 function setTextData(changes) {
@@ -362,8 +366,8 @@ function separateUnimportantTitleInfo(title) {
 
 function convertToTextEmoji(text) {
   return [...text]
-      .map((char) => char.codePointAt(0) > 127 ? `&#${char.codePointAt(0)};&#xFE0E;` : char)
-      .join('');
+    .map((char) => char.codePointAt(0) > 127 ? `&#${char.codePointAt(0)};&#xFE0E;` : char)
+    .join('');
 }
 
 function removeFeaturedArtists(title) {
@@ -465,9 +469,9 @@ function changeImage(changes) {
 function prerenderAndSetArtwork(newImage, colors, refreshArtwork) {
   return new Promise((resolve) => {
     loadBackground(newImage, colors)
-        .then(() => renderAndShow())
-        .then(() => loadArtwork(newImage, refreshArtwork))
-        .then(resolve);
+      .then(() => renderAndShow())
+      .then(() => loadArtwork(newImage, refreshArtwork))
+      .then(resolve);
   });
 }
 
@@ -524,33 +528,33 @@ function renderAndShow() {
     // is significantly faster than with JPEG or SVG (still not perfect though)
     let pngData;
     domtoimage
-        .toPng(prerenderCanvas, {
-          width: window.innerWidth * SCREENSHOT_SIZE_FACTOR,
-          height: window.innerHeight * SCREENSHOT_SIZE_FACTOR
-        })
-        .then((imgDataBase64) => {
-          if (imgDataBase64.length < 10) {
-            throw 'Rendered image data is invalid';
-          }
-          pngData = imgDataBase64;
-        })
-        .catch((error) => {
-          pngData = EMPTY_IMAGE_DATA;
-          console.warn("Failed to render background, using black square instead", error);
-        })
-        .finally(() => {
-          setClass(backgroundCrossfade, "show", true);
-          backgroundCrossfade.onload = () => {
-            finishAnimations(backgroundCrossfade);
-            backgroundImg.onload = () => {
-              setClass(backgroundCrossfade, "show", false);
-              setClass(prerenderCanvas, "show", false);
-              resolve();
-            };
-            backgroundImg.src = pngData;
+      .toPng(prerenderCanvas, {
+        width: window.innerWidth * SCREENSHOT_SIZE_FACTOR,
+        height: window.innerHeight * SCREENSHOT_SIZE_FACTOR
+      })
+      .then((imgDataBase64) => {
+        if (imgDataBase64.length < 10) {
+          throw 'Rendered image data is invalid';
+        }
+        pngData = imgDataBase64;
+      })
+      .catch((error) => {
+        pngData = EMPTY_IMAGE_DATA;
+        console.warn("Failed to render background, using black square instead", error);
+      })
+      .finally(() => {
+        setClass(backgroundCrossfade, "show", true);
+        backgroundCrossfade.onload = () => {
+          finishAnimations(backgroundCrossfade);
+          backgroundImg.onload = () => {
+            setClass(backgroundCrossfade, "show", false);
+            setClass(prerenderCanvas, "show", false);
+            resolve();
           };
-          backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
-        });
+          backgroundImg.src = pngData;
+        };
+        backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
+      });
   });
 }
 
@@ -825,10 +829,7 @@ const PREFERENCES = [
       clearTimeout(darkModeTimeout);
       if (state) {
         darkModeTimeout = setTimeout(() => {
-          let darkModePref = findPreference("dark-mode");
-          if (darkModePref) {
-            toggleVisualPreference(darkModePref);
-          }
+          toggleDarkMode();
         }, DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT);
       }
     }
@@ -937,6 +938,13 @@ function toggleFullscreen() {
   }
 }
 
+function toggleDarkMode() {
+  let darkModePref = findPreference("dark-mode");
+  if (darkModePref) {
+    toggleVisualPreference(darkModePref);
+  }
+}
+
 const TOGGLE_DARK_MODE_COUNT = 3;
 let toggleDarkModeCount = 0;
 let toggleDarkModeTimeout;
@@ -945,16 +953,12 @@ function handleAlternateDarkModeToggle() {
   clearTimeout(toggleDarkModeTimeout);
   toggleDarkModeCount++;
   if (toggleDarkModeCount >= TOGGLE_DARK_MODE_COUNT) {
-    let darkModePref = findPreference("dark-mode");
-    if (darkModePref) {
-      toggleVisualPreference(darkModePref);
-    }
+    toggleDarkMode();
     toggleDarkModeCount = 0;
   } else {
     toggleDarkModeTimeout = setTimeout(() => toggleDarkModeCount = 0, 1000 * 3);
   }
 }
-
 
 ///////////////////////////////
 // REFRESH IMAGE ON RESIZE
@@ -1021,7 +1025,7 @@ function initSettingsMouseMove() {
   settings.onmousemove = (event) => {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
     document.getElementById("settings-description").childNodes
-        .forEach(elem => setClass(elem, "show", false));
+      .forEach(elem => setClass(elem, "show", false));
     if (event.target.classList.contains("setting")) {
       let targetLabel = document.getElementById(event.target.id + "-description");
       setClass(targetLabel, "show", true);

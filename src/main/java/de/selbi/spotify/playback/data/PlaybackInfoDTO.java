@@ -17,10 +17,12 @@ import de.selbi.spotify.playback.data.visual.color.DominantRGBs;
 public class PlaybackInfoDTO {
   public static final PlaybackInfoDTO EMPTY = new PlaybackInfoDTO(Type.EMPTY);
   public static final PlaybackInfoDTO HEARTBEAT = new PlaybackInfoDTO(Type.HEARTBEAT);
+  public static final PlaybackInfoDTO DARK_MODE = new PlaybackInfoDTO(Type.DARK_MODE);
 
   enum Type {
     EMPTY,
     HEARTBEAT,
+    DARK_MODE,
     DATA
   }
 
