@@ -138,11 +138,15 @@ public class PlaybackInfoProvider {
     pInfo.setDevice(info.getDevice().getName());
 
     if (info.getContext() != null && ModelObjectType.ALBUM.equals(info.getContext().getType())) {
-      pInfo.setAlbumTracks(contextProvider.getFormattedAlbumTracks());
-      pInfo.setAlbumTrackNumber(contextProvider.getCurrentlyPlayingTrackNumber());
-      pInfo.setAlbumView(true);
+      pInfo.setListTracks(contextProvider.getFormattedAlbumTracks());
+      pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
+      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.ALBUM);
+    } else if (info.getContext() != null && ModelObjectType.PLAYLIST.equals(info.getContext().getType()) && !pInfo.isShuffle()) {
+      pInfo.setListTracks(contextProvider.getFormattedPlaylistTracks());
+      pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
+      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.PLAYLIST);
     } else {
-      pInfo.setAlbumView(false);
+      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.SINGLE);
     }
 
     pInfo.setTimeCurrent(info.getProgress_ms());

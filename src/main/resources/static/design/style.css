@@ -161,8 +161,13 @@ img:not([src]) {
     opacity: 1;
 }
 
-#background-canvas-img.color-only {
+#background-canvas.color-only #background-canvas-img {
     opacity: 0 !important;
+}
+
+#background-canvas.color-only #background-canvas-overlay {
+    opacity: 1 !important;
+    background-blend-mode: unset !important;
 }
 
 #noise {
@@ -267,6 +272,10 @@ img:not([src]) {
     margin: var(--margin-main) 0;
 }
 
+#title.compact {
+    margin: 2vh 0;
+}
+
 #artists {
     font-family: var(--font-normal);
     font-size: 4vh;
@@ -340,9 +349,24 @@ img:not([src]) {
 #track-list .track-elem.current div {
     opacity: 1;
 }
+#track-list .track-elem.current div.track-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: unset !important;
+}
 
 #track-list .track-elem {
     display: contents;
+}
+
+#track-list:not(.playlist-view) .track-artist {
+    display: none;
+}
+
+#track-list.playlist-view .track-number {
+    display: none;
 }
 
 #track-list .track-elem div:is(.track-number, .track-length) {
@@ -350,12 +374,15 @@ img:not([src]) {
     font-feature-settings: "tnum";
 }
 
-#track-list .track-elem div.track-name {
+#track-list .track-elem div:is(.track-artist, .track-name)  {
     text-align: left;
-    font-family: var(--font-bold);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+#track-list .track-elem div.track-name {
+    font-family: var(--font-bold);
 }
 
 #track-list.strip .track-elem div.track-name span.extra {

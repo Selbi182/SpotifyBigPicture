@@ -14,16 +14,18 @@ import de.selbi.spotify.bot.api.BotException;
 import de.selbi.spotify.bot.api.SpotifyCall;
 import de.selbi.spotify.bot.util.BotUtils;
 import de.selbi.spotify.playback.data.PlaybackInfoDTO;
-import de.selbi.spotify.playback.data.help.AlbumTrackDTO;
+import de.selbi.spotify.playback.data.help.ListTrackDTO;
 import de.selbi.spotify.playback.data.help.PlaybackInfoConstants;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
+import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.Context;
 import se.michaelthelin.spotify.model_objects.specification.Playlist;
+import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Show;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
@@ -38,12 +40,14 @@ public class ContextProvider {
   private String previousContextString;
   private Album currentContextAlbum;
   private List<TrackSimplified> currentContextAlbumTracks;
-  private List<AlbumTrackDTO> formattedAlbumTracks;
-  private Integer currentlyPlayingTrackNumber;
+  private List<ListTrackDTO> formattedAlbumTracks;
+  private List<ListTrackDTO> formattedPlaylistTracks;
+  private Integer currentlyPlayingAlbumTrackNumber;
 
   ContextProvider(SpotifyApi spotifyApi) {
     this.spotifyApi = spotifyApi;
     this.formattedAlbumTracks = new ArrayList<>();
+    this.formattedPlaylistTracks = new ArrayList<>();
   }
 
   /**
@@ -83,12 +87,31 @@ public class ContextProvider {
     }
   }
 
-  public List<AlbumTrackDTO> getFormattedAlbumTracks() {
+  public List<ListTrackDTO> getFormattedAlbumTracks() {
     return formattedAlbumTracks;
   }
 
-  public Integer getCurrentlyPlayingTrackNumber() {
-    return currentlyPlayingTrackNumber;
+  public List<ListTrackDTO> getFormattedPlaylistTracks() {
+    return formattedPlaylistTracks;
+  }
+
+  public Integer getCurrentlyPlayingAlbumTrackNumber() {
+    return currentlyPlayingAlbumTrackNumber;
+  }
+
+  public Integer getCurrentlyPlayingPlaylistTrackNumber(CurrentlyPlayingContext context) {
+    String id = context.getItem().getId();
+    return Iterables.indexOf(formattedPlaylistTracks, t -> {
+      if (t != null) {
+        if (t.getId() != null) {
+          return t.getId().equals(id);
+        } else {
+          Track item = (Track) context.getItem();
+          return BotUtils.getFirstArtistName(item).equals(t.getArtist()) && item.getName().equals(t.getTitle());
+        }
+      }
+      return false;
+    }) + 1;
   }
 
   private String getArtistContext(Context context, boolean force) {
@@ -104,6 +127,16 @@ public class ContextProvider {
     if (force || didContextChange(context)) {
       String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
       Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
+
+      List<PlaylistTrack> playlistTracks = SpotifyCall.executePaging(spotifyApi.getPlaylistsItems(playlistId));
+      List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
+      for (int i = 0; i < playlistTracks.size(); i++) {
+        Track track = (Track) playlistTracks.get(i).getTrack();
+        ListTrackDTO lt = new ListTrackDTO(track.getId(), i + 1, BotUtils.getFirstArtistName(track), track.getName(), track.getDurationMs());
+        listTrackDTOS.add(lt);
+      }
+      this.formattedPlaylistTracks = listTrackDTOS;
+
       return contextPlaylist.getName();
     }
     return null;
@@ -131,25 +164,25 @@ public class ContextProvider {
       formattedAlbumTracks = new ArrayList<>();
       for (int i = 0; i < currentContextAlbumTracks.size(); i++) {
         TrackSimplified ts = currentContextAlbumTracks.get(i);
-        formattedAlbumTracks.add(new AlbumTrackDTO(i + 1, ts.getName(), ts.getDurationMs()));
+        formattedAlbumTracks.add(new ListTrackDTO(track.getId(), i + 1, BotUtils.getFirstArtistName(ts), ts.getName(), ts.getDurationMs()));
       }
     }
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
-      currentlyPlayingTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> Objects.requireNonNull(t).getId().equals(trackId)) + 1;
+      currentlyPlayingAlbumTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> Objects.requireNonNull(t).getId().equals(trackId)) + 1;
 
       // Total album duration
       Integer totalDurationMs = currentContextAlbumTracks.stream().mapToInt(TrackSimplified::getDurationMs).sum();
       String totalDurationFormatted = formatTime(totalDurationMs);
 
       // Assemble it all
-      if (currentlyPlayingTrackNumber > 0) {
+      if (currentlyPlayingAlbumTrackNumber > 0) {
         Integer totalTrackCount = currentContextAlbum.getTracks().getTotal();
         int digits = totalTrackCount.toString().length();
         return String.format("Total Time: %s // Track: %0" + digits + "d of %0" + digits + "d",
             totalDurationFormatted,
-            currentlyPlayingTrackNumber,
+            currentlyPlayingAlbumTrackNumber,
             totalTrackCount);
       }
     }

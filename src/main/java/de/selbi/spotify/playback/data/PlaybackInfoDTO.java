@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import de.selbi.spotify.playback.data.help.AlbumTrackDTO;
+import de.selbi.spotify.playback.data.help.ListTrackDTO;
 import de.selbi.spotify.playback.data.visual.color.DominantRGBs;
 
 /**
@@ -26,6 +26,12 @@ public class PlaybackInfoDTO {
     DATA
   }
 
+  enum ListViewType {
+    SINGLE,
+    ALBUM,
+    PLAYLIST
+  }
+
   private Type type;
   private String id;
   private Boolean paused;
@@ -34,8 +40,8 @@ public class PlaybackInfoDTO {
   private String context;
   private String device;
   private List<String> artists;
-  private Integer albumTrackNumber;
-  private Boolean albumView;
+  private Integer trackNumber;
+  private ListViewType trackListView;
   private String title;
   private String album;
   private String release;
@@ -45,7 +51,7 @@ public class PlaybackInfoDTO {
   private Integer timeTotal;
   private String description;
   private Long deployTime;
-  private List<AlbumTrackDTO> albumTracks;
+  private List<ListTrackDTO> listTracks;
 
   public PlaybackInfoDTO() {
   }
@@ -123,20 +129,20 @@ public class PlaybackInfoDTO {
     this.artists = artists;
   }
 
-  public Integer getAlbumTrackNumber() {
-    return albumTrackNumber;
+  public Integer getTrackNumber() {
+    return trackNumber;
   }
 
-  public void setAlbumTrackNumber(Integer albumTrackNumber) {
-    this.albumTrackNumber = albumTrackNumber;
+  public void setTrackNumber(Integer trackNumber) {
+    this.trackNumber = trackNumber;
   }
 
-  public Boolean getAlbumView() {
-    return albumView;
+  public ListViewType getTrackListView() {
+    return trackListView;
   }
 
-  public void setAlbumView(Boolean albumView) {
-    this.albumView = albumView;
+  public void setTrackListView(ListViewType trackListView) {
+    this.trackListView = trackListView;
   }
 
   public String getTitle() {
@@ -211,11 +217,11 @@ public class PlaybackInfoDTO {
     this.deployTime = deployTime;
   }
 
-  public List<AlbumTrackDTO> getAlbumTracks() {
-    return albumTracks;
+  public List<ListTrackDTO> getListTracks() {
+    return listTracks;
   }
 
-  public void setAlbumTracks(List<AlbumTrackDTO> albumTracks) {
-    this.albumTracks = albumTracks;
+  public void setListTracks(List<ListTrackDTO> listTracks) {
+    this.listTracks = listTracks;
   }
 }

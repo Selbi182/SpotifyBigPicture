@@ -19,6 +19,7 @@ import se.michaelthelin.spotify.enums.AlbumGroup;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 public final class BotUtils {
 
@@ -169,6 +170,26 @@ public final class BotUtils {
 	 */
 	public static String getFirstArtistName(AlbumSimplified as) {
 		return as.getArtists()[0].getName();
+	}
+
+	/**
+	 * Returns the name of the first artist of this track (usually the only one)
+	 *
+	 * @param t the track
+	 * @return the name of the first artist
+	 */
+	public static String getFirstArtistName(Track t) {
+		return t.getArtists()[0].getName();
+	}
+
+	/**
+	 * Returns the name of the first artist of this track (usually the only one)
+	 *
+	 * @param t the track
+	 * @return the name of the first artist
+	 */
+	public static String getFirstArtistName(TrackSimplified t) {
+		return t.getArtists()[0].getName();
 	}
 
 	/**

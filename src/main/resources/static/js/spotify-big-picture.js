@@ -1,8 +1,5 @@
 let currentData = {
   album: "",
-  albumTracks: [],
-  albumTrackNumber: 0,
-  albumView: false,
   artists: [],
   context: "",
   description: "",
@@ -22,10 +19,13 @@ let currentData = {
       b: 0
     }
   },
+  listTracks: [],
   paused: true,
   release: "",
   repeat: "",
   shuffle: false,
+  trackListView: "",
+  trackNumber: 0,
   timeCurrent: 0,
   timeTotal: 0,
   title: "",
@@ -150,15 +150,26 @@ function setTextData(changes) {
   // Main Info
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
-  if ('albumView' in changes || 'albumTracks' in changes || 'context' in changes) {
-    let albumTrackCount = (changes.albumTracks || currentData.albumTracks || []).length;
-    let albumViewEnabled = ('albumView' in changes ? changes.albumView : currentData.albumView)
-        && albumTrackCount > 1
+  if ('trackListView' in changes || 'listTracks' in changes || 'context' in changes) {
+    let trackCount = (changes.listTracks || currentData.listTracks || []).length;
+    let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
+
+    if (trackCount > 200) {
+      // TODO killswitch for performance reasons, fix this eventually using a sliding window)
+      listViewType = "SINGLE";
+      changes.trackListView = "SINGLE";
+      currentData.trackListView = "SINGLE";
+    }
+
+    let listViewEnabled = listViewType !== "SINGLE"
+        && trackCount > 1
         && !('context' in changes && changes.context.startsWith("Queue >> "));
-    showHide(titleContainer, !albumViewEnabled);
-    showHide(trackListContainer, albumViewEnabled);
-    if (albumViewEnabled) {
-      trackListContainer.style.setProperty("--track-count", albumTrackCount.toString());
+    showHide(titleContainer, listViewType !== "ALBUM");
+    setClass(titleContainer, "compact", listViewType === "PLAYLIST");
+    showHide(trackListContainer, listViewEnabled);
+    if (listViewEnabled) {
+      setClass(document.getElementById("track-list"), "playlist-view", listViewType === "PLAYLIST")
+      trackListContainer.style.setProperty("--track-count", trackCount.toString());
       window.requestAnimationFrame(() => {
         let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
         setClass(trackListContainer, "fit", isOverflowing);
@@ -166,8 +177,8 @@ function setTextData(changes) {
     }
   }
 
-  if (('title' in changes && changes.title !== currentData.title && !changes.albumView)
-      || ('albumView' in changes && !changes.albumView && currentData.albumView)) {
+  if (('title' in changes && JSON.stringify(changes.title) !== JSON.stringify(currentData.title))
+      || ('trackListView' in changes && !changes.trackListView && currentData.trackListView)) { // todo fix this somehow
     let titleBase = changes.title || currentData.title;
     let normalizedEmoji = convertToTextEmoji(titleBase);
     let titleNoFeat = removeFeaturedArtists(normalizedEmoji);
@@ -180,17 +191,21 @@ function setTextData(changes) {
     fadeIn(titleContainer);
   }
 
-  if ('albumTracks' in changes && JSON.stringify(changes.albumTracks) !== JSON.stringify(currentData.albumTracks)) {
+  if ('listTracks' in changes && JSON.stringify(changes.listTracks) !== JSON.stringify(currentData.listTracks)) {
     trackListContainer.innerHTML = "";
-    let albumTracks = changes.albumTracks || currentData.albumTracks;
-    let trackNumPadLength = albumTracks.length.toString().length;
-    for (let trackItem of albumTracks) {
+    let listTracks = changes.listTracks || currentData.listTracks;
+    let trackNumPadLength = listTracks.length.toString().length;
+    for (let trackItem of listTracks) {
       let trackElem = document.createElement("div");
       trackElem.className = "track-elem";
 
       let trackNumberContainer = document.createElement("div");
-      trackNumberContainer.innerHTML = padToLength(trackItem.albumTrackNumber, trackNumPadLength);
+      trackNumberContainer.innerHTML = padToLength(trackItem.trackNumber, trackNumPadLength);
       trackNumberContainer.className = "track-number"
+
+      let trackArtist = document.createElement("div");
+      trackArtist.innerHTML = trackItem.artist;
+      trackArtist.className = "track-artist";
 
       let splitTitle = separateUnimportantTitleInfo(trackItem.title);
       let trackName = document.createElement("div");
@@ -206,14 +221,16 @@ function setTextData(changes) {
       trackLength.className = "track-length"
       trackLength.innerHTML = formatTime(0, trackItem.length).total;
 
-      trackElem.append(trackNumberContainer, trackName, trackLength);
+      // TODO performance improvement with sliding window (NTS: visibility hidden does not do anything, but display none does)
+
+      trackElem.append(trackNumberContainer, trackArtist, trackName, trackLength);
       trackListContainer.append(trackElem);
     }
     fadeIn(trackListContainer);
   }
 
-  if ('albumTrackNumber' in changes || currentData.albumView) {
-    updateScrollPositions(changes.albumTrackNumber);
+  if ('trackNumber' in changes || currentData.trackListView !== "SINGLE") {
+    updateScrollPositions(changes.trackNumber);
   }
 
   if ('artists' in changes && JSON.stringify(changes.artists) !== JSON.stringify(currentData.artists)) {
@@ -412,16 +429,17 @@ function updateScrollGradients() {
 function updateScrollPositions(specificTrackNumber) {
   window.requestAnimationFrame(() => {
     let trackListContainer = document.getElementById("track-list");
-    let trackNumber = specificTrackNumber ? specificTrackNumber : currentData.albumTrackNumber;
+    let trackNumber = specificTrackNumber ? specificTrackNumber : currentData.trackNumber;
     let currentlyPlayingElem = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
-    if (specificTrackNumber || trackNumber !== currentData.albumTrackNumber || !currentlyPlayingElem) {
+    if (specificTrackNumber || trackNumber !== currentData.trackNumber || !currentlyPlayingElem) {
       let currentlyPlayingTrackElem = trackListContainer.childNodes[trackNumber - 1];
       if (currentlyPlayingTrackElem) {
         trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
         currentlyPlayingTrackElem.classList.add("current");
 
         let scrollUnit = trackListContainer.scrollHeight / trackListContainer.childNodes.length;
-        let scrollMiddleApproximation = Math.round((trackListContainer.offsetHeight / scrollUnit) / 2);
+        let offsetDivider = currentData.trackListView === "PLAYLIST" ? 5 : 2;
+        let scrollMiddleApproximation = Math.round((trackListContainer.offsetHeight / scrollUnit) / offsetDivider);
         let scroll = Math.max(0, scrollUnit * (trackNumber - scrollMiddleApproximation));
         trackListContainer.scroll({
           top: scroll,
@@ -753,7 +771,7 @@ const PREFERENCES = [
     description: "If enabled, uses the release artwork for the background as a blurry, darkened version. Otherwise, only a gradient color will be displayed",
     state: true,
     callback: (state) => {
-      setClass(document.getElementById("background-canvas-img"), "color-only", !state);
+      setClass(document.getElementById("background-canvas"), "color-only", !state);
       refreshBackgroundRender();
     }
   },
@@ -790,7 +808,8 @@ const PREFERENCES = [
     id: "bg-noise",
     name: "Noise",
     hotkey: "n",
-    description: "Adds a subtle layer of noise to the background to increase contrast and prevent color banding for dark images",
+    description: "Adds a subtle layer of noise to the background to increase contrast and prevent color banding for dark images " +
+        "(only works when Prerender mode is enabled)",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("noise"), "show", state);
