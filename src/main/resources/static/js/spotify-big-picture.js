@@ -150,31 +150,31 @@ function setTextData(changes) {
   // Main Info
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
-  if ('trackListView' in changes || 'listTracks' in changes || 'context' in changes) {
-    let trackCount = (changes.listTracks || currentData.listTracks || []).length;
-    let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
+  let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
+  let trackCount = (changes.listTracks || currentData.listTracks || []).length;
 
-    if (trackCount > 200) {
-      // TODO killswitch for performance reasons, fix this eventually using a sliding window)
-      listViewType = "SINGLE";
-      changes.trackListView = "SINGLE";
-      currentData.trackListView = "SINGLE";
-    }
+  if (trackCount > 200) {
+    // TODO killswitch for performance reasons, fix this eventually using a sliding window)
+    listViewType = "SINGLE";
+    changes.trackListView = "SINGLE";
+    currentData.trackListView = "SINGLE";
+  }
 
-    let listViewEnabled = listViewType !== "SINGLE"
-        && trackCount > 1
-        && !('context' in changes && changes.context.startsWith("Queue >> "));
-    showHide(titleContainer, listViewType !== "ALBUM");
-    setClass(titleContainer, "compact", listViewType === "PLAYLIST");
-    showHide(trackListContainer, listViewEnabled);
-    if (listViewEnabled) {
-      setClass(document.getElementById("track-list"), "playlist-view", listViewType === "PLAYLIST")
-      trackListContainer.style.setProperty("--track-count", trackCount.toString());
-      window.requestAnimationFrame(() => {
-        let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
-        setClass(trackListContainer, "fit", isOverflowing);
-      })
-    }
+  let trackNumber = 'trackNumber' in changes ? changes.trackNumber : currentData.trackNumber;
+  let isQueue = trackNumber === 0 || ('context' in changes && changes.context.startsWith("Queue >> "));
+  let listViewEnabled = listViewType !== "SINGLE"
+      && trackCount > 1
+      && !isQueue;
+  showHide(titleContainer, listViewType !== "ALBUM" || isQueue);
+  setClass(titleContainer, "compact", listViewType === "PLAYLIST");
+  showHide(trackListContainer, listViewEnabled);
+  if (listViewEnabled) {
+    setClass(document.getElementById("track-list"), "playlist-view", listViewType === "PLAYLIST")
+    trackListContainer.style.setProperty("--track-count", trackCount.toString());
+    window.requestAnimationFrame(() => {
+      let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
+      setClass(trackListContainer, "fit", isOverflowing);
+    })
   }
 
   if (('title' in changes && JSON.stringify(changes.title) !== JSON.stringify(currentData.title))
