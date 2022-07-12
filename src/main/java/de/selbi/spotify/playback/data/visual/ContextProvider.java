@@ -19,7 +19,6 @@ import de.selbi.spotify.playback.data.help.PlaybackInfoConstants;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
-import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
@@ -137,7 +136,12 @@ public class ContextProvider {
       }
       this.formattedPlaylistTracks = listTrackDTOS;
 
-      return contextPlaylist.getName();
+      long sum = this.formattedPlaylistTracks.stream()
+      	.mapToLong(ListTrackDTO::getLength)
+      	.sum();      
+      String formattedTime = formatTime((int) sum);
+      
+      return contextPlaylist.getName() + " //// " + this.formattedPlaylistTracks.size() + " tracks // " + formattedTime;
     }
     return null;
   }
