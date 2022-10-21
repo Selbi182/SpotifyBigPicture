@@ -2,6 +2,7 @@ let currentData = {
   album: "",
   artists: [],
   context: "",
+  deployTime: 0,
   description: "",
   device: "",
   id: "",
@@ -30,7 +31,7 @@ let currentData = {
   timeTotal: 0,
   title: "",
   type: "",
-  deployTime: 0
+  volume: 0
 };
 
 let idle = false;
@@ -153,7 +154,7 @@ function setTextData(changes) {
   let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
   let trackCount = (changes.listTracks || currentData.listTracks || []).length;
 
-  if (trackCount > 200) {
+  if (trackCount > 500) {
     // TODO killswitch for performance reasons, fix this eventually using a sliding window)
     listViewType = "SINGLE";
     changes.trackListView = "SINGLE";
@@ -312,6 +313,11 @@ function setTextData(changes) {
     fadeIn(repeatElem);
     handleAlternateDarkModeToggle();
   }
+  if ('volume' in changes && changes.volume !== currentData.volume) {
+    let volume = changes.volume != null ? changes.volume : currentData.volume;
+    let device = changes.device != null ? changes.device : currentData.device;
+    handleVolumeChange(volume, device);
+  }
 
   // Color
   if ('imageColors' in changes) {
@@ -352,13 +358,13 @@ function showHide(elem, show, useInvisibility) {
   }
 }
 
-const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "explicit", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "\\d{4}"];
+const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "explicit", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
 const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live", "classic", "demo"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
-const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[).*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
-const USELESS_WORDS_REGEX_HYPHEN = new RegExp("\\s-\\s.*?(" + USELESS_WORDS.join("|") + ").*", "ig");
-const WHITELISTED_WORDS_REGEXP = new RegExp("(\\(|\\-|\\[).*?(" +WHITELISTED_WORDS.join("|") + ").*", "ig");
+const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[)[^-]*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
+const USELESS_WORDS_REGEX_HYPHEN = new RegExp("\\s-\\s[^-]*?(" + USELESS_WORDS.join("|") + ").*", "ig");
+const WHITELISTED_WORDS_REGEXP = new RegExp("(\\(|\\-|\\[)[^-]*?(" + WHITELISTED_WORDS.join("|") + ").*", "ig");
 
 function separateUnimportantTitleInfo(title) {
   if (title.search(WHITELISTED_WORDS_REGEXP) < 0) {
@@ -829,6 +835,14 @@ const PREFERENCES = [
     }
   },
   {
+    id: "show-volume-change",
+    name: "Volume",
+    hotkey: "v",
+    description: "Shows the current volume whenever it changes (in %)",
+    state: true,
+    callback: (state) => setClass(document.getElementById("volume"), "show", state)
+  },
+  {
     id: "show-clock",
     name: "Clock",
     hotkey: "w",
@@ -840,7 +854,7 @@ const PREFERENCES = [
     id: "dark-mode",
     name: "Dark Mode",
     hotkey: "d",
-    description: "Darkens the entire screen by 65%. This setting will be automatically disabled after 8 hours",
+    description: "Darkens the entire screen. This mode will be automatically disabled after 8 hours",
     state: false,
     callback: (state) => {
       const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 8 * 60 * 60 * 1000;
@@ -977,6 +991,26 @@ function handleAlternateDarkModeToggle() {
   } else {
     toggleDarkModeTimeout = setTimeout(() => toggleDarkModeCount = 0, 1000 * 3);
   }
+}
+
+let volumeTimeout;
+function handleVolumeChange(volume, device) {
+  let volumeContainer = document.getElementById("volume");
+
+  if (device === "Den") {
+    // Display it as dB for my private AVR because I can do what I want lol
+    const BASE_DB = 80;
+    let db = (volume - BASE_DB).toFixed(1);
+    volumeContainer.innerHTML = db + " dB";
+  } else {
+    volumeContainer.innerHTML = volume + "%";
+  }
+
+  volumeContainer.classList.add("active");
+  clearTimeout(volumeTimeout);
+  volumeTimeout = setTimeout(() => {
+    volumeContainer.classList.remove("active");
+  }, 2000);
 }
 
 ///////////////////////////////

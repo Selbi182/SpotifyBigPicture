@@ -297,6 +297,7 @@ img:not([src]) {
 
 #album-release {
     opacity: 0.65;
+    word-break: normal;
 }
 
 #album-release:before {
@@ -467,6 +468,21 @@ img:not([src]) {
     mask-image: url("img/symbols/repeat-once.png");
 }
 
+#volume {
+    font-size: 3vh;
+    font-feature-settings: "tnum";
+    opacity: 0;
+}
+
+#volume.show.active {
+    opacity: 0.65;
+}
+
+#volume:before {
+    content: "\1F50A\FE0E";
+    padding-right: 1vh;
+}
+
 #progress {
     width: 100%;
     border-radius: 0.5vh;
@@ -512,6 +528,9 @@ img:not([src]) {
 #bottom-right {
     flex: 1;
     text-align: right;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
 }
 
 #time {
@@ -531,13 +550,23 @@ img:not([src]) {
 
 #time-current, #time-total {
     font-size: 4vh;
+    font-feature-settings: "tnum";
 }
 
+#time-current:empty, #time-total:empty {
+    opacity: 0;
+}
+
+#time-total:before {
+    content: "/";
+    opacity: 0.25;
+    padding: 1.5vh;
+}
 
 #settings-wrapper {
     width: 100%;
     height: 100%;
-    z-index: 1;
+    z-index: 2;
     position: absolute;
     padding: var(--margin-main);
     background: linear-gradient(to right, black 0%, transparent 150%);
@@ -607,7 +636,7 @@ img:not([src]) {
 
 #clock-wrapper {
     position: absolute;
-    bottom: 3vh;
+    bottom: 9vh;
     left: 0;
     right: 0;
     text-align: center;

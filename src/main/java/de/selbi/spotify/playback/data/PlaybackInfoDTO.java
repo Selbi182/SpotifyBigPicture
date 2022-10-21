@@ -37,6 +37,7 @@ public class PlaybackInfoDTO {
   private Boolean paused;
   private Boolean shuffle;
   private String repeat;
+  private Integer volume;
   private String context;
   private String device;
   private List<String> artists;
@@ -103,6 +104,14 @@ public class PlaybackInfoDTO {
 
   public void setRepeat(String repeat) {
     this.repeat = repeat;
+  }
+
+  public Integer getVolume() {
+    return volume;
+  }
+
+  public void setVolume(Integer volume) {
+    this.volume = volume;
   }
 
   public String getDevice() {

@@ -133,6 +133,7 @@ public class PlaybackInfoProvider {
     pInfo.setPaused(!info.getIs_playing());
     pInfo.setShuffle(info.getShuffle_state());
     pInfo.setRepeat(info.getRepeat_state());
+    pInfo.setVolume(info.getDevice().getVolume_percent());
 
     pInfo.setContext(contextProvider.findContextName(info, previous));
     pInfo.setDevice(info.getDevice().getName());
