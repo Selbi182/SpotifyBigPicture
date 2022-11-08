@@ -474,6 +474,10 @@ img:not([src]) {
     opacity: 0;
 }
 
+#volume.show {
+    opacity: 0.2;
+}
+
 #volume.show.active {
     opacity: 0.65;
 }
@@ -523,6 +527,7 @@ img:not([src]) {
     display: flex;
     flex: 1;
     text-align: left;
+    gap: 4vh;
 }
 
 #bottom-right {

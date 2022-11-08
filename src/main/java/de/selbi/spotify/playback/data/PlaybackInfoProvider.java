@@ -146,6 +146,10 @@ public class PlaybackInfoProvider {
       pInfo.setListTracks(contextProvider.getFormattedPlaylistTracks());
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.PLAYLIST);
+    } else if (info.getContext() != null && ModelObjectType.ARTIST.equals(info.getContext().getType())) {
+      pInfo.setListTracks(contextProvider.getFormattedPlaylistTracks());
+      pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
+      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.PLAYLIST);
     } else {
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.SINGLE);
     }
