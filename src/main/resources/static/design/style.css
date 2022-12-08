@@ -428,7 +428,7 @@ img:not([src]) {
 
 #info-symbols > div {
     height: 100%;
-    width: 3vh;
+    width: 0;
     opacity: 0;
     -webkit-mask-size: contain;
     -webkit-mask-repeat: no-repeat;
@@ -439,6 +439,7 @@ img:not([src]) {
 
 #info-symbols > div.show {
     opacity: 0.65;
+    width: 3vh;
 }
 
 #info-symbols > #shuffle {
