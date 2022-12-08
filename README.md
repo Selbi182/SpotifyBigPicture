@@ -1,6 +1,6 @@
 # Spotify Big Picture
 
-An interface that checks for your current playback status on Spotify and displays that information in a beautiful little browser page.
+An interface that displays your current playback status on Spotify in a beautiful little browser page!
 
 You might want to use this over [Spotify's own (in my opinion, rather underwhelming) full-screen mode](https://i.imgur.com/dvreOAX.jpg), or you can use it for your TV/media-streamer to give [that outdated, low-resolution OSD](https://i.imgur.com/lNfCcrW.jpg) a fresh paint job!
 
@@ -14,6 +14,18 @@ You might want to use this over [Spotify's own (in my opinion, rather underwhelm
 
 ### Playlist View
 ![Playlist View](https://i.imgur.com/TI5ZFyh.png)
+
+## Installation
+
+Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either. Here's the basic approach:
+
+0. Download the [current release](https://github.com/Selbi182/SpotifyBigPicture/releases) (Try the `thin` version first. If that one causes issues, use the `fat` version.)
+1. Create an app on the Spotify Developers site (you might need to create an account first): https://developer.spotify.com/dashboard/
+2. As redirect URI for the app, use `http://localhost:8183/login-callback`
+3. Grab the Client ID and Client Secret and insert them in the respective fields in the `spotifybot.properties` file
+4. Open a terminal and start the app using `java -jar SpotifyBigPicture.jar`
+5. Once prompted to log in, copy-paste the displayed URL into your browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A8183%2Flogin-callback&scope=user-read-playback-position%20user-read-playback-state`) and log in. I haven't yet figured out how to automate this, sorry
+6. If everything worked out, the app will be available under http://localhost:8183/
 
 ## Features
 
@@ -44,10 +56,11 @@ These options are currently available (the letter in the brackets denotes a hotk
 * **Colored Text (c):** Whether the texts, progress bar, and icons should be adjusted to the most dominant color of the currently playing track's album cover art. White if disabled
 * **Transitions (t):** Toggles the transition animations between songs and the smoothness of the progress bar. One might want to disable these when the app is run on something like Raspberry Pi, where fancy CSS is often too expensive
 * **Strip Titles (s):** Throws away anything of the song titles one might not care about, such as "Remastered Version" or "Anniversary Edition". Might be overzealous depending on how much information you wish to have.
-* **Prerender Background (p):** This saves a lot of processing time and is especially useful for weaker hardware. Used to capture a screenshot of the artwork image (and background) whenever it changes to indefinitely display that until the next song change
-* **Volume (v):** Show the volume from 0-100% (in reference to the playback device).
-* **Clock (w):** Show a clock at the bottom center of the screen, showing the full date and the time. This will show even during idle mode.
-* **Dark Mode (d):** Dims the screen and applies a blue-light filter similar to what you'd accomplish with tools like f.lux (I had to implement this because my TV was too cumbersome to control on-the-fly)
+* **Noise (n):** Adds a subtle layer of noise to the background to increase contrast and prevent color banding for dark images (only works when Prerender mode is enabled)
+* **Prerender Background (p):** This saves a lot of processing time and is especially useful for weaker hardware. It captures a screenshot of the background whenever it changes to indefinitely display that until the next song change, as opposed to calculating the expensive CSS every single frame. Requires a relatively modern browser to function properly, though
+* **Volume (v):** Show the volume from 0-100% (in reference to the playback device)
+* **Clock (w):** Show a clock at the bottom center of the screen, showing the full date and the time. This will show even during idle mode
+* **Dark Mode (d):** Darkens the entire screen by 65%. This mode will automatically be disabled after 8 hours. (I had to implement this because my TV was too cumbersome to control on-the-fly)
 
 ## Troubleshooting
  
