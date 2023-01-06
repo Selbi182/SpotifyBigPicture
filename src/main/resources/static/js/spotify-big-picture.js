@@ -154,23 +154,24 @@ function setTextData(changes) {
   let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
   let trackCount = (changes.listTracks || currentData.listTracks || []).length;
 
-  if (trackCount > 500) {
-    // TODO killswitch for performance reasons, fix this eventually using a sliding window)
-    listViewType = "SINGLE";
-    changes.trackListView = "SINGLE";
-    currentData.trackListView = "SINGLE";
-  }
-
   let trackNumber = 'trackNumber' in changes ? changes.trackNumber : currentData.trackNumber;
   let isQueue = trackNumber === 0 || ('context' in changes && changes.context.startsWith("Queue >> "));
   let listViewEnabled = listViewType !== "SINGLE"
       && trackCount > 1
       && !isQueue;
-  showHide(titleContainer, listViewType !== "ALBUM" || isQueue);
+  let titleDisplayed = !listViewEnabled || listViewType === "PLAYLIST";
+  showHide(titleContainer, titleDisplayed);
   setClass(titleContainer, "compact", listViewType === "PLAYLIST");
   showHide(trackListContainer, listViewEnabled);
   if (listViewEnabled) {
-    setClass(document.getElementById("track-list"), "playlist-view", listViewType === "PLAYLIST")
+    let onlyOneArtist = false;
+    let listTracks = changes.listTracks || currentData.listTracks;
+    if (listTracks.length > 0) {
+      let potentialUniqueArtist = listTracks[0].artists[0];
+      onlyOneArtist = listTracks.every((track) => track.artists[0] === potentialUniqueArtist);
+    }
+
+    setClass(document.getElementById("track-list"), "playlist-view", !onlyOneArtist)
     trackListContainer.style.setProperty("--track-count", trackCount.toString());
     window.requestAnimationFrame(() => {
       let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
@@ -205,14 +206,14 @@ function setTextData(changes) {
       trackNumberContainer.className = "track-number"
 
       let trackArtist = document.createElement("div");
-      trackArtist.innerHTML = trackItem.artist;
+      trackArtist.innerHTML = trackItem.artists[0];
       trackArtist.className = "track-artist";
 
       let splitTitle = separateUnimportantTitleInfo(trackItem.title);
       let trackName = document.createElement("div");
       trackName.className = "track-name"
       let trackNameMain = document.createElement("span");
-      trackNameMain.innerHTML = splitTitle.main;
+      trackNameMain.innerHTML = removeFeaturedArtists(splitTitle.main) + buildFeaturedArtistsString(trackItem.artists);
       let trackNameExtra = document.createElement("span");
       trackNameExtra.className = "extra";
       trackNameExtra.innerHTML = splitTitle.extra;
@@ -227,6 +228,7 @@ function setTextData(changes) {
       trackElem.append(trackNumberContainer, trackArtist, trackName, trackLength);
       trackListContainer.append(trackElem);
     }
+
     fadeIn(trackListContainer);
   }
 
@@ -236,11 +238,7 @@ function setTextData(changes) {
 
   if ('artists' in changes && JSON.stringify(changes.artists) !== JSON.stringify(currentData.artists)) {
     let artists = changes.artists;
-    let artistsString = artists[0];
-    if (artists.length > 1) {
-      let featuredArtists = artists.slice(1).join(" & ");
-      artistsString += ` (feat. ${featuredArtists})`;
-    }
+    let artistsString = artists[0] + buildFeaturedArtistsString(artists);
     document.getElementById("artists").innerHTML = convertToTextEmoji(artistsString);
 
     fadeIn(document.getElementById("artists"));
@@ -391,6 +389,14 @@ function convertToTextEmoji(text) {
   return [...text]
     .map((char) => char.codePointAt(0) > 127 ? `&#${char.codePointAt(0)};&#xFE0E;` : char)
     .join('');
+}
+
+function buildFeaturedArtistsString(artists) {
+  if (artists.length > 1) {
+    let featuredArtists = artists.slice(1).join(" & ");
+    return ` (feat. ${featuredArtists})`;
+  }
+  return "";
 }
 
 function removeFeaturedArtists(title) {

@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
-import com.neovisionaries.i18n.CountryCode;
 
 import de.selbi.spotify.bot.api.BotException;
 import de.selbi.spotify.bot.api.SpotifyCall;
@@ -31,7 +30,6 @@ import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Show;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
-import se.michaelthelin.spotify.requests.data.artists.GetArtistsTopTracksRequest;
 
 @Component
 public class ContextProvider {
@@ -113,7 +111,7 @@ public class ContextProvider {
           return t.getId().equals(id);
         } else {
           Track item = (Track) context.getItem();
-          return BotUtils.getFirstArtistName(item).equals(t.getArtist()) && item.getName().equals(t.getTitle());
+          return t.getArtists().containsAll(BotUtils.toArtistNamesList(item)) && item.getName().equals(t.getTitle());
         }
       }
       return false;
@@ -129,7 +127,7 @@ public class ContextProvider {
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
       for (int i = 0; i < artistTopTracks.length; i++) {
         Track track = artistTopTracks[i];
-        ListTrackDTO lt = new ListTrackDTO(track.getId(), i + 1, BotUtils.getFirstArtistName(track), track.getName(), track.getDurationMs());
+        ListTrackDTO lt = new ListTrackDTO(track.getId(), i + 1, BotUtils.toArtistNamesList(track), track.getName(), track.getDurationMs());
         listTrackDTOS.add(lt);
       }
       this.formattedPlaylistTracks = listTrackDTOS;
@@ -153,7 +151,7 @@ public class ContextProvider {
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
       for (int i = 0; i < playlistTracks.size(); i++) {
         Track track = (Track) playlistTracks.get(i).getTrack();
-        ListTrackDTO lt = new ListTrackDTO(track.getId(), i + 1, BotUtils.getFirstArtistName(track), track.getName(), track.getDurationMs());
+        ListTrackDTO lt = new ListTrackDTO(track.getId(), i + 1, BotUtils.toArtistNamesList(track), track.getName(), track.getDurationMs());
         listTrackDTOS.add(lt);
       }
       this.formattedPlaylistTracks = listTrackDTOS;
@@ -188,9 +186,11 @@ public class ContextProvider {
       }
 
       formattedAlbumTracks = new ArrayList<>();
-      for (int i = 0; i < currentContextAlbumTracks.size(); i++) {
-        TrackSimplified ts = currentContextAlbumTracks.get(i);
-        formattedAlbumTracks.add(new ListTrackDTO(track.getId(), i + 1, BotUtils.getFirstArtistName(ts), ts.getName(), ts.getDurationMs()));
+      if (track != null) {
+        for (int i = 0; i < currentContextAlbumTracks.size(); i++) {
+          TrackSimplified ts = currentContextAlbumTracks.get(i);
+          formattedAlbumTracks.add(new ListTrackDTO(track.getId(), i + 1, BotUtils.toArtistNamesList(ts), ts.getName(), ts.getDurationMs()));
+        }
       }
     }
     if (currentContextAlbumTracks != null && track != null) {

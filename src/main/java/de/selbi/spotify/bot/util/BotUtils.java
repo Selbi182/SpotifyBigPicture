@@ -161,6 +161,29 @@ public final class BotUtils {
 			.map(ArtistSimplified::getName)
 			.collect(Collectors.toList());
 	}
+	/**
+	 * Convert the Track to a list of the names
+	 *
+	 * @param t the song
+	 * @return the list of strings
+	 */
+	public static List<String> toArtistNamesList(Track t) {
+		return Stream.of(t.getArtists())
+			.map(ArtistSimplified::getName)
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Convert the TrackSimplified to a list of the names
+	 *
+	 * @param ts the song
+	 * @return the list of strings
+	 */
+	public static List<String> toArtistNamesList(TrackSimplified ts) {
+		return Stream.of(ts.getArtists())
+			.map(ArtistSimplified::getName)
+			.collect(Collectors.toList());
+	}
 
 	/**
 	 * Returns the name of the first artist of this album (usually the only one)
@@ -185,11 +208,11 @@ public final class BotUtils {
 	/**
 	 * Returns the name of the first artist of this track (usually the only one)
 	 *
-	 * @param t the track
+	 * @param ts the track
 	 * @return the name of the first artist
 	 */
-	public static String getFirstArtistName(TrackSimplified t) {
-		return t.getArtists()[0].getName();
+	public static String getFirstArtistName(TrackSimplified ts) {
+		return ts.getArtists()[0].getName();
 	}
 
 	/**
