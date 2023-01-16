@@ -180,7 +180,7 @@ function setTextData(changes) {
   }
 
   if (('title' in changes && JSON.stringify(changes.title) !== JSON.stringify(currentData.title))
-      || ('trackListView' in changes && !changes.trackListView && currentData.trackListView)) { // todo fix this somehow
+      || ('trackListView' in changes && !changes.trackListView && currentData.trackListView)) {
     let titleBase = changes.title || currentData.title;
     let normalizedEmoji = convertToTextEmoji(titleBase);
     let titleNoFeat = removeFeaturedArtists(normalizedEmoji);
@@ -768,7 +768,7 @@ document.addEventListener("visibilitychange", () => {
 const PREFERENCES = [
   {
     id: "fullscreen",
-    name: "Fullscreen",
+    name: "Full Screen",
     hotkey: "f",
     description: "Toggles fullscreen on and off (can also be toggled by double clicking anywhere on the screen). " +
         "This setting is not persisted between sessions due to browser security limitations",

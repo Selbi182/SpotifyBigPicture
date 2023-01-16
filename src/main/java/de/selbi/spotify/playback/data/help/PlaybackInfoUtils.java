@@ -29,7 +29,7 @@ public class PlaybackInfoUtils {
    * @return true if it's within tolerance
    */
   public static boolean isWithinEstimatedProgressMs(PlaybackInfoDTO previous, PlaybackInfoDTO current) {
-    int expectedProgressMs = previous.getTimeCurrent() + PlaybackInfoConstants.INTERVAL_MS;
+    int expectedProgressMs = previous.getTimeCurrent() + PlaybackInfoConstants.POLLING_RATE_MS;
     int actualProgressMs = current.getTimeCurrent();
     return Math.abs(expectedProgressMs - actualProgressMs) < PlaybackInfoConstants.ESTIMATED_PROGRESS_TOLERANCE_MS;
   }

@@ -13,8 +13,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -36,13 +34,7 @@ public class BotLogger {
 
 	private final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-	private Logger log;
-
-
-	@PostConstruct
-	private void init() throws SecurityException {
-		this.log = LoggerFactory.getLogger(BotLogger.class);
-	}
+	private final Logger log = LoggerFactory.getLogger(BotLogger.class);
 
 	//////////////////////
 	// Base Logging
@@ -115,14 +107,7 @@ public class BotLogger {
 	 * Print a line of hyphens (----) as INFO-level log message
 	 */
 	public void printLine() {
-		printLine(LINE_SYMBOL);
-	}
-
-	/**
-	 * Print a line of the given symbol as INFO-level log message
-	 */
-	private void printLine(String lineCharacter) {
-		info(Strings.repeat(lineCharacter, MAX_LINE_LENGTH - ELLIPSIS.length()));
+		info(Strings.repeat(LINE_SYMBOL, MAX_LINE_LENGTH - ELLIPSIS.length()));
 	}
 
 	/**

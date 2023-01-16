@@ -35,8 +35,10 @@ public class PlaybackController {
 
   @EventListener(LoggedInEvent.class)
   public void ready() {
-    System.out.println("Spotify Playback Info ready!");
-    System.out.println("Scheduled polling is " + (SpotifyBigPicture.scheduledPollingDisabled ? "disabled" : "enabled"));
+    System.out.println("SpotifyBigPicture is ready!");
+    System.out.println("Scheduled polling is " + (SpotifyBigPicture.scheduledPollingDisabled
+        ? "disabled"
+        : "enabled at a rate of " + PlaybackInfoConstants.POLLING_RATE_MS + "ms"));
   }
 
   /**
@@ -98,7 +100,7 @@ public class PlaybackController {
    * Poll the Spotify API for changed playback info and set it to the listeners if
    * anything was changed
    */
-  @Scheduled(initialDelay = PlaybackInfoConstants.INTERVAL_MS, fixedRate = PlaybackInfoConstants.INTERVAL_MS)
+  @Scheduled(initialDelay = PlaybackInfoConstants.POLLING_RATE_MS, fixedRate = PlaybackInfoConstants.POLLING_RATE_MS)
   private void fetchAndPublishCurrentPlaybackInfo() {
     if (!SpotifyBigPicture.scheduledPollingDisabled) {
       if (isAnyoneListening()) {

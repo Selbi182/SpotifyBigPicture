@@ -5,8 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,11 +24,13 @@ public class Config {
     private SpotifyBotConfig spotifyApiConfig;
 
     /**
-     * Sets up or refreshes the configuration for the Spotify bot from the settings
+     * Get (potentially creating) the configuration for the Spotify bot from the settings
      */
-    @PostConstruct
-    private void init() {
-        this.spotifyApiConfig = spotifyBotConfig();
+    private SpotifyBotConfig getSpotifyApiConfig() {
+        if (spotifyApiConfig == null) {
+            this.spotifyApiConfig = spotifyBotConfig();
+        }
+        return this.spotifyApiConfig;
     }
 
     /**
@@ -42,8 +42,8 @@ public class Config {
      * @throws IOException on read/write failure
      */
     public void updateTokens(String accessToken, String refreshToken) throws IOException {
-        spotifyApiConfig.setAccessToken(accessToken);
-        spotifyApiConfig.setRefreshToken(refreshToken);
+        getSpotifyApiConfig().setAccessToken(accessToken);
+        getSpotifyApiConfig().setRefreshToken(refreshToken);
 
         spotifyApiProperties().setProperty(ACCESS_TOKEN, accessToken);
         spotifyApiProperties().setProperty(REFRESH_TOKEN, refreshToken);

@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
@@ -37,9 +36,7 @@ public class ContextProvider {
   private static final int MAX_IMMEDIATE_TRACKS = 50;
 
   private final SpotifyApi spotifyApi;
-
-  @Autowired
-  private Config config;
+  private final Config config;
 
   private String previousContextString;
   private Album currentContextAlbum;
@@ -48,8 +45,9 @@ public class ContextProvider {
   private List<ListTrackDTO> formattedPlaylistTracks;
   private Integer currentlyPlayingAlbumTrackNumber;
 
-  ContextProvider(SpotifyApi spotifyApi) {
+  ContextProvider(SpotifyApi spotifyApi, Config config) {
     this.spotifyApi = spotifyApi;
+    this.config = config;
     this.formattedAlbumTracks = new ArrayList<>();
     this.formattedPlaylistTracks = new ArrayList<>();
   }

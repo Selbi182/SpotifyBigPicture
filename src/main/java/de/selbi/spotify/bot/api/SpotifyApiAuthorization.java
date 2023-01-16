@@ -11,9 +11,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -39,20 +36,16 @@ public class SpotifyApiAuthorization {
 
   private static final long LOGIN_TIMEOUT = 10;
 
-  @Autowired
-  private SpotifyApi spotifyApi;
+  private final SpotifyApi spotifyApi;
+  private final Config config;
+  private final BotLogger log;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
-  @Autowired
-  private Config config;
-
-  @Autowired
-  private BotLogger log;
-
-  @Autowired
-  private ApplicationEventPublisher applicationEventPublisher;
-
-  @PostConstruct
-  private void initSpotifyCall() {
+  private SpotifyApiAuthorization(SpotifyApi spotifyApi, Config config, BotLogger botLogger, ApplicationEventPublisher applicationEventPublisher) {
+    this.spotifyApi = spotifyApi;
+    this.config = config;
+    this.log = botLogger;
+    this.applicationEventPublisher = applicationEventPublisher;
     SpotifyCall.spotifyApiAuthorization = this;
   }
 
