@@ -21,18 +21,6 @@ public class Config {
 
     private static final String PROPERTIES_FILE = "./spotifybot.properties";
 
-    private SpotifyBotConfig spotifyApiConfig;
-
-    /**
-     * Get (potentially creating) the configuration for the Spotify bot from the settings
-     */
-    private SpotifyBotConfig getSpotifyApiConfig() {
-        if (spotifyApiConfig == null) {
-            this.spotifyApiConfig = spotifyBotConfig();
-        }
-        return this.spotifyApiConfig;
-    }
-
     /**
      * Update the access and refresh tokens, both in the config object and
      * the settings
@@ -42,8 +30,8 @@ public class Config {
      * @throws IOException on read/write failure
      */
     public void updateTokens(String accessToken, String refreshToken) throws IOException {
-        getSpotifyApiConfig().setAccessToken(accessToken);
-        getSpotifyApiConfig().setRefreshToken(refreshToken);
+        spotifyBotConfig().setAccessToken(accessToken);
+        spotifyBotConfig().setRefreshToken(refreshToken);
 
         spotifyApiProperties().setProperty(ACCESS_TOKEN, accessToken);
         spotifyApiProperties().setProperty(REFRESH_TOKEN, refreshToken);
@@ -62,7 +50,7 @@ public class Config {
             return properties;
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Failed to read " + PROPERTIES_FILE + ". Exiting!");
+            System.out.println("Failed to read " + PROPERTIES_FILE + ". Terminating!");
             System.exit(1);
             return null;
         }

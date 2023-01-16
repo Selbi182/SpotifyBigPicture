@@ -770,7 +770,7 @@ const PREFERENCES = [
     id: "fullscreen",
     name: "Full Screen",
     hotkey: "f",
-    description: "Toggles fullscreen on and off (can also be toggled by double clicking anywhere on the screen). " +
+    description: "Toggles full screen on and off (can also be toggled by double clicking anywhere on the screen). " +
         "This setting is not persisted between sessions due to browser security limitations",
     state: false,
     callback: () => toggleFullscreen(),

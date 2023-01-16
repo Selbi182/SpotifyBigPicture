@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import de.selbi.spotify.SpotifyBigPicture;
 import de.selbi.spotify.bot.api.events.LoggedInEvent;
+import de.selbi.spotify.bot.util.BotLogger;
 import de.selbi.spotify.playback.data.PlaybackInfoDTO;
 import de.selbi.spotify.playback.data.PlaybackInfoProvider;
 import de.selbi.spotify.playback.data.help.PlaybackInfoConstants;
@@ -26,17 +27,19 @@ import de.selbi.spotify.playback.data.help.PlaybackInfoConstants;
 public class PlaybackController {
 
   private final PlaybackInfoProvider playbackInfoProvider;
+  private final BotLogger log;
 
-  PlaybackController(PlaybackInfoProvider playbackInfoProvider) {
+  PlaybackController(PlaybackInfoProvider playbackInfoProvider, BotLogger botLogger) {
     this.playbackInfoProvider = playbackInfoProvider;
+    this.log = botLogger;
   }
 
   private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
   @EventListener(LoggedInEvent.class)
   public void ready() {
-    System.out.println("SpotifyBigPicture is ready!");
-    System.out.println("Scheduled polling is " + (SpotifyBigPicture.scheduledPollingDisabled
+    log.info("SpotifyBigPicture is ready!");
+    log.info("Scheduled polling is " + (SpotifyBigPicture.scheduledPollingDisabled
         ? "disabled"
         : "enabled at a rate of " + PlaybackInfoConstants.POLLING_RATE_MS + "ms"));
   }
