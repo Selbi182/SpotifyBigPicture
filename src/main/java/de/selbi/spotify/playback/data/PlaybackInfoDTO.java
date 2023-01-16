@@ -53,6 +53,7 @@ public class PlaybackInfoDTO {
   private String description;
   private Long deployTime;
   private List<ListTrackDTO> listTracks;
+  private List<ListTrackDTO> queue;
 
   public PlaybackInfoDTO() {
   }
@@ -232,5 +233,13 @@ public class PlaybackInfoDTO {
 
   public void setListTracks(List<ListTrackDTO> listTracks) {
     this.listTracks = listTracks;
+  }
+
+  public List<ListTrackDTO> getQueue() {
+    return queue;
+  }
+
+  public void setQueue(List<ListTrackDTO> queue) {
+    this.queue = queue;
   }
 }

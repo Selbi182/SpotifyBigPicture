@@ -65,8 +65,7 @@ public class PlaybackInfoProvider {
       full = true;
     }
     try {
-      CurrentlyPlayingContext info =
-          SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
+      CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
       if (info != null) {
         PlaybackInfoDTO currentPlaybackInfo = null;
         CurrentlyPlayingType type = info.getCurrentlyPlayingType();
@@ -139,20 +138,26 @@ public class PlaybackInfoProvider {
     pInfo.setDevice(info.getDevice().getName());
 
     if (info.getContext() != null && ModelObjectType.ALBUM.equals(info.getContext().getType())) {
+      // Album context
       pInfo.setListTracks(contextProvider.getFormattedAlbumTracks());
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.ALBUM);
-    } else if (info.getContext() != null && ModelObjectType.PLAYLIST.equals(info.getContext().getType()) && !pInfo.isShuffle()) {
+    } else if (info.getContext() != null && ModelObjectType.PLAYLIST.equals(info.getContext().getType())) {
+      // Playlist context
       pInfo.setListTracks(contextProvider.getFormattedPlaylistTracks());
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.PLAYLIST);
     } else if (info.getContext() != null && ModelObjectType.ARTIST.equals(info.getContext().getType())) {
+      // Artist top tracks context
       pInfo.setListTracks(contextProvider.getFormattedPlaylistTracks());
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.PLAYLIST);
     } else {
+      // Fallback context
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.SINGLE);
     }
+
+    pInfo.setQueue(contextProvider.getQueue());
 
     pInfo.setTimeCurrent(info.getProgress_ms());
     pInfo.setTimeTotal(playlistItem.getDurationMs());
