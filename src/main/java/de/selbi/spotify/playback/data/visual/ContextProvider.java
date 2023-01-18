@@ -138,8 +138,7 @@ public class ContextProvider {
       Track[] artistTopTracks = SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, config.spotifyBotConfig().getMarket()));
 
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
-      for (int i = 0; i < artistTopTracks.length; i++) {
-        Track track = artistTopTracks[i];
+      for (Track track : artistTopTracks) {
         ListTrackDTO lt = ListTrackDTO.fromTrack(track);
         listTrackDTOS.add(lt);
       }
@@ -162,8 +161,8 @@ public class ContextProvider {
 
       List<PlaylistTrack> playlistTracks = SpotifyCall.executePaging(spotifyApi.getPlaylistsItems(playlistId));
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
-      for (int i = 0; i < playlistTracks.size(); i++) {
-        Track track = (Track) playlistTracks.get(i).getTrack();
+      for (PlaylistTrack playlistTrack : playlistTracks) {
+        Track track = (Track) playlistTrack.getTrack();
         ListTrackDTO lt = ListTrackDTO.fromTrack(track);
         listTrackDTOS.add(lt);
       }
@@ -200,8 +199,7 @@ public class ContextProvider {
 
       formattedAlbumTracks = new ArrayList<>();
       if (track != null) {
-        for (int i = 0; i < currentContextAlbumTracks.size(); i++) {
-          TrackSimplified ts = currentContextAlbumTracks.get(i);
+        for (TrackSimplified ts : currentContextAlbumTracks) {
           ListTrackDTO e = ListTrackDTO.fromTrack(ts);
           formattedAlbumTracks.add(e);
         }

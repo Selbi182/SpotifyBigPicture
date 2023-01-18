@@ -71,7 +71,7 @@ Therefore, any time the connection gets lost, the interface will automatically t
 Two other things you can try though:
 
 1. For whatever bizarre reason, simply clicking on the devices button in Spotify (not even selecting any different device, literally just opening the dropdown) sometimes forces the API to catch up. This has been my go-to for fixing stuck screens, and it works surprisingly well.
-![grafik](https://user-images.githubusercontent.com/8850085/206453960-12d34f5e-03c0-41a0-aba1-7c214de4e53e.png)
+![dropdown](https://user-images.githubusercontent.com/8850085/206453960-12d34f5e-03c0-41a0-aba1-7c214de4e53e.png)
 2. You mentioned looking at the terminal to find any errors. That won't help you much, as all the errors regarding the connection (flux) are shown on the web console. So, hit F12 and navigate to the console out. There, you should hopefully find more helpful information.
 
 ### Note about album/playlist view
