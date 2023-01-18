@@ -150,6 +150,7 @@ async function setDisplayData(changes) {
 
 function setTextData(changes) {
   // Main Info
+  let mainContainer = document.getElementById("center-info");
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
   let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
@@ -163,7 +164,7 @@ function setTextData(changes) {
       && !isQueue;
   let titleDisplayed = !listViewEnabled || listViewType === "PLAYLIST" || (listViewType === "ALBUM" && shuffle);
   showHide(titleContainer, titleDisplayed);
-  setClass(titleContainer, "compact", listViewType === "PLAYLIST" || titleDisplayed);
+  setClass(mainContainer, "compact", listViewType === "PLAYLIST" || titleDisplayed);
   showHide(trackListContainer, listViewEnabled);
   if (listViewEnabled) {
     let onlyOneArtist = false;
@@ -201,7 +202,7 @@ function setTextData(changes) {
     let listTracks = changes.listTracks || currentData.listTracks;
     if (listViewType === "SINGLE" || listViewType === "PLAYLIST" || (listViewType === "ALBUM" && shuffle)) {
       printTrackList(queue);
-      updateScrollPositions(-1);
+      updateScrollPositions(1);
     } else {
       printTrackList(listTracks);
       updateScrollPositions(changes.trackNumber);
@@ -399,41 +400,53 @@ function printTrackList(trackList) {
   let trackListContainer = document.getElementById("track-list");
   trackListContainer.innerHTML = "";
 
-  let multiDisc = trackList.find(t => t.discNumber > 1);
+  let multiDisc = trackList.find(t => 'discNumber' in t && t.discNumber > 1);
 
   let trackNumPadLength = trackList.length.toString().length;
   for (let trackItem of trackList) {
+    // Create new track list item
     let trackElem = document.createElement("div");
     trackElem.className = "track-elem";
 
+    // Track Number
     let trackNumberContainer = document.createElement("div");
-    let paddedTrackNumber = padToLength(trackItem.trackNumber, trackNumPadLength);
-    if (multiDisc) {
-      paddedTrackNumber = trackItem.discNumber + "." + paddedTrackNumber;
-    }
-    trackNumberContainer.innerHTML = paddedTrackNumber;
     trackNumberContainer.className = "track-number"
+    if ('trackNumber' in trackItem) {
+      let paddedTrackNumber = padToLength(trackItem.trackNumber, trackNumPadLength);
+      if (multiDisc && 'discNumber' in trackItem) {
+        paddedTrackNumber = trackItem.discNumber + "." + paddedTrackNumber;
+      }
+      trackNumberContainer.innerHTML = paddedTrackNumber;
+    }
 
+    // Artist
     let trackArtist = document.createElement("div");
-    trackArtist.innerHTML = trackItem.artists[0];
     trackArtist.className = "track-artist";
+    if ('artists' in trackItem) {
+      trackArtist.innerHTML = trackItem.artists[0];
+    }
 
-    let splitTitle = separateUnimportantTitleInfo(trackItem.title);
+    // Title
     let trackName = document.createElement("div");
     trackName.className = "track-name"
-    let trackNameMain = document.createElement("span");
-    trackNameMain.innerHTML = removeFeaturedArtists(splitTitle.main) + buildFeaturedArtistsString(trackItem.artists);
-    let trackNameExtra = document.createElement("span");
-    trackNameExtra.className = "extra";
-    trackNameExtra.innerHTML = splitTitle.extra;
-    trackName.append(trackNameMain, trackNameExtra);
+    if ('title' in trackItem) {
+      let splitTitle = separateUnimportantTitleInfo(trackItem.title);
+      let trackNameMain = document.createElement("span");
+      trackNameMain.innerHTML = removeFeaturedArtists(splitTitle.main) + buildFeaturedArtistsString(trackItem.artists);
+      let trackNameExtra = document.createElement("span");
+      trackNameExtra.className = "extra";
+      trackNameExtra.innerHTML = splitTitle.extra;
+      trackName.append(trackNameMain, trackNameExtra);
+    }
 
+    // Length
     let trackLength = document.createElement("div");
     trackLength.className = "track-length"
-    trackLength.innerHTML = formatTime(0, trackItem.length).total;
+    if ('length' in trackItem) {
+      trackLength.innerHTML = formatTime(0, trackItem.length).total;
+    }
 
-    // TODO performance improvement with sliding window (NTS: visibility hidden does not do anything, but display none does)
-
+    // Append
     trackElem.append(trackNumberContainer, trackArtist, trackName, trackLength);
     trackListContainer.append(trackElem);
   }
@@ -476,8 +489,8 @@ function updateScrollPositions(specificTrackNumber) {
           left: 0,
           behavior: 'smooth'
         });
-        updateScrollGradients();
       }
+      updateScrollGradients();
     }
   });
 }
@@ -627,7 +640,7 @@ function updateProgress(changes, updateProgressBar) {
   let paused = 'paused' in changes ? changes.paused : currentData.paused;
 
   // Text
-  let formattedTimes = formatTime(current, total)
+  let formattedTimes = formatTime(current, total);
   let formattedCurrentTime = formattedTimes.current;
   let formattedTotalTime = formattedTimes.total;
 
