@@ -150,37 +150,8 @@ async function setDisplayData(changes) {
 
 function setTextData(changes) {
   // Main Info
-  let mainContainer = document.getElementById("center-info");
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
-  let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
-  let trackCount = (changes.listTracks || currentData.listTracks || []).length;
-
-  let trackNumber = 'trackNumber' in changes ? changes.trackNumber : currentData.trackNumber;
-  let isQueue = trackNumber === 0 || ('context' in changes && changes.context.startsWith("Queue >> "));
-  let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
-  let listViewEnabled = listViewType !== "SINGLE"
-      && trackCount > 1
-      && !isQueue;
-  let titleDisplayed = !listViewEnabled || listViewType === "PLAYLIST" || (listViewType === "ALBUM" && shuffle);
-  showHide(titleContainer, titleDisplayed);
-  setClass(mainContainer, "compact", listViewType === "PLAYLIST" || titleDisplayed);
-  showHide(trackListContainer, listViewEnabled);
-  if (listViewEnabled) {
-    let onlyOneArtist = false;
-    let listTracks = changes.listTracks || currentData.listTracks;
-    if (listTracks.length > 0) {
-      let potentialUniqueArtist = listTracks[0].artists[0];
-      onlyOneArtist = listTracks.every((track) => track.artists[0] === potentialUniqueArtist);
-    }
-
-    setClass(document.getElementById("track-list"), "playlist-view", !onlyOneArtist)
-    trackListContainer.style.setProperty("--track-count", trackCount.toString());
-    window.requestAnimationFrame(() => {
-      let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
-      setClass(trackListContainer, "fit", isOverflowing);
-    })
-  }
 
   if (('title' in changes && JSON.stringify(changes.title) !== JSON.stringify(currentData.title))
       || ('trackListView' in changes && !changes.trackListView && currentData.trackListView)) {
@@ -194,19 +165,6 @@ function setTextData(changes) {
     document.getElementById("title-extra").innerHTML = titleExtra;
 
     fadeIn(titleContainer);
-  }
-
-  if (('queue' in changes && JSON.stringify(changes.queue) !== JSON.stringify(currentData.queue))
-      || ('listTracks' in changes && JSON.stringify(changes.listTracks) !== JSON.stringify(currentData.listTracks))) {
-    let queue = changes.queue || currentData.queue;
-    let listTracks = changes.listTracks || currentData.listTracks;
-    if (listViewType === "SINGLE" || listViewType === "PLAYLIST" || (listViewType === "ALBUM" && shuffle)) {
-      printTrackList(queue);
-      updateScrollPositions(1);
-    } else {
-      printTrackList(listTracks);
-      updateScrollPositions(changes.trackNumber);
-    }
   }
 
   if ('artists' in changes && JSON.stringify(changes.artists) !== JSON.stringify(currentData.artists)) {
@@ -295,6 +253,9 @@ function setTextData(changes) {
     setTextColor(changes.imageColors.primary);
   }
 
+  // Playlist View
+  setCorrectTracklistView(changes);
+
   // Update properties in local storage
   for (let prop in changes) {
     currentData[prop] = changes[prop];
@@ -304,6 +265,74 @@ function setTextData(changes) {
   let scrollTopTrackListBackup = trackListContainer.scrollTop; // fix to keep scroll position in place
   balanceText.updateWatched();
   trackListContainer.scrollTop = scrollTopTrackListBackup;
+}
+
+function setCorrectTracklistView(changes) {
+  // Show or hide the appropriate elements:
+  // - Title: Always shown, except in when album view AND shuffle is disabled OR when special queue mode is enabled
+  // - Tracklist: Always shown, except in single view or when the context is in special queue mode
+  // - Tracklist Type: Depending on whether the title is display (playlist if yes, album if no)
+  // - Track Numbers: Only shown in album view, otherwise show artist
+  // - Font Scale: Adjustable in album view (between 15-21 songs), always max in playlist view (controlled via CSS)
+
+  let mainContainer = document.getElementById("center-info");
+  let titleContainer = document.getElementById("title");
+  let trackListContainer = document.getElementById("track-list");
+  let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
+  let listTracks = changes.listTracks || currentData.listTracks || [];
+  let trackCount = listTracks.length;
+  let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
+  let specialQueue = (changes.context || currentData.context).startsWith("Queue >> ");
+
+  let queueMode = listViewType !== "ALBUM" || shuffle || specialQueue;
+  let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
+
+  showHide(titleContainer, queueMode);
+
+  let displayTracklist = listViewType !== "SINGLE" && !specialQueue;
+  showHide(trackListContainer, displayTracklist);
+
+  setClass(mainContainer, "queue", queueMode);
+
+  let displayTrackNumbers = listViewType === "ALBUM" && !shuffle;
+  setClass(trackListContainer, "show-tracklist-numbers", displayTrackNumbers)
+
+  trackListContainer.style.setProperty("--track-count", trackCount.toString());
+  window.requestAnimationFrame(() => {
+    let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
+    setClass(trackListContainer, "fit", isOverflowing);
+  });
+
+  ///////////
+
+  let queueList = changes.queue || currentData.queue;
+  let trackNumber = changes.trackNumber || currentData.trackNumber;
+  let upcomingSongsInTrackList = listTracks.slice(trackNumber);
+
+  let newAndOldQueueEqual = upcomingSongsInTrackList.length === queueList.length;
+
+  for (let i = 0; i < currentData.queue.length && i < (changes.queue || 0).length; i++) {
+    if (changes.queue[i].id !== currentData.queue[i].id) {
+      newAndOldQueueEqual = false;
+      break;
+    }
+  }
+
+  let initialLoad = !document.getElementById("track-list").hasChildNodes();
+
+  if (initialLoad || !newAndOldQueueEqual || queueMode !== wasPreviouslyInQueueMode) {
+    if (queueMode) {
+      printTrackList(queueList);
+    } else {
+      printTrackList(listTracks);
+    }
+  }
+
+  if (queueMode) {
+    updateScrollPositions(1);
+  } else {
+    updateScrollPositions(trackNumber);
+  }
 }
 
 function setClass(elem, className, state) {
@@ -451,7 +480,8 @@ function printTrackList(trackList) {
     trackListContainer.append(trackElem);
   }
 
-  fadeIn(trackListContainer);
+  // TODO fix fadein (it's currently too much of a hassle)
+  // fadeIn(trackListContainer);
 }
 
 window.addEventListener('load', setupScrollGradients);
