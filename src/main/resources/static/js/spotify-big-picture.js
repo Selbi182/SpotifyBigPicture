@@ -196,15 +196,13 @@ function setTextData(changes) {
     fadeIn(descriptionElem);
   }
 
-  // Meta Info
+  // Context
   if ('context' in changes && changes.context !== currentData.context) {
-    document.getElementById("context").innerHTML = convertToTextEmoji(changes.context);
-    fadeIn(document.getElementById("context"));
-  }
+    let contextConverted = convertToTextEmoji(changes.context).split("////");
 
-  if ('device' in changes && changes.device !== currentData.device) {
-    document.getElementById("device").innerHTML = convertToTextEmoji(changes.device);
-    fadeIn(document.getElementById("device"));
+    document.getElementById("context-main").innerHTML = contextConverted[0];
+    document.getElementById("context-extra").innerHTML = contextConverted[1];
+    fadeIn(document.getElementById("context"));
   }
 
   // Time
@@ -246,6 +244,11 @@ function setTextData(changes) {
     let volume = changes.volume != null ? changes.volume : currentData.volume;
     let device = changes.device != null ? changes.device : currentData.device;
     handleVolumeChange(volume, device);
+  }
+  if ('device' in changes && changes.device !== currentData.device) {
+    let device = changes.device;
+    document.getElementById("device").innerHTML = convertToTextEmoji(device);
+    handleDeviceChange(device);
   }
 
   // Color
@@ -889,25 +892,20 @@ const PREFERENCES = [
     }
   },
   {
-    id: "prerender",
-    name: "Prerender Background",
+    id: "show-context",
+    name: "Playlist Info",
     hotkey: "p",
-    description: "Captures a screenshot of the background image and displays that instead of the live background. " +
-        "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
+    description: "Displays the playlist name along with some information about it at the top right of the page",
     state: true,
-    callback: (state) => {
-      showHide(document.getElementById("background-rendered"), state);
-      setClass(document.getElementById("prerender-canvas"), "no-prerender", !state);
-      refreshBackgroundRender();
-    }
+    callback: (state) => setClass(document.getElementById("meta-left"), "hide", !state)
   },
   {
-    id: "show-volume-change",
-    name: "Volume",
-    hotkey: "v",
-    description: "Shows the current volume whenever it changes (in %)",
+    id: "show-info-icons",
+    name: "Playback Meta Info",
+    hotkey: "m",
+    description: "Shows the playback meta info at the bottom left of the page (play, shuffle, repeat, volume, device name)",
     state: true,
-    callback: (state) => setClass(document.getElementById("volume"), "show", state)
+    callback: (state) => setClass(document.getElementById("bottom-left"), "hide", !state)
   },
   {
     id: "show-clock",
@@ -934,6 +932,20 @@ const PREFERENCES = [
       }
     }
   },
+  {
+    id: "prerender",
+    name: "Extended Background Prerender",
+    hotkey: "x",
+    description: "(Keep this option enabled if you're unsure what it does!) " +
+        "This captures a screenshot of the background image and displays that instead of the live background. " +
+        "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
+    state: true,
+    callback: (state) => {
+      showHide(document.getElementById("background-rendered"), state);
+      setClass(document.getElementById("prerender-canvas"), "no-prerender", !state);
+      refreshBackgroundRender();
+    }
+  }
 ];
 
 function findPreference(id) {
@@ -1077,6 +1089,18 @@ function handleVolumeChange(volume, device) {
   clearTimeout(volumeTimeout);
   volumeTimeout = setTimeout(() => {
     volumeContainer.classList.remove("active");
+  }, 2000);
+}
+
+let deviceTimeout;
+function handleDeviceChange(device) {
+  let deviceContainer = document.getElementById("device");
+  deviceContainer.innerHTML = device;
+
+  deviceContainer.classList.add("active");
+  clearTimeout(deviceTimeout);
+  deviceTimeout = setTimeout(() => {
+    deviceContainer.classList.remove("active");
   }, 2000);
 }
 

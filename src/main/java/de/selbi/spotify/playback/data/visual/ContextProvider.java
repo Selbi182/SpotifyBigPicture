@@ -126,9 +126,11 @@ public class ContextProvider {
 
   private void refreshQueue() {
     List<Track> rawQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue()).getQueue();
-    this.formattedQueue = rawQueue.stream()
-        .map(ListTrackDTO::fromTrack)
-        .collect(Collectors.toList());
+    if (rawQueue != null) {
+      this.formattedQueue = rawQueue.stream()
+          .map(ListTrackDTO::fromTrack)
+          .collect(Collectors.toList());
+    }
   }
 
   private String getArtistContext(Context context, boolean force) {
@@ -149,7 +151,7 @@ public class ContextProvider {
           .sum();
       String formattedTime = formatTime((int) sum);
 
-      return "ARTIST: " + contextArtist.getName() + " //// " + this.formattedPlaylistTracks.size() + " tracks // " + formattedTime;
+      return "ARTIST: " + contextArtist.getName() + " //// " + this.formattedPlaylistTracks.size() + " tracks (" + formattedTime + ")";
     }
     return null;
   }
@@ -173,7 +175,7 @@ public class ContextProvider {
       	.sum();      
       String formattedTime = formatTime((int) sum);
       
-      return contextPlaylist.getName() + " //// " + this.formattedPlaylistTracks.size() + " tracks // " + formattedTime;
+      return contextPlaylist.getName() + " //// " + this.formattedPlaylistTracks.size() + " tracks (" + formattedTime + ")";
     }
     return null;
   }
@@ -218,7 +220,7 @@ public class ContextProvider {
       if (currentlyPlayingAlbumTrackNumber > 0) {
         Integer totalTrackCount = currentContextAlbum.getTracks().getTotal();
         int digits = totalTrackCount.toString().length();
-        return String.format("Total Time: %s // Track: %0" + digits + "d of %0" + digits + "d",
+        return String.format("Total Time: %s //// Track: %0" + digits + "d of %0" + digits + "d",
             totalDurationFormatted,
             currentlyPlayingAlbumTrackNumber,
             totalTrackCount);
