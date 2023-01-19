@@ -56,7 +56,7 @@ function init() {
   createHeartbeatTimeout();
 }
 
-function singleRequest(forceFull) {
+function singleRequest(forceFull = true) {
   let url = forceFull ? INFO_URL_FULL : INFO_URL;
   fetch(url)
     .then(response => response.json())
@@ -76,13 +76,13 @@ function startFlux() {
       flux = new EventSource(FLUX_URL);
       flux.onopen = () => {
         console.info("Flux connected!");
-        singleRequest(true);
+        singleRequest();
       };
       flux.onmessage = (event) => {
         try {
           createHeartbeatTimeout();
           if (idle) {
-            singleRequest(true);
+            singleRequest();
           } else {
             let data = event.data;
             let json = JSON.parse(data);
@@ -308,11 +308,11 @@ function setCorrectTracklistView(changes) {
 
   ///////////
 
-  let queueList = changes.queue || currentData.queue;
   let trackNumber = changes.trackNumber || currentData.trackNumber;
-  let upcomingSongsInTrackList = listTracks.slice(trackNumber);
 
-  let newAndOldQueueEqual = upcomingSongsInTrackList.length === queueList.length;
+  let oldQueue = currentData.queue;
+  let newQueue = changes.queue;
+  let newAndOldQueueEqual = 'queue' in changes && oldQueue.length === newQueue.length;
 
   for (let i = 0; i < currentData.queue.length && i < (changes.queue || 0).length; i++) {
     if (changes.queue[i].id !== currentData.queue[i].id) {
@@ -325,7 +325,7 @@ function setCorrectTracklistView(changes) {
 
   if (initialLoad || !newAndOldQueueEqual || queueMode !== wasPreviouslyInQueueMode) {
     if (queueMode) {
-      printTrackList(queueList);
+      printTrackList(changes.queue || currentData.queue);
     } else {
       printTrackList(listTracks);
     }
@@ -796,7 +796,7 @@ function advanceCurrentTime() {
     startTime = now;
     let newTime = currentData.timeCurrent + elapsedTime;
     if (newTime > currentData.timeTotal && currentData.timeCurrent < currentData.timeTotal) {
-      setTimeout(() => singleRequest(true), REQUEST_ON_SONG_END_MS);
+      setTimeout(() => singleRequest(), REQUEST_ON_SONG_END_MS);
     }
     currentData.timeCurrent = Math.min(currentData.timeTotal, newTime);
     updateProgress(currentData, false);
