@@ -201,7 +201,7 @@ function setTextData(changes) {
     let contextConverted = convertToTextEmoji(changes.context).split("////");
 
     document.getElementById("context-main").innerHTML = contextConverted[0];
-    document.getElementById("context-extra").innerHTML = contextConverted[1];
+    document.getElementById("context-extra").innerHTML = contextConverted[1] ? contextConverted[1] : "";
     fadeIn(document.getElementById("context"));
   }
 
@@ -282,7 +282,7 @@ function setCorrectTracklistView(changes) {
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
   let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
-  let listTracks = changes.listTracks || currentData.listTracks || [];
+  let listTracks = (changes.listTracks || currentData.listTracks || []).slice(0, 100); // limit very long tracklists
   let trackCount = listTracks.length;
   let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
   let specialQueue = (changes.context || currentData.context).startsWith("Queue >> ");
@@ -325,7 +325,8 @@ function setCorrectTracklistView(changes) {
 
   if (initialLoad || !newAndOldQueueEqual || queueMode !== wasPreviouslyInQueueMode) {
     if (queueMode) {
-      printTrackList(changes.queue || currentData.queue);
+      let limitedQueue = (changes.queue || currentData.queue).slice(0, 10); // more than 10 entries won't be visible anyway
+      printTrackList(limitedQueue);
     } else {
       printTrackList(listTracks);
     }
@@ -990,7 +991,7 @@ function initVisualPreferences() {
     // Init setting
     refreshPreference(pref, state);
   }
-  document.querySelector("#fullscreen").onclick = toggleFullscreen;
+  document.getElementById("fullscreen").onclick = toggleFullscreen;
 
   refreshPrefsQueryParam();
 }

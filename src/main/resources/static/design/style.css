@@ -452,6 +452,7 @@ img:not([src]) {
     height: 100%;
     width: 0;
     opacity: 0;
+    display: none;
     -webkit-mask-size: contain;
     -webkit-mask-repeat: no-repeat;
     mask-size: contain;
@@ -460,6 +461,7 @@ img:not([src]) {
 }
 
 #info-symbols > div.show {
+    display: initial;
     opacity: 0.65;
     width: 3vh;
 }
@@ -509,7 +511,7 @@ img:not([src]) {
 
 #device {
     opacity: 0.2;
-    font-size: 3vh;
+    font-size: 2vh;
 }
 #device:empty {
     display: none;
@@ -562,7 +564,8 @@ img:not([src]) {
     display: flex;
     flex: 1;
     text-align: left;
-    gap: 6vh;
+    gap: 4vh;
+    align-items: center;
 }
 #bottom-left.hide {
     opacity: 0;
@@ -583,7 +586,7 @@ img:not([src]) {
     justify-content: space-between;
 }
 
-#bottom-container {
+#content-bottom {
     display: flex;
     align-items: center;
     flex: 1;
