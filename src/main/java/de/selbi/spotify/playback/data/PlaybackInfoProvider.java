@@ -31,6 +31,7 @@ import se.michaelthelin.spotify.model_objects.specification.Track;
 public class PlaybackInfoProvider {
 
   private static final String BLANK = "BLANK";
+  private static final int QUEUE_FALLBACK_THRESHOLD = 100;
 
   private final SpotifyApi spotifyApi;
   private final ContextProvider contextProvider;
@@ -151,10 +152,14 @@ public class PlaybackInfoProvider {
       // Artist top tracks context
       pInfo.setListTracks(contextProvider.getFormattedPlaylistTracks());
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
-      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.PLAYLIST);
+      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
     } else {
       // Fallback context
-      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.SINGLE);
+      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
+    }
+
+    if (pInfo.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD || pInfo.isShuffle()) {
+      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
     }
 
     pInfo.setQueue(contextProvider.getQueue());

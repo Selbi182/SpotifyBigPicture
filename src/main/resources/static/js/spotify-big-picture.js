@@ -198,10 +198,27 @@ function setTextData(changes) {
 
   // Context
   if ('context' in changes && changes.context !== currentData.context) {
-    let contextConverted = convertToTextEmoji(changes.context).split("////");
+    let contextMain = document.getElementById("context-main");
+    let contextExtra = document.getElementById("context-extra");
 
-    document.getElementById("context-main").innerHTML = contextConverted[0];
-    document.getElementById("context-extra").innerHTML = contextConverted[1] ? contextConverted[1] : "";
+    let contextMainContent = convertToTextEmoji(changes.context);
+    contextMain.innerHTML = contextMainContent;
+
+    let trackList = (changes.listTracks || currentData.listTracks || []);
+    if (trackList.length > 0) {
+      let trackCount = numberWithCommas(trackList.length);
+      let totalDuration = formatTimeVerbose(trackList.reduce((a, b) => a + b.length, 0));
+      let lengthInfo = `${trackCount} tracks (${totalDuration})`;
+      if (contextMainContent.length > 0) {
+        contextExtra.innerHTML = lengthInfo;
+      } else {
+        contextMain.innerHTML = totalDuration;
+        contextExtra.innerHTML = trackCount + " tracks";
+      }
+    } else {
+      contextExtra.innerHTML = "";
+    }
+
     fadeIn(document.getElementById("context"));
   }
 
@@ -257,7 +274,9 @@ function setTextData(changes) {
   }
 
   // Playlist View
-  setCorrectTracklistView(changes);
+  if ('queue' in changes && changes.queue.length > 0) {
+    setCorrectTracklistView(changes);
+  }
 
   // Update properties in local storage
   for (let prop in changes) {
@@ -282,18 +301,15 @@ function setCorrectTracklistView(changes) {
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
   let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
-  let listTracks = (changes.listTracks || currentData.listTracks || []).slice(0, 100); // limit very long tracklists
+  let listTracks = (changes.listTracks || currentData.listTracks || [])
   let trackCount = listTracks.length;
   let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
-  let specialQueue = (changes.context || currentData.context).startsWith("Queue >> ");
 
-  let queueMode = listViewType !== "ALBUM" || shuffle || specialQueue;
+  let specialQueue = (changes.context || currentData.context || "").startsWith("Queue >> ");
+  let queueMode = listViewType === "QUEUE" || specialQueue;
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   showHide(titleContainer, queueMode);
-
-  let displayTracklist = listViewType !== "SINGLE" && !specialQueue;
-  showHide(trackListContainer, displayTracklist);
 
   setClass(mainContainer, "queue", queueMode);
 
@@ -312,13 +328,17 @@ function setCorrectTracklistView(changes) {
 
   let oldQueue = currentData.queue;
   let newQueue = changes.queue;
-  let newAndOldQueueEqual = 'queue' in changes && oldQueue.length === newQueue.length;
 
-  for (let i = 0; i < currentData.queue.length && i < (changes.queue || 0).length; i++) {
-    if (changes.queue[i].id !== currentData.queue[i].id) {
-      newAndOldQueueEqual = false;
-      break;
+  let newAndOldQueueEqual = true;
+  if (oldQueue && newQueue && 'queue' in changes && oldQueue.length === newQueue.length) {
+    for (let i = 0; i < currentData.queue.length && i < (changes.queue || 0).length; i++) {
+      if (changes.queue[i].id !== currentData.queue[i].id) {
+        newAndOldQueueEqual = false;
+        break;
+      }
     }
+  } else {
+    newAndOldQueueEqual = false;
   }
 
   let initialLoad = !document.getElementById("track-list").hasChildNodes();
@@ -362,7 +382,7 @@ function showHide(elem, show, useInvisibility) {
   }
 }
 
-const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "explicit", "extended", "expansion", "expanded", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
+const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "edition", "explicit", "extended", "expansion", "expanded", "version", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
 const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live", "classic", "demo"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
@@ -507,12 +527,12 @@ function updateScrollPositions(specificTrackNumber) {
   window.requestAnimationFrame(() => {
     let trackListContainer = document.getElementById("track-list");
     let trackNumber = specificTrackNumber ? specificTrackNumber : currentData.trackNumber;
-    let currentlyPlayingElem = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
-    if (specificTrackNumber || trackNumber !== currentData.trackNumber || !currentlyPlayingElem) {
-      let currentlyPlayingTrackElem = trackListContainer.childNodes[trackNumber - 1];
-      if (currentlyPlayingTrackElem) {
+    let previouslyPlayingRow = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
+    if (specificTrackNumber || trackNumber !== currentData.trackNumber || !previouslyPlayingRow) {
+      let currentlyPlayingRow = trackListContainer.childNodes[trackNumber - 1];
+      if (currentlyPlayingRow && previouslyPlayingRow !== currentlyPlayingRow) {
         trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
-        currentlyPlayingTrackElem.classList.add("current");
+        currentlyPlayingRow.classList.add("current");
 
         let scrollUnit = trackListContainer.scrollHeight / trackListContainer.childNodes.length;
         let offsetDivider = currentData.trackListView === "PLAYLIST" ? 5 : 2;
@@ -597,7 +617,7 @@ function loadBackground(newImage, colors) {
       let averageBrightness = colors.averageBrightness;
       let prerenderCanvas = document.getElementById("prerender-canvas");
       let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
-      let noiseOverlay = document.getElementById("noise");
+      let grainOverlay = document.getElementById("grain");
 
       setClass(prerenderCanvas, "show", true);
       let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
@@ -605,7 +625,7 @@ function loadBackground(newImage, colors) {
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
       setClass(backgroundCanvasOverlay, "brighter", averageBrightness < 0.2);
       setClass(backgroundCanvasOverlay, "darker", averageBrightness > 0.7);
-      noiseOverlay.style.setProperty("--intensity", averageBrightness);
+      grainOverlay.style.setProperty("--intensity", averageBrightness);
       resolve();
     };
     backgroundCanvasImg.src = newImage;
@@ -742,6 +762,18 @@ function formatTime(current, total) {
   };
 }
 
+function formatTimeVerbose(timeInMs) {
+  let hms = calcHMS(timeInMs);
+  let hours = hms.hours;
+  let minutes = hms.minutes;
+  let seconds = hms.seconds;
+  if (hours > 0) {
+    return `${numberWithCommas(hours)} hr ${minutes} min`;
+  } else {
+    return `${minutes} min ${seconds} sec`;
+  }
+}
+
 function calcHMS(ms) {
   let s = Math.round(ms / 1000) % 60;
   let m = Math.floor((Math.round(ms / 1000)) / 60) % 60;
@@ -761,6 +793,9 @@ function padToLength(num, length) {
   return num.toString().padStart(length, '0');
 }
 
+function numberWithCommas(number) {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
 ///////////////////////////////
 // TIMERS
@@ -882,14 +917,14 @@ const PREFERENCES = [
     }
   },
   {
-    id: "bg-noise",
-    name: "Noise",
-    hotkey: "n",
-    description: "Adds a subtle layer of noise to the background to increase contrast and prevent color banding for dark images " +
-        "(only works when Prerender mode is enabled)",
+    id: "bg-grain",
+    name: "Grain",
+    hotkey: "g",
+    description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images " +
+        "(only works when Extended Background Rendering is enabled)",
     state: true,
     callback: (state) => {
-      setClass(document.getElementById("noise"), "show", state);
+      setClass(document.getElementById("grain"), "show", state);
     }
   },
   {
@@ -935,10 +970,10 @@ const PREFERENCES = [
   },
   {
     id: "prerender",
-    name: "Extended Background Prerender",
+    name: "Extended Background Rendering",
     hotkey: "x",
-    description: "(Keep this option enabled if you're unsure what it does!) " +
-        "This captures a screenshot of the background image and displays that instead of the live background. " +
+    description: "[Keep this option enabled if you're unsure what it does!] " +
+        "Captures screenshots of the background images and displays those instead of the live backgrounds. " +
         "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
     state: true,
     callback: (state) => {

@@ -55,12 +55,13 @@ These options are currently available (the letter in the brackets denotes a hotk
 * **Background Artwork (b):** Whether the album artwork should be re-used for the background as a blurry picture, or if a simple gradient background should be used
 * **Colored Text (c):** Whether the texts, progress bar, and icons should be adjusted to the most dominant color of the currently playing track's album cover art. White if disabled
 * **Transitions (t):** Toggles the transition animations between songs and the smoothness of the progress bar. One might want to disable these when the app is run on something like Raspberry Pi, where fancy CSS is often too expensive
-* **Strip Titles (s):** Throws away anything of the song titles one might not care about, such as "Remastered Version" or "Anniversary Edition". Might be overzealous depending on how much information you wish to have.
-* **Noise (n):** Adds a subtle layer of noise to the background to increase contrast and prevent color banding for dark images (only works when Prerender mode is enabled)
-* **Prerender Background (p):** This saves a lot of processing time and is especially useful for weaker hardware. It captures a screenshot of the background whenever it changes to indefinitely display that until the next song change, as opposed to calculating the expensive CSS every single frame. Requires a relatively modern browser to function properly, though
-* **Volume (v):** Show the volume from 0-100% (in reference to the playback device)
+* **Strip Titles (s):** Throws away anything of the song titles one might not care about, such as "Remastered Version" or "Anniversary Edition". Might be overzealous depending on how much information you wish to have
+* **Grain (g):** Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images (only works when Extended Background Rendering is enabled)
+* **Playlist Info (p):** Displays the playlist name along with some information about it at the top right of the page
+* **Playback Meta Info (m):** Shows the playback meta info at the bottom left of the page (play, shuffle, repeat, volume, device name)
 * **Clock (w):** Show a clock at the bottom center of the screen, showing the full date and the time. This will show even during idle mode
 * **Dark Mode (d):** Darkens the entire screen by 65%. This mode will automatically be disabled after 8 hours. (I had to implement this because my TV was too cumbersome to control on-the-fly)
+* **Extended Background Rendering (x):** (Keep this option enabled if you're unsure what it does!) Captures screenshots of the background images and displays those instead of the live backgrounds. This saves a lot of processing time and is especially useful for weaker hardware. It captures a screenshot of the background whenever it changes to indefinitely display that until the next song change, as opposed to calculating the expensive CSS every single frame. Requires a relatively modern browser to function properly, though
 
 ## Troubleshooting
  

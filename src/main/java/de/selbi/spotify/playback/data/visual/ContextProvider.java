@@ -1,6 +1,5 @@
 package de.selbi.spotify.playback.data.visual;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -146,12 +145,7 @@ public class ContextProvider {
       }
       this.formattedPlaylistTracks = listTrackDTOS;
 
-      long sum = this.formattedPlaylistTracks.stream()
-          .mapToLong(ListTrackDTO::getLength)
-          .sum();
-      String formattedTime = formatTime((int) sum);
-
-      return "ARTIST: " + contextArtist.getName() + " //// " + this.formattedPlaylistTracks.size() + " tracks (" + formattedTime + ")";
+      return "ARTIST TOP TRACKS: " + contextArtist.getName();
     }
     return null;
   }
@@ -169,13 +163,8 @@ public class ContextProvider {
         listTrackDTOS.add(lt);
       }
       this.formattedPlaylistTracks = listTrackDTOS;
-
-      long sum = this.formattedPlaylistTracks.stream()
-      	.mapToLong(ListTrackDTO::getLength)
-      	.sum();      
-      String formattedTime = formatTime((int) sum);
       
-      return contextPlaylist.getName() + " //// " + this.formattedPlaylistTracks.size() + " tracks (" + formattedTime + ")";
+      return contextPlaylist.getName();
     }
     return null;
   }
@@ -207,28 +196,18 @@ public class ContextProvider {
         }
       }
     }
+    String contextString = "ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " \u2013 " + currentContextAlbum.getName();
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
-      currentlyPlayingAlbumTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> Objects.requireNonNull(t).getId().equals(trackId)) + 1;
-
-      // Total album duration
-      Integer totalDurationMs = currentContextAlbumTracks.stream().mapToInt(TrackSimplified::getDurationMs).sum();
-      String totalDurationFormatted = formatTime(totalDurationMs);
-
-      // Assemble it all
-      if (currentlyPlayingAlbumTrackNumber > 0) {
-        Integer totalTrackCount = currentContextAlbum.getTracks().getTotal();
-        int digits = totalTrackCount.toString().length();
-        return String.format("Total Time: %s //// Track: %0" + digits + "d of %0" + digits + "d",
-            totalDurationFormatted,
-            currentlyPlayingAlbumTrackNumber,
-            totalTrackCount);
+      this.currentlyPlayingAlbumTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> Objects.requireNonNull(t).getId().equals(trackId)) + 1;
+      if (this.currentlyPlayingAlbumTrackNumber > 0) {
+        return contextString;
       }
     }
 
     // Fallback when playing back from the queue
-    return "Queue >> ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " - " + currentContextAlbum.getName();
+    return "Queue >> " + contextString;
   }
 
   private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {
@@ -247,17 +226,5 @@ public class ContextProvider {
       return true;
     }
     return false;
-  }
-
-  private String formatTime(Integer timeInMs) {
-    Duration duration = Duration.ofMillis(timeInMs);
-    long hours = duration.toHours();
-    int minutesPart = duration.toMinutesPart();
-    if (hours > 0) {
-      return String.format("%d hr %d min", hours, minutesPart);
-    } else {
-      int secondsPart = duration.toSecondsPart();
-      return String.format("%d min %d sec", minutesPart, secondsPart);
-    }
   }
 }

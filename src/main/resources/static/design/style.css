@@ -99,7 +99,7 @@ img:not([src]) {
     opacity: 0.65;
 }
 
-#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #noise {
+#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -169,14 +169,14 @@ img:not([src]) {
     background-blend-mode: unset !important;
 }
 
-#noise {
+#grain {
     opacity: 0;
     mix-blend-mode: screen;
-    background: url('img/noise.png') repeat;
+    background: url('img/grain.png') repeat;
     --intensity: 1;
 }
 
-#noise.show {
+#grain.show {
     opacity: max(0.03, calc(var(--intensity) * 0.15));
 }
 
