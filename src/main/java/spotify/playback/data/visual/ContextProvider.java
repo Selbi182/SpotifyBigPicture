@@ -9,13 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
+import com.neovisionaries.i18n.CountryCode;
 
-import spotify.api.BotException;
-import spotify.api.SpotifyCall;
-import spotify.config.Config;
-import spotify.playback.data.PlaybackInfoDTO;
-import spotify.playback.data.help.ListTrackDTO;
-import spotify.playback.data.help.PlaybackInfoConstants;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
@@ -28,6 +23,12 @@ import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Show;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
+import spotify.api.BotException;
+import spotify.api.SpotifyCall;
+import spotify.playback.data.PlaybackInfoDTO;
+import spotify.playback.data.help.ListTrackDTO;
+import spotify.playback.data.help.PlaybackInfoConstants;
+import spotify.services.UserService;
 import spotify.util.BotUtils;
 
 @Component
@@ -36,7 +37,7 @@ public class ContextProvider {
   private static final int MAX_IMMEDIATE_TRACKS = 50;
 
   private final SpotifyApi spotifyApi;
-  private final Config config;
+  private final UserService userService;
 
   private String previousContextString;
   private Album currentContextAlbum;
@@ -46,9 +47,9 @@ public class ContextProvider {
   private Integer currentlyPlayingAlbumTrackNumber;
   private List<ListTrackDTO> formattedQueue;
 
-  ContextProvider(SpotifyApi spotifyApi, Config config) {
+  ContextProvider(SpotifyApi spotifyApi, UserService userService) {
     this.spotifyApi = spotifyApi;
-    this.config = config;
+    this.userService = userService;
     this.formattedAlbumTracks = new ArrayList<>();
     this.formattedPlaylistTracks = new ArrayList<>();
     this.formattedQueue = new ArrayList<>();
@@ -136,7 +137,8 @@ public class ContextProvider {
     if (force || didContextChange(context)) {
       String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
       Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
-      Track[] artistTopTracks = SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, config.spotifyBotConfig().getMarket()));
+      CountryCode marketOfCurrentUser = userService.getMarketOfCurrentUser();
+      Track[] artistTopTracks = SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, marketOfCurrentUser));
 
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
       for (Track track : artistTopTracks) {

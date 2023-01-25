@@ -42,7 +42,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'spotify:spotify-dependencies:1.1.5'
+    implementation 'spotify:spotify-dependencies:1.2.3'
 
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-webflux:$springVersion"
