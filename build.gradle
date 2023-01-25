@@ -10,27 +10,23 @@ buildscript {
 
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:$springVersion")
-        classpath("org.springframework.boot.experimental:spring-boot-thin-gradle-plugin:1.0.27.RELEASE")
     }
 }
 
 apply plugin: 'java'
-apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'org.springframework.boot.experimental.thin-launcher'
 
 jar {
     archiveBaseName.set('SpotifyBigPicture')
     archiveVersion.set('1.0')
     archiveFileName = "${archiveBaseName}-${archiveVersion}"
-    bootJar.dependsOn = [thinProperties]
 }
 
 springBoot {
-    mainClass.set('de.selbi.spotify.SpotifyBigPicture')
+    mainClass.set('spotify.SpotifyBigPicture')
 }
 
 sourceCompatibility = 1.11
@@ -40,9 +36,14 @@ repositories {
     maven {
         url 'https://jitpack.io'
     }
+    maven {
+        url 'https://mymavenrepo.com/repo/FpgB1Mi6I9ud1Gd3tX0r/'
+    }
 }
 
 dependencies {
+    implementation 'spotify:spotify-dependencies:1.1.5'
+
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-webflux:$springVersion"
 
