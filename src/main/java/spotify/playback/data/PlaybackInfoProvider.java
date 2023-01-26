@@ -16,8 +16,7 @@ import spotify.api.SpotifyCall;
 import spotify.playback.data.help.PlaybackInfoUtils;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlProvider;
-import spotify.playback.data.visual.color.ColorProvider;
-import spotify.playback.data.visual.color.DominantRGBs;
+import spotify.playback.data.visual.color.ColorFetchResult;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
@@ -25,6 +24,7 @@ import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Track;
+import spotify.playback.data.visual.color.ColorProvider;
 import spotify.util.BotUtils;
 
 @Component
@@ -170,11 +170,11 @@ public class PlaybackInfoProvider {
     String artworkUrl = artworkUrlProvider.findArtworkUrl(playlistItem);
     if (artworkUrl != null && !artworkUrl.isEmpty()) {
       pInfo.setImage(artworkUrl);
-      DominantRGBs colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl);
+      ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl);
       pInfo.setImageColors(colors);
     } else {
       pInfo.setImage(BLANK);
-      pInfo.setImageColors(DominantRGBs.FALLBACK);
+      pInfo.setImageColors(ColorFetchResult.FALLBACK);
     }
 
     pInfo.setDeployTime(deployTime);

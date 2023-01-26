@@ -117,7 +117,7 @@ function processJson(json) {
     console.debug(json);
     if (json.type === "DATA") {
       if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
-        window.location.reload();
+        window.location.reload(true);
       } else {
         setDisplayData(json)
           .then(() => startTimers());

@@ -1,20 +1,50 @@
 package spotify.playback.data.visual.color;
 
-public interface ColorProvider {
-  /**
-   * Returns an approximation of the two most dominant colors from an image URL as
-   * [primary, secondary]. The primary color is intended for the text and icons,
-   * whereas the secondary one is to be used as the background overlay.<br/>
-   * <br/>
-   * The algorithm favors bright, vibrant colors over dull ones and will
-   * completely ignore colors that fall below a certain threshold in regard to
-   * pixel population or brightness. For particularly dull images that don't even
-   * manage to find two colors meeting the minimum requirement at all, WHITE is
-   * returned for any blank ones.
-   *
-   * @param imageUrl the URL of the image
-   * @return the two most dominant colors as an RGB list of exactly two entries
-   *         (note: all results are indefinitely cached)
-   */
-  DominantRGBs getDominantColorFromImageUrl(String imageUrl);
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@Component
+public class ColorProvider {
+
+  @Value("${colorfetch.url}")
+  private String colorFetchUrl;
+
+  private final ObjectMapper objectMapper;
+  private final Map<String, ColorFetchResult> cache;
+
+  ColorProvider() {
+    this.objectMapper = new ObjectMapper();
+    this.cache = new ConcurrentHashMap<>();
+  }
+
+  public ColorFetchResult getDominantColorFromImageUrl(String artworkUrl) {
+    if (cache.containsKey(artworkUrl)) {
+      return cache.get(artworkUrl);
+    } else {
+      ColorFetchResult fromWebService = getFromWebService(artworkUrl);
+      cache.put(artworkUrl, fromWebService);
+      return fromWebService;
+    }
+  }
+
+  private ColorFetchResult getFromWebService(String artworkUrl) {
+    try {
+      String requestUri = UriComponentsBuilder.fromUriString(colorFetchUrl)
+          .queryParam("url", artworkUrl)
+          .queryParam("strategy", "color_thief").build().toUriString();
+      String rawJson = Jsoup.connect(requestUri).ignoreContentType(true).execute().body();
+      return objectMapper.readValue(rawJson, ColorFetchResult.class);
+    } catch (IOException e) {
+      e.printStackTrace();
+      return ColorFetchResult.FALLBACK;
+    }
+  }
 }
