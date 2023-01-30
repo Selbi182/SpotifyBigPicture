@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import spotify.SpotifyBigPicture;
-import spotify.api.events.LoggedInEvent;
+import spotify.api.events.SpotifyApiLoggedInEvent;
 import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.help.PlaybackInfoConstants;
@@ -36,7 +36,7 @@ public class PlaybackController {
 
   private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
-  @EventListener(LoggedInEvent.class)
+  @EventListener(SpotifyApiLoggedInEvent.class)
   public void ready() {
     log.info("SpotifyBigPicture is ready!");
     log.info("Scheduled polling is " + (SpotifyBigPicture.scheduledPollingDisabled
