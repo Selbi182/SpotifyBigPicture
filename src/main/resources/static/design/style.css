@@ -609,6 +609,36 @@ img:not([src]) {
     padding: 1.5vh;
 }
 
+#settings-menu-toggle-button {
+    --offset: calc(var(--margin-main) / 2);
+    width: var(--offset);
+    height: var(--offset);
+    left: calc(var(--offset) / -2);
+    top: calc(var(--offset) / 2);
+    position: absolute;
+    -webkit-mask-image: url("img/symbols/cog.png");
+    mask-image: url("img/symbols/cog.png");
+    opacity: 0;
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
+    background-color: var(--color);
+    z-index: 3;
+    cursor: pointer;
+    transition: opacity var(--transition), left var(--transition), transform var(--transition);
+}
+
+#settings-menu-toggle-button.show {
+    opacity: 0.5;
+    left: calc(var(--offset) / 2);
+    transform: rotate(180deg);
+    transition-duration: var(--transition);
+}
+
+#settings-menu-toggle-button:hover {
+    opacity: 1;
+}
+
 #settings-wrapper {
     width: 100%;
     height: 100%;
@@ -625,6 +655,23 @@ img:not([src]) {
 
 #settings-wrapper.show {
     opacity: 1;
+    left: 0;
+    pointer-events: auto;
+}
+
+#settings-wrapper::before {
+    content: "Visual Preferences";
+    position: absolute;
+    left: calc(var(--margin-main) / 4);
+    top: 0;
+    bottom: 0;
+    text-orientation: sideways;
+    writing-mode: sideways-lr;
+    margin: auto 0;
+    text-align: center;
+    letter-spacing: 2vh;
+    opacity: 0.25;
+    font-family: var(--font-bold);
 }
 
 #settings-buttons {
@@ -634,11 +681,16 @@ img:not([src]) {
     justify-content: space-between;
     font-family: var(--font-bold);
     flex-direction: column;
-    pointer-events: auto;
+    margin-left: -100vw;
+    transition: opacity var(--transition), margin-left var(--transition), transform var(--transition);
+}
+
+#settings-wrapper.show > #settings-buttons {
+    margin-left: 0;
 }
 
 #settings-buttons > div {
-    width: 100%;
+    width: min-content;
     opacity: 0.65;
     cursor: pointer;
     white-space: pre;
@@ -705,7 +757,7 @@ img:not([src]) {
         user-select: none !important;
     }
 
-    #artwork, #settings-wrapper, #clock-wrapper, #top-info {
+    #artwork, #clock-wrapper, #top-info {
         display: none;
     }
 

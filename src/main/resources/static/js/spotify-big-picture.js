@@ -1168,13 +1168,14 @@ document.onkeydown = (e) => {
 
 
 ///////////////////////////////
-// MOUSE EVENTS
+// MOUSE EVENTS FOR SETTINGS
 ///////////////////////////////
 
+let settingsVisible = false;
 document.addEventListener("mousemove", handleMouseEvent);
 document.addEventListener("click", handleMouseEvent);
 let cursorTimeout;
-const MOUSE_MOVE_HIDE_TIMEOUT_MS = 500;
+const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 
 function setMouseVisibility(state) {
   setClass(document.documentElement, "hide-cursor", !state);
@@ -1183,8 +1184,14 @@ function setMouseVisibility(state) {
 function handleMouseEvent() {
   clearTimeout(cursorTimeout);
   setMouseVisibility(true)
+
+  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
+  setClass(settingsMenuToggleButton, "show", true);
   cursorTimeout = setTimeout(() => {
     setMouseVisibility(false);
+    if (!settingsVisible) {
+      setClass(settingsMenuToggleButton, "show", false);
+    }
   }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }
 
@@ -1193,16 +1200,25 @@ function initSettingsMouseMove() {
   setMouseVisibility(false);
   let settings = document.getElementById("settings-buttons");
   let settingsWrapper = document.getElementById("settings-wrapper");
-  let content = document.getElementById("content");
-  settings.onmouseenter = () => {
-    setClass(settingsWrapper, "show", true);
-    setClass(content, "blur", true);
+
+  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
+  settingsMenuToggleButton.onclick = () => {
+    requestAnimationFrame(() => toggleSettingsMenu());
   };
-  settings.onmouseleave = () => {
-    setClass(settingsWrapper, "show", false);
-    setClass(content, "blur", false);
+
+  document.body.onclick = (e) => {
+    if (settingsVisible && e.target !== settingsMenuToggleButton && !settings.contains(e.target)) {
+      toggleSettingsMenu();
+    }
   }
-  settings.onmousemove = (event) => {
+
+  document.addEventListener("dblclick", (e) => {
+    if (!settingsVisible && e.target !== settingsMenuToggleButton && !settings.contains(e.target)) {
+      toggleFullscreen();
+    }
+  });
+
+  settingsWrapper.onmousemove = (event) => {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
     document.getElementById("settings-description").childNodes
       .forEach(elem => setClass(elem, "show", false));
@@ -1213,7 +1229,14 @@ function initSettingsMouseMove() {
   }
 }
 
-document.addEventListener("dblclick", toggleFullscreen);
+function toggleSettingsMenu() {
+  settingsVisible = !settingsVisible;
+  let settingsWrapper = document.getElementById("settings-wrapper");
+  let content = document.getElementById("content");
+  setClass(settingsWrapper, "show", settingsVisible);
+  setClass(content, "blur", settingsVisible);
+}
+
 
 ///////////////////////////////
 // CLOCK
