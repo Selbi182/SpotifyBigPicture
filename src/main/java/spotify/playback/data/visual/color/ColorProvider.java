@@ -1,8 +1,9 @@
 package spotify.playback.data.visual.color;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+
+import javax.annotation.PostConstruct;
 
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,27 +12,50 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.selbi.colorfetch.cache.ColorCacheKey;
+import de.selbi.colorfetch.cache.ColorResultCache;
+import de.selbi.colorfetch.data.ColorFetchResult;
+import spotify.util.BotLogger;
+
 @Component
 public class ColorProvider {
 
-  @Value("${colorfetch.url}")
+  private final BotLogger botLogger;
+
+  // Using internal library
+  private final ColorResultCache colorResultCache;
+
+  // Using external web service
+  @Value("${colorfetch.url:#{null}}")
   private String colorFetchUrl;
-
   private final ObjectMapper objectMapper;
-  private final Map<String, ColorFetchResult> cache;
 
-  ColorProvider() {
+  ColorProvider(BotLogger botLogger, ColorResultCache colorResultCache) {
+    this.botLogger = botLogger;
+    this.colorResultCache = colorResultCache;
     this.objectMapper = new ObjectMapper();
-    this.cache = new ConcurrentHashMap<>();
+  }
+
+  @PostConstruct
+  void printColorLibraryState() {
+    if (useExternalWebservice()) {
+      botLogger.info("Using external color fetch service: " + colorFetchUrl);
+    } else {
+      botLogger.info("'colorfetch.url' not set in application.properties - using internal color fetch service");
+    }
   }
 
   public ColorFetchResult getDominantColorFromImageUrl(String artworkUrl) {
-    if (cache.containsKey(artworkUrl)) {
-      return cache.get(artworkUrl);
+    if (useExternalWebservice()) {
+      return getFromWebService(artworkUrl);
     } else {
-      ColorFetchResult fromWebService = getFromWebService(artworkUrl);
-      cache.put(artworkUrl, fromWebService);
-      return fromWebService;
+      ColorCacheKey colorCacheKey = ColorCacheKey.of(artworkUrl, ColorCacheKey.Strategy.COLOR_THIEF, true);
+      try {
+        return colorResultCache.getColor(colorCacheKey);
+      } catch (ExecutionException e) {
+        e.printStackTrace();
+        return ColorFetchResult.FALLBACK;
+      }
     }
   }
 
@@ -46,5 +70,9 @@ public class ColorProvider {
       e.printStackTrace();
       return ColorFetchResult.FALLBACK;
     }
+  }
+
+  private boolean useExternalWebservice() {
+    return colorFetchUrl != null;
   }
 }

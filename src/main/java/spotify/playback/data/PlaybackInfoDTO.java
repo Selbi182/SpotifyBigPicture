@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import de.selbi.colorfetch.data.ColorFetchResult;
 import spotify.playback.data.help.ListTrackDTO;
-import spotify.playback.data.visual.color.ColorFetchResult;
 
 /**
  * Wrapper class for the playback info to be sent via SSEEmitter to the
