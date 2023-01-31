@@ -46,6 +46,7 @@ public class ContextProvider {
   private List<ListTrackDTO> formattedPlaylistTracks;
   private Integer currentlyPlayingAlbumTrackNumber;
   private List<ListTrackDTO> formattedQueue;
+  private CountryCode market;
 
   ContextProvider(SpotifyApi spotifyApi, UserService userService) {
     this.spotifyApi = spotifyApi;
@@ -137,8 +138,7 @@ public class ContextProvider {
     if (force || didContextChange(context)) {
       String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
       Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
-      CountryCode marketOfCurrentUser = userService.getMarketOfCurrentUser();
-      Track[] artistTopTracks = SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, marketOfCurrentUser));
+      Track[] artistTopTracks = SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, getMarketOfCurrentUser()));
 
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
       for (Track track : artistTopTracks) {
@@ -228,5 +228,12 @@ public class ContextProvider {
       return true;
     }
     return false;
+  }
+
+  private CountryCode getMarketOfCurrentUser() {
+    if (this.market == null) {
+      this.market = userService.getMarketOfCurrentUser();
+    }
+    return this.market;
   }
 }

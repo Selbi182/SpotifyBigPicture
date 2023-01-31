@@ -24,7 +24,7 @@ import spotify.api.SpotifyCall;
 import spotify.playback.data.help.PlaybackInfoUtils;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlProvider;
-import spotify.playback.data.visual.color.ColorProvider;
+import spotify.playback.data.visual.color.ColorProviderSetup;
 import spotify.util.BotUtils;
 
 @Component
@@ -36,7 +36,7 @@ public class PlaybackInfoProvider {
   private final SpotifyApi spotifyApi;
   private final ContextProvider contextProvider;
   private final ArtworkUrlProvider artworkUrlProvider;
-  private final ColorProvider dominantColorProvider;
+  private final ColorProviderSetup dominantColorProvider;
 
   private PlaybackInfoDTO previous;
   private static final List<Field> DTO_FIELDS;
@@ -53,7 +53,7 @@ public class PlaybackInfoProvider {
   PlaybackInfoProvider(SpotifyApi spotifyApi,
       ContextProvider contextProvider,
       ArtworkUrlProvider artworkUrlProvider,
-      ColorProvider colorProvider) {
+      ColorProviderSetup colorProvider) {
     this.spotifyApi = spotifyApi;
     this.contextProvider = contextProvider;
     this.artworkUrlProvider = artworkUrlProvider;
