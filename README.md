@@ -6,25 +6,24 @@ You might want to use this over [Spotify's own (in my opinion, rather underwhelm
 
 ## Examples
 
-### Single Song
-![Deafheaven - Dream House](https://i.imgur.com/OBO0GiM.png)
-
 ### Album View
-![Rammstein - Mein Herz brennt](https://i.imgur.com/13cd9oF.png)
+![Deafheaven - Dream House](https://i.imgur.com/034iLIr.png)
+
+![Rammstein - Mein Herz brennt](https://i.imgur.com/7tvR1xr.png)
 
 ### Playlist View
-![Playlist View](https://i.imgur.com/TI5ZFyh.png)
+![Playlist View](https://i.imgur.com/4ljY3nQ.png)
 
 ## Installation
 
 Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either. Here's the basic approach:
 
-1. Download the [current release](https://github.com/Selbi182/SpotifyBigPicture/releases) (Try the `thin` version first. If that one causes issues, use the `fat` version.)
+1. Download the [current release](https://github.com/Selbi182/SpotifyBigPicture/releases)
 2. Create an app on the Spotify Developers site (you might need to create an account first): https://developer.spotify.com/dashboard/
 3. As redirect URI for the app, use `http://localhost:8183/login-callback`
 4. Grab the Client ID and Client Secret and insert them in the respective fields in the `spotifybot.properties` file
 5. Open a terminal and start the app using `java -jar SpotifyBigPicture.jar`
-6. Once prompted to log in, copy-paste the displayed URL into your browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A8183%2Flogin-callback&scope=user-read-playback-position%20user-read-playback-state`) and log in. I haven't yet figured out how to automate this, sorry
+6. Once prompted to log in, copy-paste the displayed URL into your browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`) and log in
 7. If everything worked out, the app will be available under http://localhost:8183/
 
 ## Features
@@ -44,10 +43,11 @@ The background is the album artwork again, but stretched to fit the screen and b
 This is done using [ColorThief.js](https://lokeshdhakar.com/projects/color-thief) and a very rough implementation of the [Colorfulness Index defined by Hasler and Süsstrunk](https://infoscience.epfl.ch/record/33994/files/HaslerS03.pdf). This closely emulates what Spotify would attempt on a Chromecast (minus the blurred image).
 
 ### Visual Preferences
+Click the cog symbol in the top left of the interface to open the settings for visual preferences:
 
-![Visual Preferences](https://i.imgur.com/BvwoduC.png)
+![Visual Preferences](https://i.imgur.com/UHEOfoH.png)
 
-Not everyone might be a fan of the colored texts or maybe even the smooth transitions. These and various other features can be customized with the click of a button directly on the main interface!
+These were introduced because not everyone might be a fan of the colored texts or maybe even the smooth transitions. These and various other features can be customized with the click of a button directly on the main interface!
 
 These options are currently available (the letter in the brackets denotes a hotkey):
 
@@ -65,14 +65,16 @@ These options are currently available (the letter in the brackets denotes a hotk
 
 ## Troubleshooting
  
-This bot is in *very* early development stages and probably not 100% stable yet. The biggest problem is getting a reliable `EventSource` stream, since it just dies after some time (though, that often takes hours), despite my best attempts to keep it alive with heartbeats and whatnot.
+The most common issue you might encouter is getting a reliable `EventSource` stream, since it just dies after some time (though, that often takes hours), despite my best attempts to keep it alive with heartbeats and whatnot.
 
 Therefore, any time the connection gets lost, the interface will automatically try to reestablish one. This usually only takes a few seconds, to not mess with the interface _the player will keep ticking down seconds on its own, despite having no connection. While perhaps not the cleanest solution on a technical level, it certainly is an unobtrusive one for the viewer.
 
 Two other things you can try though:
 
 1. For whatever bizarre reason, simply clicking on the devices button in Spotify (not even selecting any different device, literally just opening the dropdown) sometimes forces the API to catch up. This has been my go-to for fixing stuck screens, and it works surprisingly well.
+
 ![dropdown](https://user-images.githubusercontent.com/8850085/206453960-12d34f5e-03c0-41a0-aba1-7c214de4e53e.png)
+
 2. You mentioned looking at the terminal to find any errors. That won't help you much, as all the errors regarding the connection (flux) are shown on the web console. So, hit F12 and navigate to the console out. There, you should hopefully find more helpful information.
 
 ### Note about album/playlist view
