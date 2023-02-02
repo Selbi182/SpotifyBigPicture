@@ -6,12 +6,12 @@ You might want to use this over [Spotify's own (in my opinion, rather underwhelm
 
 ## Examples
 ### Album View
-![Deafheaven - Dream House](https://i.imgur.com/034iLIr.png)
+![Deafheaven - Dream House](https://i.imgur.com/O4xEa1V.png)
 
-![Rammstein - Mein Herz brennt](https://i.imgur.com/7tvR1xr.png)
+![Rammstein - Mein Herz brennt](https://i.imgur.com/XJOZgtZ.png)
 
 ### Playlist View
-![Playlist View](https://i.imgur.com/4ljY3nQ.png)
+![Playlist View](https://i.imgur.com/30nknxN.png)
 
 ## Installation
 Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either:
@@ -41,15 +41,13 @@ This was done using [ColorThief.js](https://lokeshdhakar.com/projects/color-thie
 After two hours of playing no music, the interface will turn black and stop rendering anything (other than the optional clock) to save on resoures. As soon as music is played again, the interface will automatically be displayed again as well.
 
 ### Visual Preferences
-Click the cog symbol in the top left of the interface to open the settings for visual preferences:
+By default, most of these settings are enabled, but you got full control over which features you might want to turn off. Click the cog symbol in the top left of the interface to open the settings for visual preferences:
 
-![Visual Preferences](https://i.imgur.com/UHEOfoH.png)
-
-By default, most of these settings are enabled, but you got free control over which features you might want to turn off
+![Visual Preferences](https://i.imgur.com/RIFcQxq.png)
 
 Explanation of each setting (the letter in the brackets denotes the hotkey):
 
-* **Full Screen (f):** Toggle full-screen mode
+* **Full Screen (f):** Toggle full-screen mode. You can also double click anywhere on the screen
 * **Queue (q):** If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song will be displayed
 * **Background Artwork (b):** If enabled, the album artwork will be re-used for the background as a blurry picture. Otherwise, a simple colored gradient background will be used
 * **Colored Text (c):** If enabled, the texts, progress bar, and icons will be colored in with the the most dominant color of the currently playing track's album cover art. Otherwise, plain white will be used for everything
