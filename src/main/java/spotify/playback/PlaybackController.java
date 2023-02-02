@@ -92,12 +92,32 @@ public class PlaybackController {
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * Manually toggle dark mode on every connected client.
+   *
+   * @return info string about if and how many clients were affected
+   */
   @CrossOrigin
   @GetMapping("/dark")
   public ResponseEntity<String> globallyToggleDarkMode() {
     if (isAnyoneListening()) {
       sseSend(PlaybackInfoDTO.DARK_MODE);
       return ResponseEntity.ok("Dark mode toggled on " + this.emitters.size() + " listener(s)!");
+    }
+    return ResponseEntity.ok("No listeners available!");
+  }
+
+  /**
+   * Manually refresh every listening client.
+   *
+   * @return info string about if and how many clients were affected
+   */
+  @CrossOrigin
+  @GetMapping("/refresh")
+  public ResponseEntity<String> globallyRefreshClients() {
+    if (isAnyoneListening()) {
+      playbackInfoProvider.refreshDeployTime();
+      return ResponseEntity.ok("Refreshed " + this.emitters.size() + " listener(s)!");
     }
     return ResponseEntity.ok("No listeners available!");
   }

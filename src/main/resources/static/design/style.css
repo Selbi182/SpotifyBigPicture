@@ -365,8 +365,12 @@ img:not([src]) {
 }
 
 #center-info.queue #track-list {
-    mask-image: linear-gradient(to top, transparent, var(--gradient-top));
+    mask-image: linear-gradient(to bottom, var(--gradient-top) 20%, transparent 100%);
     --track-count: 0 !important;
+}
+
+#center-info.queue #track-list .track-elem:nth-child(n+10) > div {
+    display: none !important;
 }
 
 #track-list.fit {
@@ -750,6 +754,8 @@ img:not([src]) {
     opacity: 0.65;
     z-index: 1;
     font-size: 2.6vh;
+    width: fit-content;
+    margin: 0 auto;
 }
 
 #clock.hide, #clock:empty {

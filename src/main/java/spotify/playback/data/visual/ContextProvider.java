@@ -159,7 +159,8 @@ public class ContextProvider {
       String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
       Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 
-      List<PlaylistTrack> playlistTracks = SpotifyCall.executePaging(spotifyApi.getPlaylistsItems(playlistId));
+      List<PlaylistTrack> playlistTracks = new ArrayList<>(Arrays.asList(contextPlaylist.getTracks().getItems()));
+      playlistTracks.addAll(SpotifyCall.executePaging(spotifyApi.getPlaylistsItems(playlistId).offset(100)));
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
       for (PlaylistTrack playlistTrack : playlistTracks) {
         Track track = (Track) playlistTrack.getTrack();

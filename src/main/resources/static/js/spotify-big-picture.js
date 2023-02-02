@@ -282,9 +282,7 @@ function setTextData(changes) {
   }
 
   // Playlist View
-  if ('queue' in changes && changes.queue.length > 0) {
-    setCorrectTracklistView(changes);
-  }
+  setCorrectTracklistView(changes);
 
   // Update properties in local storage
   for (let prop in changes) {
@@ -310,6 +308,7 @@ function setCorrectTracklistView(changes) {
   let trackListContainer = document.getElementById("track-list");
   let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
   let listTracks = (changes.listTracks || currentData.listTracks || [])
+  let trackNumber = changes.trackNumber || currentData.trackNumber;
   let trackCount = listTracks.length;
   let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
 
@@ -325,7 +324,8 @@ function setCorrectTracklistView(changes) {
   let displayTrackNumbers = listViewType === "ALBUM" && !shuffle;
   setClass(trackListContainer, "show-tracklist-numbers", displayTrackNumbers)
 
-  trackListContainer.style.setProperty("--track-count", trackCount.toString());
+  let displayTrackCount = titleDisplayed ? trackCount + 3 : trackCount;
+  trackListContainer.style.setProperty("--track-count", displayTrackCount.toString());
   window.requestAnimationFrame(() => {
     let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
     setClass(trackListContainer, "fit", isOverflowing);
@@ -333,39 +333,42 @@ function setCorrectTracklistView(changes) {
 
   ///////////
 
-  let trackNumber = changes.trackNumber || currentData.trackNumber;
+  let oldQueue = (queueMode ? currentData.queue : currentData.listTracks) || [];
+  let newQueue = (queueMode ? changes.queue : changes.listTracks) || [];
 
-  let oldQueue = currentData.queue;
-  let newQueue = changes.queue;
+  let refreshPrintedList =
+       (queueMode !== wasPreviouslyInQueueMode)
+    || (newQueue.length > 0 && (oldQueue.length !== newQueue.length || !arrayEquals(oldQueue, newQueue)));
 
-  let newAndOldQueueEqual = true;
-  if (oldQueue && newQueue && 'queue' in changes && oldQueue.length === newQueue.length) {
-    for (let i = 0; i < currentData.queue.length && i < (changes.queue || 0).length; i++) {
-      if (changes.queue[i].id !== currentData.queue[i].id) {
-        newAndOldQueueEqual = false;
-        break;
-      }
-    }
-  } else {
-    newAndOldQueueEqual = false;
-  }
-
-  let initialLoad = !document.getElementById("track-list").hasChildNodes();
-
-  if (initialLoad || !newAndOldQueueEqual || queueMode !== wasPreviouslyInQueueMode) {
+  if (refreshPrintedList) {
     if (queueMode) {
-      let limitedQueue = (changes.queue || currentData.queue).slice(0, 10); // more than 10 entries won't be visible anyway
+      let limitedQueue = (changes.queue || currentData.queue);
       printTrackList(limitedQueue);
     } else {
       printTrackList(listTracks);
     }
   }
 
-  if (queueMode) {
-    updateScrollPositions(1);
-  } else {
-    updateScrollPositions(trackNumber);
+  let updateHighlightedTrack = (refreshPrintedList)
+    || ('trackNumber' in changes && changes.trackNumber !== currentData.trackNumber);
+
+  if (updateHighlightedTrack) {
+    if (queueMode) {
+      updateScrollPositions(1);
+    } else {
+      updateScrollPositions(trackNumber);
+    }
   }
+}
+
+function arrayEquals(array1, array2) {
+  let i = array1.length;
+  while (i--) {
+    if (array1[i] !== array2[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function setClass(elem, className, state) {
@@ -512,9 +515,6 @@ function printTrackList(trackList) {
     trackElem.append(trackNumberContainer, trackArtist, trackName, trackLength);
     trackListContainer.append(trackElem);
   }
-
-  // TODO fix fadein (it's currently too much of a hassle)
-  // fadeIn(trackListContainer);
 }
 
 window.addEventListener('load', setupScrollGradients);
@@ -821,7 +821,7 @@ function startTimers() {
   clearTimers();
 
   startTime = Date.now();
-  autoTimer = setInterval(() => advanceCurrentTime(), ADVANCE_CURRENT_TIME_MS);
+  autoTimer = setInterval(() => advanceCurrentTime(false), ADVANCE_CURRENT_TIME_MS);
 
   idleTimeout = setTimeout(() => setIdleModeState(true), IDLE_TIMEOUT_MS);
   setIdleModeState(false);
@@ -834,7 +834,7 @@ function clearTimers() {
 
 let startTime;
 
-function advanceCurrentTime() {
+function advanceCurrentTime(updateProgressBar) {
   if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
     let now = Date.now();
     let elapsedTime = now - startTime;
@@ -844,7 +844,7 @@ function advanceCurrentTime() {
       setTimeout(() => singleRequest(), REQUEST_ON_SONG_END_MS);
     }
     currentData.timeCurrent = Math.min(currentData.timeTotal, newTime);
-    updateProgress(currentData, false);
+    updateProgress(currentData, updateProgressBar);
   }
 }
 
@@ -865,7 +865,7 @@ function setIdleModeState(state) {
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    advanceCurrentTime();
+    advanceCurrentTime(true);
   }
 });
 

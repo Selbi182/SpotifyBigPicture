@@ -39,8 +39,9 @@ public class PlaybackInfoProvider {
   private final ColorProviderSetup dominantColorProvider;
 
   private PlaybackInfoDTO previous;
+  private long deployTime;
+
   private static final List<Field> DTO_FIELDS;
-  private final long deployTime;
 
   static {
     DTO_FIELDS = Stream.of(PlaybackInfoDTO.class.getDeclaredFields())
@@ -58,6 +59,10 @@ public class PlaybackInfoProvider {
     this.contextProvider = contextProvider;
     this.artworkUrlProvider = artworkUrlProvider;
     this.dominantColorProvider = colorProvider;
+    refreshDeployTime();
+  }
+
+  public void refreshDeployTime() {
     this.deployTime = System.currentTimeMillis();
   }
 
@@ -162,7 +167,9 @@ public class PlaybackInfoProvider {
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
     }
 
-    pInfo.setQueue(contextProvider.getQueue());
+    if (pInfo.getTrackListView().equals(PlaybackInfoDTO.ListViewType.QUEUE)) {
+      pInfo.setQueue(contextProvider.getQueue());
+    }
 
     pInfo.setTimeCurrent(info.getProgress_ms());
     pInfo.setTimeTotal(playlistItem.getDurationMs());
@@ -207,5 +214,4 @@ public class PlaybackInfoProvider {
 
     return pInfo;
   }
-
 }
