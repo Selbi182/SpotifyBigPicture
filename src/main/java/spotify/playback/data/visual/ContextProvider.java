@@ -12,6 +12,7 @@ import com.google.common.collect.Iterables;
 import com.neovisionaries.i18n.CountryCode;
 
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.enums.AlbumType;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
@@ -30,6 +31,7 @@ import spotify.playback.data.help.ListTrackDTO;
 import spotify.playback.data.help.PlaybackInfoConstants;
 import spotify.services.UserService;
 import spotify.util.BotUtils;
+import spotify.util.data.AlbumTrackPair;
 
 @Component
 public class ContextProvider {
@@ -198,7 +200,7 @@ public class ContextProvider {
         }
       }
     }
-    String contextString = "ALBUM: " + currentContextAlbum.getArtists()[0].getName() + " \u2013 " + currentContextAlbum.getName();
+    String contextString = getReleaseTypeString() + ": " + currentContextAlbum.getArtists()[0].getName() + " \u2013 " + currentContextAlbum.getName();
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
@@ -212,6 +214,15 @@ public class ContextProvider {
     return "Queue >> " + contextString;
   }
 
+  private String getReleaseTypeString() {
+    if (currentContextAlbum.getAlbumType() == AlbumType.SINGLE) {
+      AlbumTrackPair atp = AlbumTrackPair.of(BotUtils.asAlbumSimplified(currentContextAlbum), currentContextAlbumTracks);
+      if (BotUtils.isExtendedPlay(atp)) {
+        return "EP";
+      }
+    }
+    return currentContextAlbum.getAlbumType().toString();
+  }
   private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {
     Context context = info.getContext();
     String showId = BotUtils.getIdFromUri(context.getUri());
@@ -233,6 +244,9 @@ public class ContextProvider {
   private CountryCode getMarketOfCurrentUser() {
     if (this.market == null) {
       this.market = userService.getMarketOfCurrentUser();
+      if (this.market == null) {
+        throw new IllegalStateException("Market is null (user-read-private scope missing?)");
+      }
     }
     return this.market;
   }

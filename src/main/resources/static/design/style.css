@@ -262,6 +262,11 @@ img:not([src]) {
     opacity: 0.65;
 }
 
+#logo.spotify-green {
+    background-color: #1DB954;
+    opacity: 1;
+}
+
 #center-info {
     display: flex;
     align-items: center;
@@ -286,6 +291,10 @@ img:not([src]) {
     font-size: 6vh;
     font-weight: bold;
     margin: 1vh 0;
+}
+
+#title.force-display {
+    display: initial !important;
 }
 
 #artists {
@@ -554,12 +563,6 @@ img:not([src]) {
     z-index: 1;
 }
 
-#bottom-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-}
-
 #bottom-left {
     display: flex;
     flex: 1;
@@ -567,8 +570,9 @@ img:not([src]) {
     gap: 4vh;
     align-items: center;
 }
+
 #bottom-left.hide {
-    opacity: 0;
+    display: none;
 }
 
 #bottom-right {
@@ -577,6 +581,10 @@ img:not([src]) {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+}
+
+#bottom-right.stretch {
+    justify-content: space-between;
 }
 
 #time {
@@ -603,7 +611,7 @@ img:not([src]) {
     opacity: 0;
 }
 
-#time-total::before {
+#bottom-right:not(.stretch) #time-total::before {
     content: "/";
     opacity: 0.25;
     padding: 1.5vh;

@@ -46,6 +46,7 @@ const FLUX_URL = "/playback-info-flux";
 const INFO_URL = "/playback-info";
 const INFO_URL_FULL = INFO_URL + "?full=true";
 const RETRY_TIMEOUT_MS = 5 * 1000;
+const FLUX_REFRESH_TIMEOUT_MS = 45 * 60 * 1000;
 
 window.addEventListener('load', init);
 
@@ -68,14 +69,14 @@ function singleRequest(forceFull = true) {
 }
 
 let flux;
-
+let fluxRefresher;
 function startFlux() {
   setTimeout(() => {
     try {
       closeFlux();
       flux = new EventSource(FLUX_URL);
       flux.onopen = () => {
-        console.info("Flux connected!");
+        console.debug("Flux connected!");
         singleRequest();
       };
       flux.onmessage = (event) => {
@@ -102,6 +103,13 @@ function startFlux() {
       startFlux();
     }
   }, RETRY_TIMEOUT_MS);
+
+  fluxRefresher = setInterval(() => {
+    clearInterval(fluxRefresher);
+    console.debug("Refreshing flux connection")
+    closeFlux();
+    startFlux();
+  }, FLUX_REFRESH_TIMEOUT_MS)
 }
 
 function closeFlux() {
@@ -114,7 +122,7 @@ window.addEventListener('beforeunload', closeFlux);
 
 function processJson(json) {
   if (json.type !== "HEARTBEAT") {
-    console.debug(json);
+    console.info(json);
     if (json.type === "DATA") {
       if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
         window.location.reload(true);
@@ -208,12 +216,12 @@ function setTextData(changes) {
     if (trackList.length > 0) {
       let trackCount = numberWithCommas(trackList.length);
       let totalDuration = formatTimeVerbose(trackList.reduce((a, b) => a + b.length, 0));
-      let lengthInfo = `${trackCount} tracks (${totalDuration})`;
+      let lengthInfo = `${trackCount} track${trackList.length !== 1 ? "s" : ""} (${totalDuration})`;
       if (contextMainContent.length > 0) {
         contextExtra.innerHTML = lengthInfo;
       } else {
         contextMain.innerHTML = totalDuration;
-        contextExtra.innerHTML = trackCount + " tracks";
+        contextExtra.innerHTML = trackCount + " track" + (trackList.length !== 1 ? "s" : "");
       }
     } else {
       contextExtra.innerHTML = "";
@@ -306,10 +314,11 @@ function setCorrectTracklistView(changes) {
   let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
 
   let specialQueue = (changes.context || currentData.context || "").startsWith("Queue >> ");
+  let titleDisplayed = listViewType !== "ALBUM" || specialQueue;
   let queueMode = listViewType === "QUEUE" || specialQueue;
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
-  showHide(titleContainer, queueMode);
+  showHide(titleContainer, titleDisplayed);
 
   setClass(mainContainer, "queue", queueMode);
 
@@ -877,6 +886,17 @@ const PREFERENCES = [
     volatile: true // don't add fullscreen in the URL params, as it won't work (browser security shenanigans)
   },
   {
+    id: "show-queue",
+    name: "Queue",
+    hotkey: "q",
+    description: "If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song is displayed",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("title"), "force-display", !state);
+      setClass(document.getElementById("track-list"), "hidden", !state);
+    }
+  },
+  {
     id: "bg-artwork",
     name: "Background Artwork",
     hotkey: "b",
@@ -941,7 +961,10 @@ const PREFERENCES = [
     hotkey: "m",
     description: "Shows the playback meta info at the bottom left of the page (play, shuffle, repeat, volume, device name)",
     state: true,
-    callback: (state) => setClass(document.getElementById("bottom-left"), "hide", !state)
+    callback: (state) => {
+      setClass(document.getElementById("bottom-left"), "hide", !state);
+      setClass(document.getElementById("bottom-right"), "stretch", !state);
+    }
   },
   {
     id: "show-clock",

@@ -52,6 +52,7 @@ These were introduced because not everyone might be a fan of the colored texts o
 These options are currently available (the letter in the brackets denotes a hotkey):
 
 * **Full Screen (f):** Take a wild guess what this does.
+* **Queue (q):** If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song is displayed
 * **Background Artwork (b):** Whether the album artwork should be re-used for the background as a blurry picture, or if a simple gradient background should be used
 * **Colored Text (c):** Whether the texts, progress bar, and icons should be adjusted to the most dominant color of the currently playing track's album cover art. White if disabled
 * **Transitions (t):** Toggles the transition animations between songs and the smoothness of the progress bar. One might want to disable these when the app is run on something like Raspberry Pi, where fancy CSS is often too expensive

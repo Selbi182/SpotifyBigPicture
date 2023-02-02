@@ -158,7 +158,7 @@ public class PlaybackInfoProvider {
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
     }
 
-    if (pInfo.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD || pInfo.isShuffle()) {
+    if (pInfo.isShuffle() || (pInfo.getListTracks() != null && pInfo.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD)) {
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
     }
 
