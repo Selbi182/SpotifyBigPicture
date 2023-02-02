@@ -3,6 +3,7 @@ package spotify.playback;
 import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import spotify.SpotifyBigPicture;
 import spotify.api.events.SpotifyApiLoggedInEvent;
 import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.PlaybackInfoProvider;
@@ -25,6 +25,9 @@ import spotify.util.BotLogger;
 @EnableScheduling
 @RestController
 public class PlaybackController {
+
+  @Value("${spotify.polling.enabled:true}")
+  public boolean scheduledPollingEnabled;
 
   private final PlaybackInfoProvider playbackInfoProvider;
   private final BotLogger log;
@@ -39,9 +42,9 @@ public class PlaybackController {
   @EventListener(SpotifyApiLoggedInEvent.class)
   public void ready() {
     log.info("SpotifyBigPicture is ready!");
-    log.info("Scheduled polling is " + (SpotifyBigPicture.scheduledPollingDisabled
-        ? "disabled"
-        : "enabled at a rate of " + PlaybackInfoConstants.POLLING_RATE_MS + "ms"));
+    log.info("Scheduled polling is " + (scheduledPollingEnabled
+        ? "enabled at a rate of " + PlaybackInfoConstants.POLLING_RATE_MS + "ms"
+        : "disabled"));
   }
 
   /**
@@ -105,7 +108,7 @@ public class PlaybackController {
    */
   @Scheduled(initialDelay = PlaybackInfoConstants.POLLING_RATE_MS, fixedRate = PlaybackInfoConstants.POLLING_RATE_MS)
   private void fetchAndPublishCurrentPlaybackInfo() {
-    if (!SpotifyBigPicture.scheduledPollingDisabled) {
+    if (scheduledPollingEnabled) {
       if (isAnyoneListening()) {
         PlaybackInfoDTO info = playbackInfoProvider.getCurrentPlaybackInfo(false);
         if (info != null && info.hasPayload()) {
