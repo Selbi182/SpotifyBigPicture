@@ -495,7 +495,6 @@ img:not([src]) {
     opacity: 1;
 }
 
-
 #info-symbols > #repeat {
     -webkit-mask-image: url("img/symbols/repeat.png");
     mask-image: url("img/symbols/repeat.png");
@@ -507,6 +506,7 @@ img:not([src]) {
 }
 
 #volume {
+    --volume: 0%;
     font-size: 3vh;
     font-feature-settings: "tnum";
     opacity: 0.2;
@@ -517,9 +517,28 @@ img:not([src]) {
 #volume.active {
     opacity: 0.65;
 }
-#volume::before {
+#volume-text::before {
     content: "\1F50A\FE0E";
     padding-right: 1vh;
+}
+#volume-bar {
+    position: relative;
+    width: 100%;
+    height: 0.3vh;
+}
+#volume-current, #volume-background {
+    width: 100%;
+    height: 100%;
+    background: var(--color);
+    position: absolute;
+    border-radius: 0.5vh;
+}
+#volume-current {
+    transition: width var(--transition);
+    width: var(--volume);
+}
+#volume-background {
+    opacity: 0.25;
 }
 
 #device {

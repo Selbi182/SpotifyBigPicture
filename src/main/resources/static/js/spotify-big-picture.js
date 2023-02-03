@@ -338,7 +338,7 @@ function setCorrectTracklistView(changes) {
 
   let refreshPrintedList =
        (queueMode !== wasPreviouslyInQueueMode)
-    || (newQueue.length > 0 && (oldQueue.length !== newQueue.length || !arrayEquals(oldQueue, newQueue)));
+    || (newQueue.length > 0 && (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue)));
 
   if (refreshPrintedList) {
     if (queueMode) {
@@ -361,10 +361,10 @@ function setCorrectTracklistView(changes) {
   }
 }
 
-function arrayEquals(array1, array2) {
-  let i = array1.length;
+function trackListEquals(trackList1, trackList2) {
+  let i = trackList1.length;
   while (i--) {
-    if (array1[i] !== array2[i]) {
+    if (trackList1[i].id !== trackList2[i].id) {
       return false;
     }
   }
@@ -1134,15 +1134,18 @@ function handleAlternateDarkModeToggle() {
 let volumeTimeout;
 function handleVolumeChange(volume, device) {
   let volumeContainer = document.getElementById("volume");
+  let volumeTextContainer = document.getElementById("volume-text");
 
+  let volumeWithPercent = pad2(volume) + "%";
   if (device === "Den") {
     // Display it as dB for my private AVR because I can do what I want lol
     const BASE_DB = 80;
-    let db = (volume - BASE_DB).toFixed(1);
-    volumeContainer.innerHTML = db + " dB";
+    let db = (volume - BASE_DB).toFixed(1).replace("-", "&#x2212;");
+    volumeTextContainer.innerHTML = db + " dB";
   } else {
-    volumeContainer.innerHTML = volume + "%";
+    volumeTextContainer.innerHTML = volumeWithPercent;
   }
+  volumeContainer.style.setProperty("--volume", volumeWithPercent);
 
   volumeContainer.classList.add("active");
   clearTimeout(volumeTimeout);
