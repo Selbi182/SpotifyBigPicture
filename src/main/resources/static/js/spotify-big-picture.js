@@ -210,7 +210,7 @@ function setTextData(changes) {
     let contextExtra = document.getElementById("context-extra");
 
     let contextMainContent = convertToTextEmoji(changes.context);
-    contextMain.innerHTML = contextMainContent;
+    contextMain.innerHTML = contextMainContent.length > 80 ? contextMainContent.slice(0, 80) + "..." : contextMainContent; // TODO text-overflow with CSS
 
     let trackList = (changes.listTracks || currentData.listTracks || []);
     if (trackList.length > 0) {
@@ -452,7 +452,7 @@ function fadeIn(elem) {
   elem.classList.remove("transparent", "text-glow");
 }
 
-const BALANCED_ELEMENTS_TO_WATCH = ["artists", "title", "description", "album", "context", "device"];
+const BALANCED_ELEMENTS_TO_WATCH = ["artists", "title", "description", "album-title"];
 window.addEventListener('load', registerWatchedBalanceTextElements);
 function registerWatchedBalanceTextElements() {
   for (let id of BALANCED_ELEMENTS_TO_WATCH) {

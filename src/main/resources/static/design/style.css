@@ -311,8 +311,9 @@ img:not([src]) {
 }
 
 #album {
-    font-size: 3vh;
     display: flex;
+    align-items: center;
+    font-size: 3vh;
     gap: 1vh;
 }
 
@@ -517,6 +518,9 @@ img:not([src]) {
 #volume.active {
     opacity: 0.65;
 }
+#volume-text {
+    white-space: nowrap;
+}
 #volume-text::before {
     content: "\1F50A\FE0E";
     padding-right: 1vh;
@@ -544,6 +548,7 @@ img:not([src]) {
 #device {
     opacity: 0.2;
     font-size: 2vh;
+    white-space: nowrap;
 }
 #device:empty {
     display: none;
@@ -628,6 +633,7 @@ img:not([src]) {
 #time-current, #time-total {
     font-size: 4vh;
     font-feature-settings: "tnum";
+    white-space: nowrap;
 }
 
 #time-current:empty, #time-total:empty {
@@ -814,7 +820,7 @@ img:not([src]) {
         max-height: 0;
     }
 
-    #track-list {
+    #center-info:not(.queue) #track-list {
         overflow-y: auto;
     }
 
