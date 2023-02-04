@@ -35,6 +35,7 @@ import spotify.util.data.AlbumTrackPair;
 
 @Component
 public class ContextProvider {
+  public static final String QUEUE_PREFIX = "Queue >> ";
 
   private static final int MAX_IMMEDIATE_TRACKS = 50;
 
@@ -212,7 +213,7 @@ public class ContextProvider {
     }
 
     // Fallback when playing back from the queue
-    return "Queue >> " + contextString;
+    return QUEUE_PREFIX + contextString;
   }
 
   private String getReleaseTypeString() {

@@ -391,6 +391,15 @@ img:not([src]) {
     opacity: 0.5;
 }
 
+#center-info.queue #track-list .track-elem.current div {
+    transition: opacity var(--transition), height var(--transition);
+}
+
+#center-info.queue #track-list .track-elem.current div.shrink {
+    opacity: 0;
+    height: 0;
+}
+
 #center-info:not(.queue) #track-list .track-elem.current div {
     opacity: 1;
 }

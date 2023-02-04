@@ -32,7 +32,7 @@ let currentData = {
   timeTotal: 0,
   title: "",
   type: "",
-  volume: 0
+  volume: -1
 };
 
 let idle = false;
@@ -313,15 +313,15 @@ function setCorrectTracklistView(changes) {
   let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
 
   let specialQueue = (changes.context || currentData.context || "").startsWith("Queue >> ");
-  let titleDisplayed = listViewType !== "ALBUM" || specialQueue;
-  let queueMode = listViewType === "QUEUE" || specialQueue;
+  let titleDisplayed = specialQueue || listViewType !== "ALBUM";
+  let queueMode = specialQueue || listViewType === "QUEUE";
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   showHide(titleContainer, titleDisplayed);
 
   setClass(mainContainer, "queue", queueMode);
 
-  let displayTrackNumbers = listViewType === "ALBUM" && !shuffle;
+  let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
   setClass(trackListContainer, "show-tracklist-numbers", displayTrackNumbers)
 
   let displayTrackCount = titleDisplayed ? trackCount + 3 : trackCount;
@@ -342,10 +342,29 @@ function setCorrectTracklistView(changes) {
 
   if (refreshPrintedList) {
     if (queueMode) {
-      let limitedQueue = (changes.queue || currentData.queue);
-      printTrackList(limitedQueue);
+      // TODO WIP smooth transitions in queue mode list
+      // if (changes.queue && currentData.queue && changes.queue.length > 0 && currentData.queue.length > 1) {
+      //   // Special animation when the expected next song comes up
+      //   let trackListContainer = document.getElementById("track-list");
+      //   let currentTrackListTopElem = trackListContainer.querySelector(".current");
+      //   currentTrackListTopElem.childNodes.forEach(node => node.classList.add("shrink"));
+      //
+      //   currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
+      //     let parent = e.target.parentNode;
+      //     if (parent.classList.contains("track-elem")) {
+      //       parent.parentNode.children[1].classList.add("current");
+      //       parent.remove();
+      //     }
+      //   }
+      //
+      //   let toAddAtBottom = changes.queue[changes.queue.length - 1];
+      //   printTrackList([toAddAtBottom], true)
+      // } else {
+      //   printTrackList(changes.queue);
+      // }
+      printTrackList(changes.queue, false);
     } else {
-      printTrackList(listTracks);
+      printTrackList(listTracks, false);
     }
   }
 
@@ -461,60 +480,66 @@ function registerWatchedBalanceTextElements() {
   }
 }
 
-function printTrackList(trackList) {
+function printTrackList(trackList, append) {
   let trackListContainer = document.getElementById("track-list");
-  trackListContainer.innerHTML = "";
+  if (!append) {
+    trackListContainer.innerHTML = "";
+  }
 
-  let multiDisc = trackList.find(t => 'discNumber' in t && t.discNumber > 1);
-
+  let isMultiDisc = trackList.find(t => 'discNumber' in t && t.discNumber > 1);
   let trackNumPadLength = trackList.length.toString().length;
   for (let trackItem of trackList) {
-    // Create new track list item
-    let trackElem = document.createElement("div");
-    trackElem.className = "track-elem";
-
-    // Track Number
-    let trackNumberContainer = document.createElement("div");
-    trackNumberContainer.className = "track-number"
-    if ('trackNumber' in trackItem) {
-      let paddedTrackNumber = padToLength(trackItem.trackNumber, trackNumPadLength);
-      if (multiDisc && 'discNumber' in trackItem) {
-        paddedTrackNumber = trackItem.discNumber + "." + paddedTrackNumber;
-      }
-      trackNumberContainer.innerHTML = paddedTrackNumber;
-    }
-
-    // Artist
-    let trackArtist = document.createElement("div");
-    trackArtist.className = "track-artist";
-    if ('artists' in trackItem) {
-      trackArtist.innerHTML = trackItem.artists[0];
-    }
-
-    // Title
-    let trackName = document.createElement("div");
-    trackName.className = "track-name"
-    if ('title' in trackItem) {
-      let splitTitle = separateUnimportantTitleInfo(trackItem.title);
-      let trackNameMain = document.createElement("span");
-      trackNameMain.innerHTML = removeFeaturedArtists(splitTitle.main) + buildFeaturedArtistsString(trackItem.artists);
-      let trackNameExtra = document.createElement("span");
-      trackNameExtra.className = "extra";
-      trackNameExtra.innerHTML = splitTitle.extra;
-      trackName.append(trackNameMain, trackNameExtra);
-    }
-
-    // Length
-    let trackLength = document.createElement("div");
-    trackLength.className = "track-length"
-    if ('length' in trackItem) {
-      trackLength.innerHTML = formatTime(0, trackItem.length).total;
-    }
-
-    // Append
-    trackElem.append(trackNumberContainer, trackArtist, trackName, trackLength);
+    let trackElem = createSingleTrackListItem(trackItem, isMultiDisc, trackNumPadLength);
     trackListContainer.append(trackElem);
   }
+}
+
+function createSingleTrackListItem(trackItem, isMultiDisc, trackNumPadLength) {
+  // Create new track list item
+  let trackElem = document.createElement("div");
+  trackElem.className = "track-elem";
+
+  // Track Number
+  let trackNumberContainer = document.createElement("div");
+  trackNumberContainer.className = "track-number"
+  if ('trackNumber' in trackItem) {
+    let paddedTrackNumber = padToLength(trackItem.trackNumber, trackNumPadLength);
+    if (isMultiDisc && 'discNumber' in trackItem) {
+      paddedTrackNumber = trackItem.discNumber + "." + paddedTrackNumber;
+    }
+    trackNumberContainer.innerHTML = paddedTrackNumber;
+  }
+
+  // Artist
+  let trackArtist = document.createElement("div");
+  trackArtist.className = "track-artist";
+  if ('artists' in trackItem) {
+    trackArtist.innerHTML = trackItem.artists[0];
+  }
+
+  // Title
+  let trackName = document.createElement("div");
+  trackName.className = "track-name"
+  if ('title' in trackItem) {
+    let splitTitle = separateUnimportantTitleInfo(trackItem.title);
+    let trackNameMain = document.createElement("span");
+    trackNameMain.innerHTML = removeFeaturedArtists(splitTitle.main) + buildFeaturedArtistsString(trackItem.artists);
+    let trackNameExtra = document.createElement("span");
+    trackNameExtra.className = "extra";
+    trackNameExtra.innerHTML = splitTitle.extra;
+    trackName.append(trackNameMain, trackNameExtra);
+  }
+
+  // Length
+  let trackLength = document.createElement("div");
+  trackLength.className = "track-length"
+  if ('length' in trackItem) {
+    trackLength.innerHTML = formatTime(0, trackItem.length).total;
+  }
+
+  // Append
+  trackElem.append(trackNumberContainer, trackArtist, trackName, trackLength);
+  return trackElem;
 }
 
 window.addEventListener('load', setupScrollGradients);
@@ -1136,7 +1161,7 @@ function handleVolumeChange(volume, device) {
   let volumeContainer = document.getElementById("volume");
   let volumeTextContainer = document.getElementById("volume-text");
 
-  let volumeWithPercent = pad2(volume) + "%";
+  let volumeWithPercent = volume + "%";
   if (device === "Den") {
     // Display it as dB for my private AVR because I can do what I want lol
     const BASE_DB = 80;
