@@ -375,7 +375,7 @@ img:not([src]) {
     margin-top: 0 !important;
 }
 
-#center-info.queue #track-list .track-elem:nth-child(n+10) > div {
+#center-info.queue #track-list .track-elem:nth-child(n+12) > div {
     display: none !important;
 }
 
@@ -404,13 +404,13 @@ img:not([src]) {
     opacity: 1;
 }
 
-#center-info.queue #track-list .track-elem.current {
-    transition: opacity var(--transition), height var(--transition);
+#center-info.queue #track-list .track-elem:first-child div.shrink {
+    transition: opacity var(--transition), font-size var(--transition);
+    opacity: 0;
 }
 
-#center-info.queue #track-list .track-elem.current.shrink {
-    opacity: 0;
-    height: 0;
+#center-info.queue #track-list .track-elem:first-child div.shrink2 {
+    font-size: 0;
 }
 
 #center-info:not(.queue) #track-list .track-elem.current .track-name {

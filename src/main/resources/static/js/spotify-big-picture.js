@@ -339,27 +339,26 @@ function setCorrectTracklistView(changes) {
 
   if (refreshPrintedList) {
     if (queueMode) {
-      // TODO WIP smooth transitions in queue mode list
-      // if (changes.queue && currentData.queue && changes.queue.length > 0 && currentData.queue.length > 1) {
-      //   // Special animation when the expected next song comes up
-      //   let trackListContainer = document.getElementById("track-list");
-      //   let currentTrackListTopElem = trackListContainer.querySelector(".current");
-      //   currentTrackListTopElem.childNodes.forEach(node => node.classList.add("shrink"));
-      //
-      //   currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
-      //     let parent = e.target.parentNode;
-      //     if (parent.classList.contains("track-elem")) {
-      //       parent.parentNode.children[1].classList.add("current");
-      //       parent.remove();
-      //     }
-      //   }
-      //
-      //   let toAddAtBottom = changes.queue[changes.queue.length - 1];
-      //   printTrackList([toAddAtBottom], true)
-      // } else {
-      //   printTrackList(changes.queue);
-      // }
-      printTrackList(changes.queue, false);
+      if (isExpectedNextSongInQueue(changes.id, currentData.queue)) {
+        // Special animation when the expected next song comes up
+        let trackListContainer = printTrackList([currentData.queue[0], ...changes.queue], false);
+        window.requestAnimationFrame(() => {
+          let currentTrackListTopElem = trackListContainer.querySelector(".track-elem:first-child");
+          currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
+            let parent = e.target.parentNode;
+            if (e.target.classList.contains("shrinks2")) {
+              if (parent.classList.contains("track-elem")) {
+                parent.remove();
+              }
+            } else {
+              parent.childNodes.forEach(node => node.classList.add("shrink2"));
+            }
+          }
+          currentTrackListTopElem.childNodes.forEach(node => node.classList.add("shrink"));
+        });
+      } else {
+        printTrackList(changes.queue, false);
+      }
     } else {
       let isMultiDisc = listTracks.find(t => 'discNumber' in t && t.discNumber > 1);
       printTrackList(listTracks, isMultiDisc && !shuffle);
@@ -377,7 +376,14 @@ function setCorrectTracklistView(changes) {
       updateScrollPositions(targetTrackNumber);
     }
   }
+}
 
+function isExpectedNextSongInQueue(newSongId, previousQueue) {
+  if (newSongId && previousQueue && previousQueue.length > 1) {
+    let expectedNextSong = previousQueue[0];
+    return newSongId === expectedNextSong.id;
+  }
+  return false
 }
 
 function trackListEquals(trackList1, trackList2) {
@@ -500,6 +506,7 @@ function printTrackList(trackList, printDiscs) {
     let trackElem = createSingleTrackListItem(trackItem, trackNumPadLength);
     trackListContainer.append(trackElem);
   }
+  return trackListContainer;
 }
 
 function createDiscElement(discNumber) {
