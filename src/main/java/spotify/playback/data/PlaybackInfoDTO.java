@@ -42,6 +42,7 @@ public class PlaybackInfoDTO {
   private String device;
   private List<String> artists;
   private Integer trackNumber;
+  private Integer discCount;
   private ListViewType trackListView;
   private String title;
   private String album;
@@ -145,6 +146,14 @@ public class PlaybackInfoDTO {
 
   public void setTrackNumber(Integer trackNumber) {
     this.trackNumber = trackNumber;
+  }
+
+  public Integer getDiscCount() {
+    return discCount;
+  }
+
+  public void setDiscCount(Integer discCount) {
+    this.discCount = discCount;
   }
 
   public ListViewType getTrackListView() {

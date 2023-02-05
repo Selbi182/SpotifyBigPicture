@@ -5,6 +5,7 @@ let currentData = {
   deployTime: 0,
   description: "",
   device: "",
+  discCount: 0,
   id: "",
   image: "",
   imageColors: {
@@ -308,7 +309,9 @@ function setCorrectTracklistView(changes) {
   let trackListContainer = document.getElementById("track-list");
   let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
   let listTracks = (changes.listTracks || currentData.listTracks || [])
+  let currentTrack = listTracks.find(t => t.id === (changes.id || currentData.id));
   let trackNumber = changes.trackNumber || currentData.trackNumber;
+  let discCount = changes.discCount || currentData.discCount;
   let trackCount = listTracks.length;
   let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
 
@@ -323,6 +326,7 @@ function setCorrectTracklistView(changes) {
 
   let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
   setClass(trackListContainer, "show-tracklist-numbers", displayTrackNumbers)
+  setClass(trackListContainer, "show-discs", discCount > 1)
 
   let displayTrackCount = titleDisplayed ? trackCount + 3 : trackCount;
   trackListContainer.style.setProperty("--track-count", displayTrackCount.toString());
@@ -364,7 +368,8 @@ function setCorrectTracklistView(changes) {
       // }
       printTrackList(changes.queue, false);
     } else {
-      printTrackList(listTracks, false);
+      let isMultiDisc = listTracks.find(t => 'discNumber' in t && t.discNumber > 1);
+      printTrackList(listTracks, isMultiDisc && !shuffle);
     }
   }
 
@@ -375,9 +380,11 @@ function setCorrectTracklistView(changes) {
     if (queueMode) {
       updateScrollPositions(1);
     } else {
-      updateScrollPositions(trackNumber);
+      let targetTrackNumber = trackNumber + (discCount > 1 ? currentTrack.discNumber : 0);
+      updateScrollPositions(targetTrackNumber);
     }
   }
+
 }
 
 function trackListEquals(trackList1, trackList2) {
@@ -480,34 +487,46 @@ function registerWatchedBalanceTextElements() {
   }
 }
 
-function printTrackList(trackList, append) {
+function printTrackList(trackList, printDiscs) {
   let trackListContainer = document.getElementById("track-list");
-  if (!append) {
-    trackListContainer.innerHTML = "";
-  }
+  trackListContainer.innerHTML = "";
 
-  let isMultiDisc = trackList.find(t => 'discNumber' in t && t.discNumber > 1);
-  let trackNumPadLength = trackList.length.toString().length;
+  let previousDiscNumber = 0;
+  let trackNumPadLength = Math.max(...trackList.map(t => t.trackNumber)).toString().length;
   for (let trackItem of trackList) {
-    let trackElem = createSingleTrackListItem(trackItem, isMultiDisc, trackNumPadLength);
+    let discNumber = null;
+    if (printDiscs && 'discNumber' in trackItem) {
+      let newDiscNumber = trackItem.discNumber;
+      if (newDiscNumber > previousDiscNumber) {
+        previousDiscNumber = newDiscNumber
+        discNumber = newDiscNumber;
+        let discTrackElem = document.createElement("div");
+        discTrackElem.className = "track-elem disc";
+        let discSymbolContainer = document.createElement("div");
+        discSymbolContainer.className = "disc-symbol";
+        discSymbolContainer.innerHTML = "&#x1F4BF;&#xFE0E;";
+        let discNumberContainer = document.createElement("div");
+        discNumberContainer.className = "disc-number";
+        discNumberContainer.innerHTML = "Disc " + discNumber;
+        discTrackElem.append(discSymbolContainer, discNumberContainer);
+        trackListContainer.append(discTrackElem);
+      }
+    }
+    let trackElem = createSingleTrackListItem(trackItem, trackNumPadLength);
     trackListContainer.append(trackElem);
   }
 }
 
-function createSingleTrackListItem(trackItem, isMultiDisc, trackNumPadLength) {
+function createSingleTrackListItem(trackItem, trackNumPadLength) {
   // Create new track list item
   let trackElem = document.createElement("div");
   trackElem.className = "track-elem";
 
   // Track Number
   let trackNumberContainer = document.createElement("div");
-  trackNumberContainer.className = "track-number"
+  trackNumberContainer.className = "track-number";
   if ('trackNumber' in trackItem) {
-    let paddedTrackNumber = padToLength(trackItem.trackNumber, trackNumPadLength);
-    if (isMultiDisc && 'discNumber' in trackItem) {
-      paddedTrackNumber = trackItem.discNumber + "." + paddedTrackNumber;
-    }
-    trackNumberContainer.innerHTML = paddedTrackNumber;
+    trackNumberContainer.innerHTML = padToLength(trackItem.trackNumber, trackNumPadLength);
   }
 
   // Artist

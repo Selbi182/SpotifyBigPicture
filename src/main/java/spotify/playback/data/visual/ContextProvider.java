@@ -108,6 +108,10 @@ public class ContextProvider {
     return currentlyPlayingAlbumTrackNumber;
   }
 
+  public Integer getTotalDiscCount() {
+    return currentContextAlbumTracks.stream().mapToInt(TrackSimplified::getDiscNumber).max().orElse(1);
+  }
+
   public Integer getCurrentlyPlayingPlaylistTrackNumber(CurrentlyPlayingContext context) {
     String id = context.getItem().getId();
     return Iterables.indexOf(formattedPlaylistTracks, t -> {

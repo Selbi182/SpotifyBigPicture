@@ -147,6 +147,7 @@ public class PlaybackInfoProvider {
       // Album context
       pInfo.setListTracks(contextProvider.getFormattedAlbumTracks());
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
+      pInfo.setDiscCount(contextProvider.getTotalDiscCount());
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.ALBUM);
       if (pInfo.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
         pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);

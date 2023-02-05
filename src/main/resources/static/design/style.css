@@ -274,7 +274,7 @@ img:not([src]) {
     flex-direction: column;
     justify-content: center;
     flex: 1;
-    max-height: calc(var(--artwork-size) - 6vh);
+    max-height: calc(var(--artwork-size) - 8vh);
 }
 
 #center-info.queue {
@@ -348,11 +348,11 @@ img:not([src]) {
 }
 
 #track-list {
-    display: grid;
-    grid-template-columns: auto auto auto;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
     scrollbar-width: thin;
     margin-top: 4vh;
-    grid-gap: 0 2vh;
     overflow-y: hidden;
     mask-repeat: no-repeat;
     font-size: clamp(2vh, calc(1vh * var(--font-size)), 3vh);
@@ -368,6 +368,10 @@ img:not([src]) {
 #center-info.queue #track-list {
     mask-image: linear-gradient(to bottom, var(--gradient-top) 20%, transparent 100%);
     --track-count: 0 !important;
+}
+
+#track-list.show-discs {
+    margin-top: 0 !important;
 }
 
 #center-info.queue #track-list .track-elem:nth-child(n+10) > div {
@@ -387,24 +391,27 @@ img:not([src]) {
 }
 
 
-#track-list .track-elem div {
+#track-list .track-elem {
+    display: flex;
+    flex-direction: row;
+    gap: 2vh;
     opacity: 0.5;
 }
 
-#center-info.queue #track-list .track-elem.current div {
+#center-info:not(.queue) #track-list .track-elem.current {
+    opacity: 1;
+}
+
+#center-info.queue #track-list .track-elem.current {
     transition: opacity var(--transition), height var(--transition);
 }
 
-#center-info.queue #track-list .track-elem.current div.shrink {
+#center-info.queue #track-list .track-elem.current.shrink {
     opacity: 0;
     height: 0;
 }
 
-#center-info:not(.queue) #track-list .track-elem.current div {
-    opacity: 1;
-}
-
-#center-info:not(.queue) #track-list .track-elem.current div.track-name {
+#center-info:not(.queue) #track-list .track-elem.current .track-name {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -412,21 +419,30 @@ img:not([src]) {
     white-space: unset !important;
 }
 
-#track-list .track-elem {
-    display: contents;
+#track-list.show-tracklist-numbers .track-elem.disc {
+    opacity: 0.25;
+    margin-top: 2vh;
 }
 
-#track-list.show-tracklist-numbers .track-artist {
-    display: none;
+#track-list.show-tracklist-numbers div:is(.track-number, .disc-symbol) {
+    text-align: center;
+    min-width: 3vh;
+    font-feature-settings: "tnum";
 }
+
 
 #track-list:not(.show-tracklist-numbers) .track-number {
     display: none;
 }
 
-#track-list .track-elem div:is(.track-number, .track-length) {
+#track-list .track-elem .track-length {
     text-align: right;
     font-feature-settings: "tnum";
+    white-space: nowrap;
+}
+
+#track-list.show-tracklist-numbers .track-artist {
+    display: none;
 }
 
 #track-list .track-elem div:is(.track-artist, .track-name)  {
@@ -438,6 +454,10 @@ img:not([src]) {
 
 #track-list .track-elem div.track-name {
     font-family: var(--font-bold);
+}
+
+#track-list .track-elem div.track-length {
+    margin-left: auto;
 }
 
 #track-list.strip .track-elem div.track-name span.extra {
@@ -452,6 +472,7 @@ img:not([src]) {
     width: calc(100vw - var(--artwork-size) - (var(--margin-main) * 3));
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     overflow: hidden;
 }
 
