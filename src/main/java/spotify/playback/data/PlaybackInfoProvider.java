@@ -155,15 +155,18 @@ public class PlaybackInfoProvider {
       // Playlist context
       pInfo.setListTracks(contextProvider.getFormattedPlaylistTracks());
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
+      pInfo.setDiscCount(1);
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.PLAYLIST);
     } else if (info.getContext() != null && ModelObjectType.ARTIST.equals(info.getContext().getType())) {
       // Artist top tracks context
       pInfo.setListTracks(contextProvider.getFormattedPlaylistTracks());
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
+      pInfo.setDiscCount(1);
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
     } else {
       // Fallback context
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
+      pInfo.setDiscCount(1);
     }
 
     if (pInfo.isShuffle() || (pInfo.getListTracks() != null && pInfo.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD)) {
