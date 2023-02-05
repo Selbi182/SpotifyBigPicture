@@ -20,7 +20,7 @@ Here's a basic guide on how to set this app up, as a few people have been reques
 2. Create an app on the [Spotify Developers dashboard](https://developer.spotify.com/dashboard) (you might need to create an account first)
 3. As redirect URI for the app, use `http://localhost:8183/login-callback`
 4. Copy the *Client ID* and *Client Secret* and insert them into the respective fields in the `spotifybot.properties` file
-5. Open a terminal and start the app using `java -jar SpotifyBigPicture.jar`
+5. Open a terminal and start the app using `java -jar SpotifyBigPicture.jar` (Minimum required version: Java 11)
 6. Once prompted to log in, copy-paste the displayed URL into your preferred browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`) and log in
 7. If everything worked out, the app will be available under http://localhost:8183/
 
