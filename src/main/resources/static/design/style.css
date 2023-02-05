@@ -348,8 +348,9 @@ img:not([src]) {
 }
 
 #track-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-gap: 0 2vh;
     max-width: 100%;
     scrollbar-width: thin;
     margin-top: 4vh;
@@ -392,13 +393,14 @@ img:not([src]) {
 
 
 #track-list .track-elem {
-    display: flex;
-    flex-direction: row;
-    gap: 2vh;
+    display: contents;
+}
+
+#center-info:not(.queue) #track-list .track-elem:not(.disc) div {
     opacity: 0.5;
 }
 
-#center-info:not(.queue) #track-list .track-elem.current {
+#center-info:not(.queue) #track-list .track-elem.current div {
     opacity: 1;
 }
 
@@ -419,9 +421,14 @@ img:not([src]) {
     white-space: unset !important;
 }
 
-#track-list.show-tracklist-numbers .track-elem.disc {
+#track-list.show-tracklist-numbers .track-elem.disc div {
     opacity: 0.25;
     margin-top: 2vh;
+}
+
+#track-list.show-tracklist-numbers .track-elem.disc .disc-number {
+    grid-column: 2 / 4;
+    text-align: left;
 }
 
 #track-list.show-tracklist-numbers div:is(.track-number, .disc-symbol) {

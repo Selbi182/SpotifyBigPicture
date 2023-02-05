@@ -297,13 +297,6 @@ function setTextData(changes) {
 }
 
 function setCorrectTracklistView(changes) {
-  // Show or hide the appropriate elements:
-  // - Title: Always shown, except in when album view AND shuffle is disabled OR when special queue mode is enabled
-  // - Tracklist: Always shown, except in single view or when the context is in special queue mode
-  // - Tracklist Type: Depending on whether the title is display (playlist if yes, album if no)
-  // - Track Numbers: Only shown in album view, otherwise show artist
-  // - Font Scale: Adjustable in album view (between 15-21 songs), always max in playlist view (controlled via CSS)
-
   let mainContainer = document.getElementById("center-info");
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
@@ -326,7 +319,7 @@ function setCorrectTracklistView(changes) {
 
   let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
   setClass(trackListContainer, "show-tracklist-numbers", displayTrackNumbers)
-  setClass(trackListContainer, "show-discs", discCount > 1)
+  setClass(trackListContainer, "show-discs", !queueMode && discCount > 1)
 
   let displayTrackCount = titleDisplayed ? trackCount + 3 : trackCount;
   trackListContainer.style.setProperty("--track-count", displayTrackCount.toString());
@@ -493,28 +486,33 @@ function printTrackList(trackList, printDiscs) {
 
   let previousDiscNumber = 0;
   let trackNumPadLength = Math.max(...trackList.map(t => t.trackNumber)).toString().length;
+
+
   for (let trackItem of trackList) {
-    let discNumber = null;
     if (printDiscs && 'discNumber' in trackItem) {
       let newDiscNumber = trackItem.discNumber;
       if (newDiscNumber > previousDiscNumber) {
         previousDiscNumber = newDiscNumber
-        discNumber = newDiscNumber;
-        let discTrackElem = document.createElement("div");
-        discTrackElem.className = "track-elem disc";
-        let discSymbolContainer = document.createElement("div");
-        discSymbolContainer.className = "disc-symbol";
-        discSymbolContainer.innerHTML = "&#x1F4BF;&#xFE0E;";
-        let discNumberContainer = document.createElement("div");
-        discNumberContainer.className = "disc-number";
-        discNumberContainer.innerHTML = "Disc " + discNumber;
-        discTrackElem.append(discSymbolContainer, discNumberContainer);
+        let discTrackElem = createDiscElement(newDiscNumber);
         trackListContainer.append(discTrackElem);
       }
     }
     let trackElem = createSingleTrackListItem(trackItem, trackNumPadLength);
     trackListContainer.append(trackElem);
   }
+}
+
+function createDiscElement(discNumber) {
+  let discTrackElem = document.createElement("div");
+  discTrackElem.className = "track-elem disc";
+  let discSymbolContainer = document.createElement("div");
+  discSymbolContainer.className = "disc-symbol";
+  discSymbolContainer.innerHTML = "&#x1F4BF;&#xFE0E;";
+  let discNumberContainer = document.createElement("div");
+  discNumberContainer.className = "disc-number";
+  discNumberContainer.innerHTML = "Disc " + discNumber;
+  discTrackElem.append(discSymbolContainer, discNumberContainer);
+  return discTrackElem;
 }
 
 function createSingleTrackListItem(trackItem, trackNumPadLength) {

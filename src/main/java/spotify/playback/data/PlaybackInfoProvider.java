@@ -29,9 +29,8 @@ import spotify.util.BotUtils;
 
 @Component
 public class PlaybackInfoProvider {
-
   private static final String BLANK = "BLANK";
-  private static final int QUEUE_FALLBACK_THRESHOLD = 100;
+  private static final int QUEUE_FALLBACK_THRESHOLD = 200;
 
   private final SpotifyApi spotifyApi;
   private final ContextProvider contextProvider;
