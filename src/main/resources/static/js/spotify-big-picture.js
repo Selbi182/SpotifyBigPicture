@@ -40,7 +40,55 @@ let idle = false;
 
 
 ///////////////////////////////
-// WEB STUFF
+// WEB STUFF - General
+///////////////////////////////
+
+window.addEventListener('load', entryPoint);
+
+function entryPoint() {
+  if (isPollingEnabled()) {
+    initPolling();
+  } else {
+    initFlux();
+  }
+}
+
+function isPollingEnabled() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.has("polling")
+      ? urlParams.get("polling") === "true"
+      : false;
+}
+
+function singleRequest(forceFull = true) {
+  let url = forceFull ? INFO_URL_FULL : INFO_URL;
+  fetch(url)
+      .then(response => response.json())
+      .then(json => processJson(json))
+      .catch(ex => {
+        console.error("Single request", ex);
+        setTimeout(() => singleRequest(forceFull), RETRY_TIMEOUT_MS);
+      });
+}
+
+///////////////////////////////
+// WEB STUFF - Polling
+///////////////////////////////
+
+let pollingInterval;
+const POLLING_INTERVAL_MS = 1000;
+function initPolling() {
+  singleRequest(true);
+
+  console.debug("Polling enabled!");
+  clearTimeout(pollingInterval);
+  pollingInterval = setInterval(() => {
+    singleRequest(false);
+  }, POLLING_INTERVAL_MS);
+}
+
+///////////////////////////////
+// WEB STUFF - Flux
 ///////////////////////////////
 
 const FLUX_URL = "/playback-info-flux";
@@ -49,24 +97,11 @@ const INFO_URL_FULL = INFO_URL + "?full=true";
 const RETRY_TIMEOUT_MS = 5 * 1000;
 const FLUX_REFRESH_TIMEOUT_MS = 45 * 60 * 1000;
 
-window.addEventListener('load', init);
-
-function init() {
+function initFlux() {
   singleRequest(true);
   closeFlux();
   startFlux();
   createHeartbeatTimeout();
-}
-
-function singleRequest(forceFull = true) {
-  let url = forceFull ? INFO_URL_FULL : INFO_URL;
-  fetch(url)
-    .then(response => response.json())
-    .then(json => processJson(json))
-    .catch(ex => {
-      console.error("Single request", ex);
-      setTimeout(() => singleRequest(forceFull), RETRY_TIMEOUT_MS);
-    });
 }
 
 let flux;
@@ -121,8 +156,23 @@ function closeFlux() {
 
 window.addEventListener('beforeunload', closeFlux);
 
+const HEARTBEAT_TIMEOUT_MS = 60 * 1000;
+let heartbeatTimeout;
+
+function createHeartbeatTimeout() {
+  clearTimeout(heartbeatTimeout);
+  heartbeatTimeout = setTimeout(() => {
+    console.error("Heartbeat timeout")
+    initFlux();
+  }, HEARTBEAT_TIMEOUT_MS);
+}
+
+///////////////////////////////
+// MAIN DISPLAY STUFF
+///////////////////////////////
+
 function processJson(json) {
-  if (json.type !== "HEARTBEAT") {
+  if (json.type !== "HEARTBEAT" && json.type !== "EMPTY") {
     console.info(json);
     if (json.type === "DATA") {
       if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
@@ -136,21 +186,6 @@ function processJson(json) {
     }
   }
 }
-
-const HEARTBEAT_TIMEOUT_MS = 60 * 1000;
-let heartbeatTimeout;
-
-function createHeartbeatTimeout() {
-  clearTimeout(heartbeatTimeout);
-  heartbeatTimeout = setTimeout(() => {
-    console.error("Heartbeat timeout")
-    init();
-  }, HEARTBEAT_TIMEOUT_MS);
-}
-
-///////////////////////////////
-// MAIN DISPLAY STUFF
-///////////////////////////////
 
 async function setDisplayData(changes) {
   changeImage(changes)
@@ -372,7 +407,7 @@ function setCorrectTracklistView(changes) {
     if (queueMode) {
       updateScrollPositions(1);
     } else {
-      let targetTrackNumber = trackNumber + (discCount > 1 ? currentTrack.discNumber : 0);
+      let targetTrackNumber = trackNumber + (discCount > 1 && 'discNumber' in currentTrack ? currentTrack.discNumber : 0);
       updateScrollPositions(targetTrackNumber);
     }
   }
@@ -1113,6 +1148,7 @@ function refreshPrefsQueryParam() {
 
   const url = new URL(window.location);
   url.searchParams.set(PREFS_URL_PARAM, urlPrefs.join("+"));
+  url.searchParams.set("polling", isPollingEnabled().toString());
   window.history.replaceState({}, 'Spotify Big Picture', unescape(url.toString()));
 }
 

@@ -3,15 +3,12 @@ package spotify.playback;
 import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -26,25 +23,20 @@ import spotify.util.BotLogger;
 @RestController
 public class PlaybackController {
 
-  @Value("${spotify.polling.enabled:true}")
-  public boolean scheduledPollingEnabled;
-
   private final PlaybackInfoProvider playbackInfoProvider;
   private final BotLogger log;
+
+  private final CopyOnWriteArrayList<SseEmitter> emitters;
 
   PlaybackController(PlaybackInfoProvider playbackInfoProvider, BotLogger botLogger) {
     this.playbackInfoProvider = playbackInfoProvider;
     this.log = botLogger;
+    this.emitters = new CopyOnWriteArrayList<>();
   }
-
-  private final CopyOnWriteArrayList<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
   @EventListener(SpotifyApiLoggedInEvent.class)
   public void ready() {
     log.info("SpotifyBigPicture is ready!");
-    log.info("Scheduled polling is " + (scheduledPollingEnabled
-        ? "enabled at a rate of " + PlaybackInfoConstants.POLLING_RATE_MS + "ms"
-        : "disabled"));
   }
 
   /**
@@ -73,23 +65,6 @@ public class PlaybackController {
     emitter.send(getCurrentPlaybackInfo(true));
     this.emitters.add(emitter);
     return ResponseEntity.ok().header("X-Accel-Buffering", "no").body(emitter);
-  }
-
-  /**
-   * Manually set the playback info via an external POST request and forward it to any listeners
-   *
-   * @param info the playback info
-   * @return a 204 no content response
-   */
-  @CrossOrigin
-  @PostMapping("/playback-info-listener")
-  public ResponseEntity<Void> playbackInfoListener(@RequestBody PlaybackInfoDTO info) {
-    if (isAnyoneListening()) {
-      if (info != null && info.hasPayload()) {
-        sseSend(info);
-      }
-    }
-    return ResponseEntity.noContent().build();
   }
 
   /**
@@ -128,12 +103,10 @@ public class PlaybackController {
    */
   @Scheduled(initialDelay = PlaybackInfoConstants.POLLING_RATE_MS, fixedRate = PlaybackInfoConstants.POLLING_RATE_MS)
   private void fetchAndPublishCurrentPlaybackInfo() {
-    if (scheduledPollingEnabled) {
-      if (isAnyoneListening()) {
-        PlaybackInfoDTO info = playbackInfoProvider.getCurrentPlaybackInfo(false);
-        if (info != null && info.hasPayload()) {
-          sseSend(info);
-        }
+    if (isAnyoneListening()) {
+      PlaybackInfoDTO info = playbackInfoProvider.getCurrentPlaybackInfo(false);
+      if (info != null && info.hasPayload()) {
+        sseSend(info);
       }
     }
   }
