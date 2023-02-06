@@ -78,7 +78,8 @@ body.transition * {
         color var(--transition),
         background-color var(--transition),
         filter var(--transition),
-        text-shadow var(--transition-long);
+        text-shadow var(--transition-long),
+        font-size var(--transition);
 }
 
 img:not([src]) {
@@ -402,10 +403,6 @@ img:not([src]) {
 #center-info.queue #track-list .track-elem:nth-child(n+17) > div {
     display: none !important;
     font-size: 0;
-}
-
-#center-info.queue #track-list .track-elem div {
-    transition: opacity var(--transition), font-size var(--transition);
 }
 
 #center-info.queue #track-list .track-elem:first-child div.shrink {
