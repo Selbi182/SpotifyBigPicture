@@ -43,6 +43,9 @@ let idle = false;
 // WEB STUFF - General
 ///////////////////////////////
 
+const INFO_URL = "/playback-info";
+const INFO_URL_FULL = INFO_URL + "?full=true";
+
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
@@ -60,6 +63,48 @@ function isPollingEnabled() {
       : false;
 }
 
+///////////////////////////////
+// WEB STUFF - Polling
+///////////////////////////////
+
+let pollingInterval;
+const POLLING_INTERVAL_MS = 1000;
+function initPolling() {
+  console.debug("Polling enabled!");
+  clearTimeout(pollingInterval);
+  pollingInterval = setInterval(() => {
+    fetch(INFO_URL_FULL)
+      .then(response => response.json())
+      .then(json => {
+        if (Math.abs(json.timeCurrent - currentData.timeCurrent) < 2000) {
+          json.timeCurrent = currentData.timeCurrent;
+        }
+        return deepEqual(currentData, json) ? null : json;
+      })
+      .then(diffJson => processJson(diffJson))
+      .catch(ex => {
+        console.error("Single request", ex);
+        clearTimeout(pollingInterval)
+        initPolling();
+      });
+  }, POLLING_INTERVAL_MS);
+}
+
+///////////////////////////////
+// WEB STUFF - Flux
+///////////////////////////////
+
+const FLUX_URL = "/playback-info-flux";
+const RETRY_TIMEOUT_MS = 5 * 1000;
+const FLUX_REFRESH_TIMEOUT_MS = 45 * 60 * 1000;
+
+function initFlux() {
+  singleRequest(true);
+  closeFlux();
+  startFlux();
+  createHeartbeatTimeout();
+}
+
 function singleRequest(forceFull = true) {
   let url = forceFull ? INFO_URL_FULL : INFO_URL;
   fetch(url)
@@ -69,39 +114,6 @@ function singleRequest(forceFull = true) {
         console.error("Single request", ex);
         setTimeout(() => singleRequest(forceFull), RETRY_TIMEOUT_MS);
       });
-}
-
-///////////////////////////////
-// WEB STUFF - Polling
-///////////////////////////////
-
-let pollingInterval;
-const POLLING_INTERVAL_MS = 1000;
-function initPolling() {
-  singleRequest(true);
-
-  console.debug("Polling enabled!");
-  clearTimeout(pollingInterval);
-  pollingInterval = setInterval(() => {
-    singleRequest(false);
-  }, POLLING_INTERVAL_MS);
-}
-
-///////////////////////////////
-// WEB STUFF - Flux
-///////////////////////////////
-
-const FLUX_URL = "/playback-info-flux";
-const INFO_URL = "/playback-info";
-const INFO_URL_FULL = INFO_URL + "?full=true";
-const RETRY_TIMEOUT_MS = 5 * 1000;
-const FLUX_REFRESH_TIMEOUT_MS = 45 * 60 * 1000;
-
-function initFlux() {
-  singleRequest(true);
-  closeFlux();
-  startFlux();
-  createHeartbeatTimeout();
 }
 
 let flux;
@@ -172,7 +184,7 @@ function createHeartbeatTimeout() {
 ///////////////////////////////
 
 function processJson(json) {
-  if (json.type !== "HEARTBEAT" && json.type !== "EMPTY") {
+  if (json && json.type !== "HEARTBEAT" && json.type !== "EMPTY") {
     console.info(json);
     if (json.type === "DATA") {
       if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
@@ -396,7 +408,7 @@ function setCorrectTracklistView(changes) {
       }
     } else {
       let isMultiDisc = listTracks.find(t => 'discNumber' in t && t.discNumber > 1);
-      printTrackList(listTracks, isMultiDisc && !shuffle);
+      printTrackList(listTracks, listViewType === "ALBUM" && isMultiDisc && !shuffle);
     }
   }
 

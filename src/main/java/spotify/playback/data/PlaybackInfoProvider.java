@@ -173,9 +173,7 @@ public class PlaybackInfoProvider {
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
     }
 
-    if (pInfo.getTrackListView().equals(PlaybackInfoDTO.ListViewType.QUEUE)) {
-      pInfo.setQueue(contextProvider.getQueue());
-    }
+    pInfo.setQueue(contextProvider.getQueue());
 
     pInfo.setTimeCurrent(info.getProgress_ms());
     pInfo.setTimeTotal(playlistItem.getDurationMs());
