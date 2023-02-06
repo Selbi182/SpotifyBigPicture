@@ -368,15 +368,10 @@ img:not([src]) {
 
 #center-info.queue #track-list {
     mask-image: linear-gradient(to bottom, var(--gradient-top) 20%, transparent 100%);
-    --track-count: 0 !important;
 }
 
 #track-list.show-discs {
     margin-top: 0 !important;
-}
-
-#center-info.queue #track-list .track-elem:nth-child(n+12) > div {
-    display: none !important;
 }
 
 #track-list.fit {
@@ -404,8 +399,16 @@ img:not([src]) {
     opacity: 1;
 }
 
-#center-info.queue #track-list .track-elem:first-child div.shrink {
+#center-info.queue #track-list .track-elem:nth-child(n+17) > div {
+    display: none !important;
+    font-size: 0;
+}
+
+#center-info.queue #track-list .track-elem div {
     transition: opacity var(--transition), font-size var(--transition);
+}
+
+#center-info.queue #track-list .track-elem:first-child div.shrink {
     opacity: 0;
 }
 
