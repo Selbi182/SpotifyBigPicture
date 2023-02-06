@@ -30,6 +30,7 @@ import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.help.ListTrackDTO;
 import spotify.playback.data.help.PlaybackInfoConstants;
 import spotify.services.UserService;
+import spotify.util.BotLogger;
 import spotify.util.BotUtils;
 import spotify.util.data.AlbumTrackPair;
 
@@ -41,6 +42,7 @@ public class ContextProvider {
 
   private final SpotifyApi spotifyApi;
   private final UserService userService;
+  private final BotLogger log;
 
   private String previousContextString;
   private Album currentContextAlbum;
@@ -51,12 +53,16 @@ public class ContextProvider {
   private List<ListTrackDTO> formattedQueue;
   private CountryCode market;
 
-  ContextProvider(SpotifyApi spotifyApi, UserService userService) {
+  private boolean queueEnabled;
+
+  ContextProvider(SpotifyApi spotifyApi, UserService userService, BotLogger botLogger) {
     this.spotifyApi = spotifyApi;
     this.userService = userService;
+    this.log = botLogger;
     this.formattedAlbumTracks = new ArrayList<>();
     this.formattedPlaylistTracks = new ArrayList<>();
     this.formattedQueue = new ArrayList<>();
+    this.queueEnabled = true;
   }
 
   /**
@@ -128,12 +134,16 @@ public class ContextProvider {
   }
 
   public List<ListTrackDTO> getQueue() {
-    try {
-      refreshQueue();
-      return this.formattedQueue;
-    } catch (BotException e) {
-      return List.of();
+    if (queueEnabled) {
+      try {
+        refreshQueue();
+        return this.formattedQueue;
+      } catch (BotException e) {
+        queueEnabled = false;
+        log.error("Queue has been disabled. This feature is only available to Spotify premium users");
+      }
     }
+    return List.of();
   }
 
   private void refreshQueue() throws BotException {
