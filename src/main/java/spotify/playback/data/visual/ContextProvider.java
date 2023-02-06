@@ -128,11 +128,15 @@ public class ContextProvider {
   }
 
   public List<ListTrackDTO> getQueue() {
-    refreshQueue();
-    return this.formattedQueue;
+    try {
+      refreshQueue();
+      return this.formattedQueue;
+    } catch (BotException e) {
+      return List.of();
+    }
   }
 
-  private void refreshQueue() {
+  private void refreshQueue() throws BotException {
     List<Track> rawQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue()).getQueue();
     if (rawQueue != null) {
       this.formattedQueue = rawQueue.stream()

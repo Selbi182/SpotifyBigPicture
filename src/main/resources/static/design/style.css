@@ -691,7 +691,13 @@ img:not([src]) {
     top: calc(var(--offset) / 2);
     position: absolute;
     -webkit-mask-image: url("img/symbols/cog.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
     mask-image: url("img/symbols/cog.png");
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
     opacity: 0;
     mask-size: contain;
     mask-position: right;

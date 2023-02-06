@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import de.selbi.colorfetch.data.ColorFetchResult;
@@ -21,10 +22,12 @@ import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import spotify.api.BotException;
 import spotify.api.SpotifyCall;
+import spotify.api.events.SpotifyApiLoggedInEvent;
 import spotify.playback.data.help.PlaybackInfoUtils;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlProvider;
 import spotify.playback.data.visual.color.ColorProviderSetup;
+import spotify.util.BotLogger;
 import spotify.util.BotUtils;
 
 @Component
@@ -36,9 +39,11 @@ public class PlaybackInfoProvider {
   private final ContextProvider contextProvider;
   private final ArtworkUrlProvider artworkUrlProvider;
   private final ColorProviderSetup dominantColorProvider;
+  private final BotLogger log;
 
   private PlaybackInfoDTO previous;
   private long deployTime;
+  private boolean ready;
 
   private static final List<Field> DTO_FIELDS;
 
@@ -53,12 +58,21 @@ public class PlaybackInfoProvider {
   PlaybackInfoProvider(SpotifyApi spotifyApi,
       ContextProvider contextProvider,
       ArtworkUrlProvider artworkUrlProvider,
-      ColorProviderSetup colorProvider) {
+      ColorProviderSetup colorProvider,
+      BotLogger botLogger) {
     this.spotifyApi = spotifyApi;
     this.contextProvider = contextProvider;
     this.artworkUrlProvider = artworkUrlProvider;
     this.dominantColorProvider = colorProvider;
+    this.log = botLogger;
+    this.ready = false;
     refreshDeployTime();
+  }
+
+  @EventListener(SpotifyApiLoggedInEvent.class)
+  public void ready() {
+    log.info("SpotifyBigPicture is ready!");
+    ready = true;
   }
 
   public void refreshDeployTime() {
@@ -66,32 +80,34 @@ public class PlaybackInfoProvider {
   }
 
   public PlaybackInfoDTO getCurrentPlaybackInfo(boolean full) {
-    if (previous == null) {
-      full = true;
-    }
-    try {
-      CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
-      if (info != null) {
-        PlaybackInfoDTO currentPlaybackInfo = null;
-        CurrentlyPlayingType type = info.getCurrentlyPlayingType();
-        if (type.equals(CurrentlyPlayingType.TRACK)) {
-          currentPlaybackInfo = buildInfoTrack(info);
-        } else if (type.equals(CurrentlyPlayingType.EPISODE)) {
-          currentPlaybackInfo = buildInfoEpisode(info);
-        }
-        if (full) {
-          this.previous = currentPlaybackInfo;
-          return currentPlaybackInfo;
-        } else if (currentPlaybackInfo != null) {
-          try {
-            return findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
-          } catch (Exception e) {
-            throw new BotException(e);
+    if (ready) {
+      if (previous == null) {
+        full = true;
+      }
+      try {
+        CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
+        if (info != null) {
+          PlaybackInfoDTO currentPlaybackInfo = null;
+          CurrentlyPlayingType type = info.getCurrentlyPlayingType();
+          if (type.equals(CurrentlyPlayingType.TRACK)) {
+            currentPlaybackInfo = buildInfoTrack(info);
+          } else if (type.equals(CurrentlyPlayingType.EPISODE)) {
+            currentPlaybackInfo = buildInfoEpisode(info);
+          }
+          if (full) {
+            this.previous = currentPlaybackInfo;
+            return currentPlaybackInfo;
+          } else if (currentPlaybackInfo != null) {
+            try {
+              return findInfoDifferencesAndUpdateCurrent(currentPlaybackInfo);
+            } catch (Exception e) {
+              throw new BotException(e);
+            }
           }
         }
+      } catch (BotException e) {
+        e.printStackTrace();
       }
-    } catch (BotException e) {
-      e.printStackTrace();
     }
     return PlaybackInfoDTO.EMPTY;
   }

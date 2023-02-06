@@ -69,9 +69,11 @@ However, if the interface becomes completely unresponsive, try one of these appr
 
 1. First and foremost, this app has been optimized for **Firefox**! It may work to some degree on Chrome and the likes, but I won't guarantee full stability over there
 
-2. Change the current playback context (e.g. changing from a playlist to an album)
+2. Getting your current queue is only available for Spotify premium users. For anyone else, more than a good guess by this interface is unfortunately not possible
 
-3. For whatever bizarre reason, simply clicking on the devices button in Spotify (not even selecting any different device, literally just opening the dropdown) sometimes forces the interface to catch up. This has been my go-to for fixing stuck screens, and it works surprisingly well:
+3. Change the current playback context (e.g. changing from a playlist to an album)
+
+4. For whatever bizarre reason, simply clicking on the devices button in Spotify (not even selecting any different device, literally just opening the dropdown) sometimes forces the interface to catch up. This has been my go-to for fixing stuck screens, and it works surprisingly well:
 
 ![dropdown](https://user-images.githubusercontent.com/8850085/206453960-12d34f5e-03c0-41a0-aba1-7c214de4e53e.png)
 
