@@ -2,12 +2,17 @@ package spotify.playback;
 
 import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -19,14 +24,24 @@ import spotify.playback.data.help.PlaybackInfoConstants;
 @EnableScheduling
 @RestController
 public class PlaybackController {
-
   private final PlaybackInfoProvider playbackInfoProvider;
-
   private final CopyOnWriteArrayList<SseEmitter> emitters;
+
+  @Value("${spotify.bigpicture.polling:true}")
+  private boolean scheduledPollingEnabled;
+
+  private final Logger logger = Logger.getLogger(PlaybackController.class.getName());
 
   PlaybackController(PlaybackInfoProvider playbackInfoProvider) {
     this.playbackInfoProvider = playbackInfoProvider;
     this.emitters = new CopyOnWriteArrayList<>();
+  }
+
+  @PostConstruct
+  void printScheduledPollingStatus() {
+    logger.info("Scheduled polling is " + (scheduledPollingEnabled
+      ? "enabled at a rate of " + PlaybackInfoConstants.POLLING_RATE_MS + "ms"
+      : "disabled"));
   }
 
   /**
@@ -90,10 +105,31 @@ public class PlaybackController {
   }
 
   /**
+   * Trigger an update request from an outside source by calling /update
+   *
+   * @return info string about if and how many clients were affected
+   */
+  @CrossOrigin
+  @RequestMapping("/update")
+  public ResponseEntity<Void> receiveUpdateNotification() {
+    fetchAndPublishCurrentPlaybackInfo();
+    return ResponseEntity.ok(null);
+  }
+
+  /**
+   * Execute polling every second, if enabled
+   */
+  @Scheduled(initialDelay = PlaybackInfoConstants.POLLING_RATE_MS, fixedRate = PlaybackInfoConstants.POLLING_RATE_MS)
+  private void scheduledPolling() {
+    if (scheduledPollingEnabled) {
+      fetchAndPublishCurrentPlaybackInfo();
+    }
+  }
+
+  /**
    * Poll the Spotify API for changed playback info and set it to the listeners if
    * anything was changed
    */
-  @Scheduled(initialDelay = PlaybackInfoConstants.POLLING_RATE_MS, fixedRate = PlaybackInfoConstants.POLLING_RATE_MS)
   private void fetchAndPublishCurrentPlaybackInfo() {
     if (isAnyoneListening()) {
       PlaybackInfoDTO info = playbackInfoProvider.getCurrentPlaybackInfo(false);
