@@ -190,6 +190,12 @@ function processJson(json) {
       if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
         window.location.reload(true);
       } else {
+        if ('queue' in json && !('id' in json)) {
+          // Handle weird edge-cases where the queue is updated before the other data
+          // This is caused by race conditions within the Spotify API
+          singleRequest(true);
+          return;
+        }
         setDisplayData(json)
           .then(() => startTimers());
       }
@@ -393,7 +399,7 @@ function setCorrectTracklistView(changes) {
           let currentTrackListTopElem = trackListContainer.querySelector(".track-elem:first-child");
           currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
             let parent = e.target.parentNode;
-            if (e.target.classList.contains("shrinks2")) {
+            if (e.target.classList.contains("shrink")) {
               if (parent.classList.contains("track-elem")) {
                 parent.remove();
               }
@@ -539,7 +545,6 @@ function printTrackList(trackList, printDiscs) {
 
   let previousDiscNumber = 0;
   let trackNumPadLength = Math.max(...trackList.map(t => t.trackNumber)).toString().length;
-
 
   for (let trackItem of trackList) {
     if (printDiscs && 'discNumber' in trackItem) {
@@ -906,7 +911,7 @@ function numberWithCommas(number) {
 // TIMERS
 ///////////////////////////////
 
-const ADVANCE_CURRENT_TIME_MS = 1000;
+const ADVANCE_CURRENT_TIME_MS = 100;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 const REQUEST_ON_SONG_END_MS = 2 * 1000;
 

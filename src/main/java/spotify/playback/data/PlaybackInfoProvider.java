@@ -87,6 +87,7 @@ public class PlaybackInfoProvider {
       try {
         CurrentlyPlayingContext info = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
         if (info != null) {
+          contextProvider.refreshQueue();
           PlaybackInfoDTO currentPlaybackInfo = null;
           CurrentlyPlayingType type = info.getCurrentlyPlayingType();
           if (type.equals(CurrentlyPlayingType.TRACK)) {

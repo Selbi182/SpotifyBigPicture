@@ -351,6 +351,7 @@ img:not([src]) {
 #track-list {
     display: grid;
     grid-template-columns: auto auto auto;
+    grid-auto-rows: min-content;
     grid-gap: 0 2vh;
     max-width: 100%;
     scrollbar-width: thin;
@@ -369,6 +370,7 @@ img:not([src]) {
 
 #center-info.queue #track-list {
     mask-image: linear-gradient(to bottom, var(--gradient-top) 20%, transparent 100%);
+    height: 100%;
 }
 
 #track-list.show-discs {
@@ -400,16 +402,9 @@ img:not([src]) {
     opacity: 1;
 }
 
-#center-info.queue #track-list .track-elem:nth-child(n+17) > div {
-    display: none !important;
-    font-size: 0;
-}
-
-#center-info.queue #track-list .track-elem:first-child div.shrink {
+#center-info.queue #track-list .track-elem:first-child div.shrink,
+#center-info.queue #track-list .track-elem:nth-child(n+15) > div {
     opacity: 0;
-}
-
-#center-info.queue #track-list .track-elem:first-child div.shrink2 {
     font-size: 0;
 }
 

@@ -134,24 +134,23 @@ public class ContextProvider {
   }
 
   public List<ListTrackDTO> getQueue() {
+    return this.formattedQueue;
+  }
+
+  public void refreshQueue() throws BotException {
     if (queueEnabled) {
       try {
-        refreshQueue();
-        return this.formattedQueue;
+        List<Track> rawQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue()).getQueue();
+        if (rawQueue != null && !rawQueue.isEmpty()) {
+          this.formattedQueue = rawQueue.stream()
+              .map(ListTrackDTO::fromTrack)
+              .collect(Collectors.toList());
+        }
       } catch (BotException e) {
+        this.formattedQueue = List.of();
         queueEnabled = false;
         log.error("Queue has been disabled. This feature is only available to Spotify premium users");
       }
-    }
-    return List.of();
-  }
-
-  private void refreshQueue() throws BotException {
-    List<Track> rawQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue()).getQueue();
-    if (rawQueue != null) {
-      this.formattedQueue = rawQueue.stream()
-          .map(ListTrackDTO::fromTrack)
-          .collect(Collectors.toList());
     }
   }
 
