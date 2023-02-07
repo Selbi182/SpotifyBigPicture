@@ -111,9 +111,9 @@ public class PlaybackController {
    */
   @CrossOrigin
   @RequestMapping("/update")
-  public ResponseEntity<Void> receiveUpdateNotification() {
+  public ResponseEntity<String> receiveUpdateNotification() {
     fetchAndPublishCurrentPlaybackInfo();
-    return ResponseEntity.ok(null);
+    return ResponseEntity.ok("Update received");
   }
 
   /**

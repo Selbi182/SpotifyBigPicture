@@ -233,7 +233,7 @@ img:not([src]) {
 }
 
 #context-main {
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 1 !important;
 }
 
 #context-extra {
@@ -424,7 +424,7 @@ img:not([src]) {
 
 
 #track-list:not(.show-tracklist-numbers) .track-number {
-    display: none;
+    display: none !important;
 }
 
 #track-list .track-elem .track-length {
@@ -434,7 +434,7 @@ img:not([src]) {
 }
 
 #track-list.show-tracklist-numbers .track-artist {
-    display: none;
+    display: none !important;
 }
 
 #track-list .track-elem div:is(.track-artist, .track-name)  {

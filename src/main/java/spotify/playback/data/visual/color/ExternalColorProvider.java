@@ -11,7 +11,6 @@ import de.selbi.colorfetch.data.ColorFetchResult;
 
 public class ExternalColorProvider implements ColorProvider {
   private final static String STRATEGY = "color_thief";
-  private final static String NORMALIZE = Boolean.TRUE.toString();
 
   private final String colorFetchServiceUrl;
   private final ObjectMapper objectMapper;
@@ -27,7 +26,7 @@ public class ExternalColorProvider implements ColorProvider {
       String requestUri = UriComponentsBuilder.fromUriString(colorFetchServiceUrl)
           .queryParam("url", artworkUrl)
           .queryParam("strategy", STRATEGY)
-          .queryParam("normalize", NORMALIZE)
+          .queryParam("normalize", String.valueOf(NORMALIZE))
           .build().toUriString();
       String rawJson = Jsoup.connect(requestUri).ignoreContentType(true).execute().body();
       return objectMapper.readValue(rawJson, ColorFetchResult.class);
