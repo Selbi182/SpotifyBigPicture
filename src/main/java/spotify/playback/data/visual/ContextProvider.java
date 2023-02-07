@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
@@ -30,7 +31,6 @@ import spotify.playback.data.PlaybackInfoDTO;
 import spotify.playback.data.help.ListTrackDTO;
 import spotify.playback.data.help.PlaybackInfoConstants;
 import spotify.services.UserService;
-import spotify.util.BotLogger;
 import spotify.util.BotUtils;
 import spotify.util.data.AlbumTrackPair;
 
@@ -42,7 +42,8 @@ public class ContextProvider {
 
   private final SpotifyApi spotifyApi;
   private final UserService userService;
-  private final BotLogger log;
+
+  private final Logger logger = Logger.getLogger(ContextProvider.class.getName());
 
   private String previousContextString;
   private Album currentContextAlbum;
@@ -55,10 +56,9 @@ public class ContextProvider {
 
   private boolean queueEnabled;
 
-  ContextProvider(SpotifyApi spotifyApi, UserService userService, BotLogger botLogger) {
+  ContextProvider(SpotifyApi spotifyApi, UserService userService) {
     this.spotifyApi = spotifyApi;
     this.userService = userService;
-    this.log = botLogger;
     this.formattedAlbumTracks = new ArrayList<>();
     this.formattedPlaylistTracks = new ArrayList<>();
     this.formattedQueue = new ArrayList<>();
@@ -143,13 +143,13 @@ public class ContextProvider {
         List<Track> rawQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue()).getQueue();
         if (rawQueue != null && !rawQueue.isEmpty()) {
           this.formattedQueue = rawQueue.stream()
-              .map(ListTrackDTO::fromTrack)
+              .map(ListTrackDTO::fromPlaylistItem)
               .collect(Collectors.toList());
         }
       } catch (BotException e) {
         this.formattedQueue = List.of();
         queueEnabled = false;
-        log.error("Queue has been disabled. This feature is only available to Spotify premium users");
+        logger.warning("Queue has been disabled. This feature is only available to Spotify premium users");
       }
     }
   }
@@ -162,7 +162,7 @@ public class ContextProvider {
 
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
       for (Track track : artistTopTracks) {
-        ListTrackDTO lt = ListTrackDTO.fromTrack(track);
+        ListTrackDTO lt = ListTrackDTO.fromPlaylistItem(track);
         listTrackDTOS.add(lt);
       }
       this.formattedPlaylistTracks = listTrackDTOS;
@@ -182,7 +182,7 @@ public class ContextProvider {
       List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
       for (PlaylistTrack playlistTrack : playlistTracks) {
         Track track = (Track) playlistTrack.getTrack();
-        ListTrackDTO lt = ListTrackDTO.fromTrack(track);
+        ListTrackDTO lt = ListTrackDTO.fromPlaylistItem(track);
         listTrackDTOS.add(lt);
       }
       this.formattedPlaylistTracks = listTrackDTOS;
@@ -214,7 +214,7 @@ public class ContextProvider {
       formattedAlbumTracks = new ArrayList<>();
       if (track != null) {
         for (TrackSimplified ts : currentContextAlbumTracks) {
-          ListTrackDTO e = ListTrackDTO.fromTrack(ts);
+          ListTrackDTO e = ListTrackDTO.fromPlaylistItem(BotUtils.asTrack(ts));
           formattedAlbumTracks.add(e);
         }
       }
@@ -232,6 +232,7 @@ public class ContextProvider {
     // Fallback when playing back from the queue
     return QUEUE_PREFIX + contextString;
   }
+
 
   private String getReleaseTypeString() {
     if (currentContextAlbum.getAlbumType() == AlbumType.SINGLE) {

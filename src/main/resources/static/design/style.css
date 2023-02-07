@@ -59,12 +59,6 @@ html, body {
     text-shadow: 0 0 6vh var(--color);
 }
 
-.one-line {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 * {
     box-sizing: border-box;
 }
@@ -238,6 +232,10 @@ img:not([src]) {
     opacity: 0;
 }
 
+#context-main {
+    -webkit-line-clamp: 1;
+}
+
 #context-extra {
     opacity: 0.5;
 }
@@ -340,8 +338,8 @@ img:not([src]) {
 
 #description {
     text-align: center;
-    margin-top: -6vh;
-    margin-bottom: var(--margin-main);
+    margin-bottom: 3vh;
+    -webkit-line-clamp: 10 !important;
 }
 
 #description:empty {
@@ -408,14 +406,6 @@ img:not([src]) {
     font-size: 0;
 }
 
-#center-info:not(.queue) #track-list .track-elem.current .track-name {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    white-space: unset !important;
-}
-
 #track-list.show-tracklist-numbers .track-elem.disc div {
     opacity: 0.25;
     margin-top: 2vh;
@@ -468,6 +458,15 @@ img:not([src]) {
 
 #artists, #title, #description, #album-title, .track-name  {
     user-select: text;
+}
+
+#context-main, #artists,#album-title, #title, #description,
+#center-info:not(.queue) #track-list .track-elem.current div {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: unset !important;
 }
 
 #info {
@@ -694,9 +693,6 @@ img:not([src]) {
     mask-position: right;
     mask-repeat: no-repeat;
     opacity: 0;
-    mask-size: contain;
-    mask-position: right;
-    mask-repeat: no-repeat;
     background-color: var(--color);
     z-index: 3;
     cursor: pointer;

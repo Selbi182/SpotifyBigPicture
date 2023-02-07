@@ -6,9 +6,11 @@ import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +29,6 @@ import spotify.playback.data.help.PlaybackInfoUtils;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlProvider;
 import spotify.playback.data.visual.color.ColorProviderSetup;
-import spotify.util.BotLogger;
 import spotify.util.BotUtils;
 
 @Component
@@ -39,13 +40,17 @@ public class PlaybackInfoProvider {
   private final ContextProvider contextProvider;
   private final ArtworkUrlProvider artworkUrlProvider;
   private final ColorProviderSetup dominantColorProvider;
-  private final BotLogger log;
+
+  private final Logger logger = Logger.getLogger(PlaybackInfoProvider.class.getName());
 
   private PlaybackInfoDTO previous;
   private long deployTime;
   private boolean ready;
 
   private static final List<Field> DTO_FIELDS;
+
+  @Value("${server.port}")
+  private String port;
 
   static {
     DTO_FIELDS = Stream.of(PlaybackInfoDTO.class.getDeclaredFields())
@@ -58,20 +63,18 @@ public class PlaybackInfoProvider {
   PlaybackInfoProvider(SpotifyApi spotifyApi,
       ContextProvider contextProvider,
       ArtworkUrlProvider artworkUrlProvider,
-      ColorProviderSetup colorProvider,
-      BotLogger botLogger) {
+      ColorProviderSetup colorProvider) {
     this.spotifyApi = spotifyApi;
     this.contextProvider = contextProvider;
     this.artworkUrlProvider = artworkUrlProvider;
     this.dominantColorProvider = colorProvider;
-    this.log = botLogger;
     this.ready = false;
     refreshDeployTime();
   }
 
   @EventListener(SpotifyApiLoggedInEvent.class)
   public void ready() {
-    log.info("SpotifyBigPicture is ready!");
+    logger.info("SpotifyBigPicture is ready! URL: http://localhost:" + port);
     ready = true;
   }
 
@@ -180,6 +183,10 @@ public class PlaybackInfoProvider {
       pInfo.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(info));
       pInfo.setDiscCount(1);
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);
+    } else if (CurrentlyPlayingType.EPISODE.equals(info.getCurrentlyPlayingType())) {
+      // Podcast context
+      pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.PODCAST);
+      pInfo.setDiscCount(1);
     } else {
       // Fallback context
       pInfo.setTrackListView(PlaybackInfoDTO.ListViewType.QUEUE);

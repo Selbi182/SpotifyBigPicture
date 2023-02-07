@@ -264,7 +264,7 @@ function setTextData(changes) {
     let contextExtra = document.getElementById("context-extra");
 
     let contextMainContent = convertToTextEmoji(changes.context);
-    contextMain.innerHTML = contextMainContent.length > 80 ? contextMainContent.slice(0, 80) + "..." : contextMainContent; // TODO text-overflow with CSS
+    contextMain.innerHTML = contextMainContent;
 
     let trackList = (changes.listTracks || currentData.listTracks || []);
     if (trackList.length > 0) {

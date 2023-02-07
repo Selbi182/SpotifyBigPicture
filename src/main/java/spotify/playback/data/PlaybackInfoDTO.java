@@ -28,8 +28,9 @@ public class PlaybackInfoDTO {
 
   enum ListViewType {
     ALBUM,
+    PODCAST,
     PLAYLIST,
-    QUEUE
+    QUEUE,
   }
 
   private Type type;

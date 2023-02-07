@@ -58,7 +58,7 @@ Explanation of each setting (the letter in the brackets denotes the hotkey):
 * **Playback Meta Info (m):** If enabled, shows the playback meta info at the bottom left of the page (play, shuffle, repeat, volume, device name). Otherwise, hide it and put the current timestamp there instead
 * **Clock (w):** If enabled, displays a clock/watch at the bottom center of the screen, showing the full date and the current time. Otherwise, hide it. (The clock will show even during idle mode)
 * **Dark Mode (d):** If enabled, darkens the entire screen by 65%. Otherwise, display everything at normal brightness (This mode will automatically be disabled after 8 hours)
-* **Extended Background Rendering (x):** (Keep this option enabled if you're unsure what it does!) If enabled, captures screenshots of the background images and displays those instead of calculating the expensive CSS for the backgrouns every single frame. This saves a lot of processing time and is especially useful for weaker hardware, such as a Raspberry Pi. (Requires a relatively modern browser to function properly)
+* **Extended Background Rendering (x):** (Keep this option enabled if you're unsure what it does!) If enabled, captures screenshots of the background images and displays those instead of calculating the expensive CSS for the backgrounds every single frame. This saves a lot of processing time and is especially useful for weaker hardware, such as a Raspberry Pi. (Requires a relatively modern browser to function properly)
 
 ## Troubleshooting
 The information is fetched from Spotify's API by polling it once a second. Unfortunately, there is no "proper" way of doing it, as webhooks for song changes (like Discord uses them, for example) are unavailable for the public API.
