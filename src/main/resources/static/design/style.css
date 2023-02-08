@@ -11,7 +11,6 @@
 :root {
     --color: #ffffff;
     --transition: 0.5s;
-    --transition-long: 1s;
     --font-normal: "Spotify Book", sans-serif;
     --font-bold: "Spotify Bold", sans-serif;
     --margin-main: 8vh;
@@ -26,7 +25,6 @@ html, body {
     background: black;
     color: var(--color);
     font-family: var(--font-normal);
-    /* text-shadow: var(--default-shadow); */
     width: 100%;
     height: 100%;
     font-size: 2vh;
@@ -55,8 +53,8 @@ html, body {
     --color: #ffffff;
 }
 
-.text-glow {
-    text-shadow: 0 0 6vh var(--color);
+.text-grow {
+    letter-spacing: -1vh;
 }
 
 * {
@@ -72,7 +70,7 @@ body.transition * {
         color var(--transition),
         background-color var(--transition),
         filter var(--transition),
-        text-shadow var(--transition-long),
+        letter-spacing var(--transition),
         font-size var(--transition);
 }
 
@@ -401,7 +399,7 @@ img:not([src]) {
 }
 
 #center-info.queue #track-list .track-elem:first-child div.shrink,
-#center-info.queue #track-list .track-elem:nth-child(n+15) > div {
+#center-info.queue #track-list .track-elem:nth-child(n+18) > div {
     opacity: 0;
     font-size: 0;
 }
@@ -421,7 +419,6 @@ img:not([src]) {
     min-width: 3vh;
     font-feature-settings: "tnum";
 }
-
 
 #track-list:not(.show-tracklist-numbers) .track-number {
     display: none !important;
@@ -460,13 +457,13 @@ img:not([src]) {
     user-select: text;
 }
 
-#context-main, #artists,#album-title, #title, #description,
+#context-main, #artists,#album-title, #title, #description, #device,
 #center-info:not(.queue) #track-list .track-elem.current div {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    white-space: unset !important;
+    white-space: unset;
 }
 
 #info {
@@ -577,9 +574,9 @@ img:not([src]) {
 }
 
 #device {
+    -webkit-line-clamp: 1 !important;
     opacity: 0.2;
     font-size: 2vh;
-    white-space: nowrap;
 }
 #device:empty {
     display: none;
@@ -620,6 +617,14 @@ img:not([src]) {
     border-radius: inherit;
     position: absolute;
     z-index: 1;
+}
+
+#bottom-lr-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 32vh;
 }
 
 #bottom-left {
@@ -861,5 +866,24 @@ img:not([src]) {
     #track-list .track-elem div.track-name {
         white-space: unset;
         overflow: unset;
+    }
+
+    #bottom-lr-container {
+        gap: initial;
+        flex-wrap: wrap;
+    }
+
+    #bottom-left {
+        display: none;
+    }
+
+    #bottom-right {
+        justify-content: space-between;
+    }
+
+    #bottom-right:not(.stretch) #time-total::before {
+        content: "";
+        opacity: 0;
+        padding: 0;
     }
 }

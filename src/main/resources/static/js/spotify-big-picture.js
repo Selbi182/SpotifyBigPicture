@@ -213,7 +213,16 @@ async function setDisplayData(changes) {
 function setTextData(changes) {
   // Main Info
   let titleContainer = document.getElementById("title");
-  let trackListContainer = document.getElementById("track-list");
+
+  if ('artists' in changes && JSON.stringify(changes.artists) !== JSON.stringify(currentData.artists)) {
+    let artistContainer = document.getElementById("artists");
+    let artists = changes.artists;
+    let artistsString = artists[0] + buildFeaturedArtistsString(artists);
+    artistContainer.innerHTML = convertToTextEmoji(artistsString);
+
+    balanceTextClamp(artistContainer);
+    fadeIn(artistContainer);
+  }
 
   if (('title' in changes && JSON.stringify(changes.title) !== JSON.stringify(currentData.title))
       || ('trackListView' in changes && !changes.trackListView && currentData.trackListView)) {
@@ -226,16 +235,10 @@ function setTextData(changes) {
     document.getElementById("title-main").innerHTML = titleMain;
     document.getElementById("title-extra").innerHTML = titleExtra;
 
+    balanceTextClamp(titleContainer);
     fadeIn(titleContainer);
   }
 
-  if ('artists' in changes && JSON.stringify(changes.artists) !== JSON.stringify(currentData.artists)) {
-    let artists = changes.artists;
-    let artistsString = artists[0] + buildFeaturedArtistsString(artists);
-    document.getElementById("artists").innerHTML = convertToTextEmoji(artistsString);
-
-    fadeIn(document.getElementById("artists"));
-  }
 
   if (('album' in changes && changes.album !== currentData.album) || ('release' in changes && changes.release !== currentData.release)) {
     let album = 'album' in changes ? changes.album : currentData.album;
@@ -248,14 +251,18 @@ function setTextData(changes) {
 
     document.getElementById("album-release").innerHTML = 'release' in changes ? changes.release : currentData.release;
 
-    fadeIn(document.getElementById("album"));
+    let albumMainContainer = document.getElementById("album-title");
+    balanceTextClamp(albumMainContainer);
+    let albumContainer = document.getElementById("album");
+    fadeIn(albumContainer);
   }
 
   if ('description' in changes && changes.description !== currentData.description) {
-    let descriptionElem = document.getElementById("description");
+    let descriptionContainer = document.getElementById("description");
     let isPodcast = changes.description !== "BLANK";
-    descriptionElem.innerHTML = isPodcast ? changes.description : "";
-    fadeIn(descriptionElem);
+    descriptionContainer.innerHTML = isPodcast ? changes.description : "";
+    balanceTextClamp(descriptionContainer);
+    fadeIn(descriptionContainer);
   }
 
   // Context
@@ -281,7 +288,8 @@ function setTextData(changes) {
       contextExtra.innerHTML = "";
     }
 
-    fadeIn(document.getElementById("context"));
+    let contextContainer = document.getElementById("context");
+    fadeIn(contextContainer);
   }
 
   // Time
@@ -342,11 +350,6 @@ function setTextData(changes) {
   for (let prop in changes) {
     currentData[prop] = changes[prop];
   }
-
-  // Re-balance all updated texts
-  let scrollTopTrackListBackup = trackListContainer.scrollTop; // fix to keep scroll position in place
-  balanceText.updateWatched();
-  trackListContainer.scrollTop = scrollTopTrackListBackup;
 }
 
 function setCorrectTracklistView(changes) {
@@ -449,6 +452,13 @@ function trackListEquals(trackList1, trackList2) {
   return true;
 }
 
+function balanceTextClamp(elem) {
+  // balanceText doesn't take line-clamping into account, unfortunately
+  elem.style.setProperty("-webkit-line-clamp", "initial");
+  balanceText(elem);
+  elem.style.removeProperty("-webkit-line-clamp");
+}
+
 function setClass(elem, className, state) {
   if (state) {
     elem.classList.add(className);
@@ -525,18 +535,9 @@ function finishAnimations(elem) {
 
 function fadeIn(elem) {
   finishAnimations(elem);
-  elem.classList.add("transparent", "text-glow");
+  elem.classList.add("transparent", "text-grow");
   finishAnimations(elem);
-  elem.classList.remove("transparent", "text-glow");
-}
-
-const BALANCED_ELEMENTS_TO_WATCH = ["artists", "title", "description", "album-title"];
-window.addEventListener('load', registerWatchedBalanceTextElements);
-function registerWatchedBalanceTextElements() {
-  for (let id of BALANCED_ELEMENTS_TO_WATCH) {
-    let textElem = document.getElementById(id);
-    balanceText(textElem, {watch: true});
-  }
+  elem.classList.remove("transparent", "text-grow");
 }
 
 function printTrackList(trackList, printDiscs) {
@@ -645,8 +646,7 @@ function updateScrollPositions(specificTrackNumber) {
         currentlyPlayingRow.classList.add("current");
 
         let scrollUnit = trackListContainer.scrollHeight / trackListContainer.childNodes.length;
-        let offsetDivider = currentData.trackListView === "PLAYLIST" ? 5 : 2;
-        let scrollMiddleApproximation = Math.round((trackListContainer.offsetHeight / scrollUnit) / offsetDivider);
+        let scrollMiddleApproximation = Math.round((trackListContainer.offsetHeight / scrollUnit) / 2);
         let scroll = Math.max(0, scrollUnit * (trackNumber - scrollMiddleApproximation));
         trackListContainer.scroll({
           top: scroll,
@@ -734,7 +734,7 @@ function loadBackground(newImage, colors) {
       backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
       setClass(backgroundCanvasOverlay, "brighter", averageBrightness < 0.2);
-      setClass(backgroundCanvasOverlay, "darker", averageBrightness > 0.7);
+      setClass(backgroundCanvasOverlay, "darker", averageBrightness > 0.4);
       grainOverlay.style.setProperty("--intensity", averageBrightness);
       resolve();
     };
