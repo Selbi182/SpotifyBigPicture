@@ -68,10 +68,7 @@ a, a:visited, a:hover, a:active {
 body.transition * {
     transition: opacity var(--transition),
         color var(--transition),
-        background-color var(--transition),
-        filter var(--transition),
-        letter-spacing var(--transition),
-        font-size var(--transition);
+        background-color var(--transition);
 }
 
 img:not([src]) {
@@ -101,6 +98,8 @@ img:not([src]) {
 
 #background-img-crossfade {
     opacity: 0;
+    transform: translateZ(0);
+    will-change: opacity;
 }
 
 #prerender-canvas {
@@ -167,6 +166,8 @@ img:not([src]) {
     mix-blend-mode: screen;
     background: url('img/grain.png') repeat;
     --intensity: 1;
+    transform: translateZ(0);
+    will-change: opacity;
 }
 
 #grain.show {
@@ -212,7 +213,8 @@ img:not([src]) {
     max-width: 100%;
     max-height: 100%;
     border: 0.2vh solid transparent;
-    transform: scale(1.02);
+    transform: scale(1.02) translateZ(0);
+    will-change: opacity;
 }
 
 #artwork-img.show {
@@ -271,6 +273,7 @@ img:not([src]) {
     flex-direction: column;
     justify-content: center;
     flex: 1;
+    width: 100%;
     max-height: calc(var(--artwork-size) - 8vh);
 }
 
@@ -282,6 +285,7 @@ img:not([src]) {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
 }
 
 #title {
@@ -398,8 +402,13 @@ img:not([src]) {
     opacity: 1;
 }
 
+#center-info.queue #track-list .track-elem:first-child div {
+    will-change: opacity, font-size;
+}
+
 #center-info.queue #track-list .track-elem:first-child div.shrink,
 #center-info.queue #track-list .track-elem:nth-child(n+18) > div {
+    transition: opacity var(--transition), font-size var(--transition);
     opacity: 0;
     font-size: 0;
 }
@@ -453,11 +462,16 @@ img:not([src]) {
     display: none;
 }
 
+#artists, #title, #description, #album, #context {
+    transition: opacity var(--transition), letter-spacing var(--transition);
+    will-change: opacity, letter-spacing;
+}
+
 #artists, #title, #description, #album-title, .track-name  {
     user-select: text;
 }
 
-#context-main, #artists,#album-title, #title, #description, #device,
+#context-main, #artists, #album-title, #title, #description, #device,
 #center-info:not(.queue) #track-list .track-elem.current div {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -596,7 +610,6 @@ img:not([src]) {
     min-height: 1px;
     position: relative;
     flex: 0 0 100%;
-    /* filter: drop-shadow(var(--default-shadow)); */
 }
 
 #progress-background {
