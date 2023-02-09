@@ -368,6 +368,10 @@ img:not([src]) {
         white calc(100% - var(--gradient-height)), var(--gradient-bottom)  100%);
 }
 
+#track-list:empty {
+    display: none;
+}
+
 #center-info.queue #track-list {
     mask-image: linear-gradient(to bottom, var(--gradient-top) 20%, transparent 100%);
     height: 100%;

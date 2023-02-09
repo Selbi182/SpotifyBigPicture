@@ -23,7 +23,7 @@ import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Show;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
-import spotify.api.BotException;
+import spotify.api.SpotifyApiException;
 import spotify.api.SpotifyCall;
 import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.sub.TrackData;
@@ -81,7 +81,7 @@ public class ContextProvider {
           contextName = getPodcastContext(info, force);
         }
       }
-    } catch (BotException e) {
+    } catch (SpotifyApiException e) {
       e.printStackTrace();
     }
     if (contextName != null) {

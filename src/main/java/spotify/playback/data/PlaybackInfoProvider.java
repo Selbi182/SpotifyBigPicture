@@ -11,12 +11,13 @@ import org.springframework.stereotype.Component;
 import de.selbi.colorfetch.data.ColorFetchResult;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.ModelObjectType;
+import se.michaelthelin.spotify.exceptions.detailed.ForbiddenException;
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.special.PlaybackQueue;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Track;
-import spotify.api.BotException;
+import spotify.api.SpotifyApiException;
 import spotify.api.SpotifyCall;
 import spotify.api.events.SpotifyApiLoggedInEvent;
 import spotify.playback.data.dto.PlaybackInfo;
@@ -44,6 +45,8 @@ public class PlaybackInfoProvider {
   private long deployTime;
   private boolean ready;
 
+  private boolean queueEnabled;
+
   @Value("${server.port}")
   private String port;
 
@@ -56,6 +59,7 @@ public class PlaybackInfoProvider {
     this.artworkUrlProvider = artworkUrlProvider;
     this.dominantColorProvider = colorProvider;
     this.ready = false;
+    this.queueEnabled = true;
     refreshDeployTime();
   }
 
@@ -75,8 +79,21 @@ public class PlaybackInfoProvider {
         full = true;
       }
       try {
-        PlaybackQueue playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue()); // TODO handle non-premium users
         CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
+        PlaybackQueue playbackQueue = null;
+        if (queueEnabled) {
+          try {
+            playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue());
+          } catch (SpotifyApiException e) {
+            if (e.getNestedException().getClass().equals(ForbiddenException.class)) {
+              queueEnabled = false;
+              logger.warning("Queue has been disabled, as this feature is unavailable for free users!");
+            }
+          }
+        }
+        if (playbackQueue == null && currentlyPlayingContext != null) {
+          playbackQueue = createFakePlaybackQueueForFreeUsers(currentlyPlayingContext);
+        }
         if (playbackQueue != null && currentlyPlayingContext != null) {
           PlaybackInfo currentPlaybackInfo;
           ModelObjectType type = playbackQueue.getCurrentlyPlaying().getType();
@@ -100,11 +117,18 @@ public class PlaybackInfoProvider {
             this.previous = currentPlaybackInfo;
           }
         }
-      } catch (BotException e) {
+      } catch (SpotifyApiException e) {
         e.printStackTrace();
       }
     }
     return PlaybackInfo.EMPTY;
+  }
+
+  private PlaybackQueue createFakePlaybackQueueForFreeUsers(CurrentlyPlayingContext currentlyPlayingContext) {
+    PlaybackQueue.Builder builder = new PlaybackQueue.Builder();
+    builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
+    builder.setQueue(List.of());
+    return builder.build();
   }
 
   private PlaybackInfo getDifferences(PlaybackInfo current) {
