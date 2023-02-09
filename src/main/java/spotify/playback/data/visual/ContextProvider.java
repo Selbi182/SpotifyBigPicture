@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.boot.Banner;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
@@ -14,10 +15,12 @@ import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.AlbumType;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
+import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.Context;
+import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Show;
@@ -110,14 +113,21 @@ public class ContextProvider {
   }
 
   public Integer getCurrentlyPlayingPlaylistTrackNumber(CurrentlyPlayingContext context) {
-    String id = context.getItem().getId();
+    IPlaylistItem item = context.getItem();
+    String id = item.getId();
     return Iterables.indexOf(formattedPlaylistTracks, t -> {
       if (t != null) {
         if (t.getId() != null) {
           return t.getId().equals(id);
         } else {
-          Track item = (Track) context.getItem();
-          return t.getArtists().containsAll(BotUtils.toArtistNamesList(item)) && item.getName().equals(t.getTitle());
+          ModelObjectType type = item.getType();
+          if (ModelObjectType.TRACK.equals(type)) {
+            Track track = (Track) item;
+            return t.getArtists().containsAll(BotUtils.toArtistNamesList(track)) && track.getName().equals(t.getTitle());
+          } else if (ModelObjectType.EPISODE.equals(type)) {
+            Episode episode = (Episode) item;
+            return t.getArtists().contains(episode.getShow().getName()) && episode.getName().equals(t.getTitle());
+          }
         }
       }
       return false;

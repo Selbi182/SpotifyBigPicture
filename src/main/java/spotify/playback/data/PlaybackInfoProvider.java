@@ -79,7 +79,7 @@ public class PlaybackInfoProvider {
         full = true;
       }
       try {
-        CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
+        CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
         PlaybackQueue playbackQueue = null;
         if (queueEnabled) {
           try {
@@ -176,8 +176,17 @@ public class PlaybackInfoProvider {
 
     // TrackData
     TrackData trackData = playbackInfo.getTrackData();
-    if (context.getContext() != null) {
-      switch (context.getContext().getType()) {
+    trackData.setListTracks(List.of(TrackData.ListTrack.fromPlaylistItem(currentTrack)));
+    trackData.setTrackNumber(1);
+    trackData.setTrackCount(1);
+    trackData.setTotalTime(1L);
+    trackData.setDiscCount(1);
+    trackData.setTrackListView(TrackData.ListViewType.QUEUE);
+    ModelObjectType type = context.getContext() != null ? context.getContext().getType() : null;
+    if (type == null) {
+      type = ModelObjectType.GENRE; // generic fallback case
+    }
+    switch (type) {
       case ALBUM:
         // Album context
         trackData.setListTracks(contextProvider.getFormattedAlbumTracks());
@@ -185,9 +194,8 @@ public class PlaybackInfoProvider {
         trackData.setTotalTime(contextProvider.getTotalTime(contextProvider.getFormattedAlbumTracks()));
         trackData.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
         trackData.setDiscCount(contextProvider.getTotalDiscCount());
-        trackData.setTrackListView(TrackData.ListViewType.ALBUM);
-        if (playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
-          trackData.setTrackListView(TrackData.ListViewType.QUEUE);
+        if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
+          trackData.setTrackListView(TrackData.ListViewType.ALBUM);
         }
         break;
       case PLAYLIST:
@@ -196,7 +204,6 @@ public class PlaybackInfoProvider {
         trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
         trackData.setTrackCount(contextProvider.getFormattedPlaylistTracks().size());
         trackData.setTotalTime(contextProvider.getTotalTime(contextProvider.getFormattedPlaylistTracks()));
-        trackData.setDiscCount(1);
         trackData.setTrackListView(TrackData.ListViewType.PLAYLIST);
         break;
       case ARTIST:
@@ -205,20 +212,11 @@ public class PlaybackInfoProvider {
         trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
         trackData.setTrackCount(contextProvider.getFormattedPlaylistTracks().size());
         trackData.setTotalTime(contextProvider.getTotalTime(contextProvider.getFormattedPlaylistTracks()));
-        trackData.setDiscCount(1);
-        trackData.setTrackListView(TrackData.ListViewType.QUEUE);
         break;
       case EPISODE:
         // Podcast context
         trackData.setTrackListView(TrackData.ListViewType.PODCAST);
-        trackData.setDiscCount(1);
         break;
-      default:
-        // Fallback context
-        trackData.setTrackListView(TrackData.ListViewType.QUEUE);
-        trackData.setDiscCount(1);
-        break;
-      }
     }
 
     // Killswitch for gigantic playlists, to save performance

@@ -226,7 +226,7 @@ function getChange(changes, path) {
   }
   return {
     wasChanged: reduceNew != null,
-    value: reduceNew !== null ? reduceNew : reduceOld
+    value: reduceNew !== null && reduceNew !== undefined ? reduceNew : reduceOld
   }
 }
 
