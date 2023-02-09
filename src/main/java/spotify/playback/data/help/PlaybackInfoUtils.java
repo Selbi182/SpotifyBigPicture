@@ -1,7 +1,5 @@
 package spotify.playback.data.help;
 
-
-import spotify.playback.data.PlaybackInfoDTO;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
 public class PlaybackInfoUtils {
@@ -24,13 +22,12 @@ public class PlaybackInfoUtils {
    * Guess the elapsed progress of the current song. Return true if it's still
    * within tolerance.
    *
-   * @param previous the previous info
-   * @param current  the current info
+   * @param previous the previous time
+   * @param current  the current time
    * @return true if it's within tolerance
    */
-  public static boolean isWithinEstimatedProgressMs(PlaybackInfoDTO previous, PlaybackInfoDTO current) {
-    int expectedProgressMs = previous.getTimeCurrent() + PlaybackInfoConstants.POLLING_RATE_MS;
-    int actualProgressMs = current.getTimeCurrent();
-    return Math.abs(expectedProgressMs - actualProgressMs) < PlaybackInfoConstants.ESTIMATED_PROGRESS_TOLERANCE_MS;
+  public static boolean isWithinEstimatedProgressMs(int previous, int current) {
+    int expectedProgressMs = previous + PlaybackInfoConstants.POLLING_RATE_MS;
+    return Math.abs(expectedProgressMs - current) < PlaybackInfoConstants.ESTIMATED_PROGRESS_TOLERANCE_MS;
   }
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import spotify.playback.data.PlaybackInfoDTO;
+import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.help.PlaybackInfoConstants;
 
@@ -52,7 +52,7 @@ public class PlaybackController {
    */
   @CrossOrigin
   @GetMapping("/playback-info")
-  public ResponseEntity<PlaybackInfoDTO> getCurrentPlaybackInfo(@RequestParam(defaultValue = "false") boolean full) {
+  public ResponseEntity<PlaybackInfo> getCurrentPlaybackInfo(@RequestParam(defaultValue = "false") boolean full) {
     return ResponseEntity.ok(playbackInfoProvider.getCurrentPlaybackInfo(full));
   }
 
@@ -83,7 +83,7 @@ public class PlaybackController {
   @GetMapping("/dark")
   public ResponseEntity<String> globallyToggleDarkMode() {
     if (isAnyoneListening()) {
-      sseSend(PlaybackInfoDTO.DARK_MODE);
+      sseSend(PlaybackInfo.DARK_MODE);
       return ResponseEntity.ok("Dark mode toggled on " + this.emitters.size() + " listener(s)!");
     }
     return ResponseEntity.ok("No listeners available!");
@@ -132,7 +132,7 @@ public class PlaybackController {
    */
   private void fetchAndPublishCurrentPlaybackInfo() {
     if (isAnyoneListening()) {
-      PlaybackInfoDTO info = playbackInfoProvider.getCurrentPlaybackInfo(false);
+      PlaybackInfo info = playbackInfoProvider.getCurrentPlaybackInfo(false);
       if (info != null && info.hasPayload()) {
         sseSend(info);
       }
@@ -146,11 +146,11 @@ public class PlaybackController {
   @Scheduled(initialDelay = PlaybackInfoConstants.HEARTBEAT_MS, fixedRate = PlaybackInfoConstants.HEARTBEAT_MS)
   private void sendHeartbeat() {
     if (isAnyoneListening()) {
-      sseSend(PlaybackInfoDTO.HEARTBEAT);
+      sseSend(PlaybackInfo.HEARTBEAT);
     }
   }
 
-  private void sseSend(PlaybackInfoDTO info) {
+  private void sseSend(PlaybackInfo info) {
     if (isAnyoneListening()) {
       for (SseEmitter emitter : emitters) {
         try {

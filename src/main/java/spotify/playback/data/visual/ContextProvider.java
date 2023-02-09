@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -27,8 +25,8 @@ import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 import spotify.api.BotException;
 import spotify.api.SpotifyCall;
-import spotify.playback.data.PlaybackInfoDTO;
-import spotify.playback.data.help.ListTrackDTO;
+import spotify.playback.data.dto.PlaybackInfo;
+import spotify.playback.data.dto.sub.TrackData;
 import spotify.playback.data.help.PlaybackInfoConstants;
 import spotify.services.UserService;
 import spotify.util.BotUtils;
@@ -43,26 +41,19 @@ public class ContextProvider {
   private final SpotifyApi spotifyApi;
   private final UserService userService;
 
-  private final Logger logger = Logger.getLogger(ContextProvider.class.getName());
-
   private String previousContextString;
   private Album currentContextAlbum;
   private List<TrackSimplified> currentContextAlbumTracks;
-  private List<ListTrackDTO> formattedAlbumTracks;
-  private List<ListTrackDTO> formattedPlaylistTracks;
+  private List<TrackData.ListTrack> formattedAlbumTracks;
+  private List<TrackData.ListTrack> formattedPlaylistTracks;
   private Integer currentlyPlayingAlbumTrackNumber;
-  private List<ListTrackDTO> formattedQueue;
   private CountryCode market;
-
-  private boolean queueEnabled;
 
   ContextProvider(SpotifyApi spotifyApi, UserService userService) {
     this.spotifyApi = spotifyApi;
     this.userService = userService;
     this.formattedAlbumTracks = new ArrayList<>();
     this.formattedPlaylistTracks = new ArrayList<>();
-    this.formattedQueue = new ArrayList<>();
-    this.queueEnabled = true;
   }
 
   /**
@@ -73,11 +64,11 @@ public class ContextProvider {
    * @param previous the previous info to compare to
    * @return a String of the current context, null if none was found
    */
-  public String findContextName(CurrentlyPlayingContext info, PlaybackInfoDTO previous) {
+  public String findContextName(CurrentlyPlayingContext info, PlaybackInfo previous) {
     String contextName = null;
     try {
       Context context = info.getContext();
-      boolean force = previous == null || previous.getContext() == null || previous.getContext().isEmpty();
+      boolean force = previous == null || previous.getPlaybackContext().getContext() == null || previous.getPlaybackContext().getContext().isEmpty();
       if (context != null) {
         ModelObjectType type = context.getType();
         if (ModelObjectType.PLAYLIST.equals(type)) {
@@ -96,17 +87,17 @@ public class ContextProvider {
     if (contextName != null) {
       return contextName;
     } else {
-      return previous != null && previous.getContext() != null
-          ? previous.getContext()
+      return previous != null && previous.getPlaybackContext().getContext() != null
+          ? previous.getPlaybackContext().getContext()
           : info.getCurrentlyPlayingType().toString();
     }
   }
 
-  public List<ListTrackDTO> getFormattedAlbumTracks() {
+  public List<TrackData.ListTrack> getFormattedAlbumTracks() {
     return formattedAlbumTracks;
   }
 
-  public List<ListTrackDTO> getFormattedPlaylistTracks() {
+  public List<TrackData.ListTrack> getFormattedPlaylistTracks() {
     return formattedPlaylistTracks;
   }
 
@@ -133,39 +124,18 @@ public class ContextProvider {
     }) + 1;
   }
 
-  public List<ListTrackDTO> getQueue() {
-    return this.formattedQueue;
-  }
-
-  public void refreshQueue() throws BotException {
-    if (queueEnabled) {
-      try {
-        List<Track> rawQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue()).getQueue();
-        if (rawQueue != null && !rawQueue.isEmpty()) {
-          this.formattedQueue = rawQueue.stream()
-              .map(ListTrackDTO::fromPlaylistItem)
-              .collect(Collectors.toList());
-        }
-      } catch (BotException e) {
-        this.formattedQueue = List.of();
-        queueEnabled = false;
-        logger.warning("Queue has been disabled. This feature is only available to Spotify premium users");
-      }
-    }
-  }
-
   private String getArtistContext(Context context, boolean force) {
     if (force || didContextChange(context)) {
       String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
       Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
       Track[] artistTopTracks = SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, getMarketOfCurrentUser()));
 
-      List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
+      List<TrackData.ListTrack> listTracks = new ArrayList<>();
       for (Track track : artistTopTracks) {
-        ListTrackDTO lt = ListTrackDTO.fromPlaylistItem(track);
-        listTrackDTOS.add(lt);
+        TrackData.ListTrack lt = TrackData.ListTrack.fromPlaylistItem(track);
+        listTracks.add(lt);
       }
-      this.formattedPlaylistTracks = listTrackDTOS;
+      this.formattedPlaylistTracks = listTracks;
 
       return "ARTIST TOP TRACKS: " + contextArtist.getName();
     }
@@ -179,13 +149,13 @@ public class ContextProvider {
 
       List<PlaylistTrack> playlistTracks = new ArrayList<>(Arrays.asList(contextPlaylist.getTracks().getItems()));
       playlistTracks.addAll(SpotifyCall.executePaging(spotifyApi.getPlaylistsItems(playlistId).offset(100)));
-      List<ListTrackDTO> listTrackDTOS = new ArrayList<>();
+      List<TrackData.ListTrack> listTracks = new ArrayList<>();
       for (PlaylistTrack playlistTrack : playlistTracks) {
         Track track = (Track) playlistTrack.getTrack();
-        ListTrackDTO lt = ListTrackDTO.fromPlaylistItem(track);
-        listTrackDTOS.add(lt);
+        TrackData.ListTrack lt = TrackData.ListTrack.fromPlaylistItem(track);
+        listTracks.add(lt);
       }
-      this.formattedPlaylistTracks = listTrackDTOS;
+      this.formattedPlaylistTracks = listTracks;
       
       return contextPlaylist.getName();
     }
@@ -214,7 +184,7 @@ public class ContextProvider {
       formattedAlbumTracks = new ArrayList<>();
       if (track != null) {
         for (TrackSimplified ts : currentContextAlbumTracks) {
-          ListTrackDTO e = ListTrackDTO.fromPlaylistItem(BotUtils.asTrack(ts));
+          TrackData.ListTrack e = TrackData.ListTrack.fromPlaylistItem(BotUtils.asTrack(ts));
           formattedAlbumTracks.add(e);
         }
       }
@@ -269,5 +239,9 @@ public class ContextProvider {
       }
     }
     return this.market;
+  }
+
+  public Long getTotalTime(List<TrackData.ListTrack> listTracks) {
+    return listTracks.stream().mapToLong(TrackData.ListTrack::getLength).sum();
   }
 }

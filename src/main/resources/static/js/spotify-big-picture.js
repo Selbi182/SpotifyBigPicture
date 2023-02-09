@@ -1,39 +1,49 @@
 let currentData = {
-  album: "",
-  artists: [],
-  context: "",
+  type: "",
   deployTime: 0,
-  description: "",
-  device: "",
-  discCount: 0,
-  id: "",
-  image: "",
-  imageColors: {
-    averageBrightness: 0.0,
-    primary: {
-      r: 0,
-      g: 0,
-      b: 0
-    },
-    secondary: {
-      r: 0,
-      g: 0,
-      b: 0
+  currentlyPlaying: {
+    id: "",
+    artists: [],
+    title: "",
+    description: "",
+    album: "",
+    year: "",
+    trackNumber: 0,
+    timeCurrent: 0,
+    timeTotal: 0,
+    imageData: {
+      imageUrl: "",
+      imageColors: {
+        averageBrightness: 0.0,
+        primary: {
+          r: 0,
+          g: 0,
+          b: 0
+        },
+        secondary: {
+          r: 0,
+          g: 0,
+          b: 0
+        }
+      }
     }
   },
-  listTracks: [],
-  paused: true,
-  queue: [],
-  release: "",
-  repeat: "",
-  shuffle: false,
-  trackListView: "",
-  trackNumber: 0,
-  timeCurrent: 0,
-  timeTotal: 0,
-  title: "",
-  type: "",
-  volume: -1
+  trackData: {
+    discCount: 0,
+    trackCount: 0,
+    totalTime: 0,
+    listTracks: [],
+    queue: [],
+    trackListView: ""
+  },
+  playbackContext: {
+    context: "",
+    device: "",
+    paused: true,
+    repeat: "",
+    shuffle: false,
+    volume: -1
+  }
 };
 
 let idle = false;
@@ -69,6 +79,7 @@ function isPollingEnabled() {
 
 let pollingInterval;
 const POLLING_INTERVAL_MS = 1000;
+const POLLING_CURRENT_TIME_TOLERANCE_MS = 2000;
 function initPolling() {
   console.debug("Polling enabled!");
   clearTimeout(pollingInterval);
@@ -76,8 +87,8 @@ function initPolling() {
     fetch(INFO_URL_FULL)
       .then(response => response.json())
       .then(json => {
-        if (Math.abs(json.timeCurrent - currentData.timeCurrent) < 2000) {
-          json.timeCurrent = currentData.timeCurrent;
+        if (Math.abs(json.timeCurrent - currentData.currentlyPlaying.timeCurrent) < POLLING_CURRENT_TIME_TOLERANCE_MS) {
+          json.timeCurrent = currentData.currentlyPlaying.timeCurrent;
         }
         return deepEqual(currentData, json) ? null : json;
       })
@@ -187,15 +198,9 @@ function processJson(json) {
   if (json && json.type !== "HEARTBEAT" && json.type !== "EMPTY") {
     console.info(json);
     if (json.type === "DATA") {
-      if ('deployTime' in json && currentData.deployTime > 0 && json.deployTime > currentData.deployTime) {
+      if (currentData.deployTime > 0 && getChange(json, "deployTime").wasChanged) {
         window.location.reload(true);
       } else {
-        if ('queue' in json && !('id' in json)) {
-          // Handle weird edge-cases where the queue is updated before the other data
-          // This is caused by race conditions within the Spotify API
-          singleRequest(true);
-          return;
-        }
         setDisplayData(json)
           .then(() => startTimers());
       }
@@ -210,24 +215,39 @@ async function setDisplayData(changes) {
     .then(() => setTextData(changes));
 }
 
+function getChange(changes, path) {
+  let properties = path.split(".")
+  let reduceOld = properties.reduce((prev, curr) => prev?.[curr], currentData);
+  let reduceNew = properties.reduce((prev, curr) => prev?.[curr], changes);
+  if (Array.isArray(reduceNew)) {
+    reduceNew = JSON.stringify(reduceOld) !== JSON.stringify(reduceNew) ? reduceNew : null;
+  } else {
+    reduceNew = reduceOld !== reduceNew ? reduceNew : null;
+  }
+  return {
+    wasChanged: reduceNew != null,
+    value: reduceNew !== null ? reduceNew : reduceOld
+  }
+}
+
 function setTextData(changes) {
   // Main Info
   let titleContainer = document.getElementById("title");
 
-  if ('artists' in changes && JSON.stringify(changes.artists) !== JSON.stringify(currentData.artists)) {
+  let artists = getChange(changes, "currentlyPlaying.artists");
+  if (artists.wasChanged) {
+    let artistsNew = artists.value;
     let artistContainer = document.getElementById("artists");
-    let artists = changes.artists;
-    let artistsString = artists[0] + buildFeaturedArtistsString(artists);
+    let artistsString = artistsNew[0] + buildFeaturedArtistsString(artistsNew);
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
 
     balanceTextClamp(artistContainer);
     fadeIn(artistContainer);
   }
 
-  if (('title' in changes && JSON.stringify(changes.title) !== JSON.stringify(currentData.title))
-      || ('trackListView' in changes && !changes.trackListView && currentData.trackListView)) {
-    let titleBase = changes.title || currentData.title;
-    let normalizedEmoji = convertToTextEmoji(titleBase);
+  let title = getChange(changes, "currentlyPlaying.title");
+  if (title.wasChanged) {
+    let normalizedEmoji = convertToTextEmoji(title.value);
     let titleNoFeat = removeFeaturedArtists(normalizedEmoji);
     let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
     let titleMain = splitTitle.main;
@@ -239,17 +259,17 @@ function setTextData(changes) {
     fadeIn(titleContainer);
   }
 
-
-  if (('album' in changes && changes.album !== currentData.album) || ('release' in changes && changes.release !== currentData.release)) {
-    let album = 'album' in changes ? changes.album : currentData.album;
-    let normalizedEmoji = convertToTextEmoji(album);
+  let album = getChange(changes, "currentlyPlaying.album");
+  let year = getChange(changes, "currentlyPlaying.year");
+  if (album.wasChanged || year.wasChanged) {
+    let normalizedEmoji = convertToTextEmoji(album.value);
     let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
     let albumTitleMain = splitTitle.main;
     let albumTitleExtra = splitTitle.extra;
     document.getElementById("album-title-main").innerHTML = albumTitleMain;
     document.getElementById("album-title-extra").innerHTML = albumTitleExtra;
 
-    document.getElementById("album-release").innerHTML = 'release' in changes ? changes.release : currentData.release;
+    document.getElementById("album-release").innerHTML = year.value;
 
     let albumMainContainer = document.getElementById("album-title");
     balanceTextClamp(albumMainContainer);
@@ -257,32 +277,34 @@ function setTextData(changes) {
     fadeIn(albumContainer);
   }
 
-  if ('description' in changes && changes.description !== currentData.description) {
+  let description = getChange(changes, "currentlyPlaying.description");
+  if (description.wasChanged) {
     let descriptionContainer = document.getElementById("description");
-    let isPodcast = changes.description !== "BLANK";
-    descriptionContainer.innerHTML = isPodcast ? changes.description : "";
+    let isPodcast = description.value !== "BLANK";
+    descriptionContainer.innerHTML = isPodcast ? description.value : "";
     balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
   }
 
   // Context
-  if ('context' in changes && changes.context !== currentData.context) {
+  let context = getChange(changes, "playbackContext.context");
+  if (context.wasChanged) {
     let contextMain = document.getElementById("context-main");
     let contextExtra = document.getElementById("context-extra");
 
-    let contextMainContent = convertToTextEmoji(changes.context);
+    let contextMainContent = convertToTextEmoji(context.value);
     contextMain.innerHTML = contextMainContent;
 
-    let trackList = (changes.listTracks || currentData.listTracks || []);
-    if (trackList.length > 0) {
-      let trackCount = numberWithCommas(trackList.length);
-      let totalDuration = formatTimeVerbose(trackList.reduce((a, b) => a + b.length, 0));
-      let lengthInfo = `${trackCount} track${trackList.length !== 1 ? "s" : ""} (${totalDuration})`;
+    let trackCount = getChange(changes, "trackData.trackCount").value;
+    if (trackCount > 0) {
+      let trackCountFormatted = numberWithCommas(trackCount);
+      let totalTimeFormatted = formatTimeVerbose(getChange(changes, "trackData.totalTime").value);
+      let lengthInfo = `${trackCountFormatted} track${trackCount !== 1 ? "s" : ""} (${totalTimeFormatted})`;
       if (contextMainContent.length > 0) {
         contextExtra.innerHTML = lengthInfo;
       } else {
-        contextMain.innerHTML = totalDuration;
-        contextExtra.innerHTML = trackCount + " track" + (trackList.length !== 1 ? "s" : "");
+        contextMain.innerHTML = totalTimeFormatted;
+        contextExtra.innerHTML = trackCountFormatted + " track" + (trackCount !== 1 ? "s" : "");
       }
     } else {
       contextExtra.innerHTML = "";
@@ -293,33 +315,35 @@ function setTextData(changes) {
   }
 
   // Time
-  if ('timeCurrent' in changes || 'timeTotal' in changes) {
+  let timeCurrent = getChange(changes, "currentlyPlaying.timeCurrent");
+  let timeTotal = getChange(changes, "currentlyPlaying.timeTotal");
+  if (timeCurrent.wasChanged || timeTotal.wasChanged) {
     updateProgress(changes, true);
-    if ('id' in changes) {
+    if (getChange(changes, "currentlyPlaying.id").value) {
       finishAnimations(document.getElementById("progress-current"));
     }
   }
 
   // States
-  if ('paused' in changes && changes.paused !== currentData.paused) {
-    let paused = changes.paused != null ? changes.paused : currentData.paused;
+  let paused = getChange(changes, "playbackContext.paused");
+  if (paused.wasChanged) {
     let pauseElem = document.getElementById("play-pause");
-    setClass(pauseElem, "paused", paused);
+    setClass(pauseElem, "paused", paused.value);
     fadeIn(pauseElem);
   }
 
-  if ('shuffle' in changes && changes.shuffle !== currentData.shuffle) {
-    let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
+  let shuffle = getChange(changes, "playbackContext.shuffle");
+  if (shuffle.wasChanged) {
     let shuffleElem = document.getElementById("shuffle");
-    setClass(shuffleElem, "show", shuffle);
+    setClass(shuffleElem, "show", shuffle.value);
     fadeIn(shuffleElem);
   }
 
-  if ('repeat' in changes && changes.repeat !== currentData.repeat) {
-    let repeat = changes.repeat != null ? changes.repeat : currentData.repeat;
+  let repeat = getChange(changes, "playbackContext.repeat");
+  if (repeat.wasChanged) {
     let repeatElem = document.getElementById("repeat");
-    setClass(repeatElem, "show", repeat !== "off");
-    if (changes.repeat === "track") {
+    setClass(repeatElem, "show", repeat.value !== "off");
+    if (repeat.value === "track") {
       repeatElem.classList.add("once");
     } else {
       repeatElem.classList.remove("once");
@@ -327,20 +351,22 @@ function setTextData(changes) {
     fadeIn(repeatElem);
     handleAlternateDarkModeToggle();
   }
-  if ('volume' in changes && changes.volume !== currentData.volume) {
-    let volume = changes.volume != null ? changes.volume : currentData.volume;
-    let device = changes.device != null ? changes.device : currentData.device;
-    handleVolumeChange(volume, device);
+
+  let volume = getChange(changes, "playbackContext.volume");
+  let device = getChange(changes, "playbackContext.device");
+  if (volume.wasChanged || device.wasChanged) {
+    handleVolumeChange(volume.value, device.value);
   }
-  if ('device' in changes && changes.device !== currentData.device) {
-    let device = changes.device;
-    document.getElementById("device").innerHTML = convertToTextEmoji(device);
-    handleDeviceChange(device);
+
+  if (device.wasChanged) {
+    document.getElementById("device").innerHTML = convertToTextEmoji(device.value);
+    handleDeviceChange(device.value);
   }
 
   // Color
-  if ('imageColors' in changes) {
-    setTextColor(changes.imageColors.primary);
+  let textColor = getChange(changes, "currentlyPlaying.imageData.imageColors.primary")
+  if (textColor.wasChanged) {
+    setTextColor(textColor.value);
   }
 
   // Playlist View
@@ -356,15 +382,15 @@ function setCorrectTracklistView(changes) {
   let mainContainer = document.getElementById("center-info");
   let titleContainer = document.getElementById("title");
   let trackListContainer = document.getElementById("track-list");
-  let listViewType = 'trackListView' in changes ? changes.trackListView : currentData.trackListView;
-  let listTracks = (changes.listTracks || currentData.listTracks || [])
-  let currentTrack = listTracks.find(t => t.id === (changes.id || currentData.id));
-  let trackNumber = changes.trackNumber || currentData.trackNumber;
-  let discCount = changes.discCount || currentData.discCount;
+  let listViewType = getChange(changes, "trackData.trackListView").value;
+  let listTracks = getChange(changes, "trackData.listTracks").value;
+  let currentId = getChange(changes, "currentlyPlaying.id").value;
+  let trackNumber = getChange(changes, "trackData.trackNumber").value;
+  let discCount =  getChange(changes, "trackData.discCount").value;
   let trackCount = listTracks.length;
-  let shuffle = changes.shuffle != null ? changes.shuffle : currentData.shuffle;
+  let shuffle = getChange(changes, "playbackContext.shuffle").value;
 
-  let specialQueue = (changes.context || currentData.context || "").startsWith("Queue >> ");
+  let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
   let titleDisplayed = specialQueue || listViewType !== "ALBUM";
   let queueMode = specialQueue || listViewType === "QUEUE";
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
@@ -386,8 +412,8 @@ function setCorrectTracklistView(changes) {
 
   ///////////
 
-  let oldQueue = (queueMode ? currentData.queue : currentData.listTracks) || [];
-  let newQueue = (queueMode ? changes.queue : changes.listTracks) || [];
+  let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
+  let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
   let refreshPrintedList =
        (queueMode !== wasPreviouslyInQueueMode)
@@ -395,9 +421,9 @@ function setCorrectTracklistView(changes) {
 
   if (refreshPrintedList) {
     if (queueMode) {
-      if (isExpectedNextSongInQueue(changes.id, currentData.queue)) {
+      if (isExpectedNextSongInQueue(currentId, currentData.trackData.queue)) {
         // Special animation when the expected next song comes up
-        let trackListContainer = printTrackList([currentData.queue[0], ...changes.queue], false);
+        let trackListContainer = printTrackList([currentData.trackData.queue[0], ...changes.trackData.queue], false);
         window.requestAnimationFrame(() => {
           let currentTrackListTopElem = trackListContainer.querySelector(".track-elem:first-child");
           currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
@@ -413,7 +439,7 @@ function setCorrectTracklistView(changes) {
           currentTrackListTopElem.childNodes.forEach(node => node.classList.add("shrink"));
         });
       } else {
-        printTrackList(changes.queue, false);
+        printTrackList(changes.trackData.queue, false);
       }
     } else {
       let isMultiDisc = listTracks.find(t => 'discNumber' in t && t.discNumber > 1);
@@ -421,14 +447,13 @@ function setCorrectTracklistView(changes) {
     }
   }
 
-  let updateHighlightedTrack = (refreshPrintedList)
-    || ('trackNumber' in changes && changes.trackNumber !== currentData.trackNumber);
+  let updateHighlightedTrack = (refreshPrintedList) || getChange(changes, "trackData.trackNumber").wasChanged;
 
   if (updateHighlightedTrack) {
     if (queueMode) {
       updateScrollPositions(1);
     } else {
-      let targetTrackNumber = trackNumber + (discCount > 1 && 'discNumber' in currentTrack ? currentTrack.discNumber : 0);
+      let targetTrackNumber = trackNumber + (discCount > 1 ? discCount : 0);
       updateScrollPositions(targetTrackNumber);
     }
   }
@@ -634,12 +659,11 @@ function updateScrollGradients() {
   setClass(trackList, "gradient-bottom", bottomGradient);
 }
 
-function updateScrollPositions(specificTrackNumber) {
+function updateScrollPositions(trackNumber) {
   window.requestAnimationFrame(() => {
     let trackListContainer = document.getElementById("track-list");
-    let trackNumber = specificTrackNumber ? specificTrackNumber : currentData.trackNumber;
     let previouslyPlayingRow = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
-    if (specificTrackNumber || trackNumber !== currentData.trackNumber || !previouslyPlayingRow) {
+    if (trackNumber) {
       let currentlyPlayingRow = trackListContainer.childNodes[trackNumber - 1];
       if (currentlyPlayingRow && previouslyPlayingRow !== currentlyPlayingRow) {
         trackListContainer.childNodes.forEach(node => node.classList.remove("current"));
@@ -673,15 +697,21 @@ const DEFAULT_RGB = {
 
 function changeImage(changes) {
   return new Promise(async (resolve) => {
-    if ('image' in changes || 'imageColors' in changes) {
-      if (changes.image === "BLANK") {
-        changes.image = DEFAULT_IMAGE;
-        changes.imageColors = {primary: DEFAULT_RGB, secondary: DEFAULT_RGB};
+    let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
+    let imageColors = getChange(changes, "currentlyPlaying.imageData.imageColors");
+    if (imageUrl.wasChanged || imageColors.wasChanged) {
+      if (imageUrl.value === "BLANK") {
+        imageUrl.value = DEFAULT_IMAGE;
+        imageColors.value = {
+          primary: DEFAULT_RGB,
+          secondary: DEFAULT_RGB,
+          averageBrightness: 1.0
+        };
       }
-      let newImage = changes.image != null ? changes.image : currentData.image;
-      let colors = changes.imageColors != null ? changes.imageColors : currentData.imageColors;
-      if (newImage) {
+      if (imageUrl.wasChanged) {
         let oldImage = document.getElementById("artwork-img").src;
+        let newImage = imageUrl.value;
+        let colors = imageColors.value;
         if (!oldImage.includes(newImage)) {
           await prerenderAndSetArtwork(newImage, colors, true);
         }
@@ -784,8 +814,10 @@ function renderAndShow() {
 }
 
 function refreshBackgroundRender() {
-  if (currentData.image && currentData.imageColors && findPreference("prerender").state) {
-    prerenderAndSetArtwork(currentData.image, currentData.imageColors, false).then();
+  let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
+  let imageColors = currentData.currentlyPlaying.imageData.imageColors;
+  if (imageUrl && imageColors && findPreference("prerender").state) {
+    prerenderAndSetArtwork(imageUrl, imageColors, false).then();
   }
 }
 
@@ -799,9 +831,9 @@ function setTextColor(rgbText) {
 ///////////////////////////////
 
 function updateProgress(changes, updateProgressBar) {
-  let current = 'timeCurrent' in changes ? changes.timeCurrent : currentData.timeCurrent;
-  let total = 'timeTotal' in changes ? changes.timeTotal : currentData.timeTotal;
-  let paused = 'paused' in changes ? changes.paused : currentData.paused;
+  let current = getChange(changes, "currentlyPlaying.timeCurrent").value;
+  let total = getChange(changes, "currentlyPlaying.timeTotal").value;
+  let paused = getChange(changes, "playbackContext.paused").value;
 
   // Text
   let formattedTimes = formatTime(current, total);
@@ -818,8 +850,10 @@ function updateProgress(changes, updateProgressBar) {
 
   // Title
   let newTitle = "Spotify Big Picture";
-  if (!idle && currentData.artists && currentData.title) {
-    newTitle = `[${formattedCurrentTime} / ${formattedTotalTime}] ${currentData.artists[0]} - ${removeFeaturedArtists(currentData.title)} | ${newTitle}`;
+  let artists = getChange(changes, "currentlyPlaying.artists").value;
+  let title = getChange(changes, "currentlyPlaying.title").value;
+  if (!idle && artists && title) {
+    newTitle = `[${formattedCurrentTime} / ${formattedTotalTime}] ${artists[0]} - ${removeFeaturedArtists(title)} | ${newTitle}`;
   }
   document.title = newTitle;
 
@@ -936,15 +970,17 @@ function clearTimers() {
 let startTime;
 
 function advanceCurrentTime(updateProgressBar) {
-  if (currentData != null && currentData.timeCurrent != null && !currentData.paused) {
+  let timeCurrent = currentData.currentlyPlaying.timeCurrent;
+  let timeTotal = currentData.currentlyPlaying.timeTotal;
+  if (timeCurrent != null && timeTotal != null && !currentData.playbackContext.paused) {
     let now = Date.now();
     let elapsedTime = now - startTime;
     startTime = now;
-    let newTime = currentData.timeCurrent + elapsedTime;
-    if (newTime > currentData.timeTotal && currentData.timeCurrent < currentData.timeTotal) {
+    let newTime = timeCurrent + elapsedTime;
+    if (newTime > timeTotal && timeCurrent < timeTotal) {
       setTimeout(() => singleRequest(), REQUEST_ON_SONG_END_MS);
     }
-    currentData.timeCurrent = Math.min(currentData.timeTotal, newTime);
+    currentData.currentlyPlaying.timeCurrent = Math.min(timeTotal, newTime);
     updateProgress(currentData, updateProgressBar);
   }
 }
@@ -956,7 +992,6 @@ function setIdleModeState(state) {
       idle = true;
       clearTimers();
       showHide(content, false);
-      currentData = {};
     }
   } else {
     idle = false;
