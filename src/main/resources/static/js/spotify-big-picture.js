@@ -387,7 +387,7 @@ function setCorrectTracklistView(changes) {
   let currentId = getChange(changes, "currentlyPlaying.id").value;
   let trackNumber = getChange(changes, "trackData.trackNumber").value;
   let discCount =  getChange(changes, "trackData.discCount").value;
-  let trackCount = listTracks.length;
+  let trackCount = getChange(changes, "trackData.trackCount").value;
   let shuffle = getChange(changes, "playbackContext.shuffle").value;
 
   let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
@@ -696,7 +696,7 @@ const DEFAULT_RGB = {
 };
 
 function changeImage(changes) {
-  return new Promise(async (resolve) => {
+  return new Promise(resolve => {
     let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
     let imageColors = getChange(changes, "currentlyPlaying.imageData.imageColors");
     if (imageUrl.wasChanged || imageColors.wasChanged) {
@@ -713,35 +713,32 @@ function changeImage(changes) {
         let newImage = imageUrl.value;
         let colors = imageColors.value;
         if (!oldImage.includes(newImage)) {
-          await prerenderAndSetArtwork(newImage, colors, true);
+          prerenderAndSetArtwork(newImage, colors)
+            .then(() => resolve());
+        } else {
+          resolve();
         }
       }
     }
-    resolve();
   });
 }
 
-function prerenderAndSetArtwork(newImage, colors, refreshArtwork) {
+function prerenderAndSetArtwork(newImage, colors) {
   return new Promise((resolve) => {
-    loadBackground(newImage, colors)
+    Promise.all([
+      loadArtwork(newImage),
+      loadBackground(newImage, colors)
+    ])
       .then(() => renderAndShow())
-      .then(() => loadArtwork(newImage, refreshArtwork))
       .then(resolve);
   });
 }
 
 
-function loadArtwork(newImage, refreshArtwork) {
+function loadArtwork(newImage) {
   return new Promise((resolve) => {
-    if (!refreshArtwork) {
-      resolve();
-      return;
-    }
     let artwork = document.getElementById("artwork-img");
-    setClass(artwork, "transparent", true);
-    finishAnimations(artwork);
     artwork.onload = () => {
-      setClass(artwork, "transparent", false);
       resolve();
     }
     artwork.src = newImage;
@@ -772,7 +769,6 @@ function loadBackground(newImage, colors) {
   });
 }
 
-const SCREENSHOT_SIZE_FACTOR = 0.5;
 function renderAndShow() {
   return new Promise((resolve) => {
     let backgroundImg = document.getElementById("background-img");
@@ -784,8 +780,8 @@ function renderAndShow() {
     let pngData;
     domtoimage
       .toPng(prerenderCanvas, {
-        width: window.innerWidth * SCREENSHOT_SIZE_FACTOR,
-        height: window.innerHeight * SCREENSHOT_SIZE_FACTOR
+        width: window.innerWidth,
+        height: window.innerHeight
       })
       .then((imgDataBase64) => {
         if (imgDataBase64.length < 10) {
@@ -817,7 +813,7 @@ function refreshBackgroundRender() {
   let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
   let imageColors = currentData.currentlyPlaying.imageData.imageColors;
   if (imageUrl && imageColors && findPreference("prerender").state) {
-    prerenderAndSetArtwork(imageUrl, imageColors, false).then();
+    prerenderAndSetArtwork(imageUrl, imageColors).then();
   }
 }
 
@@ -1081,6 +1077,7 @@ const PREFERENCES = [
     state: true,
     callback: (state) => {
       setClass(document.getElementById("grain"), "show", state);
+      refreshBackgroundRender();
     }
   },
   {
@@ -1424,3 +1421,24 @@ setInterval(() => {
     clock.innerHTML = time;
   }
 }, 1000);
+
+
+///////////////////////////////
+// FPS Counter
+///////////////////////////////
+
+let fps = document.getElementById("fps-counter");
+let fpsStartTime = Date.now();
+let fpsFrame = 0;
+
+function tick() {
+  let time = Date.now();
+  fpsFrame++;
+  if (time - fpsStartTime > 100) {
+    fps.innerHTML = (fpsFrame / ((time - fpsStartTime) / 1000)).toFixed(1);
+    fpsStartTime = time;
+    fpsFrame = 0;
+  }
+  window.requestAnimationFrame(tick);
+}
+tick();

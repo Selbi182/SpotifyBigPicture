@@ -16,7 +16,7 @@
     --margin-main: 8vh;
     --artwork-size: 68vh;
     --default-shadow: 0.5vh 0.5vh 0.5vh #00000044;
-    --blur: 0.5vh;
+    --blur: 1vh;
 }
 
 html, body {
@@ -89,6 +89,15 @@ img:not([src]) {
     opacity: 0.65;
 }
 
+#fps-counter {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 3vh;
+    color: red;
+}
+
 #background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain {
     position: absolute;
     width: 100%;
@@ -107,8 +116,8 @@ img:not([src]) {
     z-index: -99;
     background: black;
     overflow: hidden;
-    width: 50% !important;
-    height: 50% !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 #prerender-canvas.show, #prerender-canvas.no-prerender {
@@ -171,7 +180,7 @@ img:not([src]) {
 }
 
 #grain.show {
-    opacity: max(0.03, calc(var(--intensity) * 0.15));
+    opacity: max(0.06, calc(var(--intensity) * 0.30));
 }
 
 #content {
@@ -194,7 +203,7 @@ img:not([src]) {
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: end;
     position: relative;
     max-height: var(--artwork-size);
 }
@@ -204,6 +213,7 @@ img:not([src]) {
     height: var(--artwork-size);
     filter: drop-shadow(var(--default-shadow));
     overflow: hidden;
+    margin: var(--margin-main);
 }
 
 #artwork-img {
@@ -485,7 +495,7 @@ img:not([src]) {
 }
 
 #info {
-    width: calc(100vw - var(--artwork-size) - (var(--margin-main) * 3));
+    width: calc(100% - var(--artwork-size) - var(--margin-main));
     display: flex;
     flex-direction: column;
     justify-content: space-between;
