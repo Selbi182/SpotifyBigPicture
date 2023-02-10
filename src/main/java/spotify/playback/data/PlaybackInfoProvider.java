@@ -101,7 +101,7 @@ public class PlaybackInfoProvider {
         if (playbackQueue == null && currentlyPlayingContext != null) {
           playbackQueue = createFakePlaybackQueueForFreeUsers(currentlyPlayingContext);
         }
-        if (playbackQueue != null && currentlyPlayingContext != null) {
+        if (playbackQueue != null && playbackQueue.getCurrentlyPlaying() != null && currentlyPlayingContext != null) {
           PlaybackInfo currentPlaybackInfo;
           ModelObjectType type = playbackQueue.getCurrentlyPlaying().getType();
           switch (type) {
@@ -196,9 +196,9 @@ public class PlaybackInfoProvider {
     switch (type) {
       case ALBUM:
         // Album context
-        trackData.setListTracks(contextProvider.getFormattedAlbumTracks());
-        trackData.setTrackCount(contextProvider.getFormattedAlbumTracks().size());
-        trackData.setTotalTime(contextProvider.getTotalTime(contextProvider.getFormattedAlbumTracks()));
+        trackData.setListTracks(contextProvider.getListTracks());
+        trackData.setTrackCount(contextProvider.getTrackCount());
+        trackData.setTotalTime(contextProvider.getTotalTime());
         trackData.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
         trackData.setDiscCount(contextProvider.getTotalDiscCount());
         if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
@@ -207,18 +207,19 @@ public class PlaybackInfoProvider {
         break;
       case PLAYLIST:
         // Playlist context
-        trackData.setListTracks(contextProvider.getFormattedPlaylistTracks());
+        Long playlistTotalTime = contextProvider.getTotalTime();
+        trackData.setListTracks(playlistTotalTime > 0 ? contextProvider.getListTracks() : List.of());
         trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
-        trackData.setTrackCount(contextProvider.getFormattedPlaylistTracks().size());
-        trackData.setTotalTime(contextProvider.getTotalTime(contextProvider.getFormattedPlaylistTracks()));
+        trackData.setTrackCount(contextProvider.getTrackCount());
+        trackData.setTotalTime(playlistTotalTime);
         trackData.setTrackListView(TrackData.ListViewType.PLAYLIST);
         break;
       case ARTIST:
         // Artist top tracks context
-        trackData.setListTracks(contextProvider.getFormattedPlaylistTracks());
+        trackData.setListTracks(contextProvider.getListTracks());
         trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
-        trackData.setTrackCount(contextProvider.getFormattedPlaylistTracks().size());
-        trackData.setTotalTime(contextProvider.getTotalTime(contextProvider.getFormattedPlaylistTracks()));
+        trackData.setTrackCount(contextProvider.getTrackCount());
+        trackData.setTotalTime(contextProvider.getTotalTime());
         break;
       case EPISODE:
         // Podcast context

@@ -201,18 +201,14 @@ function processJson(json) {
       if (currentData.deployTime > 0 && getChange(json, "deployTime").wasChanged) {
         window.location.reload(true);
       } else {
-        setDisplayData(json)
+        changeImage(json)
+          .then(() => setTextData(json))
           .then(() => startTimers());
       }
     } else if (json.type === "DARK_MODE") {
       toggleDarkMode();
     }
   }
-}
-
-async function setDisplayData(changes) {
-  changeImage(changes)
-    .then(() => setTextData(changes));
 }
 
 function getChange(changes, path) {
@@ -292,20 +288,19 @@ function setTextData(changes) {
     let contextMain = document.getElementById("context-main");
     let contextExtra = document.getElementById("context-extra");
 
-    let contextMainContent = convertToTextEmoji(context.value);
-    contextMain.innerHTML = contextMainContent;
+    contextMain.innerHTML = convertToTextEmoji(context.value);
 
     let trackCount = getChange(changes, "trackData.trackCount").value;
     if (trackCount > 0) {
       let trackCountFormatted = numberWithCommas(trackCount);
-      let totalTimeFormatted = formatTimeVerbose(getChange(changes, "trackData.totalTime").value);
-      let lengthInfo = `${trackCountFormatted} track${trackCount !== 1 ? "s" : ""} (${totalTimeFormatted})`;
-      if (contextMainContent.length > 0) {
-        contextExtra.innerHTML = lengthInfo;
-      } else {
-        contextMain.innerHTML = totalTimeFormatted;
-        contextExtra.innerHTML = trackCountFormatted + " track" + (trackCount !== 1 ? "s" : "");
+      let lengthInfo = `${trackCountFormatted} track${trackCount !== 1 ? "s" : ""}`;
+
+      let totalTime = getChange(changes, "trackData.totalTime").value;
+      if (totalTime > 0) {
+        let totalTimeFormatted = formatTimeVerbose(totalTime);
+        lengthInfo += ` (${totalTimeFormatted})`;
       }
+      contextExtra.innerHTML = lengthInfo;
     } else {
       contextExtra.innerHTML = "";
     }
@@ -392,7 +387,7 @@ function setCorrectTracklistView(changes) {
 
   let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
   let titleDisplayed = specialQueue || listViewType !== "ALBUM";
-  let queueMode = specialQueue || listViewType === "QUEUE";
+  let queueMode = specialQueue || listViewType === "QUEUE" || listTracks.length === 0;
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   showHide(titleContainer, titleDisplayed);
@@ -479,7 +474,7 @@ function trackListEquals(trackList1, trackList2) {
 
 function balanceTextClamp(elem) {
   // balanceText doesn't take line-clamping into account, unfortunately
-  elem.style.setProperty("-webkit-line-clamp", "initial");
+  elem.style.setProperty("-webkit-line-clamp", "initial", "important");
   balanceText(elem);
   elem.style.removeProperty("-webkit-line-clamp");
 }
@@ -695,30 +690,33 @@ const DEFAULT_RGB = {
   b: 255
 };
 
+const DEFAULT_IMAGE_DATA = {
+  imageUrl: DEFAULT_IMAGE,
+  imageColors: {
+    primary: DEFAULT_RGB,
+    secondary: DEFAULT_RGB,
+    averageBrightness: 1.0
+  }
+}
+
 function changeImage(changes) {
   return new Promise(resolve => {
     let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
-    let imageColors = getChange(changes, "currentlyPlaying.imageData.imageColors");
-    if (imageUrl.wasChanged || imageColors.wasChanged) {
+    if (imageUrl.wasChanged) {
       if (imageUrl.value === "BLANK") {
-        imageUrl.value = DEFAULT_IMAGE;
-        imageColors.value = {
-          primary: DEFAULT_RGB,
-          secondary: DEFAULT_RGB,
-          averageBrightness: 1.0
-        };
+        changes.currentlyPlaying.imageData = DEFAULT_IMAGE_DATA;
       }
-      if (imageUrl.wasChanged) {
-        let oldImage = document.getElementById("artwork-img").src;
-        let newImage = imageUrl.value;
-        let colors = imageColors.value;
-        if (!oldImage.includes(newImage)) {
-          prerenderAndSetArtwork(newImage, colors)
-            .then(() => resolve());
-        } else {
-          resolve();
-        }
+      let oldImage = document.getElementById("artwork-img").src;
+      let newImage = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
+      let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
+      if (!oldImage.includes(newImage)) {
+        prerenderAndSetArtwork(newImage, colors)
+          .then(() => resolve());
+      } else {
+        resolve();
       }
+    } else {
+      resolve();
     }
   });
 }

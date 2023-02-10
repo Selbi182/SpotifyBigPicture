@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.springframework.boot.Banner;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
@@ -39,29 +40,28 @@ import spotify.util.data.AlbumTrackPair;
 public class ContextProvider {
   public static final String QUEUE_PREFIX = "Queue >> ";
 
-  private static final int MAX_IMMEDIATE_TRACKS = 50;
-
   private final SpotifyApi spotifyApi;
   private final UserService userService;
+
+  private CountryCode market;
 
   private String previousContextString;
   private Album currentContextAlbum;
   private List<TrackSimplified> currentContextAlbumTracks;
-  private List<TrackData.ListTrack> formattedAlbumTracks;
-  private List<TrackData.ListTrack> formattedPlaylistTracks;
+  private List<TrackData.ListTrack> listTracks;
   private Integer currentlyPlayingAlbumTrackNumber;
-  private CountryCode market;
+  private Integer trackCount;
+  private Long totalTrackDuration;
 
   ContextProvider(SpotifyApi spotifyApi, UserService userService) {
     this.spotifyApi = spotifyApi;
     this.userService = userService;
-    this.formattedAlbumTracks = new ArrayList<>();
-    this.formattedPlaylistTracks = new ArrayList<>();
+    this.listTracks = new ArrayList<>();
   }
 
   /**
    * Get the name of the currently playing context (either a playlist name, an
-   * artist, or an album). Only works on Tracks.
+   * artist, or an album).
    *
    * @param info     the context info
    * @param previous the previous info to compare to
@@ -96,12 +96,8 @@ public class ContextProvider {
     }
   }
 
-  public List<TrackData.ListTrack> getFormattedAlbumTracks() {
-    return formattedAlbumTracks;
-  }
-
-  public List<TrackData.ListTrack> getFormattedPlaylistTracks() {
-    return formattedPlaylistTracks;
+  public List<TrackData.ListTrack> getListTracks() {
+    return listTracks;
   }
 
   public Integer getCurrentlyPlayingAlbumTrackNumber() {
@@ -112,10 +108,26 @@ public class ContextProvider {
     return currentContextAlbumTracks.stream().mapToInt(TrackSimplified::getDiscNumber).max().orElse(1);
   }
 
+  public Integer getTrackCount() {
+    return trackCount;
+  }
+
+  public Long getTotalTime() {
+    return totalTrackDuration;
+  }
+
+  private void setTrackCount(Integer trackCount) {
+    this.trackCount = trackCount;
+  }
+
+  private void setTotalTrackDuration(List<TrackData.ListTrack> listTracks) {
+    this.totalTrackDuration = listTracks.stream().mapToLong(TrackData.ListTrack::getLength).sum();
+  }
+
   public Integer getCurrentlyPlayingPlaylistTrackNumber(CurrentlyPlayingContext context) {
     IPlaylistItem item = context.getItem();
     String id = item.getId();
-    return Iterables.indexOf(formattedPlaylistTracks, t -> {
+    return Iterables.indexOf(listTracks, t -> {
       if (t != null) {
         if (t.getId() != null) {
           return t.getId().equals(id);
@@ -138,14 +150,13 @@ public class ContextProvider {
     if (force || didContextChange(context)) {
       String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
       Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
-      Track[] artistTopTracks = SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, getMarketOfCurrentUser()));
 
-      List<TrackData.ListTrack> listTracks = new ArrayList<>();
-      for (Track track : artistTopTracks) {
-        TrackData.ListTrack lt = TrackData.ListTrack.fromPlaylistItem(track);
-        listTracks.add(lt);
-      }
-      this.formattedPlaylistTracks = listTracks;
+      this.listTracks = Arrays.stream(SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, getMarketOfCurrentUser())))
+          .map(TrackData.ListTrack::fromPlaylistItem)
+          .collect(Collectors.toList());
+
+      setTrackCount(this.listTracks.size());
+      setTotalTrackDuration(this.listTracks);
 
       return "ARTIST TOP TRACKS: " + contextArtist.getName();
     }
@@ -157,16 +168,18 @@ public class ContextProvider {
       String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
       Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 
-      List<PlaylistTrack> playlistTracks = new ArrayList<>(Arrays.asList(contextPlaylist.getTracks().getItems()));
-      playlistTracks.addAll(SpotifyCall.executePaging(spotifyApi.getPlaylistsItems(playlistId).offset(100)));
-      List<TrackData.ListTrack> listTracks = new ArrayList<>();
-      for (PlaylistTrack playlistTrack : playlistTracks) {
-        Track track = (Track) playlistTrack.getTrack();
-        TrackData.ListTrack lt = TrackData.ListTrack.fromPlaylistItem(track);
-        listTracks.add(lt);
-      }
-      this.formattedPlaylistTracks = listTracks;
-      
+      // Limit to 200 for performance reasons
+      PlaylistTrack[] firstHalf = contextPlaylist.getTracks().getItems();
+      PlaylistTrack[] secondHalf = SpotifyCall.execute(spotifyApi.getPlaylistsItems(playlistId).offset(firstHalf.length)).getItems();
+      this.listTracks = Stream.concat(Arrays.stream(firstHalf), Arrays.stream(secondHalf))
+          .map(PlaylistTrack::getTrack)
+          .map(TrackData.ListTrack::fromPlaylistItem)
+          .collect(Collectors.toList());
+
+      Integer realTrackCount = contextPlaylist.getTracks().getTotal();
+      setTrackCount(realTrackCount);
+      setTotalTrackDuration(realTrackCount <= this.listTracks.size() ? this.listTracks : List.of());
+
       return contextPlaylist.getName();
     }
     return null;
@@ -185,21 +198,22 @@ public class ContextProvider {
 
     if (force || didContextChange(context)) {
       currentContextAlbum = SpotifyCall.execute(spotifyApi.getAlbum(albumId));
-      if (currentContextAlbum.getTracks().getTotal() > MAX_IMMEDIATE_TRACKS) {
-        currentContextAlbumTracks = SpotifyCall.executePaging(spotifyApi.getAlbumsTracks(albumId));
-      } else {
-        currentContextAlbumTracks = Arrays.asList(currentContextAlbum.getTracks().getItems());
+      currentContextAlbumTracks = Arrays.asList(currentContextAlbum.getTracks().getItems());
+
+      if (currentContextAlbum.getTracks().getNext() != null) {
+        List<TrackSimplified> c = SpotifyCall.executePaging(spotifyApi.getAlbumsTracks(albumId).offset(currentContextAlbumTracks.size()));
+        currentContextAlbumTracks = Stream.concat(currentContextAlbumTracks.stream(), c.stream()).collect(Collectors.toList());
       }
 
-      formattedAlbumTracks = new ArrayList<>();
-      if (track != null) {
-        for (TrackSimplified ts : currentContextAlbumTracks) {
-          TrackData.ListTrack e = TrackData.ListTrack.fromPlaylistItem(BotUtils.asTrack(ts));
-          formattedAlbumTracks.add(e);
-        }
-      }
+      this.listTracks = currentContextAlbumTracks.stream()
+          .map(BotUtils::asTrack)
+          .map(TrackData.ListTrack::fromPlaylistItem)
+          .collect(Collectors.toList());
+
+      setTrackCount(this.listTracks.size());
+      setTotalTrackDuration(this.listTracks);
     }
-    String contextString = getReleaseTypeString() + ": " + currentContextAlbum.getArtists()[0].getName() + " \u2013 " + currentContextAlbum.getName();
+    String contextString = getReleaseTypeString() + ": " + BotUtils.getFirstArtistName(currentContextAlbum) + " \u2013 " + currentContextAlbum.getName();
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
@@ -213,6 +227,15 @@ public class ContextProvider {
     return QUEUE_PREFIX + contextString;
   }
 
+  private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {
+    Context context = info.getContext();
+    String showId = BotUtils.getIdFromUri(context.getUri());
+    if (force || didContextChange(context)) {
+      Show show = SpotifyCall.execute(spotifyApi.getShow(showId));
+      return "PODCAST: " + show.getName();
+    }
+    return null;
+  }
 
   private String getReleaseTypeString() {
     if (currentContextAlbum.getAlbumType() == AlbumType.SINGLE) {
@@ -222,15 +245,6 @@ public class ContextProvider {
       }
     }
     return currentContextAlbum.getAlbumType().toString();
-  }
-  private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {
-    Context context = info.getContext();
-    String showId = BotUtils.getIdFromUri(context.getUri());
-    if (force || didContextChange(context)) {
-      Show show = SpotifyCall.execute(spotifyApi.getShow(showId));
-      return "PODCAST: " + show.getName();
-    }
-    return null;
   }
 
   private boolean didContextChange(Context context) {
@@ -249,9 +263,5 @@ public class ContextProvider {
       }
     }
     return this.market;
-  }
-
-  public Long getTotalTime(List<TrackData.ListTrack> listTracks) {
-    return listTracks.stream().mapToLong(TrackData.ListTrack::getLength).sum();
   }
 }

@@ -349,7 +349,7 @@ img:not([src]) {
 }
 
 #description {
-    text-align: center;
+    text-align: justify;
     margin-bottom: 3vh;
     -webkit-line-clamp: 10 !important;
 }
