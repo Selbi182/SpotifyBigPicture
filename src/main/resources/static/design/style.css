@@ -28,7 +28,7 @@ html, body {
     width: 100%;
     height: 100%;
     font-size: 2vh;
-    line-height: 1.135;
+    line-height: 1.3;
     user-select: none;
     word-break: break-word;
 }
@@ -98,7 +98,11 @@ img:not([src]) {
     color: red;
 }
 
-#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain {
+#main.blur > div {
+    filter: blur(var(--blur));
+}
+
+#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain, #vignette {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -183,6 +187,16 @@ img:not([src]) {
     opacity: max(0.06, calc(var(--intensity) * 0.30));
 }
 
+#vignette {
+    --vignette-color: #00000080;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    background: linear-gradient(to bottom, var(--vignette-color) 0%, transparent 25%, transparent 75%, var(--vignette-color) 100%);
+}
+
 #content {
     display: flex;
     flex-direction: column;
@@ -192,10 +206,6 @@ img:not([src]) {
     position: absolute;
     padding: var(--margin-main);
     gap: var(--margin-main);
-}
-
-#content.blur {
-    filter: blur(var(--blur));
 }
 
 #content-top {
@@ -233,13 +243,31 @@ img:not([src]) {
 
 #meta-left {
     flex: 1;
-    text-align: right;
+    text-align: left;
     display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
+    flex-direction: row;
+    justify-content: start;
+    gap: 1vh;
 }
 #meta-left.hide {
     opacity: 0;
+}
+
+#playlist-thumbnail {
+    width: auto;
+    height: 6vh;
+    box-shadow: 0.2vh 0.2vh 0.5vh #00000044;
+    border-radius: 1vh;
+}
+
+#playlist-thumbnail[src=""] {
+    display: none;
+}
+
+#context {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 #context-main {

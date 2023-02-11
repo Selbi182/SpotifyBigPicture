@@ -5,6 +5,12 @@ import se.michaelthelin.spotify.model_objects.specification.Track;
 public class PlaybackInfoUtils {
 
   /**
+   * Used in cases where the interface should explicitly hide a field due to the absence of data.
+   * This is needed because null fields are removed during a web transfer.
+   */
+  public static final String BLANK = "BLANK";
+
+  /**
    * Get the year of the currently playing track's release date (which is in ISO format,
    * so it's always the first four characters).
    *

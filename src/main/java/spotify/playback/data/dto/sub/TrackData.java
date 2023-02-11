@@ -35,6 +35,8 @@ public class TrackData implements BigPictureInclude {
   private List<ListTrack> listTracks;
   private List<ListTrack> queue;
 
+  private ImageData nextImageData;
+
   public Integer getTrackNumber() {
     return trackNumber;
   }
@@ -91,6 +93,14 @@ public class TrackData implements BigPictureInclude {
     this.queue = queue;
   }
 
+  public ImageData getNextImageData() {
+    return nextImageData;
+  }
+
+  public void setNextImageData(ImageData nextImageData) {
+    this.nextImageData = nextImageData;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o)
@@ -99,12 +109,13 @@ public class TrackData implements BigPictureInclude {
       return false;
     TrackData trackData = (TrackData) o;
     return Objects.equal(trackNumber, trackData.trackNumber) && Objects.equal(discCount, trackData.discCount) && trackListView == trackData.trackListView && Objects.equal(trackCount,
-        trackData.trackCount) && Objects.equal(totalTime, trackData.totalTime) && Objects.equal(listTracks, trackData.listTracks) && Objects.equal(queue, trackData.queue);
+        trackData.trackCount) && Objects.equal(totalTime, trackData.totalTime) && Objects.equal(listTracks, trackData.listTracks) && Objects.equal(queue, trackData.queue)
+        && Objects.equal(nextImageData, trackData.nextImageData);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(trackNumber, discCount, trackListView, trackCount, totalTime, listTracks, queue);
+    return Objects.hashCode(trackNumber, discCount, trackListView, trackCount, totalTime, listTracks, queue, nextImageData);
   }
 
   @JsonInclude(Include.NON_NULL)

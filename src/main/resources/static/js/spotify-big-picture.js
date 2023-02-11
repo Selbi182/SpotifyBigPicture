@@ -34,7 +34,23 @@ let currentData = {
     totalTime: 0,
     listTracks: [],
     queue: [],
-    trackListView: ""
+    trackListView: "",
+    nextImageData: {
+      imageUrl: "",
+      imageColors: {
+        averageBrightness: 0.0,
+        primary: {
+          r: 0,
+          g: 0,
+          b: 0
+        },
+        secondary: {
+          r: 0,
+          g: 0,
+          b: 0
+        }
+      }
+    }
   },
   playbackContext: {
     context: "",
@@ -42,7 +58,8 @@ let currentData = {
     paused: true,
     repeat: "",
     shuffle: false,
-    volume: -1
+    volume: -1,
+    playlistImageUrl: ""
   }
 };
 
@@ -194,6 +211,8 @@ function createHeartbeatTimeout() {
 // MAIN DISPLAY STUFF
 ///////////////////////////////
 
+const BLANK = "BLANK";
+
 function processJson(json) {
   if (json && json.type !== "HEARTBEAT" && json.type !== "EMPTY") {
     console.info(json);
@@ -276,7 +295,7 @@ function setTextData(changes) {
   let description = getChange(changes, "currentlyPlaying.description");
   if (description.wasChanged) {
     let descriptionContainer = document.getElementById("description");
-    let isPodcast = description.value !== "BLANK";
+    let isPodcast = description.value !== BLANK;
     descriptionContainer.innerHTML = isPodcast ? description.value : "";
     balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
@@ -288,8 +307,10 @@ function setTextData(changes) {
     let contextMain = document.getElementById("context-main");
     let contextExtra = document.getElementById("context-extra");
 
+    // Context name
     contextMain.innerHTML = convertToTextEmoji(context.value);
 
+    // Track count / total duration
     let trackCount = getChange(changes, "trackData.trackCount").value;
     if (trackCount > 0) {
       let trackCountFormatted = numberWithCommas(trackCount);
@@ -303,6 +324,16 @@ function setTextData(changes) {
       contextExtra.innerHTML = lengthInfo;
     } else {
       contextExtra.innerHTML = "";
+    }
+
+    // Thumbnail
+    let playlistThumbnailContainer = document.getElementById("playlist-thumbnail");
+    let playlistImageUrl = getChange(changes, "playbackContext.playlistImageUrl").value;
+    if (playlistImageUrl === BLANK) {
+      playlistThumbnailContainer.src = "";
+    } else {
+      playlistThumbnailContainer.src = playlistImageUrl;
+      fadeIn(playlistThumbnailContainer);
     }
 
     let contextContainer = document.getElementById("context");
@@ -699,11 +730,13 @@ const DEFAULT_IMAGE_DATA = {
   }
 }
 
+// TODO prerender nextImageData
+
 function changeImage(changes) {
   return new Promise(resolve => {
     let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
     if (imageUrl.wasChanged) {
-      if (imageUrl.value === "BLANK") {
+      if (imageUrl.value === BLANK) {
         changes.currentlyPlaying.imageData = DEFAULT_IMAGE_DATA;
       }
       let oldImage = document.getElementById("artwork-img").src;
@@ -1390,9 +1423,9 @@ function initSettingsMouseMove() {
 function toggleSettingsMenu() {
   settingsVisible = !settingsVisible;
   let settingsWrapper = document.getElementById("settings-wrapper");
-  let content = document.getElementById("content");
+  let mainBody = document.getElementById("main");
   setClass(settingsWrapper, "show", settingsVisible);
-  setClass(content, "blur", settingsVisible);
+  setClass(mainBody, "blur", settingsVisible);
 }
 
 

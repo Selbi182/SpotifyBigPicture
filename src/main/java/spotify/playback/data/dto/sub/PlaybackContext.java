@@ -14,6 +14,7 @@ public class PlaybackContext implements BigPictureInclude {
   private Integer volume;
   private String context;
   private String device;
+  private String playlistImageUrl;
 
   public Boolean getPaused() {
     return paused;
@@ -63,6 +64,14 @@ public class PlaybackContext implements BigPictureInclude {
     this.device = device;
   }
 
+  public String getPlaylistImageUrl() {
+    return playlistImageUrl;
+  }
+
+  public void setPlaylistImageUrl(String playlistImageUrl) {
+    this.playlistImageUrl = playlistImageUrl;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o)
@@ -71,11 +80,11 @@ public class PlaybackContext implements BigPictureInclude {
       return false;
     PlaybackContext that = (PlaybackContext) o;
     return Objects.equal(paused, that.paused) && Objects.equal(shuffle, that.shuffle) && Objects.equal(repeat, that.repeat) && Objects.equal(volume, that.volume)
-        && Objects.equal(context, that.context) && Objects.equal(device, that.device);
+        && Objects.equal(context, that.context) && Objects.equal(device, that.device) && Objects.equal(playlistImageUrl, that.playlistImageUrl);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(paused, shuffle, repeat, volume, context, device);
+    return Objects.hashCode(paused, shuffle, repeat, volume, context, device, playlistImageUrl);
   }
 }

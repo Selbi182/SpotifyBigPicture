@@ -22,6 +22,7 @@ import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.Context;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
+import se.michaelthelin.spotify.model_objects.specification.Image;
 import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Show;
@@ -32,6 +33,7 @@ import spotify.api.SpotifyCall;
 import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.sub.TrackData;
 import spotify.playback.data.help.PlaybackInfoConstants;
+import spotify.playback.data.help.PlaybackInfoUtils;
 import spotify.services.UserService;
 import spotify.util.BotUtils;
 import spotify.util.data.AlbumTrackPair;
@@ -52,6 +54,7 @@ public class ContextProvider {
   private Integer currentlyPlayingAlbumTrackNumber;
   private Integer trackCount;
   private Long totalTrackDuration;
+  private String playlistImageUrl;
 
   ContextProvider(SpotifyApi spotifyApi, UserService userService) {
     this.spotifyApi = spotifyApi;
@@ -116,6 +119,10 @@ public class ContextProvider {
     return totalTrackDuration;
   }
 
+  public String getPlaylistImageUrl() {
+    return playlistImageUrl;
+  }
+
   private void setTrackCount(Integer trackCount) {
     this.trackCount = trackCount;
   }
@@ -167,6 +174,10 @@ public class ContextProvider {
     if (force || didContextChange(context)) {
       String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
       Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
+
+      Image[] playlistImages = contextPlaylist.getImages();
+      String largestImage = BotUtils.findLargestImage(playlistImages);
+      this.playlistImageUrl = largestImage != null ? largestImage : PlaybackInfoUtils.BLANK;
 
       // Limit to 200 for performance reasons
       PlaylistTrack[] firstHalf = contextPlaylist.getTracks().getItems();

@@ -22,6 +22,7 @@ import spotify.api.SpotifyCall;
 import spotify.api.events.SpotifyApiLoggedInEvent;
 import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.sub.CurrentlyPlaying;
+import spotify.playback.data.dto.sub.ImageData;
 import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
 import spotify.playback.data.help.PlaybackInfoUtils;
@@ -164,7 +165,7 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setTimeCurrent(context.getProgress_ms());
     currentlyPlaying.setTimeTotal(currentTrack.getDurationMs());
 
-    CurrentlyPlaying.ImageData imageData = currentlyPlaying.getImageData();
+    ImageData imageData = currentlyPlaying.getImageData();
     String artworkUrl = artworkUrlProvider.findArtworkUrl(currentTrack);
     if (artworkUrl != null && !artworkUrl.isEmpty()) {
       imageData.setImageUrl(artworkUrl);
@@ -180,6 +181,7 @@ public class PlaybackInfoProvider {
     playbackContext.setVolume(context.getDevice().getVolume_percent());
     playbackContext.setContext(contextProvider.findContextName(context, previous));
     playbackContext.setDevice(context.getDevice().getName());
+    playbackContext.setPlaylistImageUrl(PlaybackInfoUtils.BLANK);
 
     // TrackData
     TrackData trackData = playbackInfo.getTrackData();
@@ -213,6 +215,7 @@ public class PlaybackInfoProvider {
         trackData.setTrackCount(contextProvider.getTrackCount());
         trackData.setTotalTime(playlistTotalTime);
         trackData.setTrackListView(TrackData.ListViewType.PLAYLIST);
+        playbackContext.setPlaylistImageUrl(contextProvider.getPlaylistImageUrl());
         break;
       case ARTIST:
         // Artist top tracks context
@@ -233,10 +236,23 @@ public class PlaybackInfoProvider {
       trackData.setListTracks(List.of());
     }
 
-    List<TrackData.ListTrack> queue = playbackQueue.getQueue().stream()
+    List<IPlaylistItem> playbackQueueQueue = playbackQueue.getQueue();
+    List<TrackData.ListTrack> queue = playbackQueueQueue.stream()
         .map(TrackData.ListTrack::fromPlaylistItem)
         .collect(Collectors.toList());
     trackData.setQueue(queue);
+
+    if (playbackQueueQueue.size() > 1) {
+      IPlaylistItem nextSong = playbackQueueQueue.get(1);
+      ImageData nextImageData = new ImageData();
+      String nextArtworkUrl = artworkUrlProvider.findArtworkUrl(nextSong);
+      if (nextArtworkUrl != null && !nextArtworkUrl.isEmpty()) {
+        nextImageData.setImageUrl(nextArtworkUrl);
+        ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(nextArtworkUrl);
+        nextImageData.setImageColors(colors);
+      }
+      trackData.setNextImageData(nextImageData);
+    }
 
     return playbackInfo;
   }
@@ -251,7 +267,7 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setTitle(track.getName());
     currentlyPlaying.setAlbum(track.getAlbum().getName());
     currentlyPlaying.setYear(PlaybackInfoUtils.findReleaseYear(track));
-    currentlyPlaying.setDescription("BLANK");
+    currentlyPlaying.setDescription(PlaybackInfoUtils.BLANK);
 
     return pInfo;
   }
