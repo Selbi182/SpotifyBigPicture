@@ -3,7 +3,6 @@ package spotify.playback.data.visual;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,6 +51,7 @@ public class ContextProvider {
   private List<TrackSimplified> currentContextAlbumTracks;
   private List<TrackData.ListTrack> listTracks;
   private Integer currentlyPlayingAlbumTrackNumber;
+  private Integer currentlyPlayingAlbumTrackDiscNumber;
   private Integer trackCount;
   private Long totalTrackDuration;
   private String playlistImageUrl;
@@ -105,6 +105,10 @@ public class ContextProvider {
 
   public Integer getCurrentlyPlayingAlbumTrackNumber() {
     return currentlyPlayingAlbumTrackNumber;
+  }
+
+  public Integer getCurrentlyPlayingAlbumTrackDiscNumber() {
+    return currentlyPlayingAlbumTrackDiscNumber;
   }
 
   public Integer getTotalDiscCount() {
@@ -228,9 +232,17 @@ public class ContextProvider {
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
-      this.currentlyPlayingAlbumTrackNumber = Iterables.indexOf(currentContextAlbumTracks, t -> Objects.requireNonNull(t).getId().equals(trackId)) + 1;
-      if (this.currentlyPlayingAlbumTrackNumber > 0) {
-        return contextString;
+      TrackSimplified currentTrack = currentContextAlbumTracks.stream()
+          .filter(t -> t.getId().equals(trackId))
+          .findFirst()
+          .orElse(null);
+
+      if (currentTrack != null) {
+        this.currentlyPlayingAlbumTrackNumber = currentContextAlbumTracks.indexOf(currentTrack) + 1;
+        this.currentlyPlayingAlbumTrackDiscNumber = currentTrack.getDiscNumber();
+        if (this.currentlyPlayingAlbumTrackNumber > 0) {
+          return contextString;
+        }
       }
     }
 

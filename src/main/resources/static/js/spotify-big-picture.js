@@ -29,7 +29,8 @@ let currentData = {
     }
   },
   trackData: {
-    discCount: 0,
+    discNumber: 0,
+    totalDiscCount: 0,
     trackCount: 0,
     totalTime: 0,
     listTracks: [],
@@ -222,7 +223,7 @@ function processJson(json) {
       } else {
         changeImage(json)
           .then(() => setTextData(json))
-          .then(() => startTimers());
+          .then(() => refreshTimers());
       }
     } else if (json.type === "DARK_MODE") {
       toggleDarkMode();
@@ -297,7 +298,6 @@ function setTextData(changes) {
     let descriptionContainer = document.getElementById("description");
     let isPodcast = description.value !== BLANK;
     descriptionContainer.innerHTML = isPodcast ? description.value : "";
-    balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
   }
 
@@ -412,13 +412,13 @@ function setCorrectTracklistView(changes) {
   let listTracks = getChange(changes, "trackData.listTracks").value;
   let currentId = getChange(changes, "currentlyPlaying.id").value;
   let trackNumber = getChange(changes, "trackData.trackNumber").value;
-  let discCount =  getChange(changes, "trackData.discCount").value;
-  let trackCount = getChange(changes, "trackData.trackCount").value;
+  let currentDiscNumber =  getChange(changes, "trackData.discNumber").value;
+  let totalDiscCount =  getChange(changes, "trackData.totalDiscCount").value;
   let shuffle = getChange(changes, "playbackContext.shuffle").value;
 
   let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
   let titleDisplayed = specialQueue || listViewType !== "ALBUM";
-  let queueMode = specialQueue || listViewType === "QUEUE" || listTracks.length === 0;
+  let queueMode = specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0;
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   showHide(titleContainer, titleDisplayed);
@@ -427,14 +427,7 @@ function setCorrectTracklistView(changes) {
 
   let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
   setClass(trackListContainer, "show-tracklist-numbers", displayTrackNumbers)
-  setClass(trackListContainer, "show-discs", !queueMode && discCount > 1)
-
-  let displayTrackCount = titleDisplayed ? trackCount + 3 : trackCount;
-  trackListContainer.style.setProperty("--track-count", displayTrackCount.toString());
-  window.requestAnimationFrame(() => {
-    let isOverflowing = trackListContainer.scrollHeight > trackListContainer.clientHeight;
-    setClass(trackListContainer, "fit", isOverflowing);
-  });
+  setClass(trackListContainer, "show-discs", !queueMode && totalDiscCount > 1)
 
   ///////////
 
@@ -471,6 +464,11 @@ function setCorrectTracklistView(changes) {
       let isMultiDisc = listTracks.find(t => 'discNumber' in t && t.discNumber > 1);
       printTrackList(listTracks, listViewType === "ALBUM" && isMultiDisc && !shuffle);
     }
+
+    trackListContainer.style.setProperty("--scale", "0");
+    finishAnimations(trackListContainer);
+    scaleTrackList(trackListContainer, 0);
+
   }
 
   let updateHighlightedTrack = (refreshPrintedList) || getChange(changes, "trackData.trackNumber").wasChanged;
@@ -479,7 +477,7 @@ function setCorrectTracklistView(changes) {
     if (queueMode) {
       updateScrollPositions(1);
     } else {
-      let targetTrackNumber = trackNumber + (discCount > 1 ? discCount : 0);
+      let targetTrackNumber = trackNumber + (totalDiscCount > 1 ? currentDiscNumber : 0);
       updateScrollPositions(targetTrackNumber);
     }
   }
@@ -501,6 +499,22 @@ function trackListEquals(trackList1, trackList2) {
     }
   }
   return true;
+}
+
+function scaleTrackList(trackListContainer, scaleIteration) {
+  window.requestAnimationFrame(() => {
+    let visibleHeight = trackListContainer.offsetHeight;
+    let realHeight = trackListContainer.scrollHeight;
+
+    if (scaleIteration <= 10) {
+      if (realHeight > visibleHeight) {
+        trackListContainer.style.setProperty("--scale", (Math.max(0, scaleIteration - 1)).toString());
+      } else {
+        trackListContainer.style.setProperty("--scale", scaleIteration.toString());
+        scaleTrackList(trackListContainer, scaleIteration + 1)
+      }
+    }
+  });
 }
 
 function balanceTextClamp(elem) {
@@ -731,6 +745,8 @@ const DEFAULT_IMAGE_DATA = {
 }
 
 // TODO prerender nextImageData
+
+let prerenderCache = {};
 
 function changeImage(changes) {
   return new Promise(resolve => {
@@ -979,7 +995,7 @@ const REQUEST_ON_SONG_END_MS = 2 * 1000;
 let autoTimer;
 let idleTimeout;
 
-function startTimers() {
+function refreshTimers() {
   clearTimers();
 
   startTime = Date.now();

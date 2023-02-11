@@ -28,7 +28,8 @@ public class TrackData implements BigPictureInclude {
   }
 
   private Integer trackNumber;
-  private Integer discCount;
+  private Integer discNumber;
+  private Integer totalDiscCount;
   private ListViewType trackListView;
   private Integer trackCount;
   private Long totalTime;
@@ -45,12 +46,20 @@ public class TrackData implements BigPictureInclude {
     this.trackNumber = trackNumber;
   }
 
-  public Integer getDiscCount() {
-    return discCount;
+  public Integer getDiscNumber() {
+    return discNumber;
   }
 
-  public void setDiscCount(Integer discCount) {
-    this.discCount = discCount;
+  public void setDiscNumber(Integer discNumber) {
+    this.discNumber = discNumber;
+  }
+
+  public Integer getTotalDiscCount() {
+    return totalDiscCount;
+  }
+
+  public void setTotalDiscCount(Integer totalDiscCount) {
+    this.totalDiscCount = totalDiscCount;
   }
 
   public ListViewType getTrackListView() {
@@ -108,14 +117,14 @@ public class TrackData implements BigPictureInclude {
     if (!(o instanceof TrackData))
       return false;
     TrackData trackData = (TrackData) o;
-    return Objects.equal(trackNumber, trackData.trackNumber) && Objects.equal(discCount, trackData.discCount) && trackListView == trackData.trackListView && Objects.equal(trackCount,
-        trackData.trackCount) && Objects.equal(totalTime, trackData.totalTime) && Objects.equal(listTracks, trackData.listTracks) && Objects.equal(queue, trackData.queue)
-        && Objects.equal(nextImageData, trackData.nextImageData);
+    return Objects.equal(trackNumber, trackData.trackNumber) && Objects.equal(discNumber, trackData.discNumber) && Objects.equal(totalDiscCount, trackData.totalDiscCount)
+        && trackListView == trackData.trackListView && Objects.equal(trackCount, trackData.trackCount) && Objects.equal(totalTime, trackData.totalTime) && Objects.equal(listTracks,
+        trackData.listTracks) && Objects.equal(queue, trackData.queue) && Objects.equal(nextImageData, trackData.nextImageData);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(trackNumber, discCount, trackListView, trackCount, totalTime, listTracks, queue, nextImageData);
+    return Objects.hashCode(trackNumber, discNumber, totalDiscCount, trackListView, trackCount, totalTime, listTracks, queue, nextImageData);
   }
 
   @JsonInclude(Include.NON_NULL)

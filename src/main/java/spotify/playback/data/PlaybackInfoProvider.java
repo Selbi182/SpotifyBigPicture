@@ -188,8 +188,9 @@ public class PlaybackInfoProvider {
     trackData.setListTracks(List.of(TrackData.ListTrack.fromPlaylistItem(currentTrack)));
     trackData.setTrackNumber(1);
     trackData.setTrackCount(1);
-    trackData.setTotalTime(1L);
-    trackData.setDiscCount(1);
+    trackData.setTotalTime(0L);
+    trackData.setDiscNumber(1);
+    trackData.setTotalDiscCount(1);
     trackData.setTrackListView(TrackData.ListViewType.QUEUE);
     ModelObjectType type = context.getContext() != null ? context.getContext().getType() : null;
     if (type == null) {
@@ -202,7 +203,8 @@ public class PlaybackInfoProvider {
         trackData.setTrackCount(contextProvider.getTrackCount());
         trackData.setTotalTime(contextProvider.getTotalTime());
         trackData.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
-        trackData.setDiscCount(contextProvider.getTotalDiscCount());
+        trackData.setDiscNumber(contextProvider.getCurrentlyPlayingAlbumTrackDiscNumber());
+        trackData.setTotalDiscCount(contextProvider.getTotalDiscCount());
         if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
           trackData.setTrackListView(TrackData.ListViewType.ALBUM);
         }
