@@ -234,6 +234,10 @@ img:not([src]) {
     margin: var(--margin-main);
 }
 
+#artwork.hide {
+    display: none;
+}
+
 #artwork-img {
     position: absolute;
     width: auto;
@@ -539,6 +543,10 @@ div#description {
     gap: 4vh;
 }
 
+#info.full-width {
+    width: 100%;
+}
+
 #top-info {
     display: flex;
     flex: 0;
@@ -713,6 +721,10 @@ div#device {
 
 #bottom-right.stretch {
     justify-content: space-between;
+}
+
+#bottom-right.hide {
+    opacity: 0;
 }
 
 #time {

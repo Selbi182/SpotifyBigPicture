@@ -49,6 +49,7 @@ Explanation of each setting (the letter in the brackets denotes the hotkey):
 
 * **Full Screen (f):** Toggle full-screen mode. You can also double-click anywhere on the screen to achieve the same
 * **Queue (q):** If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song will be displayed
+* **Artwork (a):** If enabled, the album artwork will be displayed on the left-hand side of the interface. Otherwise, hide it center the song info
 * **Background Artwork (b):** If enabled, the album artwork will be re-used for the background as a blurry picture. Otherwise, a simple colored gradient background will be used
 * **Black Background (k):** If enabled, the background stays permanently black and overrides any other background-related settings
 * **Colored Text (c):** If enabled, the texts, progress bar, and icons will be colored in with the most dominant color of the currently playing track's album cover art. Otherwise, plain white will be used for everything
@@ -56,6 +57,7 @@ Explanation of each setting (the letter in the brackets denotes the hotkey):
 * **Strip Titles (s):** If enabled, all album and track titles will be stripped off anything that could be considered too verbose, such as "Remastered Version" or "Anniversary Edition". Otherwise, keep the titles untouched
 * **Grain (g):** If enabled, adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images. Otherwise, keep the background as it is. (This feature only works when *Extended Background Rendering* is enabled)
 * **Playlist Info (p):** If enabled, displays the playlist name along with its track count and duration at the top right of the page. Otherwise, hide it
+* **Timestamps (h):** If enabled, display the current and total timestamps of the currently playing track. Otherwise, only the progress bar is visible
 * **Playback Meta Info (m):** If enabled, shows the playback meta info at the bottom left of the page (play, shuffle, repeat, volume, device name). Otherwise, hide it and put the current timestamp there instead
 * **Clock (w):** If enabled, displays a clock/watch at the bottom center of the screen, showing the full date and the current time. Otherwise, hide it. (The clock will show even during idle mode)
 * **Dark Mode (d):** If enabled, darkens the entire screen by 65%. Otherwise, display everything at normal brightness (This mode will automatically be disabled after 8 hours)

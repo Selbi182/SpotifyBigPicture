@@ -1132,6 +1132,18 @@ const PREFERENCES = [
     }
   },
   {
+    id: "display-artwork",
+    name: "Artwork",
+    hotkey: "a",
+    description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("artwork"), "hide", !state);
+      setClass(document.getElementById("info"), "full-width", !state);
+      refreshBackgroundRender();
+    }
+  },
+  {
     id: "bg-artwork",
     name: "Background Artwork",
     hotkey: "b",
@@ -1201,6 +1213,17 @@ const PREFERENCES = [
     description: "Displays the playlist name along with some information about it at the top right of the page",
     state: true,
     callback: (state) => setClass(document.getElementById("meta-left"), "hide", !state)
+  },
+  {
+    id: "show-timestamps",
+    name: "Timestamps",
+    hotkey: "h",
+    description: "If enabled, display the current and total timestamps of the currently playing track. " +
+        "Otherwise, only the progress bar is visible",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("bottom-right"), "hide", !state);
+    }
   },
   {
     id: "show-info-icons",
