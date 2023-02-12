@@ -468,7 +468,7 @@ function setCorrectTracklistView(changes) {
 
     trackListContainer.style.setProperty("--scale", "0");
     finishAnimations(trackListContainer);
-    scaleTrackList(trackListContainer, 0);
+    scaleTrackList(trackListContainer, 1);
 
   }
 
@@ -504,14 +504,15 @@ function trackListEquals(trackList1, trackList2) {
 
 function scaleTrackList(trackListContainer, scaleIteration) {
   window.requestAnimationFrame(() => {
-    let visibleHeight = trackListContainer.offsetHeight;
-    let realHeight = trackListContainer.scrollHeight;
-
-    if (scaleIteration <= 10) {
+    if (scaleIteration < 10) {
+      let visibleHeight = trackListContainer.offsetHeight;
+      let realHeight = trackListContainer.scrollHeight;
       if (realHeight > visibleHeight) {
-        trackListContainer.style.setProperty("--scale", (Math.max(0, scaleIteration - 1)).toString());
+        if (scaleIteration > 0) {
+          trackListContainer.style.setProperty("--scale", (scaleIteration - 1).toString());
+        }
       } else {
-        trackListContainer.style.setProperty("--scale", scaleIteration.toString());
+        trackListContainer.style.setProperty("--scale", (scaleIteration + 1).toString());
         scaleTrackList(trackListContainer, scaleIteration + 1)
       }
     }

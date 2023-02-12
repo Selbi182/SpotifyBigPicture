@@ -247,7 +247,7 @@ img:not([src]) {
     display: flex;
     flex-direction: row;
     justify-content: start;
-    gap: 1vh;
+    gap: 2vh;
 }
 #meta-left.hide {
     opacity: 0;
