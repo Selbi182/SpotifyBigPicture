@@ -128,14 +128,8 @@ img:not([src]) {
     height: 100% !important;
 }
 
-#prerender-canvas.show, #prerender-canvas.no-prerender {
+#prerender-canvas.show {
     display: unset;
-}
-
-#prerender-canvas.no-prerender {
-    z-index: unset;
-    width: 100% !important;
-    height: 100% !important;
 }
 
 #background-canvas {

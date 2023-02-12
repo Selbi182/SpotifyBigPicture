@@ -913,7 +913,7 @@ function prerenderBackground() {
 function refreshBackgroundRender() {
   let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
   let imageColors = currentData.currentlyPlaying.imageData.imageColors;
-  if (imageUrl && imageColors && findPreference("prerender").state) {
+  if (imageUrl && imageColors) {
     // The cache is only valid for the current window size, so it must be cleared on a resize
     clearCache();
     setArtworkAndPrerender(imageUrl, imageColors)
@@ -1259,20 +1259,6 @@ const PREFERENCES = [
           toggleDarkMode();
         }, DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT);
       }
-    }
-  },
-  {
-    id: "prerender",
-    name: "Extended Background Rendering",
-    hotkey: "x",
-    description: "[Keep this option enabled if you're unsure what it does!] " +
-        "Captures screenshots of the background images and displays those instead of the live backgrounds. " +
-        "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
-    state: true,
-    callback: (state) => {
-      showHide(document.getElementById("background-rendered"), state);
-      setClass(document.getElementById("prerender-canvas"), "no-prerender", !state);
-      refreshBackgroundRender();
     }
   }
 ];
