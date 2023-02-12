@@ -45,3 +45,4 @@ log.txt
 deploy.sh
 /spotifybot_*.properties
 /src/main/java/se/michaelthelin/spotify
+/src/main/resources/static/bigPictureObserver.js
