@@ -773,23 +773,25 @@ function changeImage(changes) {
     let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
     if (imageUrl.wasChanged) {
       if (imageUrl.value === BLANK) {
-        changes.currentlyPlaying.imageData = prerenderCache[DEFAULT_IMAGE].pngData;
-      }
-      let oldImage = currentData.currentlyPlaying.imageData.imageUrl;
-      let newImage = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
-      let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
-      if (!oldImage.includes(newImage)) {
-        if (!prerenderCache.hasOwnProperty(newImage)) {
-          setArtworkAndPrerender(newImage, colors)
-            .then(renderResult => setRenderedBackground(renderResult.pngData))
-            .then(() => resolve());
-        } else {
-          let prerenderCacheElement = prerenderCache[newImage].pngData;
-          setRenderedBackground(prerenderCacheElement)
-            .then(() => resolve());
-        }
+        setRenderedBackground(prerenderCache[DEFAULT_IMAGE].pngData)
+          .then(() => resolve());
       } else {
-        resolve();
+        let oldImage = currentData.currentlyPlaying.imageData.imageUrl;
+        let newImage = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
+        let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
+        if (!oldImage.includes(newImage)) {
+          if (!prerenderCache.hasOwnProperty(newImage)) {
+            setArtworkAndPrerender(newImage, colors)
+              .then(renderResult => setRenderedBackground(renderResult.pngData))
+              .then(() => resolve());
+          } else {
+            let prerenderCacheElement = prerenderCache[newImage].pngData;
+            setRenderedBackground(prerenderCacheElement)
+              .then(() => resolve());
+          }
+        } else {
+          resolve();
+        }
       }
     } else {
       resolve();
