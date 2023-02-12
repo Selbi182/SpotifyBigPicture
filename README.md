@@ -8,12 +8,13 @@ You might want to use this over [Spotify's own (in my opinion, rather underwhelm
 *Note: Due to the progressive development nature of this app, the screenshots may be slightly out of date at any time. The general layout is pretty much written in stone though.*
 
 ### Album View
-![Deafheaven - Dream House](https://i.imgur.com/O4xEa1V.png)
-
-![Rammstein - Mein Herz brennt](https://i.imgur.com/XJOZgtZ.png)
+![Deafheaven - Dream House](https://i.imgur.com/FEi7Z1N.png)
 
 ### Playlist View
-![Playlist View](https://i.imgur.com/30nknxN.png)
+![Playlist View](https://i.imgur.com/HsrgpeQ.png)
+
+### Vertical Mode (with disabled background artwork)
+![Vertical Mode](https://i.imgur.com/l5MUo6I.png)
 
 ## Installation
 Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either:
@@ -33,9 +34,9 @@ This interface is entirely read-only. Specifically, this means that you **cannot
 An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near to the dance floor that you connect to a Raspberry Pi.
 
 ### Visual Preferences
-![Visual Preferences](https://i.imgur.com/F91iOCY.png)
+![Visual Preferences](https://i.imgur.com/INoK3jS.png)
 
-By default, most of the settings are enabled, but you got full control over which features you might want to turn off. Click the cog symbol in the top left of the interface to open the settings for visual preferences. A detailed explanation for each option appears when you hover over the individual settings.
+Click the cog symbol in the top left of the interface to open the settings for visual preferences. By default, most of the settings are enabled, but you got full control over which features you might want to turn off. A detailed explanation for each option appears when you hover over the individual settings.
 
 ### Idle Mode
 After two hours of playing no music, the interface will turn black and stop rendering anything (other than the optional clock) to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
