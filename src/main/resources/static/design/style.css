@@ -80,7 +80,7 @@ img:not([src]) {
     position: absolute;
     width: 100%;
     height: 100%;
-    z-index: 99;
+    z-index: 2;
     pointer-events: none;
     opacity: 0;
 }
@@ -98,7 +98,11 @@ img:not([src]) {
     color: red;
 }
 
-#main.blur > div {
+#main {
+    height: 100%;
+}
+
+#main.blur {
     filter: blur(var(--blur));
 }
 
@@ -137,6 +141,10 @@ img:not([src]) {
 #background-canvas {
     transform: scale(1.3);
     filter: brightness(35%);
+}
+
+#background-canvas.black {
+    display: none;
 }
 
 #background-canvas-overlay {

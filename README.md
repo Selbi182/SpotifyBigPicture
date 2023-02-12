@@ -50,6 +50,7 @@ Explanation of each setting (the letter in the brackets denotes the hotkey):
 * **Full Screen (f):** Toggle full-screen mode. You can also double-click anywhere on the screen to achieve the same
 * **Queue (q):** If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song will be displayed
 * **Background Artwork (b):** If enabled, the album artwork will be re-used for the background as a blurry picture. Otherwise, a simple colored gradient background will be used
+* **Black Background (k):** If enabled, the background stays permanently black and overrides any other background-related settings
 * **Colored Text (c):** If enabled, the texts, progress bar, and icons will be colored in with the most dominant color of the currently playing track's album cover art. Otherwise, plain white will be used for everything
 * **Transitions (t):** If enabled, smooth transition animations are shown between song changes. Otherwise, song changes will be displayed immediately. (You might want to disable this setting when the app is run on something like Raspberry Pi, where fancy CSS is often too expensive)
 * **Strip Titles (s):** If enabled, all album and track titles will be stripped off anything that could be considered too verbose, such as "Remastered Version" or "Anniversary Edition". Otherwise, keep the titles untouched

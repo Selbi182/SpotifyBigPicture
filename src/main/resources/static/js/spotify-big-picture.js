@@ -1143,6 +1143,17 @@ const PREFERENCES = [
     }
   },
   {
+    id: "bg-black",
+    name: "Black Background",
+    hotkey: "k",
+    description: "If enabled, the background stays permanently black and overrides any other background-related settings",
+    state: false,
+    callback: (state) => {
+      setClass(document.getElementById("background-canvas"), "black", state);
+      refreshBackgroundRender();
+    }
+  },
+  {
     id: "colored-text",
     name: "Colored Text",
     hotkey: "c",
