@@ -245,7 +245,7 @@ public class PlaybackInfoProvider {
     trackData.setQueue(queue);
 
     if (playbackQueueQueue.size() > 1) {
-      IPlaylistItem nextSong = playbackQueueQueue.get(1);
+      IPlaylistItem nextSong = playbackQueueQueue.get(0);
       ImageData nextImageData = new ImageData();
       String nextArtworkUrl = artworkUrlProvider.findArtworkUrl(nextSong);
       if (nextArtworkUrl != null && !nextArtworkUrl.isEmpty()) {

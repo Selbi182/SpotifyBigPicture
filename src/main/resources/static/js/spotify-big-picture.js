@@ -222,6 +222,7 @@ function processJson(json) {
         window.location.reload(true);
       } else {
         changeImage(json)
+          .then(() => prerenderNextImage(json))
           .then(() => setTextData(json))
           .then(() => refreshTimers());
       }
@@ -727,40 +728,65 @@ function updateScrollPositions(trackNumber) {
 // IMAGE
 ///////////////////////////////
 
-const EMPTY_IMAGE_DATA = "https://i.scdn.co/image/ab67616d0000b273f292ec02a050dd8a6174cd4e"; // 640x640 black square
 const DEFAULT_IMAGE = 'design/img/idle.png';
-const DEFAULT_RGB = {
-  r: 255,
-  g: 255,
-  b: 255
-};
-
-const DEFAULT_IMAGE_DATA = {
-  imageUrl: DEFAULT_IMAGE,
-  imageColors: {
-    primary: DEFAULT_RGB,
-    secondary: DEFAULT_RGB,
-    averageBrightness: 1.0
-  }
+const DEFAULT_IMAGE_COLORS = {
+  primary: {
+    r: 255,
+    g: 255,
+    b: 255
+  },
+  secondary: {
+    r: 255,
+    g: 255,
+    b: 255
+  },
+  averageBrightness: 1.0
 }
 
-// TODO prerender nextImageData
+let prerenderCache = {
+  [DEFAULT_IMAGE]: {
+    pngData: null, // will be set on load
+    insertionTime: 0
+  }
+};
+setArtworkAndPrerender(DEFAULT_IMAGE, DEFAULT_IMAGE_COLORS).then();
 
-let prerenderCache = {};
+const CACHE_EXPIRATION_MS = 60 * 60 * 1000;
+setInterval(() => {
+  let now = Date.now();
+  for (const entry of Object.getOwnPropertyNames(prerenderCache)) {
+    if (entry !== DEFAULT_IMAGE && prerenderCache[entry].insertionTime + CACHE_EXPIRATION_MS < now) {
+      delete prerenderCache[entry];
+    }
+  }
+}, CACHE_EXPIRATION_MS)
+
+function clearCache() {
+  for (const entry of Object.getOwnPropertyNames(prerenderCache)) {
+    delete prerenderCache[entry];
+  }
+}
 
 function changeImage(changes) {
   return new Promise(resolve => {
     let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
     if (imageUrl.wasChanged) {
       if (imageUrl.value === BLANK) {
-        changes.currentlyPlaying.imageData = DEFAULT_IMAGE_DATA;
+        changes.currentlyPlaying.imageData = prerenderCache[DEFAULT_IMAGE].pngData;
       }
-      let oldImage = document.getElementById("artwork-img").src;
+      let oldImage = currentData.currentlyPlaying.imageData.imageUrl;
       let newImage = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
       let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
       if (!oldImage.includes(newImage)) {
-        prerenderAndSetArtwork(newImage, colors)
-          .then(() => resolve());
+        if (!prerenderCache.hasOwnProperty(newImage)) {
+          setArtworkAndPrerender(newImage, colors)
+            .then(renderResult => setRenderedBackground(renderResult.pngData))
+            .then(() => resolve());
+        } else {
+          let prerenderCacheElement = prerenderCache[newImage].pngData;
+          setRenderedBackground(prerenderCacheElement)
+            .then(() => resolve());
+        }
       } else {
         resolve();
       }
@@ -770,13 +796,52 @@ function changeImage(changes) {
   });
 }
 
-function prerenderAndSetArtwork(newImage, colors) {
+function prerenderNextImage(changes) {
+  return new Promise(resolve => {
+    let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
+    let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
+    if (currentImageUrl !== nextImageUrl && !prerenderCache.hasOwnProperty(nextImageUrl)) {
+      prerenderCache[nextImageUrl] = {
+        pngData: prerenderCache[DEFAULT_IMAGE],
+        insertionTime: Date.now()
+      };
+      setTimeout(() => {
+        let nextImageColors = getChange(changes, "trackData.nextImageData.imageColors").value;
+        setArtworkAndPrerender(nextImageUrl, nextImageColors).then();
+      }, 1000)
+    }
+    resolve();
+  });
+}
+
+function setRenderedBackground(pngData) {
+  return new Promise((resolve) => {
+    let backgroundImg = document.getElementById("background-img");
+    let backgroundCrossfade = document.getElementById("background-img-crossfade");
+    setClass(backgroundCrossfade, "show", true);
+    backgroundCrossfade.onload = () => {
+      finishAnimations(backgroundCrossfade);
+      backgroundImg.onload = () => {
+        setClass(backgroundCrossfade, "show", false);
+        resolve();
+      };
+      backgroundImg.src = pngData;
+    };
+    backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : DEFAULT_IMAGE;
+  });
+}
+
+function setArtworkAndPrerender(newImageUrl, colors) {
   return new Promise((resolve) => {
     Promise.all([
-      loadArtwork(newImage),
-      loadBackground(newImage, colors)
+      loadArtwork(newImageUrl),
+      loadBackground(newImageUrl, colors)
     ])
-      .then(() => renderAndShow())
+      .then(() => prerenderBackground())
+      .then(pngData => prerenderCache[newImageUrl] = {
+        pngData: pngData,
+        insertionTime: Date.now()
+      })
       .then(resolve);
   });
 }
@@ -799,11 +864,9 @@ function loadBackground(newImage, colors) {
     backgroundCanvasImg.onload = () => {
       let rgbOverlay = colors.secondary;
       let averageBrightness = colors.averageBrightness;
-      let prerenderCanvas = document.getElementById("prerender-canvas");
       let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
       let grainOverlay = document.getElementById("grain");
 
-      setClass(prerenderCanvas, "show", true);
       let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
       backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
@@ -816,11 +879,10 @@ function loadBackground(newImage, colors) {
   });
 }
 
-function renderAndShow() {
+function prerenderBackground() {
   return new Promise((resolve) => {
-    let backgroundImg = document.getElementById("background-img");
-    let backgroundCrossfade = document.getElementById("background-img-crossfade");
     let prerenderCanvas = document.getElementById("prerender-canvas");
+    setClass(prerenderCanvas, "show", true);
 
     // While PNG produces the by far largest Base64 image data, the actual conversion process
     // is significantly faster than with JPEG or SVG (still not perfect though)
@@ -837,21 +899,12 @@ function renderAndShow() {
         pngData = imgDataBase64;
       })
       .catch((error) => {
-        pngData = EMPTY_IMAGE_DATA;
-        console.warn("Failed to render background, using black square instead", error);
+        pngData = prerenderCache[DEFAULT_IMAGE];
+        console.warn("Failed to render background", error);
       })
       .finally(() => {
-        setClass(backgroundCrossfade, "show", true);
-        backgroundCrossfade.onload = () => {
-          finishAnimations(backgroundCrossfade);
-          backgroundImg.onload = () => {
-            setClass(backgroundCrossfade, "show", false);
-            setClass(prerenderCanvas, "show", false);
-            resolve();
-          };
-          backgroundImg.src = pngData;
-        };
-        backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : EMPTY_IMAGE_DATA;
+        setClass(prerenderCanvas, "show", false);
+        resolve(pngData);
       });
   });
 }
@@ -860,7 +913,10 @@ function refreshBackgroundRender() {
   let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
   let imageColors = currentData.currentlyPlaying.imageData.imageColors;
   if (imageUrl && imageColors && findPreference("prerender").state) {
-    prerenderAndSetArtwork(imageUrl, imageColors).then();
+    // The cache is only valid for the current window size, so it must be cleared on a resize
+    clearCache();
+    setArtworkAndPrerender(imageUrl, imageColors)
+      .then(renderResult => setRenderedBackground(renderResult.pngData));
   }
 }
 
@@ -990,7 +1046,6 @@ function numberWithCommas(number) {
 
 const ADVANCE_CURRENT_TIME_MS = 100;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
-const REQUEST_ON_SONG_END_MS = 2 * 1000;
 
 let autoTimer;
 let idleTimeout;
@@ -1021,7 +1076,7 @@ function advanceCurrentTime(updateProgressBar) {
     startTime = now;
     let newTime = timeCurrent + elapsedTime;
     if (newTime > timeTotal && timeCurrent < timeTotal) {
-      setTimeout(() => singleRequest(), REQUEST_ON_SONG_END_MS);
+      singleRequest();
     }
     currentData.currentlyPlaying.timeCurrent = Math.min(timeTotal, newTime);
     updateProgress(currentData, updateProgressBar);
