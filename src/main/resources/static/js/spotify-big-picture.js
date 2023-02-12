@@ -1314,7 +1314,14 @@ function initVisualPreferences() {
     // Create description element
     let descElem = document.createElement("div");
     descElem.id = pref.id + "-description";
-    descElem.innerHTML = pref.description;
+
+    let descHeader = document.createElement("div");
+    descHeader.innerHTML = pref.name;
+
+    let descContent = document.createElement("div");
+    descContent.innerHTML = pref.description;
+
+    descElem.append(descHeader, descContent);
     settingsDescriptionWrapper.appendChild(descElem);
 
     // Init setting

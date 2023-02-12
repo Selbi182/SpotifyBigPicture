@@ -896,19 +896,29 @@ div#device {
     width: 100%;
     font-size: 3vh;
     pointer-events: none;
+    position: relative;
 }
 
-#settings-description div {
+#settings-description > div {
     opacity: 0;
     overflow: visible;
-    max-height: var(--margin-main);
-    height: var(--margin-main);
+    position: absolute;
+}
+
+#settings-description > div > div {
+    width: 100%;
+}
+
+#settings-description > div > div:first-child {
+    font-weight: bold;
+    margin-bottom: 3vh;
+    font-size: 6vh;
+    font-family: var(--font-bold);
 }
 
 #settings-description div.show {
     opacity: 1;
 }
-
 
 #clock-wrapper {
     position: absolute;
