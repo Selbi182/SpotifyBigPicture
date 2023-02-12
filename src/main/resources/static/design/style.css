@@ -228,6 +228,12 @@ img:not([src]) {
     margin: var(--margin-main);
 }
 
+#main.vertical #artwork {
+    --artwork-size: 48vh;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #artwork.hide {
     display: none;
 }
@@ -276,6 +282,10 @@ img:not([src]) {
     justify-content: space-evenly;
 }
 
+#main.vertical #context {
+    max-width: 30vw;
+}
+
 div#context-main {
     --max-lines: 1;
 }
@@ -321,7 +331,11 @@ div#context-main {
     max-height: calc(var(--artwork-size) - 12vh);
 }
 
-#center-info.queue {
+#main.vertical #center-info {
+    justify-content: end;
+}
+
+#main:not(.vertical) #center-info.queue {
     padding-top: 2vh;
 }
 
@@ -338,8 +352,12 @@ div#context-main {
     margin: 1vh 0;
 }
 
+#main.vertical #title {
+    margin: 0;
+}
+
 #title.force-display {
-    display: initial !important;
+    display: -webkit-box !important;
 }
 
 #artists {
@@ -360,6 +378,10 @@ div#context-main {
     align-items: center;
     font-size: 3vh;
     gap: 1vh;
+}
+
+#main.vertical #album {
+    display: none;
 }
 
 #album-release {
@@ -388,7 +410,7 @@ div#description {
     --max-lines: 10;
 }
 
-#description:empty {
+#description:empty, #main.vertical #description {
     display: none;
 }
 
@@ -411,7 +433,7 @@ div#description {
         white calc(100% - var(--gradient-height)), var(--gradient-bottom)  100%);
 }
 
-#track-list:empty {
+#track-list:empty, #main.vertical #track-list {
     display: none;
 }
 
@@ -528,6 +550,10 @@ div#description {
     white-space: unset;
 }
 
+#main.vertical :is(#artists, #title) {
+    --max-lines: 1;
+}
+
 #info {
     width: calc(100% - var(--artwork-size) - var(--margin-main));
     display: flex;
@@ -537,7 +563,8 @@ div#description {
     gap: 4vh;
 }
 
-#info.full-width {
+#info.full-width,
+#main.vertical #info {
     width: 100%;
 }
 
@@ -840,6 +867,11 @@ div#device {
     opacity: 0.65;
     cursor: pointer;
     white-space: pre;
+}
+
+#settings-buttons > div.overridden {
+    font-style: italic;
+    opacity: 0.2 !important;
 }
 
 #settings-buttons > div:hover {

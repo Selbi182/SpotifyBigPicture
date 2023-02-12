@@ -1157,12 +1157,25 @@ const PREFERENCES = [
     }
   },
   {
+    id: "bg-grain",
+    name: "Background Grain",
+    hotkey: "g",
+    description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("grain"), "show", state);
+      refreshBackgroundRender();
+    }
+  },
+  {
     id: "bg-black",
     name: "Black Background",
     hotkey: "k",
     description: "If enabled, the background stays permanently black and overrides any other background-related settings",
     state: false,
     callback: (state) => {
+      setClass(document.getElementById("bg-artwork"), "overridden", state);
+      setClass(document.getElementById("bg-grain"), "overridden", state);
       setClass(document.getElementById("background-canvas"), "black", state);
       refreshBackgroundRender();
     }
@@ -1197,18 +1210,6 @@ const PREFERENCES = [
     }
   },
   {
-    id: "bg-grain",
-    name: "Grain",
-    hotkey: "g",
-    description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images " +
-        "(only works when Extended Background Rendering is enabled)",
-    state: true,
-    callback: (state) => {
-      setClass(document.getElementById("grain"), "show", state);
-      refreshBackgroundRender();
-    }
-  },
-  {
     id: "show-context",
     name: "Playlist Info",
     hotkey: "p",
@@ -1230,7 +1231,7 @@ const PREFERENCES = [
   {
     id: "show-info-icons",
     name: "Playback Meta Info",
-    hotkey: "m",
+    hotkey: "i",
     description: "Shows the playback meta info at the bottom left of the page (play, shuffle, repeat, volume, device name)",
     state: true,
     callback: (state) => {
@@ -1261,6 +1262,18 @@ const PREFERENCES = [
           toggleDarkMode();
         }, DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT);
       }
+    }
+  },
+  {
+    id: "vertical-mode",
+    name: "Vertical Mode",
+    hotkey: "v",
+    description: "Disable the queue and current album name, center the remaining content. This results in a more minimalistic appearance",
+    state: false,
+    callback: (state) => {
+      setClass(document.getElementById("show-queue"), "overridden", state);
+      setClass(document.getElementById("main"), "vertical", state);
+      refreshBackgroundRender();
     }
   }
 ];
