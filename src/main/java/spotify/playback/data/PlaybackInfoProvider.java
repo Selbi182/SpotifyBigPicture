@@ -74,18 +74,15 @@ public class PlaybackInfoProvider {
     this.deployTime = System.currentTimeMillis();
   }
 
-  public PlaybackInfo getCurrentPlaybackInfo(boolean full) {
+  public PlaybackInfo getCurrentPlaybackInfo(int previousVersionId) {
     if (ready) {
-      if (previous == null) {
-        full = true;
-      }
       try {
         CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
         PlaybackQueue playbackQueue = null;
         if (queueEnabled) {
           try {
             playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue());
-            if (playbackQueue.getCurrentlyPlaying() == null) {
+            if (currentlyPlayingContext != null && playbackQueue.getCurrentlyPlaying() == null) {
               // Edge case for local files
               PlaybackQueue.Builder builder = new PlaybackQueue.Builder();
               builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
@@ -113,13 +110,11 @@ public class PlaybackInfoProvider {
               currentPlaybackInfo = buildInfoEpisode(playbackQueue, currentlyPlayingContext);
               break;
             default:
-              throw new IllegalStateException("Unknown ModelObjectType");
+              throw new IllegalStateException("Unknown ModelObjectType: " + type);
           }
           try {
-            if (full) {
+            if (previous == null || isSeekedSong(currentPlaybackInfo) || currentPlaybackInfo.hashCode() != previousVersionId) {
               return currentPlaybackInfo;
-            } else {
-              return getDifferences(currentPlaybackInfo);
             }
           } finally {
             this.previous = currentPlaybackInfo;
@@ -139,17 +134,16 @@ public class PlaybackInfoProvider {
     return builder.build();
   }
 
-  private PlaybackInfo getDifferences(PlaybackInfo current) {
-    // Estimated progress always needs to get updated, so it's handled separately
+  private boolean isSeekedSong(PlaybackInfo current) {
     Integer previousTimeCurrent = previous.getCurrentlyPlaying().getTimeCurrent();
     Integer timeCurrent = current.getCurrentlyPlaying().getTimeCurrent();
     if (timeCurrent != null && previousTimeCurrent != null) {
       if (PlaybackInfoUtils.isWithinEstimatedProgressMs(previousTimeCurrent, timeCurrent)) {
         previous.getCurrentlyPlaying().setTimeCurrent(timeCurrent);
+        return false;
       }
     }
-
-    return previous.equals(current) ? PlaybackInfo.EMPTY : current;
+    return true;
   }
 
   private PlaybackInfo buildBaseInfo(PlaybackQueue playbackQueue, CurrentlyPlayingContext context) {

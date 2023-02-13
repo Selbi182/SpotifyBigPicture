@@ -6,10 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
-import spotify.playback.data.dto.BigPictureInclude;
-
 @JsonInclude(Include.NON_NULL)
-public class CurrentlyPlaying implements BigPictureInclude {
+public class CurrentlyPlaying {
   private String id;
   private List<String> artists;
   private String title;
@@ -97,6 +95,8 @@ public class CurrentlyPlaying implements BigPictureInclude {
     this.imageData = imageData;
   }
 
+  // Equals and hashCode explicitly ignore timeCurrent
+
   @Override
   public boolean equals(Object o) {
     if (this == o)
@@ -105,13 +105,12 @@ public class CurrentlyPlaying implements BigPictureInclude {
       return false;
     CurrentlyPlaying that = (CurrentlyPlaying) o;
     return Objects.equal(id, that.id) && Objects.equal(artists, that.artists) && Objects.equal(title, that.title) && Objects.equal(album, that.album)
-        && Objects.equal(year, that.year) && Objects.equal(description, that.description) && Objects.equal(timeCurrent, that.timeCurrent) && Objects.equal(timeTotal,
-        that.timeTotal);
+        && Objects.equal(year, that.year) && Objects.equal(description, that.description) && Objects.equal(timeTotal, that.timeTotal);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, artists, title, album, year, description, timeCurrent, timeTotal);
+    return Objects.hashCode(id, artists, title, album, year, description, timeTotal);
   }
 
 }

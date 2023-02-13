@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
-import spotify.playback.data.dto.BigPictureInclude;
-
 @JsonInclude(Include.NON_NULL)
-public class PlaybackContext implements BigPictureInclude {
+public class PlaybackContext {
   private Boolean paused;
   private Boolean shuffle;
   private String repeat;

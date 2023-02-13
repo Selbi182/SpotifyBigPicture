@@ -15,11 +15,10 @@ import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.EpisodeSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
-import spotify.playback.data.dto.BigPictureInclude;
 import spotify.util.BotUtils;
 
 @JsonInclude(Include.NON_NULL)
-public class TrackData implements BigPictureInclude {
+public class TrackData {
   public enum ListViewType {
     ALBUM,
     PODCAST,
@@ -128,7 +127,7 @@ public class TrackData implements BigPictureInclude {
   }
 
   @JsonInclude(Include.NON_NULL)
-  public static class ListTrack implements Comparable<ListTrack>, BigPictureInclude {
+  public static class ListTrack implements Comparable<ListTrack> {
     private final String id;
     private final int trackNumber;
     private final int discNumber;

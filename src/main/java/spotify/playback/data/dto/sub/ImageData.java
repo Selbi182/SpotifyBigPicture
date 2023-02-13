@@ -5,11 +5,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import de.selbi.colorfetch.data.ColorFetchResult;
-import spotify.playback.data.dto.BigPictureInclude;
 import spotify.playback.data.help.PlaybackInfoUtils;
 
 @JsonInclude(Include.NON_NULL)
-public class ImageData implements BigPictureInclude {
+public class ImageData {
 
   private String imageUrl;
   private ColorFetchResult imageColors;

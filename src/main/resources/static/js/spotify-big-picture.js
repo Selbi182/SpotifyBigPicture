@@ -1,6 +1,7 @@
 let currentData = {
   type: "",
   deployTime: 0,
+  versionId: 0,
   currentlyPlaying: {
     id: "",
     artists: [],
@@ -72,23 +73,23 @@ let idle = false;
 ///////////////////////////////
 
 const INFO_URL = "/playback-info";
-const INFO_URL_FULL = INFO_URL + "?full=true";
+const RETRY_TIMEOUT_MS = 5 * 1000;
 
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
-  if (isPollingEnabled()) {
-    initPolling();
-  } else {
-    initFlux();
-  }
+  initPolling();
 }
 
-function isPollingEnabled() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.has("polling")
-      ? urlParams.get("polling") === "true"
-      : false;
+function singleRequest() {
+  let url = `${INFO_URL}?v=${currentData.versionId}`;
+  fetch(url)
+    .then(response => response.json())
+    .then(json => processJson(json))
+    .catch(ex => {
+      console.error("Single request", ex);
+      setTimeout(() => singleRequest(), RETRY_TIMEOUT_MS);
+    });
 }
 
 ///////////////////////////////
@@ -96,117 +97,16 @@ function isPollingEnabled() {
 ///////////////////////////////
 
 let pollingInterval;
-const POLLING_INTERVAL_MS = 1000;
-const POLLING_CURRENT_TIME_TOLERANCE_MS = 2000;
-function initPolling() {
-  console.debug("Polling enabled!");
+const POLLING_INTERVAL_MS = 2 * 1000;
+const POLLING_INTERVAL_IDLE_MS = 60 * 1000;
+
+function initPolling(pollingIntervalMs = POLLING_INTERVAL_MS) {
   clearTimeout(pollingInterval);
   pollingInterval = setInterval(() => {
-    fetch(INFO_URL_FULL)
-      .then(response => response.json())
-      .then(json => {
-        if (Math.abs(json.timeCurrent - currentData.currentlyPlaying.timeCurrent) < POLLING_CURRENT_TIME_TOLERANCE_MS) {
-          json.timeCurrent = currentData.currentlyPlaying.timeCurrent;
-        }
-        return deepEqual(currentData, json) ? null : json;
-      })
-      .then(diffJson => processJson(diffJson))
-      .catch(ex => {
-        console.error("Single request", ex);
-        clearTimeout(pollingInterval)
-        initPolling();
-      });
-  }, POLLING_INTERVAL_MS);
+    singleRequest();
+  }, pollingIntervalMs);
 }
 
-///////////////////////////////
-// WEB STUFF - Flux
-///////////////////////////////
-
-const FLUX_URL = "/playback-info-flux";
-const RETRY_TIMEOUT_MS = 5 * 1000;
-const FLUX_REFRESH_TIMEOUT_MS = 45 * 60 * 1000;
-
-function initFlux() {
-  singleRequest(true);
-  closeFlux();
-  startFlux();
-  createHeartbeatTimeout();
-}
-
-function singleRequest(forceFull = true) {
-  let url = forceFull ? INFO_URL_FULL : INFO_URL;
-  fetch(url)
-      .then(response => response.json())
-      .then(json => processJson(json))
-      .catch(ex => {
-        console.error("Single request", ex);
-        setTimeout(() => singleRequest(forceFull), RETRY_TIMEOUT_MS);
-      });
-}
-
-let flux;
-let fluxRefresher;
-function startFlux() {
-  setTimeout(() => {
-    try {
-      closeFlux();
-      flux = new EventSource(FLUX_URL);
-      flux.onopen = () => {
-        console.debug("Flux connected!");
-        singleRequest();
-      };
-      flux.onmessage = (event) => {
-        try {
-          createHeartbeatTimeout();
-          if (idle) {
-            singleRequest();
-          } else {
-            let data = event.data;
-            let json = JSON.parse(data);
-            processJson(json);
-          }
-        } catch (ex) {
-          console.error("Flux onmessage", ex);
-          startFlux();
-        }
-      };
-      flux.onerror = (ex) => {
-        console.error("Flux onerror", ex);
-        startFlux();
-      };
-    } catch (ex) {
-      console.error("Flux creation", ex);
-      startFlux();
-    }
-  }, RETRY_TIMEOUT_MS);
-
-  fluxRefresher = setInterval(() => {
-    clearInterval(fluxRefresher);
-    console.debug("Refreshing flux connection")
-    closeFlux();
-    startFlux();
-  }, FLUX_REFRESH_TIMEOUT_MS)
-}
-
-function closeFlux() {
-  if (flux) {
-    flux.close();
-  }
-}
-
-window.addEventListener('beforeunload', closeFlux);
-
-const HEARTBEAT_TIMEOUT_MS = 60 * 1000;
-let heartbeatTimeout;
-
-function createHeartbeatTimeout() {
-  clearTimeout(heartbeatTimeout);
-  heartbeatTimeout = setTimeout(() => {
-    console.error("Heartbeat timeout")
-    initFlux();
-  }, HEARTBEAT_TIMEOUT_MS);
-}
 
 ///////////////////////////////
 // MAIN DISPLAY STUFF
@@ -215,7 +115,7 @@ function createHeartbeatTimeout() {
 const BLANK = "BLANK";
 
 function processJson(json) {
-  if (json && json.type !== "HEARTBEAT" && json.type !== "EMPTY") {
+  if (json && json.type !== "EMPTY") {
     console.info(json);
     if (json.type === "DATA") {
       if (currentData.deployTime > 0 && getChange(json, "deployTime").wasChanged) {
@@ -226,8 +126,6 @@ function processJson(json) {
           .then(() => setTextData(json))
           .then(() => refreshTimers());
       }
-    } else if (json.type === "DARK_MODE") {
-      toggleDarkMode();
     }
   }
 }
@@ -1090,8 +988,10 @@ function setIdleModeState(state) {
   let content = document.getElementById("main");
   if (state) {
     if (!idle) {
+      console.info("No music was played in 2 hours. Enabling idle mode...");
       idle = true;
       clearTimers();
+      initPolling(POLLING_INTERVAL_IDLE_MS);
       showHide(content, false);
     }
   } else {
@@ -1342,7 +1242,6 @@ function refreshPrefsQueryParam() {
 
   const url = new URL(window.location);
   url.searchParams.set(PREFS_URL_PARAM, urlPrefs.join("+"));
-  url.searchParams.set("polling", isPollingEnabled().toString());
   window.history.replaceState({}, 'Spotify Big Picture', unescape(url.toString()));
 }
 

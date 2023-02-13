@@ -14,15 +14,11 @@ import spotify.playback.data.dto.sub.TrackData;
  * frontend. Any field can be null to indicate no change.
  */
 @JsonInclude(Include.NON_EMPTY)
-public class PlaybackInfo implements BigPictureInclude {
+public class PlaybackInfo {
   public static final PlaybackInfo EMPTY = new PlaybackInfo(Type.EMPTY);
-  public static final PlaybackInfo HEARTBEAT = new PlaybackInfo(Type.HEARTBEAT);
-  public static final PlaybackInfo DARK_MODE = new PlaybackInfo(Type.DARK_MODE);
 
   public enum Type {
     EMPTY,
-    HEARTBEAT,
-    DARK_MODE,
     DATA
   }
 
@@ -91,6 +87,10 @@ public class PlaybackInfo implements BigPictureInclude {
     this.trackData = trackData;
   }
 
+  public int getVersionId() {
+    return hashCode();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o)
@@ -98,8 +98,8 @@ public class PlaybackInfo implements BigPictureInclude {
     if (!(o instanceof PlaybackInfo))
       return false;
     PlaybackInfo that = (PlaybackInfo) o;
-    return type == that.type && Objects.equal(deployTime, that.deployTime) && Objects.equal(currentlyPlaying, that.currentlyPlaying) && Objects.equal(playbackContext, that.playbackContext)
-        && Objects.equal(trackData, that.trackData);
+    return type == that.type && Objects.equal(deployTime, that.deployTime) && Objects.equal(currentlyPlaying, that.currentlyPlaying)
+        && Objects.equal(playbackContext, that.playbackContext) && Objects.equal(trackData, that.trackData);
   }
 
   @Override
