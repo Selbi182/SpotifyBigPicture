@@ -41,6 +41,8 @@ Click the cog symbol in the top left of the interface to open the settings for v
 ### Idle Mode
 After two hours of playing no music, the interface will turn black and stop rendering anything (other than the optional clock) to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
 
+It may take up to a minute during idle mode for the interface to catch up again; alternatively, you can simply refresh the page.
+
 ### Color
 The background image uses a copy of the album artwork, stretched to fit the screen and blurred in order to avoid clashes with the main image. Furthermore, the most dominant color of the art will be used as additional overlay to increase contrast. It's also used to give the text and icons a different color than white.
 
@@ -68,7 +70,5 @@ However, if the interface becomes completely unresponsive, try these approaches:
 ![dropdown](https://user-images.githubusercontent.com/8850085/206453960-12d34f5e-03c0-41a0-aba1-7c214de4e53e.png)
 
 3. Open the web console (F12) and take a look at the console out tab. There, you should hopefully find more helpful information about what's going on. The occasional "heartbeat timeout" is nothing to worry about, but if the console is just getting spammed with errors, something's definitely preventing a stable connection.
-
-4. As a last resort, you can open the page with `polling=true` in the URL parameter. This will entirely bypass the Spring WebFlux service used to communicate between the Java application and the web interface. Instead, the web interface will simply fire a request to the Java app once every per second. While this is incredibly wasteful and spams your bandwidth with pointless requests, it tends to be more robust for many applications.
 
 If all else fails, [write an issue ticket on GitHub](https://github.com/Selbi182/SpotifyBigPicture/issues) and I will gladly take a look at it :)

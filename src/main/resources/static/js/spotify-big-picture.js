@@ -642,49 +642,35 @@ const DEFAULT_IMAGE_COLORS = {
   averageBrightness: 1.0
 }
 
-let prerenderCache = {
-  [DEFAULT_IMAGE]: {
-    pngData: null, // will be set on load
-    insertionTime: 0
-  }
+let defaultPrerender = {
+  imageUrl: DEFAULT_IMAGE,
+  pngData: null
 };
-setArtworkAndPrerender(DEFAULT_IMAGE, DEFAULT_IMAGE_COLORS).then();
+refreshDefaultPrerender().then();
 
-const CACHE_EXPIRATION_MS = 60 * 60 * 1000;
-setInterval(() => {
-  let now = Date.now();
-  for (const entry of Object.getOwnPropertyNames(prerenderCache)) {
-    if (entry !== DEFAULT_IMAGE && prerenderCache[entry].insertionTime + CACHE_EXPIRATION_MS < now) {
-      delete prerenderCache[entry];
-    }
-  }
-}, CACHE_EXPIRATION_MS)
-
-function clearCache() {
-  for (const entry of Object.getOwnPropertyNames(prerenderCache)) {
-    delete prerenderCache[entry];
-  }
-}
+let nextImagePrerenderPngData = {
+  imageUrl: null,
+  pngData: null
+};
 
 function changeImage(changes) {
   return new Promise(resolve => {
     let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
     if (imageUrl.wasChanged) {
       if (imageUrl.value === BLANK) {
-        setRenderedBackground(prerenderCache[DEFAULT_IMAGE].pngData)
+        setRenderedBackground(defaultPrerender.pngData)
           .then(() => resolve());
       } else {
-        let oldImage = currentData.currentlyPlaying.imageData.imageUrl;
-        let newImage = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
+        let oldImageUrl = currentData.currentlyPlaying.imageData.imageUrl;
+        let newImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
         let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
-        if (!oldImage.includes(newImage)) {
-          if (!prerenderCache.hasOwnProperty(newImage)) {
-            setArtworkAndPrerender(newImage, colors)
-              .then(renderResult => setRenderedBackground(renderResult.pngData))
+        if (!oldImageUrl.includes(newImageUrl)) {
+          if (nextImagePrerenderPngData.imageUrl === newImageUrl) {
+            setRenderedBackground(nextImagePrerenderPngData.pngData)
               .then(() => resolve());
           } else {
-            let prerenderCacheElement = prerenderCache[newImage].pngData;
-            setRenderedBackground(prerenderCacheElement)
+            setArtworkAndPrerender(newImageUrl, colors)
+              .then(pngData => setRenderedBackground(pngData))
               .then(() => resolve());
           }
         } else {
@@ -697,19 +683,22 @@ function changeImage(changes) {
   });
 }
 
+const PRERENDER_DELAY_MS = 1000;
 function prerenderNextImage(changes) {
   return new Promise(resolve => {
     let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
     let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
-    if (currentImageUrl !== nextImageUrl && !prerenderCache.hasOwnProperty(nextImageUrl)) {
-      prerenderCache[nextImageUrl] = {
-        pngData: prerenderCache[DEFAULT_IMAGE],
-        insertionTime: Date.now()
-      };
+    if (currentImageUrl !== nextImageUrl && nextImagePrerenderPngData.imageUrl !== nextImageUrl) {
       setTimeout(() => {
         let nextImageColors = getChange(changes, "trackData.nextImageData.imageColors").value;
-        setArtworkAndPrerender(nextImageUrl, nextImageColors).then();
-      }, 1000)
+        setArtworkAndPrerender(nextImageUrl, nextImageColors)
+          .then(pngData => {
+            nextImagePrerenderPngData = {
+              imageUrl: nextImageUrl,
+              pngData: pngData
+            };
+          });
+      }, PRERENDER_DELAY_MS)
     }
     resolve();
   });
@@ -728,22 +717,22 @@ function setRenderedBackground(pngData) {
       };
       backgroundImg.src = pngData;
     };
-    backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : DEFAULT_IMAGE;
+    backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : defaultPrerender.pngData;
   });
 }
 
 function setArtworkAndPrerender(newImageUrl, colors) {
   return new Promise((resolve) => {
-    Promise.all([
-      loadArtwork(newImageUrl),
-      loadBackground(newImageUrl, colors)
-    ])
+    if (!newImageUrl) {
+      reject("newImageUrl is undefined");
+    } else {
+      Promise.all([
+        loadArtwork(newImageUrl),
+        loadBackground(newImageUrl, colors)
+      ])
       .then(() => prerenderBackground())
-      .then(pngData => prerenderCache[newImageUrl] = {
-        pngData: pngData,
-        insertionTime: Date.now()
-      })
-      .then(resolve);
+      .then(pngData => resolve(pngData));
+    }
   });
 }
 
@@ -800,7 +789,6 @@ function prerenderBackground() {
         pngData = imgDataBase64;
       })
       .catch((error) => {
-        pngData = prerenderCache[DEFAULT_IMAGE];
         console.warn("Failed to render background", error);
       })
       .finally(() => {
@@ -811,14 +799,27 @@ function prerenderBackground() {
 }
 
 function refreshBackgroundRender() {
-  let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
-  let imageColors = currentData.currentlyPlaying.imageData.imageColors;
-  if (imageUrl && imageColors) {
-    // The cache is only valid for the current window size, so it must be cleared on a resize
-    clearCache();
-    setArtworkAndPrerender(imageUrl, imageColors)
-      .then(renderResult => setRenderedBackground(renderResult.pngData));
-  }
+  refreshDefaultPrerender()
+    .then(() => {
+      let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
+      if (imageUrl === BLANK) {
+        setRenderedBackground(defaultPrerender.pngData).then();
+      } else {
+        let imageColors = currentData.currentlyPlaying.imageData.imageColors;
+        if (imageUrl && imageColors) {
+          setArtworkAndPrerender(imageUrl, imageColors)
+              .then(pngData => setRenderedBackground(pngData));
+        }
+      }
+    });
+}
+
+function refreshDefaultPrerender() {
+  return new Promise((resolve) => {
+    setArtworkAndPrerender(DEFAULT_IMAGE, DEFAULT_IMAGE_COLORS)
+      .then(pngData => defaultPrerender.pngData = pngData)
+      .then(resolve);
+  });
 }
 
 function setTextColor(rgbText) {
@@ -1364,9 +1365,14 @@ window.onresize = () => {
 ///////////////////////////////
 
 document.onkeydown = (e) => {
-  let pref = PREFERENCES.find(element => element.hotkey === e.key);
-  if (pref) {
-    toggleVisualPreference(pref);
+  if (e.key === ' ') {
+    let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
+    settingsMenuToggleButton.click();
+  } else {
+    let pref = PREFERENCES.find(element => element.hotkey === e.key);
+    if (pref) {
+      toggleVisualPreference(pref);
+    }
   }
 };
 

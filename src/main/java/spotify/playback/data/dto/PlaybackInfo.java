@@ -9,10 +9,6 @@ import spotify.playback.data.dto.sub.CurrentlyPlaying;
 import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
 
-/**
- * Data class for the playback info to be sent via SSEEmitter to the
- * frontend. Any field can be null to indicate no change.
- */
 @JsonInclude(Include.NON_EMPTY)
 public class PlaybackInfo {
   public static final PlaybackInfo EMPTY = new PlaybackInfo(Type.EMPTY);
