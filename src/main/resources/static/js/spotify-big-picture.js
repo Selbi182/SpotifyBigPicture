@@ -237,13 +237,16 @@ function setTextData(changes) {
     }
 
     // Thumbnail
-    let playlistThumbnailContainer = document.getElementById("playlist-thumbnail");
+    let thumbnailWrapperContainer = document.getElementById("thumbnail-wrapper");
+    let thumbnailContainer = document.getElementById("thumbnail");
     let thumbnailUrl = getChange(changes, "playbackContext.thumbnailUrl").value;
     if (thumbnailUrl === BLANK) {
-      playlistThumbnailContainer.src = "";
+      thumbnailContainer.src = "";
+      setClass(thumbnailWrapperContainer, "show", false);
     } else {
-      playlistThumbnailContainer.src = thumbnailUrl;
-      fadeIn(playlistThumbnailContainer);
+      setClass(thumbnailWrapperContainer, "show", true);
+      thumbnailContainer.src = thumbnailUrl;
+      fadeIn(thumbnailContainer);
     }
 
     let contextContainer = document.getElementById("context");
@@ -638,7 +641,7 @@ function updateScrollPositions(trackNumber) {
 // IMAGE
 ///////////////////////////////
 
-const DEFAULT_IMAGE = 'design/img/idle.png';
+const DEFAULT_IMAGE = 'design/img/blank-cd.png';
 const DEFAULT_IMAGE_COLORS = {
   primary: {
     r: 255,
@@ -1111,7 +1114,31 @@ const PREFERENCES = [
     state: false,
     callback: (state) => {
       setClass(document.getElementById("logo"), "colored", state);
-      setClass(document.getElementById("playlist-thumbnail"), "colored", state);
+      setClass(document.getElementById("thumbnail"), "colored", state);
+    }
+  },
+  {
+    id: "show-context",
+    name: "Playlist Info",
+    hotkey: "p",
+    description: "Displays the playlist/artist/album name along with some additional information the top of the page. " +
+        "Also displays a thumbnail, if available",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("colored-symbols"), "overridden-1", !state);
+      setClass(document.getElementById("meta-left"), "hide", !state)
+    }
+  },
+  {
+    id: "show-logo",
+    name: "Spotify Logo",
+    hotkey: "l",
+    description: "Whether to display the Spotify logo in the top right or not. If it's disabled, the playlist name " +
+        "is pulled right",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("colored-symbols"), "overridden-2", !state);
+      setClass(document.getElementById("top-info"), "no-logo", !state)
     }
   },
   {
@@ -1136,29 +1163,6 @@ const PREFERENCES = [
     }
   },
   {
-    id: "show-context",
-    name: "Playlist Info",
-    hotkey: "p",
-    description: "Displays the playlist name along with some information about it at the top right of the page",
-    state: true,
-    callback: (state) => {
-      setClass(document.getElementById("colored-symbols"), "overridden-1", !state);
-      setClass(document.getElementById("meta-left"), "hide", !state)
-    }
-  },
-  {
-    id: "show-logo",
-    name: "Spotify Logo",
-    hotkey: "l",
-    description: "Whether to display the Spotify logo in the top right or not. If it's disabled, the playlist name " +
-        "is pulled right",
-    state: true,
-    callback: (state) => {
-      setClass(document.getElementById("colored-symbols"), "overridden-2", !state);
-      setClass(document.getElementById("top-info"), "no-logo", !state)
-    }
-  },
-  {
     id: "show-timestamps",
     name: "Timestamps",
     hotkey: "h",
@@ -1171,9 +1175,9 @@ const PREFERENCES = [
   },
   {
     id: "show-info-icons",
-    name: "Playback Meta Info",
+    name: "Playback State Info",
     hotkey: "i",
-    description: "Shows the playback meta info at the bottom left of the page (play, shuffle, repeat, volume, device name)",
+    description: "Shows the playback state info at the bottom left of the page (play, shuffle, repeat, volume, device name)",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("bottom-left"), "hide", !state);
@@ -1185,7 +1189,7 @@ const PREFERENCES = [
     name: "Clock",
     hotkey: "w",
     description: "Displays a clock at the bottom center of the page",
-    state: true,
+    state: false,
     callback: (state) => setClass(document.getElementById("clock"), "hide", !state)
   },
   {
@@ -1215,6 +1219,16 @@ const PREFERENCES = [
       setClass(document.getElementById("show-queue"), "overridden", state);
       setClass(document.getElementById("main"), "vertical", state);
       refreshBackgroundRender();
+    }
+  },
+  {
+    id: "show-fps",
+    name: "FPS Counter",
+    hotkey: "x",
+    description: "Display the frames-per-second in the top right of the screen (intended for performance debugging)",
+    state: false,
+    callback: (state) => {
+      setClass(document.getElementById("fps-counter"), "show", state);
     }
   }
 ];

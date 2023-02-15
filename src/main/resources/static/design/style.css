@@ -96,7 +96,11 @@ img:not([src]) {
     right: 0;
     top: 0;
     font-size: 3vh;
-    color: red;
+    font-feature-settings: "tnum";
+}
+
+#fps-counter.show {
+    display: initial;
 }
 
 #main {
@@ -266,21 +270,24 @@ img:not([src]) {
     opacity: 0;
 }
 
-#playlist-thumbnail-wrapper {
+#thumbnail-wrapper {
     height: 6vh;
     width: 6vh;
-    border-radius: 1vh;
     background-color: var(--color);
     box-shadow: 0.2vh 0.2vh 0.5vh #0004;
+    display: none;
 }
 
-#playlist-thumbnail {
+#thumbnail-wrapper.show {
+    display: inherit;
+}
+
+#thumbnail {
     width: inherit;
     height: inherit;
-    border-radius: inherit;
 }
 
-#playlist-thumbnail.colored {
+#thumbnail.colored {
     mix-blend-mode: multiply;
     filter: grayscale(1);
 }
@@ -889,8 +896,7 @@ div#device {
 
 #settings-buttons > div.overridden,
 #settings-buttons > div.overridden-1.overridden-2 {
-    font-style: italic;
-    opacity: 0.2 !important;
+    opacity: 0.25 !important;
 }
 
 #settings-buttons > div:hover {

@@ -99,7 +99,7 @@ public class PlaybackInfoProvider {
         if (playbackQueue == null && currentlyPlayingContext != null) {
           playbackQueue = createFakePlaybackQueueForFreeUsers(currentlyPlayingContext);
         }
-        if (playbackQueue != null && playbackQueue.getCurrentlyPlaying() != null && currentlyPlayingContext != null) {
+        if (playbackQueue != null && playbackQueue.getCurrentlyPlaying() != null && currentlyPlayingContext != null && currentlyPlayingContext.getItem() != null) {
           PlaybackInfo currentPlaybackInfo;
           ModelObjectType type = playbackQueue.getCurrentlyPlaying().getType();
           switch (type) {
