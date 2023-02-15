@@ -1,5 +1,7 @@
 package spotify.playback.data.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -25,6 +27,8 @@ public class PlaybackInfo {
   private PlaybackContext playbackContext;
   private TrackData trackData;
 
+  private List<String> settingsToToggle;
+
   public PlaybackInfo(Type type) {
     this(type, true);
   }
@@ -36,6 +40,7 @@ public class PlaybackInfo {
       this.trackData = new TrackData();
     }
     this.type = type;
+    this.settingsToToggle = List.of();
   }
 
   @JsonIgnore
@@ -87,6 +92,14 @@ public class PlaybackInfo {
     return hashCode();
   }
 
+  public List<String> getSettingsToToggle() {
+    return settingsToToggle;
+  }
+
+  public void setSettingsToToggle(List<String> settingsToToggle) {
+    this.settingsToToggle = settingsToToggle;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o)
@@ -94,12 +107,12 @@ public class PlaybackInfo {
     if (!(o instanceof PlaybackInfo))
       return false;
     PlaybackInfo that = (PlaybackInfo) o;
-    return type == that.type && Objects.equal(deployTime, that.deployTime) && Objects.equal(currentlyPlaying, that.currentlyPlaying)
-        && Objects.equal(playbackContext, that.playbackContext) && Objects.equal(trackData, that.trackData);
+    return type == that.type && Objects.equal(deployTime, that.deployTime) && Objects.equal(currentlyPlaying, that.currentlyPlaying) && Objects.equal(playbackContext, that.playbackContext)
+        && Objects.equal(trackData, that.trackData) && Objects.equal(settingsToToggle, that.settingsToToggle);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(type, deployTime, currentlyPlaying, playbackContext, trackData);
+    return Objects.hashCode(type, deployTime, currentlyPlaying, playbackContext, trackData, settingsToToggle);
   }
 }

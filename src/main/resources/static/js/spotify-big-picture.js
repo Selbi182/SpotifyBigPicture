@@ -2,6 +2,7 @@ let currentData = {
   type: "",
   deployTime: 0,
   versionId: 0,
+  settingsToToggle: [],
   currentlyPlaying: {
     id: "",
     artists: [],
@@ -77,7 +78,23 @@ const INFO_URL = "/playback-info";
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
+  submitVisualPreferencesToBackend();
   initPolling();
+}
+
+function submitVisualPreferencesToBackend() {
+  fetch("/settings/list", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(PREFERENCES)
+  })
+    .then(response => {
+      if (response.status >= 400) {
+        console.warn("Failed to transmit settings to backend");
+      }
+    })
 }
 
 function singleRequest() {
@@ -127,7 +144,8 @@ function processJson(json) {
       if (currentData.deployTime > 0 && getChange(json, "deployTime").wasChanged) {
         window.location.reload(true);
       } else {
-        changeImage(json)
+        updateExternallyToggledPreferences(json)
+          .then(() => changeImage(json))
           .then(() => prerenderNextImage(json))
           .then(() => setTextData(json))
           .then(() => refreshTimers());
@@ -1297,7 +1315,7 @@ function refreshPrefsQueryParam() {
 
   const url = new URL(window.location);
   url.searchParams.set(PREFS_URL_PARAM, urlPrefs.join("+"));
-  window.history.replaceState({}, 'Spotify Big Picture', unescape(url.toString()));
+  window.history.replaceState({}, 'Spotify Big Picture', unescape(url.toString())); // todo only on song changes
 }
 
 function toggleVisualPreference(pref) {
@@ -1326,6 +1344,29 @@ function refreshPreference(preference, state) {
     }
   }
 }
+
+function updateExternallyToggledPreferences(changes) {
+  return new Promise(resolve => {
+    let reload = false;
+    if (changes.settingsToToggle && changes.settingsToToggle.length > 0) {
+      for (let setting of changes.settingsToToggle) {
+        if (setting === "reload") {
+          reload = true;
+        } else {
+          let preference = PREFERENCES.find(pref => pref.id === setting);
+          if (preference) {
+            toggleVisualPreference(preference);
+          }
+        }
+      }
+      if (reload) {
+        window.location.reload(true);
+      }
+    }
+    resolve();
+  });
+}
+
 
 function setTransitions(state) {
   setClass(document.body, "transition", state);
@@ -1535,14 +1576,16 @@ let fps = document.getElementById("fps-counter");
 let fpsStartTime = Date.now();
 let fpsFrame = 0;
 
-function tick() {
+function fpsTick() {
   let time = Date.now();
   fpsFrame++;
   if (time - fpsStartTime > 100) {
-    fps.innerHTML = (fpsFrame / ((time - fpsStartTime) / 1000)).toFixed(1);
+    if (fps.classList.contains("show")) {
+      fps.innerHTML = (fpsFrame / ((time - fpsStartTime) / 1000)).toFixed(1);
+    }
     fpsStartTime = time;
     fpsFrame = 0;
   }
-  window.requestAnimationFrame(tick);
+  window.requestAnimationFrame(fpsTick);
 }
-tick();
+fpsTick();

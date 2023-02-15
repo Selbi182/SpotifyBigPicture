@@ -1,0 +1,74 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    background-color: black;
+    margin: 0;
+    padding: 0;
+    color: #ddd;
+    font-family: 'Consolas', 'Lucida Console', 'Courier New', monospace;
+    font-size: 3vh;
+}
+
+body {
+    margin: 2vh;
+}
+
+#header {
+    text-align: center;
+    font-weight: bold;
+    font-size: 4vh;
+    margin: 4vh 0;
+}
+
+#settings {
+    min-height: 75vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#settings > div {
+    background-color: #222;
+    margin: 1vh;
+    padding: 1vh;
+    border-radius: 1vh;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 0.1s;
+    opacity: 0.5;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+#settings > div:hover {
+    opacity: 1;
+}
+
+#settings > div.disabled {
+    cursor: wait;
+    opacity: 0.1;
+}
+
+#settings > div {
+    display: none;
+}
+
+#settings > div.show, #settings > div:is(#dark-mode, #reload) {
+    display: flex;
+}
+
+#expand-button {
+    margin: 1vh;
+    padding: 1vh;
+    border-radius: 1vh;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 0.1s;
+    opacity: 1;
+}
+
+#expand-button.hide {
+    visibility: hidden;
+}

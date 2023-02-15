@@ -1,6 +1,8 @@
 package spotify.playback.data;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -48,6 +50,8 @@ public class PlaybackInfoProvider {
 
   private boolean queueEnabled;
 
+  private final Set<String> settingsToToggle;
+
   @Value("${server.port}")
   private String port;
 
@@ -61,6 +65,7 @@ public class PlaybackInfoProvider {
     this.dominantColorProvider = colorProvider;
     this.ready = false;
     this.queueEnabled = true;
+    this.settingsToToggle = new HashSet<>();
     refreshDeployTime();
   }
 
@@ -72,6 +77,10 @@ public class PlaybackInfoProvider {
 
   public void refreshDeployTime() {
     this.deployTime = System.currentTimeMillis();
+  }
+
+  public void addSettingToToggleForNextPoll(String settingId) {
+    settingsToToggle.add(settingId);
   }
 
   public PlaybackInfo getCurrentPlaybackInfo(int previousVersionId) {
@@ -113,7 +122,11 @@ public class PlaybackInfoProvider {
               throw new IllegalStateException("Unknown ModelObjectType: " + type);
           }
           try {
-            if (previous == null || isSeekedSong(currentPlaybackInfo) || currentPlaybackInfo.hashCode() != previousVersionId) {
+            if (previous == null || isSeekedSong(currentPlaybackInfo) || currentPlaybackInfo.hashCode() != previousVersionId || !settingsToToggle.isEmpty()) {
+              if (!settingsToToggle.isEmpty()) {
+                currentPlaybackInfo.setSettingsToToggle(List.copyOf(settingsToToggle));
+                settingsToToggle.clear();
+              }
               return currentPlaybackInfo;
             }
           } finally {

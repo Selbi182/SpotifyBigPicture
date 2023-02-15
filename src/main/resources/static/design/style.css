@@ -375,7 +375,7 @@ div#context-main {
     margin: 0;
 }
 
-#title.force-display {
+#title.force-display, #main.vertical #title {
     display: -webkit-box !important;
 }
 
