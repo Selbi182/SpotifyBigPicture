@@ -54,7 +54,5 @@ function toggleSetting(settingContainer, settingId) {
 
 function expandAll() {
   document.getElementById("expand-button").classList.add("hide");
-  for (let node of [...document.querySelectorAll("#settings > div")]) {
-    node.classList.add("show");
-  }
+  document.getElementById("settings").classList.add("expand");
 }

@@ -130,7 +130,6 @@ function initPolling(pollingIntervalMs = POLLING_INTERVAL_MS) {
   }, pollingIntervalMs);
 }
 
-
 ///////////////////////////////
 // MAIN DISPLAY STUFF
 ///////////////////////////////
@@ -221,6 +220,7 @@ function setTextData(changes) {
     let descriptionContainer = document.getElementById("description");
     let isPodcast = description.value !== BLANK;
     descriptionContainer.innerHTML = isPodcast ? description.value : "";
+    balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
   }
 
@@ -237,12 +237,16 @@ function setTextData(changes) {
     let trackCount = getChange(changes, "trackData.trackCount").value;
     if (trackCount > 0) {
       let trackCountFormatted = numberWithCommas(trackCount);
-      let lengthInfo;
+
+      let numericDescription;
       if (context.value.startsWith("ARTIST: ")) {
-        lengthInfo = `${trackCountFormatted} follower${trackCount !== 1 ? "s" : ""}`;
+        numericDescription = "follower";
+      } else if (context.value.startsWith("PODCAST: ")) {
+        numericDescription = "episode"
       } else {
-        lengthInfo = `${trackCountFormatted} track${trackCount !== 1 ? "s" : ""}`;
+        numericDescription = "track"
       }
+      let lengthInfo = `${trackCountFormatted} ${numericDescription}${trackCount !== 1 ? "s" : ""}`;
 
       let totalTime = getChange(changes, "trackData.totalTime").value;
       if (totalTime > 0) {
@@ -367,7 +371,7 @@ function setCorrectTracklistView(changes) {
 
   let refreshPrintedList =
        (queueMode !== wasPreviouslyInQueueMode)
-    || (newQueue.length > 0 && (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue)));
+    || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue));
 
   if (refreshPrintedList) {
     if (queueMode) {

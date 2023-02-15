@@ -19,12 +19,14 @@ import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
+import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Context;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Image;
 import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Show;
+import se.michaelthelin.spotify.model_objects.specification.ShowSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 import spotify.api.SpotifyApiException;
@@ -74,17 +76,25 @@ public class ContextProvider {
     String contextName = null;
     try {
       Context context = info.getContext();
-      boolean force = previous == null || previous.getPlaybackContext().getContext() == null || previous.getPlaybackContext().getContext().isEmpty();
-      if (context != null) {
-        ModelObjectType type = context.getType();
-        if (ModelObjectType.PLAYLIST.equals(type)) {
-          contextName = getPlaylistContext(context, force);
-        } else if (ModelObjectType.ARTIST.equals(type)) {
-          contextName = getArtistContext(context, force);
-        } else if (ModelObjectType.ALBUM.equals(type)) {
-          contextName = getAlbumContext(info, force);
-        } else if (ModelObjectType.SHOW.equals(type)) {
-          contextName = getPodcastContext(info, force);
+      ModelObjectType type = PlaybackInfoUtils.getModelObjectType(info);
+      if (context != null || type != null) {
+        boolean force = previous == null || previous.getPlaybackContext().getContext() == null || previous.getPlaybackContext().getContext().isEmpty();
+        if (type != null) {
+          switch (type) {
+            case ALBUM:
+              contextName = getAlbumContext(info, force);
+              break;
+            case PLAYLIST:
+              contextName = getPlaylistContext(context, force);
+              break;
+            case ARTIST:
+              contextName = getArtistContext(context, force);
+              break;
+            case SHOW:
+            case EPISODE:
+              contextName = getPodcastContext(info, force);
+              break;
+          }
         }
       }
     } catch (SpotifyApiException e) {
@@ -224,6 +234,14 @@ public class ContextProvider {
         currentContextAlbumTracks = Stream.concat(currentContextAlbumTracks.stream(), c.stream()).collect(Collectors.toList());
       }
 
+      this.thumbnailUrl = Arrays.stream(currentContextAlbum.getArtists())
+          .findFirst()
+          .map(ArtistSimplified::getId)
+          .map(id -> SpotifyCall.execute(spotifyApi.getArtist(id)))
+          .map(Artist::getImages)
+          .map(BotUtils::findSmallestImage)
+          .orElse(PlaybackInfoUtils.BLANK);
+
       this.listTracks = currentContextAlbumTracks.stream()
           .map(BotUtils::asTrack)
           .map(TrackData.ListTrack::fromPlaylistItem)
@@ -255,10 +273,18 @@ public class ContextProvider {
   }
 
   private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {
-    Context context = info.getContext();
-    String showId = BotUtils.getIdFromUri(context.getUri());
-    if (force || didContextChange(context)) {
-      Show show = SpotifyCall.execute(spotifyApi.getShow(showId));
+    Episode episode = (Episode) info.getItem();
+    ShowSimplified showSimplified = episode.getShow();
+    if (force || didContextChange(episode.toString())) {
+
+      Image[] artistImages = showSimplified.getImages();
+      String largestImage = BotUtils.findLargestImage(artistImages);
+      this.thumbnailUrl = largestImage != null ? largestImage : PlaybackInfoUtils.BLANK;
+
+      Show show = SpotifyCall.execute(spotifyApi.getShow(showSimplified.getId()));
+      setTrackCount(show.getEpisodes().getTotal());
+      setTotalTrackDuration(List.of());
+
       return "PODCAST: " + show.getName();
     }
     return null;
@@ -275,8 +301,12 @@ public class ContextProvider {
   }
 
   private boolean didContextChange(Context context) {
-    if (!context.toString().equals(previousContextString)) {
-      this.previousContextString = context.toString();
+    return didContextChange(context.toString());
+  }
+
+  private boolean didContextChange(String contextString) {
+    if (!contextString.equals(previousContextString)) {
+      this.previousContextString = contextString;
       return true;
     }
     return false;

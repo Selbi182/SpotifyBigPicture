@@ -2,6 +2,7 @@ package spotify.playback.data;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -199,7 +200,7 @@ public class PlaybackInfoProvider {
     trackData.setDiscNumber(1);
     trackData.setTotalDiscCount(1);
     trackData.setTrackListView(TrackData.ListViewType.QUEUE);
-    ModelObjectType type = context.getContext() != null ? context.getContext().getType() : null;
+    ModelObjectType type = PlaybackInfoUtils.getModelObjectType(context);
     if (type != null) {
       switch (type) {
         case ALBUM:
@@ -210,6 +211,7 @@ public class PlaybackInfoProvider {
           trackData.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
           trackData.setDiscNumber(contextProvider.getCurrentlyPlayingAlbumTrackDiscNumber());
           trackData.setTotalDiscCount(contextProvider.getTotalDiscCount());
+          playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
             trackData.setTrackListView(TrackData.ListViewType.ALBUM);
           }
@@ -232,9 +234,14 @@ public class PlaybackInfoProvider {
           trackData.setTotalTime(contextProvider.getTotalTime());
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           break;
+        case SHOW:
         case EPISODE:
           // Podcast context
           trackData.setTrackListView(TrackData.ListViewType.PODCAST);
+          trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
+          trackData.setTrackCount(contextProvider.getTrackCount());
+          trackData.setTotalTime(contextProvider.getTotalTime());
+          playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           break;
       }
     }
@@ -249,6 +256,13 @@ public class PlaybackInfoProvider {
     List<TrackData.ListTrack> queue = playbackQueueQueue.stream()
         .map(TrackData.ListTrack::fromPlaylistItem)
         .collect(Collectors.toList());
+    Optional<TrackData.ListTrack> firstSongOfQueue = queue.stream().findFirst();
+    if (firstSongOfQueue.isPresent()) {
+      TrackData.ListTrack firstSong = firstSongOfQueue.get();
+      if (queue.stream().allMatch(t -> t.equals(firstSong))) {
+        queue = List.of();
+      }
+    }
     trackData.setQueue(queue);
 
     if (playbackQueueQueue.size() > 1) {

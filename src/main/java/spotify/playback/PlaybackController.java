@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import spotify.playback.data.PlaybackInfoProvider;
-import spotify.playback.data.dto.BigPictureSetting;
+import spotify.playback.data.dto.misc.BigPictureSetting;
 import spotify.playback.data.dto.PlaybackInfo;
 
 @EnableScheduling

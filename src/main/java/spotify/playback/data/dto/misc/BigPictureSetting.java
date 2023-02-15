@@ -1,4 +1,4 @@
-package spotify.playback.data.dto;
+package spotify.playback.data.dto.misc;
 
 public class BigPictureSetting {
   private String id;

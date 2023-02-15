@@ -14,7 +14,7 @@ public class SpotifyArtworkUrlProvider {
     if (track instanceof Track) {
       images = ((Track) track).getAlbum().getImages();
     } else if (track instanceof Episode) {
-      images = ((Episode) track).getShow().getImages();
+      images = ((Episode) track).getImages();
     }
     return Optional.ofNullable(ArtworkUtil.findLargestImage(images));
   }
