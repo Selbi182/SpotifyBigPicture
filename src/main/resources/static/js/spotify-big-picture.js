@@ -61,7 +61,7 @@ let currentData = {
     repeat: "",
     shuffle: false,
     volume: -1,
-    playlistImageUrl: ""
+    thumbnailUrl: ""
   }
 };
 
@@ -73,7 +73,6 @@ let idle = false;
 ///////////////////////////////
 
 const INFO_URL = "/playback-info";
-const RETRY_TIMEOUT_MS = 5 * 1000;
 
 window.addEventListener('load', entryPoint);
 
@@ -84,11 +83,18 @@ function entryPoint() {
 function singleRequest() {
   let url = `${INFO_URL}?v=${currentData.versionId}`;
   fetch(url)
-    .then(response => response.json())
+    .then(response => {
+      if (response.status >= 200 && response.status < 300) {
+        return response.json()
+      } else {
+        return {
+          type: "EMPTY"
+        }
+      }
+    })
     .then(json => processJson(json))
     .catch(ex => {
-      console.error("Single request", ex);
-      setTimeout(() => singleRequest(), RETRY_TIMEOUT_MS);
+      console.error(ex);
     });
 }
 
@@ -213,7 +219,12 @@ function setTextData(changes) {
     let trackCount = getChange(changes, "trackData.trackCount").value;
     if (trackCount > 0) {
       let trackCountFormatted = numberWithCommas(trackCount);
-      let lengthInfo = `${trackCountFormatted} track${trackCount !== 1 ? "s" : ""}`;
+      let lengthInfo;
+      if (context.value.startsWith("ARTIST: ")) {
+        lengthInfo = `${trackCountFormatted} follower${trackCount !== 1 ? "s" : ""}`;
+      } else {
+        lengthInfo = `${trackCountFormatted} track${trackCount !== 1 ? "s" : ""}`;
+      }
 
       let totalTime = getChange(changes, "trackData.totalTime").value;
       if (totalTime > 0) {
@@ -227,11 +238,11 @@ function setTextData(changes) {
 
     // Thumbnail
     let playlistThumbnailContainer = document.getElementById("playlist-thumbnail");
-    let playlistImageUrl = getChange(changes, "playbackContext.playlistImageUrl").value;
-    if (playlistImageUrl === BLANK) {
+    let thumbnailUrl = getChange(changes, "playbackContext.thumbnailUrl").value;
+    if (thumbnailUrl === BLANK) {
       playlistThumbnailContainer.src = "";
     } else {
-      playlistThumbnailContainer.src = playlistImageUrl;
+      playlistThumbnailContainer.src = thumbnailUrl;
       fadeIn(playlistThumbnailContainer);
     }
 
@@ -996,8 +1007,11 @@ function setIdleModeState(state) {
       showHide(content, false);
     }
   } else {
-    idle = false;
-    showHide(content, true);
+    if (idle) {
+      idle = false;
+      initPolling(POLLING_INTERVAL_MS);
+      showHide(content, true);
+    }
   }
 }
 
@@ -1085,9 +1099,20 @@ const PREFERENCES = [
     id: "colored-text",
     name: "Colored Text",
     hotkey: "c",
-    description: "If enabled, the dominant color of the current artwork will be used as color for all texts and symbols. Otherwise, plain white will be used",
+    description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     state: true,
     callback: (state) => setClass(document.body, "no-colored-text", !state)
+  },
+  {
+    id: "colored-symbols",
+    name: "Colored Symbols",
+    hotkey: "y",
+    description: "If enabled, the dominant color of the current artwork will be used as color for the for the Spotify logo and the playlist thumbnail. Otherwise, keep them unchanged",
+    state: false,
+    callback: (state) => {
+      setClass(document.getElementById("logo"), "colored", state);
+      setClass(document.getElementById("playlist-thumbnail"), "colored", state);
+    }
   },
   {
     id: "transitions",
@@ -1116,7 +1141,22 @@ const PREFERENCES = [
     hotkey: "p",
     description: "Displays the playlist name along with some information about it at the top right of the page",
     state: true,
-    callback: (state) => setClass(document.getElementById("meta-left"), "hide", !state)
+    callback: (state) => {
+      setClass(document.getElementById("colored-symbols"), "overridden-1", !state);
+      setClass(document.getElementById("meta-left"), "hide", !state)
+    }
+  },
+  {
+    id: "show-logo",
+    name: "Spotify Logo",
+    hotkey: "l",
+    description: "Whether to display the Spotify logo in the top right or not. If it's disabled, the playlist name " +
+        "is pulled right",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("colored-symbols"), "overridden-2", !state);
+      setClass(document.getElementById("top-info"), "no-logo", !state)
+    }
   },
   {
     id: "show-timestamps",

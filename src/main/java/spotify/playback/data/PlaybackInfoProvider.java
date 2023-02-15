@@ -175,7 +175,7 @@ public class PlaybackInfoProvider {
     playbackContext.setVolume(context.getDevice().getVolume_percent());
     playbackContext.setContext(contextProvider.findContextName(context, previous));
     playbackContext.setDevice(context.getDevice().getName());
-    playbackContext.setPlaylistImageUrl(PlaybackInfoUtils.BLANK);
+    playbackContext.setThumbnailUrl(PlaybackInfoUtils.BLANK);
 
     // TrackData
     TrackData trackData = playbackInfo.getTrackData();
@@ -187,43 +187,43 @@ public class PlaybackInfoProvider {
     trackData.setTotalDiscCount(1);
     trackData.setTrackListView(TrackData.ListViewType.QUEUE);
     ModelObjectType type = context.getContext() != null ? context.getContext().getType() : null;
-    if (type == null) {
-      type = ModelObjectType.GENRE; // generic fallback case
-    }
-    switch (type) {
-      case ALBUM:
-        // Album context
-        trackData.setListTracks(contextProvider.getListTracks());
-        trackData.setTrackCount(contextProvider.getTrackCount());
-        trackData.setTotalTime(contextProvider.getTotalTime());
-        trackData.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
-        trackData.setDiscNumber(contextProvider.getCurrentlyPlayingAlbumTrackDiscNumber());
-        trackData.setTotalDiscCount(contextProvider.getTotalDiscCount());
-        if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
-          trackData.setTrackListView(TrackData.ListViewType.ALBUM);
-        }
-        break;
-      case PLAYLIST:
-        // Playlist context
-        Long playlistTotalTime = contextProvider.getTotalTime();
-        trackData.setListTracks(playlistTotalTime > 0 ? contextProvider.getListTracks() : List.of());
-        trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
-        trackData.setTrackCount(contextProvider.getTrackCount());
-        trackData.setTotalTime(playlistTotalTime);
-        trackData.setTrackListView(TrackData.ListViewType.PLAYLIST);
-        playbackContext.setPlaylistImageUrl(contextProvider.getPlaylistImageUrl());
-        break;
-      case ARTIST:
-        // Artist top tracks context
-        trackData.setListTracks(contextProvider.getListTracks());
-        trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
-        trackData.setTrackCount(contextProvider.getTrackCount());
-        trackData.setTotalTime(contextProvider.getTotalTime());
-        break;
-      case EPISODE:
-        // Podcast context
-        trackData.setTrackListView(TrackData.ListViewType.PODCAST);
-        break;
+    if (type != null) {
+      switch (type) {
+        case ALBUM:
+          // Album context
+          trackData.setListTracks(contextProvider.getListTracks());
+          trackData.setTrackCount(contextProvider.getTrackCount());
+          trackData.setTotalTime(contextProvider.getTotalTime());
+          trackData.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
+          trackData.setDiscNumber(contextProvider.getCurrentlyPlayingAlbumTrackDiscNumber());
+          trackData.setTotalDiscCount(contextProvider.getTotalDiscCount());
+          if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
+            trackData.setTrackListView(TrackData.ListViewType.ALBUM);
+          }
+          break;
+        case PLAYLIST:
+          // Playlist context
+          Long playlistTotalTime = contextProvider.getTotalTime();
+          trackData.setListTracks(playlistTotalTime > 0 ? contextProvider.getListTracks() : List.of());
+          trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
+          trackData.setTrackCount(contextProvider.getTrackCount());
+          trackData.setTotalTime(playlistTotalTime);
+          trackData.setTrackListView(TrackData.ListViewType.PLAYLIST);
+          playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
+          break;
+        case ARTIST:
+          // Artist top tracks context
+          trackData.setListTracks(contextProvider.getListTracks());
+          trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
+          trackData.setTrackCount(contextProvider.getTrackCount());
+          trackData.setTotalTime(contextProvider.getTotalTime());
+          playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
+          break;
+        case EPISODE:
+          // Podcast context
+          trackData.setTrackListView(TrackData.ListViewType.PODCAST);
+          break;
+      }
     }
 
     // Killswitch for gigantic playlists, to save performance

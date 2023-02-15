@@ -54,7 +54,7 @@ public class ContextProvider {
   private Integer currentlyPlayingAlbumTrackDiscNumber;
   private Integer trackCount;
   private Long totalTrackDuration;
-  private String playlistImageUrl;
+  private String thumbnailUrl;
 
   ContextProvider(SpotifyApi spotifyApi, UserService userService) {
     this.spotifyApi = spotifyApi;
@@ -123,8 +123,8 @@ public class ContextProvider {
     return totalTrackDuration;
   }
 
-  public String getPlaylistImageUrl() {
-    return playlistImageUrl;
+  public String getThumbnailUrl() {
+    return thumbnailUrl;
   }
 
   private void setTrackCount(Integer trackCount) {
@@ -162,14 +162,18 @@ public class ContextProvider {
       String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
       Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
 
+      Image[] artistImages = contextArtist.getImages();
+      String largestImage = BotUtils.findLargestImage(artistImages);
+      this.thumbnailUrl = largestImage != null ? largestImage : PlaybackInfoUtils.BLANK;
+
       this.listTracks = Arrays.stream(SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, getMarketOfCurrentUser())))
           .map(TrackData.ListTrack::fromPlaylistItem)
           .collect(Collectors.toList());
 
-      setTrackCount(this.listTracks.size());
-      setTotalTrackDuration(this.listTracks);
+      setTrackCount(contextArtist.getFollowers().getTotal());
+      setTotalTrackDuration(List.of());
 
-      return "ARTIST TOP TRACKS: " + contextArtist.getName();
+      return "ARTIST: " + contextArtist.getName();
     }
     return null;
   }
@@ -181,7 +185,7 @@ public class ContextProvider {
 
       Image[] playlistImages = contextPlaylist.getImages();
       String largestImage = BotUtils.findLargestImage(playlistImages);
-      this.playlistImageUrl = largestImage != null ? largestImage : PlaybackInfoUtils.BLANK;
+      this.thumbnailUrl = largestImage != null ? largestImage : PlaybackInfoUtils.BLANK;
 
       // Limit to 200 for performance reasons
       PlaylistTrack[] firstHalf = contextPlaylist.getTracks().getItems();

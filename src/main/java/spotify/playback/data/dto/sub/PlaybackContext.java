@@ -12,7 +12,7 @@ public class PlaybackContext {
   private Integer volume;
   private String context;
   private String device;
-  private String playlistImageUrl;
+  private String thumbnailUrl;
 
   public Boolean getPaused() {
     return paused;
@@ -62,12 +62,12 @@ public class PlaybackContext {
     this.device = device;
   }
 
-  public String getPlaylistImageUrl() {
-    return playlistImageUrl;
+  public String getThumbnailUrl() {
+    return thumbnailUrl;
   }
 
-  public void setPlaylistImageUrl(String playlistImageUrl) {
-    this.playlistImageUrl = playlistImageUrl;
+  public void setThumbnailUrl(String thumbnailUrl) {
+    this.thumbnailUrl = thumbnailUrl;
   }
 
   @Override
@@ -78,11 +78,11 @@ public class PlaybackContext {
       return false;
     PlaybackContext that = (PlaybackContext) o;
     return Objects.equal(paused, that.paused) && Objects.equal(shuffle, that.shuffle) && Objects.equal(repeat, that.repeat) && Objects.equal(volume, that.volume)
-        && Objects.equal(context, that.context) && Objects.equal(device, that.device) && Objects.equal(playlistImageUrl, that.playlistImageUrl);
+        && Objects.equal(context, that.context) && Objects.equal(device, that.device) && Objects.equal(thumbnailUrl, that.thumbnailUrl);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(paused, shuffle, repeat, volume, context, device, playlistImageUrl);
+    return Objects.hashCode(paused, shuffle, repeat, volume, context, device, thumbnailUrl);
   }
 }

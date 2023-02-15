@@ -68,7 +68,8 @@ a, a:visited, a:hover, a:active {
 body.transition * {
     transition: opacity var(--transition),
         color var(--transition),
-        background-color var(--transition);
+        background-color var(--transition),
+        filter var(--transition);
 }
 
 img:not([src]) {
@@ -265,15 +266,23 @@ img:not([src]) {
     opacity: 0;
 }
 
-#playlist-thumbnail {
-    width: auto;
+#playlist-thumbnail-wrapper {
     height: 6vh;
-    box-shadow: 0.2vh 0.2vh 0.5vh #00000044;
+    width: 6vh;
     border-radius: 1vh;
+    background-color: var(--color);
+    box-shadow: 0.2vh 0.2vh 0.5vh #0004;
 }
 
-#playlist-thumbnail[src=""] {
-    display: none;
+#playlist-thumbnail {
+    width: inherit;
+    height: inherit;
+    border-radius: inherit;
+}
+
+#playlist-thumbnail.colored {
+    mix-blend-mode: multiply;
+    filter: grayscale(1);
 }
 
 #context {
@@ -300,6 +309,10 @@ div#context-main {
     pointer-events: none;
 }
 
+#top-info.no-logo #meta-right {
+    display: none;
+}
+
 #logo {
     -webkit-mask-image: url("img/symbols/spotify.png");
     -webkit-mask-size: contain;
@@ -309,15 +322,14 @@ div#context-main {
     mask-size: contain;
     mask-position: right;
     mask-repeat: no-repeat;
-    background-color: var(--color);
     height: 6vh;
     width: 6vh;
-    opacity: 0.65;
-}
-
-#logo.spotify-green {
     background-color: #1DB954;
     opacity: 1;
+}
+
+#logo.colored {
+    background-color: var(--color);
 }
 
 #center-info {
@@ -572,6 +584,12 @@ div#description {
     display: flex;
     flex: 0;
     gap: 3vh;
+}
+
+#top-info.no-logo #meta-left {
+    text-align: right;
+    flex-direction: row-reverse;
+    justify-content: end;
 }
 
 #info-symbols {
@@ -869,7 +887,8 @@ div#device {
     white-space: pre;
 }
 
-#settings-buttons > div.overridden {
+#settings-buttons > div.overridden,
+#settings-buttons > div.overridden-1.overridden-2 {
     font-style: italic;
     opacity: 0.2 !important;
 }
