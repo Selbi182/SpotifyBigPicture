@@ -215,6 +215,10 @@ img:not([src]) {
     gap: var(--margin-main);
 }
 
+#main.vertical #content {
+    gap: initial;
+}
+
 #content-top {
     flex-direction: row;
     width: 100%;
@@ -223,6 +227,10 @@ img:not([src]) {
     justify-content: end;
     position: relative;
     max-height: var(--artwork-size);
+}
+
+#main.vertical #content-top {
+    max-height: initial;
 }
 
 #artwork {
@@ -234,9 +242,13 @@ img:not([src]) {
 }
 
 #main.vertical #artwork {
-    --artwork-size: 48vh;
+    --artwork-size: 52vh;
     margin-left: auto;
     margin-right: auto;
+}
+
+#main.vertical #artwork.hide-timestamps.hide-info {
+    --artwork-size: 59vh;
 }
 
 #artwork.hide {
@@ -270,6 +282,10 @@ img:not([src]) {
     opacity: 0;
 }
 
+#main.vertical #meta-left {
+    max-width: 50vh;
+}
+
 #thumbnail-wrapper {
     height: 6vh;
     width: 6vh;
@@ -296,10 +312,6 @@ img:not([src]) {
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
-}
-
-#main.vertical #context {
-    max-width: 30vw;
 }
 
 div#context-main {
@@ -351,7 +363,7 @@ div#context-main {
 }
 
 #main.vertical #center-info {
-    justify-content: end;
+    max-height: 24vh;
 }
 
 #main:not(.vertical) #center-info.queue {
@@ -363,12 +375,12 @@ div#context-main {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    gap: 1vh;
 }
 
 #title {
     font-size: 6vh;
     font-weight: bold;
-    margin: 1vh 0;
 }
 
 #main.vertical #title {
@@ -399,7 +411,7 @@ div#context-main {
     gap: 1vh;
 }
 
-#main.vertical #album {
+#album.hide {
     display: none;
 }
 
@@ -593,6 +605,10 @@ div#description {
     gap: 3vh;
 }
 
+#main.vertical #top-info {
+    justify-content: space-between;
+}
+
 #top-info.no-logo #meta-left {
     text-align: right;
     flex-direction: row-reverse;
@@ -602,7 +618,7 @@ div#description {
 #info-symbols {
     display: flex;
     height: 3vh;
-    gap: 2vmin;
+    gap: 2vh;
 }
 
 #info-symbols.hide {
@@ -743,6 +759,23 @@ div#device {
     flex-direction: row;
     justify-content: space-between;
     gap: 32vh;
+    max-height: 4vh;
+}
+
+#bottom-lr-container.hide-info #bottom-left {
+    display: none;
+}
+
+#bottom-lr-container.hide-info #bottom-right {
+    justify-content: space-between;
+}
+
+#bottom-lr-container.hide-timestamps #bottom-right {
+    display: none;
+}
+
+#bottom-lr-container.hide-timestamps.hide-info {
+    display: none;
 }
 
 #bottom-left {
@@ -765,14 +798,6 @@ div#device {
     justify-content: flex-end;
 }
 
-#bottom-right.stretch {
-    justify-content: space-between;
-}
-
-#bottom-right.hide {
-    opacity: 0;
-}
-
 #time {
     display: flex;
     flex-direction: row;
@@ -782,10 +807,10 @@ div#device {
 
 #content-bottom {
     display: flex;
-    align-items: center;
+    align-items: end;
     flex: 1;
     flex-wrap: wrap;
-    gap: 3vmin;
+    gap: 3vh;
 }
 
 #time-current, #time-total {
@@ -798,7 +823,7 @@ div#device {
     opacity: 0;
 }
 
-#bottom-right:not(.stretch) #time-total::before {
+#bottom-lr-container:not(.hide-info) #bottom-right #time-total::before {
     content: "/";
     opacity: 0.25;
     padding: 1.5vh;
@@ -913,6 +938,42 @@ div#device {
     opacity: 1;
 }
 
+#settings-right {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    gap: var(--margin-main);
+}
+
+#settings-presets {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--margin-main);
+    --image: "";
+}
+
+#settings-presets > .preset {
+    -webkit-mask-image: var(--image);
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
+    mask-image:  var(--image);
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
+    height: 10vh;
+    width: 20vh;
+    background-color: var(--color);
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+#settings-presets > .preset:hover {
+    opacity: 1;
+}
+
 #settings-description {
     height: 100%;
     display: flex;
@@ -947,7 +1008,7 @@ div#device {
 
 #clock-wrapper {
     position: absolute;
-    bottom: 9vh;
+    bottom: 8vh;
     left: 0;
     right: 0;
     text-align: center;
@@ -959,7 +1020,7 @@ div#device {
     margin: 0 auto;
 }
 
-#clock.hide, #clock:empty {
+#clock.hide, #clock:empty, #main.vertical #clock-wrapper {
     opacity: 0;
 }
 

@@ -720,7 +720,7 @@ function changeImage(changes) {
 }
 
 const PRERENDER_DELAY_MS = 1000;
-function prerenderNextImage(changes) {
+function prerenderNextImage(changes, delay = PRERENDER_DELAY_MS) {
   return new Promise(resolve => {
     let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
     let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
@@ -734,7 +734,7 @@ function prerenderNextImage(changes) {
               pngData: pngData
             };
           });
-      }, PRERENDER_DELAY_MS)
+      }, delay)
     }
     resolve();
   });
@@ -835,6 +835,10 @@ function prerenderBackground() {
 }
 
 function refreshBackgroundRender() {
+  nextImagePrerenderPngData = {
+    imageUrl: null,
+    pngData: null
+  };
   refreshDefaultPrerender()
     .then(() => {
       let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
@@ -1140,6 +1144,16 @@ const PREFERENCES = [
     }
   },
   {
+    id: "show-release",
+    name: "Release",
+    hotkey: "r",
+    description: "Displays the release name with its release year (usually the album of the currently playing song)",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("album"), "hide", !state);
+    }
+  },
+  {
     id: "show-context",
     name: "Playlist Info",
     hotkey: "p",
@@ -1192,7 +1206,9 @@ const PREFERENCES = [
         "Otherwise, only the progress bar is visible",
     state: true,
     callback: (state) => {
-      setClass(document.getElementById("bottom-right"), "hide", !state);
+      setClass(document.getElementById("artwork"), "hide-timestamps", !state);
+      setClass(document.getElementById("bottom-lr-container"), "hide-timestamps", !state);
+      refreshBackgroundRender();
     }
   },
   {
@@ -1202,8 +1218,9 @@ const PREFERENCES = [
     description: "Shows the playback state info at the bottom left of the page (play, shuffle, repeat, volume, device name)",
     state: true,
     callback: (state) => {
-      setClass(document.getElementById("bottom-left"), "hide", !state);
-      setClass(document.getElementById("bottom-right"), "stretch", !state);
+      setClass(document.getElementById("artwork"), "hide-info", !state);
+      setClass(document.getElementById("bottom-lr-container"), "hide-info", !state);
+      refreshBackgroundRender();
     }
   },
   {
@@ -1235,10 +1252,12 @@ const PREFERENCES = [
     id: "vertical-mode",
     name: "Vertical Mode",
     hotkey: "v",
-    description: "Disable the queue and current album name, center the remaining content. This results in a more minimalistic appearance",
+    description: "Convert the two-panel layout into a vertical, centered layout. This will disable the queue, but it results in a more minimalistic appearance",
     state: false,
     callback: (state) => {
+      setClass(document.getElementById("show-clock"), "overridden", state);
       setClass(document.getElementById("show-queue"), "overridden", state);
+      setClass(document.getElementById("show-release"), "overridden", state);
       setClass(document.getElementById("main"), "vertical", state);
       refreshBackgroundRender();
     }
@@ -1254,6 +1273,61 @@ const PREFERENCES = [
     }
   }
 ];
+
+const PREFERENCES_PRESETS = [
+  {
+    id: "preset-minimalistic",
+    name: "Preset: Minimalistic Mode",
+    image: "/design/img/symbols/preset-minimalistic.png",
+    description: "A minimalistic design preset only containing the most relevant information about the current song.",
+    enabled: [
+      "display-artwork",
+      "bg-grain",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "vertical-mode",
+      "strip-titles"
+    ],
+    disabled: [
+      "show-queue",
+      "bg-artwork",
+      "bg-black",
+      "colored-text",
+      "colored-symbols",
+      "show-release",
+      "show-timestamps",
+      "show-info-icons",
+      "show-clock"
+    ]
+  },
+  {
+    id: "preset-advanced",
+    name: "Preset: Advanced Mode",
+    image: "/design/img/symbols/preset-advanced.png",
+    description: "An advanced design preset that displays as much information as possible. Most notably: the queue of upcoming songs",
+    enabled: [
+      "show-queue",
+      "display-artwork",
+      "bg-artwork",
+      "bg-grain",
+      "colored-text",
+      "colored-symbols",
+      "show-release",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "strip-titles",
+      "show-timestamps",
+      "show-info-icons",
+      "show-clock"
+    ],
+    disabled: [
+      "bg-black",
+      "vertical-mode"
+    ]
+  }
+]
 
 function findPreference(id) {
   return PREFERENCES.find(pref => pref.id === id);
@@ -1306,6 +1380,48 @@ function initVisualPreferences() {
   }
   document.getElementById("fullscreen").onclick = toggleFullscreen;
 
+  // Preset buttons
+  const settingsPresetsWrapper = document.getElementById("settings-presets");
+  for (let presetIndex in PREFERENCES_PRESETS) {
+    let preset = PREFERENCES_PRESETS[presetIndex];
+    let presetElem = document.createElement("div");
+    presetElem.id = preset.id;
+    presetElem.classList.add("preset");
+    presetElem.title = preset.name;
+    presetElem.style.setProperty("--image", `url("${preset.image}")`);
+
+    presetElem.onclick = () => {
+      for (let settingId of preset.enabled) {
+        let pref = PREFERENCES.find(pref => pref.id === settingId);
+        if (pref) {
+          setVisualPreference(pref, true)
+        }
+      }
+      for (let settingId of preset.disabled) {
+        let pref = PREFERENCES.find(pref => pref.id === settingId);
+        if (pref) {
+          setVisualPreference(pref, false)
+        }
+      }
+    };
+
+    settingsPresetsWrapper.append(presetElem);
+
+    // Create description element
+    let descElem = document.createElement("div");
+    descElem.id = preset.id + "-description";
+
+    let descHeader = document.createElement("div");
+    descHeader.innerHTML = preset.name;
+
+    let descContent = document.createElement("div");
+    descContent.innerHTML = preset.description;
+
+    descElem.append(descHeader, descContent);
+    settingsDescriptionWrapper.appendChild(descElem);
+  }
+
+  // Finally, update the URL
   refreshPrefsQueryParam();
 }
 
@@ -1326,10 +1442,13 @@ function toggleVisualPreference(pref) {
   if (pref.volatile) {
     pref.callback();
   } else {
-    let newState = !pref.state;
-    refreshPreference(pref, newState);
-    refreshPrefsQueryParam();
+    setVisualPreference(pref, !pref.state);
   }
+}
+
+function setVisualPreference(pref, newState) {
+  refreshPreference(pref, newState);
+  refreshPrefsQueryParam();
 }
 
 let darkModeTimeout;
@@ -1516,7 +1635,7 @@ function initSettingsMouseMove() {
   };
 
   document.body.onclick = (e) => {
-    if (settingsVisible && e.target !== settingsMenuToggleButton && !settings.contains(e.target)) {
+    if (settingsVisible && e.target !== settingsMenuToggleButton && !e.target.classList.contains("setting") && !e.target.classList.contains("preset")) {
       toggleSettingsMenu();
     }
   }
@@ -1531,8 +1650,9 @@ function initSettingsMouseMove() {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
     document.getElementById("settings-description").childNodes
       .forEach(elem => setClass(elem, "show", false));
-    if (event.target.classList.contains("setting")) {
-      let targetLabel = document.getElementById(event.target.id + "-description");
+    let target = event.target;
+    if (target.classList.contains("setting") || target.classList.contains("preset")) {
+      let targetLabel = document.getElementById(target.id + "-description");
       setClass(targetLabel, "show", true);
     }
   }
