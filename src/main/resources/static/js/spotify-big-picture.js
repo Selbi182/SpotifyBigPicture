@@ -386,8 +386,6 @@ function setCorrectTracklistView(changes) {
               if (parent.classList.contains("track-elem")) {
                 parent.remove();
               }
-            } else {
-              parent.childNodes.forEach(node => node.classList.add("shrink2"));
             }
           }
           currentTrackListTopElem.childNodes.forEach(node => node.classList.add("shrink"));
@@ -403,7 +401,6 @@ function setCorrectTracklistView(changes) {
     trackListContainer.style.setProperty("--scale", "0");
     finishAnimations(trackListContainer);
     scaleTrackList(trackListContainer, 1);
-
   }
 
   let updateHighlightedTrack = (refreshPrintedList) || getChange(changes, "trackData.trackNumber").wasChanged;
@@ -894,9 +891,11 @@ function updateProgress(changes, updateProgressBar) {
   let artists = getChange(changes, "currentlyPlaying.artists").value;
   let title = getChange(changes, "currentlyPlaying.title").value;
   if (!idle && artists && title) {
-    newTitle = `[${formattedCurrentTime} / ${formattedTotalTime}] ${artists[0]} - ${removeFeaturedArtists(title)} | ${newTitle}`;
+    newTitle = `${artists[0]} - ${removeFeaturedArtists(title)} | ${newTitle}`;
   }
-  document.title = newTitle;
+  if (document.title !== newTitle) {
+    document.title = newTitle;
+  }
 
   // Progress Bar
   if (updateProgressBar) {
@@ -1074,7 +1073,13 @@ const PREFERENCES = [
     state: true,
     callback: (state) => {
       setClass(document.getElementById("title"), "force-display", !state);
-      setClass(document.getElementById("track-list"), "hidden", !state);
+      let trackListContainer = document.getElementById("track-list");
+      setClass(trackListContainer, "hidden", !state);
+      if (state) {
+        trackListContainer.style.setProperty("--scale", "0");
+        finishAnimations(trackListContainer);
+        scaleTrackList(trackListContainer, 1);
+      }
     }
   },
   {
@@ -1278,6 +1283,7 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-minimalistic",
     name: "Preset: Minimalistic Mode",
+    hotkey: "1",
     image: "/design/img/symbols/preset-minimalistic.png",
     description: "A minimalistic design preset only containing the most relevant information about the current song.",
     enabled: [
@@ -1304,6 +1310,7 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-advanced",
     name: "Preset: Advanced Mode",
+    hotkey: "2",
     image: "/design/img/symbols/preset-advanced.png",
     description: "An advanced design preset that displays as much information as possible. Most notably: the queue of upcoming songs",
     enabled: [
@@ -1387,7 +1394,6 @@ function initVisualPreferences() {
     let presetElem = document.createElement("div");
     presetElem.id = preset.id;
     presetElem.classList.add("preset");
-    presetElem.title = preset.name;
     presetElem.style.setProperty("--image", `url("${preset.image}")`);
 
     presetElem.onclick = () => {
@@ -1412,7 +1418,7 @@ function initVisualPreferences() {
     descElem.id = preset.id + "-description";
 
     let descHeader = document.createElement("div");
-    descHeader.innerHTML = preset.name;
+    descHeader.innerHTML = `${preset.name} (${preset.hotkey})`;
 
     let descContent = document.createElement("div");
     descContent.innerHTML = preset.description;
@@ -1435,7 +1441,7 @@ function refreshPrefsQueryParam() {
 
   const url = new URL(window.location);
   url.searchParams.set(PREFS_URL_PARAM, urlPrefs.join("+"));
-  window.history.replaceState({}, 'Spotify Big Picture', unescape(url.toString())); // todo only on song changes
+  window.history.replaceState({}, 'Spotify Big Picture', unescape(url.toString()));
 }
 
 function toggleVisualPreference(pref) {
@@ -1590,6 +1596,11 @@ document.onkeydown = (e) => {
     let pref = PREFERENCES.find(element => element.hotkey === e.key);
     if (pref) {
       toggleVisualPreference(pref);
+    } else {
+      let preset = PREFERENCES_PRESETS.find(element => element.hotkey === e.key);
+      if (preset) {
+        document.getElementById(preset.id).click();
+      }
     }
   }
 };
