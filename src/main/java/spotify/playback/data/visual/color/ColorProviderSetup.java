@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import de.selbi.colorfetch.data.ColorFetchResult;
+import spotify.playback.data.help.BigPictureUtils;
 
 @Component
 public class ColorProviderSetup {
@@ -30,6 +31,9 @@ public class ColorProviderSetup {
   }
 
   public ColorFetchResult getDominantColorFromImageUrl(String artworkUrl) {
+    if (BigPictureUtils.BLANK.equals(artworkUrl)) {
+      return ColorFetchResult.FALLBACK;
+    }
     return colorProvider.getDominantColorFromImageUrl(artworkUrl);
   }
 

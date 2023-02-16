@@ -33,8 +33,8 @@ import spotify.api.SpotifyApiException;
 import spotify.api.SpotifyCall;
 import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.sub.TrackData;
-import spotify.playback.data.help.PlaybackInfoConstants;
-import spotify.playback.data.help.PlaybackInfoUtils;
+import spotify.playback.data.help.BigPictureConstants;
+import spotify.playback.data.help.BigPictureUtils;
 import spotify.services.UserService;
 import spotify.util.BotUtils;
 import spotify.util.data.AlbumTrackPair;
@@ -76,7 +76,7 @@ public class ContextProvider {
     String contextName = null;
     try {
       Context context = info.getContext();
-      ModelObjectType type = PlaybackInfoUtils.getModelObjectType(info);
+      ModelObjectType type = BigPictureUtils.getModelObjectType(info);
       if (context != null || type != null) {
         boolean force = previous == null || previous.getPlaybackContext().getContext() == null || previous.getPlaybackContext().getContext().isEmpty();
         if (type != null) {
@@ -169,12 +169,12 @@ public class ContextProvider {
 
   private String getArtistContext(Context context, boolean force) {
     if (force || didContextChange(context)) {
-      String artistId = context.getHref().replace(PlaybackInfoConstants.ARTIST_PREFIX, "");
+      String artistId = context.getHref().replace(BigPictureConstants.ARTIST_PREFIX, "");
       Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
 
       Image[] artistImages = contextArtist.getImages();
       String largestImage = BotUtils.findLargestImage(artistImages);
-      this.thumbnailUrl = largestImage != null ? largestImage : PlaybackInfoUtils.BLANK;
+      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
       this.listTracks = Arrays.stream(SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, getMarketOfCurrentUser())))
           .map(TrackData.ListTrack::fromPlaylistItem)
@@ -190,12 +190,12 @@ public class ContextProvider {
 
   private String getPlaylistContext(Context context, boolean force) {
     if (force || didContextChange(context)) {
-      String playlistId = context.getHref().replace(PlaybackInfoConstants.PLAYLIST_PREFIX, "");
+      String playlistId = context.getHref().replace(BigPictureConstants.PLAYLIST_PREFIX, "");
       Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 
       Image[] playlistImages = contextPlaylist.getImages();
       String largestImage = BotUtils.findLargestImage(playlistImages);
-      this.thumbnailUrl = largestImage != null ? largestImage : PlaybackInfoUtils.BLANK;
+      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
       // Limit to 200 for performance reasons
       PlaylistTrack[] firstHalf = contextPlaylist.getTracks().getItems();
@@ -240,7 +240,7 @@ public class ContextProvider {
           .map(id -> SpotifyCall.execute(spotifyApi.getArtist(id)))
           .map(Artist::getImages)
           .map(BotUtils::findSmallestImage)
-          .orElse(PlaybackInfoUtils.BLANK);
+          .orElse(BigPictureUtils.BLANK);
 
       this.listTracks = currentContextAlbumTracks.stream()
           .map(BotUtils::asTrack)
@@ -279,7 +279,7 @@ public class ContextProvider {
 
       Image[] artistImages = showSimplified.getImages();
       String largestImage = BotUtils.findLargestImage(artistImages);
-      this.thumbnailUrl = largestImage != null ? largestImage : PlaybackInfoUtils.BLANK;
+      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
       Show show = SpotifyCall.execute(spotifyApi.getShow(showSimplified.getId()));
       setTrackCount(show.getEpisodes().getTotal());

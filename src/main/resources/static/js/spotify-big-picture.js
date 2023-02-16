@@ -760,15 +760,15 @@ function setRenderedBackground(pngData) {
 function setArtworkAndPrerender(newImageUrl, colors) {
   return new Promise((resolve) => {
     if (!newImageUrl) {
-      reject("newImageUrl is undefined");
-    } else {
-      Promise.all([
-        loadArtwork(newImageUrl),
-        loadBackground(newImageUrl, colors)
-      ])
-      .then(() => prerenderBackground())
-      .then(pngData => resolve(pngData));
+      newImageUrl = DEFAULT_IMAGE;
+      colors = DEFAULT_IMAGE_COLORS;
     }
+    Promise.all([
+      loadArtwork(newImageUrl),
+      loadBackground(newImageUrl, colors)
+    ])
+    .then(() => prerenderBackground())
+    .then(pngData => resolve(pngData));
   });
 }
 

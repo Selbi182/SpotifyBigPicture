@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 import de.selbi.colorfetch.data.ColorFetchResult;
-import spotify.playback.data.help.PlaybackInfoUtils;
+import spotify.playback.data.help.BigPictureUtils;
 
 @JsonInclude(Include.NON_NULL)
 public class ImageData {
@@ -14,7 +14,7 @@ public class ImageData {
   private ColorFetchResult imageColors;
 
   public ImageData() {
-    this.imageUrl = PlaybackInfoUtils.BLANK;
+    this.imageUrl = BigPictureUtils.BLANK;
     this.imageColors = ColorFetchResult.FALLBACK;
   }
 

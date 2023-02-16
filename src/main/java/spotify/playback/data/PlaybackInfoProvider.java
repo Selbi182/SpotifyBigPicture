@@ -28,9 +28,9 @@ import spotify.playback.data.dto.sub.CurrentlyPlaying;
 import spotify.playback.data.dto.sub.ImageData;
 import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
-import spotify.playback.data.help.PlaybackInfoUtils;
+import spotify.playback.data.help.BigPictureUtils;
 import spotify.playback.data.visual.ContextProvider;
-import spotify.playback.data.visual.artwork.ArtworkUrlProvider;
+import spotify.playback.data.visual.artwork.ArtworkUrlCache;
 import spotify.playback.data.visual.color.ColorProviderSetup;
 import spotify.util.BotUtils;
 
@@ -40,7 +40,7 @@ public class PlaybackInfoProvider {
 
   private final SpotifyApi spotifyApi;
   private final ContextProvider contextProvider;
-  private final ArtworkUrlProvider artworkUrlProvider;
+  private final ArtworkUrlCache artworkUrlCache;
   private final ColorProviderSetup dominantColorProvider;
 
   private final Logger logger = Logger.getLogger(PlaybackInfoProvider.class.getName());
@@ -58,11 +58,11 @@ public class PlaybackInfoProvider {
 
   PlaybackInfoProvider(SpotifyApi spotifyApi,
       ContextProvider contextProvider,
-      ArtworkUrlProvider artworkUrlProvider,
+      ArtworkUrlCache artworkUrlCache,
       ColorProviderSetup colorProvider) {
     this.spotifyApi = spotifyApi;
     this.contextProvider = contextProvider;
-    this.artworkUrlProvider = artworkUrlProvider;
+    this.artworkUrlCache = artworkUrlCache;
     this.dominantColorProvider = colorProvider;
     this.ready = false;
     this.queueEnabled = true;
@@ -152,7 +152,7 @@ public class PlaybackInfoProvider {
     Integer previousTimeCurrent = previous.getCurrentlyPlaying().getTimeCurrent();
     Integer timeCurrent = current.getCurrentlyPlaying().getTimeCurrent();
     if (timeCurrent != null && previousTimeCurrent != null) {
-      if (PlaybackInfoUtils.isWithinEstimatedProgressMs(previousTimeCurrent, timeCurrent)) {
+      if (BigPictureUtils.isWithinEstimatedProgressMs(previousTimeCurrent, timeCurrent)) {
         previous.getCurrentlyPlaying().setTimeCurrent(timeCurrent);
         return false;
       }
@@ -174,7 +174,7 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setTimeTotal(currentTrack.getDurationMs());
 
     ImageData imageData = currentlyPlaying.getImageData();
-    String artworkUrl = artworkUrlProvider.findArtworkUrl(currentTrack);
+    String artworkUrl = artworkUrlCache.findArtworkUrl(currentTrack);
     if (artworkUrl != null && !artworkUrl.isEmpty()) {
       imageData.setImageUrl(artworkUrl);
       ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl);
@@ -189,7 +189,7 @@ public class PlaybackInfoProvider {
     playbackContext.setVolume(context.getDevice().getVolume_percent());
     playbackContext.setContext(contextProvider.findContextName(context, previous));
     playbackContext.setDevice(context.getDevice().getName());
-    playbackContext.setThumbnailUrl(PlaybackInfoUtils.BLANK);
+    playbackContext.setThumbnailUrl(BigPictureUtils.BLANK);
 
     // TrackData
     TrackData trackData = playbackInfo.getTrackData();
@@ -200,7 +200,7 @@ public class PlaybackInfoProvider {
     trackData.setDiscNumber(1);
     trackData.setTotalDiscCount(1);
     trackData.setTrackListView(TrackData.ListViewType.QUEUE);
-    ModelObjectType type = PlaybackInfoUtils.getModelObjectType(context);
+    ModelObjectType type = BigPictureUtils.getModelObjectType(context);
     if (type != null) {
       switch (type) {
         case ALBUM:
@@ -268,7 +268,7 @@ public class PlaybackInfoProvider {
     if (playbackQueueQueue.size() > 1) {
       IPlaylistItem nextSong = playbackQueueQueue.get(0);
       ImageData nextImageData = new ImageData();
-      String nextArtworkUrl = artworkUrlProvider.findArtworkUrl(nextSong);
+      String nextArtworkUrl = artworkUrlCache.findArtworkUrl(nextSong);
       if (nextArtworkUrl != null && !nextArtworkUrl.isEmpty()) {
         nextImageData.setImageUrl(nextArtworkUrl);
         ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(nextArtworkUrl);
@@ -289,8 +289,8 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setArtists(BotUtils.toArtistNamesList(track.getArtists()));
     currentlyPlaying.setTitle(track.getName());
     currentlyPlaying.setAlbum(track.getAlbum().getName());
-    currentlyPlaying.setYear(PlaybackInfoUtils.findReleaseYear(track));
-    currentlyPlaying.setDescription(PlaybackInfoUtils.BLANK);
+    currentlyPlaying.setYear(BigPictureUtils.findReleaseYear(track));
+    currentlyPlaying.setDescription(BigPictureUtils.BLANK);
 
     return pInfo;
   }

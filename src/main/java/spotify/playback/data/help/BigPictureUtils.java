@@ -5,7 +5,7 @@ import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
-public class PlaybackInfoUtils {
+public class BigPictureUtils {
 
   /**
    * Used in cases where the interface should explicitly hide a field due to the absence of data.
@@ -36,8 +36,8 @@ public class PlaybackInfoUtils {
    * @return true if it's within tolerance
    */
   public static boolean isWithinEstimatedProgressMs(int previous, int current) {
-    int expectedProgressMs = previous + PlaybackInfoConstants.POLLING_RATE_MS;
-    return Math.abs(expectedProgressMs - current) < PlaybackInfoConstants.ESTIMATED_PROGRESS_TOLERANCE_MS;
+    int expectedProgressMs = previous + BigPictureConstants.POLLING_RATE_MS;
+    return Math.abs(expectedProgressMs - current) < BigPictureConstants.ESTIMATED_PROGRESS_TOLERANCE_MS;
   }
 
   /**

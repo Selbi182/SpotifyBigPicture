@@ -2,20 +2,33 @@ package spotify.playback.data.visual.artwork.service;
 
 import java.util.Optional;
 
-import spotify.playback.data.visual.artwork.util.ArtworkUtil;
+import org.springframework.stereotype.Component;
+
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Image;
 import se.michaelthelin.spotify.model_objects.specification.Track;
+import spotify.util.BotUtils;
 
-public class SpotifyArtworkUrlProvider {
-  public static Optional<String> getDefaultSpotifyImage(IPlaylistItem track) {
-    Image[] images = null;
-    if (track instanceof Track) {
-      images = ((Track) track).getAlbum().getImages();
-    } else if (track instanceof Episode) {
-      images = ((Episode) track).getImages();
+@Component
+public class SpotifyArtworkUrlProvider implements ArtworkUrlProvider {
+  @Override
+  public Optional<String> getImageUrlFromItem(IPlaylistItem item) {
+    if (item instanceof Track) {
+      return getImageFromTrack((Track) item);
+    } else if (item instanceof Episode) {
+      return getImageFromEpisode((Episode) item);
     }
-    return Optional.ofNullable(ArtworkUtil.findLargestImage(images));
+    return Optional.empty();
+  }
+
+  private Optional<String> getImageFromTrack(Track track) {
+    Image[] images = track.getAlbum().getImages();
+    return Optional.ofNullable(BotUtils.findLargestImage(images));
+  }
+
+  private Optional<String> getImageFromEpisode(Episode episode) {
+    Image[] images = episode.getImages();
+    return Optional.ofNullable(BotUtils.findLargestImage(images));
   }
 }
