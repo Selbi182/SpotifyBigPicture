@@ -111,7 +111,7 @@ img:not([src]) {
     filter: blur(var(--blur));
 }
 
-#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain, #vignette {
+#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -133,6 +133,10 @@ img:not([src]) {
     height: 100% !important;
 }
 
+#prerender-canvas * {
+    transition: unset;
+}
+
 #prerender-canvas.show {
     display: unset;
 }
@@ -150,17 +154,31 @@ img:not([src]) {
     --background-color: black;
     background: var(--background-gradients), var(--background-color);
     --background-brightness: 0.5;
-    --background-gradients: radial-gradient(circle, transparent 20%, #00000080 100%), linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, var(--background-brightness)) 100%);
+    --background-gradients:
+        radial-gradient(circle, transparent 20%, #00000080 100%),
+        linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, var(--background-brightness)) 100%),
+        linear-gradient(to bottom, black 0%, transparent 25%, transparent 75%, black 100%);
     background-blend-mode: soft-light;
     opacity: var(--background-brightness);
-    transition: unset !important;
 }
 
-#background-canvas-overlay.brighter {
+#background-canvas-overlay.no-tint {
+    --background-color: black !important;
+    --background-brightness: 0.2 !important;
+    mix-blend-mode: multiply;
+}
+
+#background-canvas.color-only #background-canvas-overlay.no-tint {
+    --background-color: white !important;
+    --background-brightness: 0.5 !important;
+    mix-blend-mode: hard-light;
+}
+
+#background-canvas-overlay:not(.no-tint).brighter {
     opacity: calc(0.5 - var(--background-brightness));
 }
 
-#background-canvas-overlay.darker {
+#background-canvas-overlay:not(.no-tint).darker {
     background-blend-mode: hard-light;
 }
 
@@ -194,16 +212,6 @@ img:not([src]) {
     opacity: max(0.06, calc(var(--intensity) * 0.30));
 }
 
-#vignette {
-    --vignette-color: #00000080;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 1;
-    background: linear-gradient(to bottom, var(--vignette-color) 0%, transparent 25%, transparent 75%, var(--vignette-color) 100%);
-}
-
 #content {
     display: flex;
     flex-direction: column;
@@ -215,7 +223,7 @@ img:not([src]) {
     gap: var(--margin-main);
 }
 
-#main.vertical #content {
+#main.vertical #content, #content.full-content {
     gap: initial;
 }
 
@@ -231,6 +239,10 @@ img:not([src]) {
 
 #main.vertical #content-top {
     max-height: initial;
+}
+
+#content.full-content #content-top {
+    max-height: calc(var(--artwork-size) + var(--margin-main));
 }
 
 #artwork {
@@ -362,12 +374,12 @@ div#context-main {
     max-height: calc(var(--artwork-size) - 12vh);
 }
 
-#main.vertical #center-info {
-    max-height: 24vh;
+#content.full-content #center-info {
+    max-height: calc(var(--artwork-size) + 2vh);
 }
 
-#main:not(.vertical) #center-info.queue {
-    padding-top: 2vh;
+#main.vertical #center-info {
+    max-height: 24vh;
 }
 
 #center-info-main {
@@ -507,7 +519,7 @@ div#description {
 }
 
 #center-info.queue #track-list .track-elem:first-child div.shrink,
-#center-info.queue #track-list .track-elem:nth-child(n+18) > div {
+#center-info.queue #track-list .track-elem:nth-child(n+20) > div {
     transition: opacity var(--transition), font-size var(--transition);
     opacity: 0;
     font-size: 0;
@@ -594,9 +606,10 @@ div#description {
     gap: 4vh;
 }
 
-#info.full-width,
+#content.full-content #info,
 #main.vertical #info {
     width: 100%;
+    gap: initial;
 }
 
 #top-info {
@@ -728,7 +741,8 @@ div#device {
     width: 100%;
     border-radius: 0.5vh;
     height: 0.5vh;
-    min-height: 1px;
+    max-height: 0.5vh;
+    min-height: 0.5vh;
     position: relative;
     flex: 0 0 100%;
 }
@@ -809,8 +823,13 @@ div#device {
     display: flex;
     align-items: end;
     flex: 1;
-    flex-wrap: wrap;
     gap: 3vh;
+    flex-direction: column;
+    justify-content: end;
+}
+
+#content-bottom.reverse {
+    flex-direction: column-reverse;
 }
 
 #time-current, #time-total {
@@ -1020,6 +1039,10 @@ div#device {
     margin: 0 auto;
 }
 
+#clock-wrapper.higher {
+    bottom: 12vh;
+}
+
 #clock.hide, #clock:empty, #main.vertical #clock-wrapper {
     opacity: 0;
 }
@@ -1064,6 +1087,11 @@ div#device {
     #track-list .track-elem div.track-name {
         white-space: unset;
         overflow: unset;
+    }
+
+    #content-bottom {
+        flex-wrap: wrap;
+        flex-direction: row;
     }
 
     #bottom-lr-container {

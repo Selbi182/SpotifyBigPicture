@@ -400,7 +400,9 @@ function setCorrectTracklistView(changes) {
 
     trackListContainer.style.setProperty("--scale", "0");
     finishAnimations(trackListContainer);
-    scaleTrackList(trackListContainer, 1);
+    if (newQueue.length < 20) {
+      scaleTrackList(trackListContainer, 1);
+    }
   }
 
   let updateHighlightedTrack = (refreshPrintedList) || getChange(changes, "trackData.trackNumber").wasChanged;
@@ -1090,7 +1092,7 @@ const PREFERENCES = [
     state: true,
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide", !state);
-      setClass(document.getElementById("info"), "full-width", !state);
+      setClass(document.getElementById("content"), "full-content", !state);
       refreshBackgroundRender();
     }
   },
@@ -1102,6 +1104,17 @@ const PREFERENCES = [
     state: true,
     callback: (state) => {
       setClass(document.getElementById("background-canvas"), "color-only", !state);
+      refreshBackgroundRender();
+    }
+  },
+  {
+    id: "bg-tint",
+    name: "Background Overlay Color",
+    hotkey: "o",
+    description: "Add a subtle layer of one of the artwork's most dominant colors to the background",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("background-canvas-overlay"), "no-tint", !state);
       refreshBackgroundRender();
     }
   },
@@ -1229,6 +1242,17 @@ const PREFERENCES = [
     }
   },
   {
+    id: "reverse-bottom",
+    name: "Upside-Down Bottom",
+    hotkey: "u",
+    description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
+    state: false,
+    callback: (state) => {
+      setClass(document.getElementById("content-bottom"), "reverse", state);
+      setClass(document.getElementById("clock-wrapper"), "higher", state);
+    }
+  },
+  {
     id: "show-clock",
     name: "Clock",
     hotkey: "w",
@@ -1285,10 +1309,11 @@ const PREFERENCES_PRESETS = [
     name: "Preset: Minimalistic Mode",
     hotkey: "1",
     image: "/design/img/symbols/preset-minimalistic.png",
-    description: "A minimalistic design preset only containing the most relevant information about the current song.",
+    description: "A minimalistic design preset only containing the most relevant information about the current song",
     enabled: [
       "display-artwork",
       "bg-grain",
+      "bg-tint",
       "show-context",
       "show-logo",
       "transitions",
@@ -1304,6 +1329,7 @@ const PREFERENCES_PRESETS = [
       "show-release",
       "show-timestamps",
       "show-info-icons",
+      "reverse-bottom",
       "show-clock"
     ]
   },
@@ -1312,11 +1338,12 @@ const PREFERENCES_PRESETS = [
     name: "Preset: Advanced Mode",
     hotkey: "2",
     image: "/design/img/symbols/preset-advanced.png",
-    description: "An advanced design preset that displays as much information as possible. Most notably: the queue of upcoming songs",
+    description: "An advanced design preset that displays as much information as possible about the current song (including artwork), the upcoming songs, and the playback state",
     enabled: [
       "show-queue",
       "display-artwork",
       "bg-artwork",
+      "bg-tint",
       "bg-grain",
       "colored-text",
       "colored-symbols",
@@ -1331,6 +1358,37 @@ const PREFERENCES_PRESETS = [
     ],
     disabled: [
       "bg-black",
+      "reverse-bottom",
+      "vertical-mode"
+    ]
+  },
+  {
+    id: "preset-background",
+    name: "Preset: Background Artwork",
+    hotkey: "3",
+    image: "/design/img/symbols/preset-background.png",
+    description: "A design that moves the artwork to the background and opens up more room for the queue",
+    enabled: [
+      "show-queue",
+      "bg-artwork",
+      "bg-tint",
+      "bg-grain",
+      "colored-text",
+      "colored-symbols",
+      "show-release",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "strip-titles",
+      "show-timestamps",
+      "reverse-bottom"
+    ],
+    disabled: [
+      "bg-black",
+      "display-artwork",
+      "bg-tint",
+      "show-info-icons",
+      "show-clock",
       "vertical-mode"
     ]
   }
