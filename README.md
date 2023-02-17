@@ -4,17 +4,43 @@ An interface that displays your current playback status on Spotify in a beautifu
 
 You might want to use this over [Spotify's own (in my opinion, rather underwhelming) full-screen mode](https://i.imgur.com/dvreOAX.jpg), or you can use it for your TV/media-streamer to give [that outdated, low-resolution OSD](https://i.imgur.com/lNfCcrW.jpg) a fresh paint job!
 
-## Examples
+This interface is entirely read-only. Specifically, this means that you **cannot actually control your music**. Instead, the idea is to set this app up once, and then it permanently runs as a pure information display. An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near to the dance floor that you connect to a Raspberry Pi.
+
+## Screenshots
 *Note: Due to the progressive development nature of this app, the screenshots may be slightly out of date at any time. The general layout is pretty much written in stone though.*
 
 ### Album View
-![Deafheaven - Dream House](https://i.imgur.com/FEi7Z1N.png)
+![Deafheaven - Dream House](https://i.imgur.com/7qlGlf1.png)
 
 ### Playlist View
 ![Playlist View](https://i.imgur.com/HsrgpeQ.png)
 
-### Vertical Mode (with disabled background artwork)
-![Vertical Mode](https://i.imgur.com/l5MUo6I.png)
+### Visual Preferences
+![Visual Preferences](https://i.imgur.com/H4Yzeca.png)
+
+Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can individually customize every setting to your liking with a single click. By default, most of the settings are enabled, but you got full control over which features you might want to turn off.
+
+A detailed explanation for each option appears when you hover over the individual settings. To save your settings, bookmark the URL with all its parameters after you're done editing.
+
+### Presets
+![Themes](https://i.imgur.com/OLQlvup.png)
+
+If you feel overwhelmed by the amount of options, you can also choose to simply select one of three presets. These are combinations of visual preferences that form a unique purpose and identiy. From left to right:
+
+#### Preset 1: Complete Mode
+![Preset 1: Complete Mode](https://i.imgur.com/LD4MGXP.png)
+
+This is the default mode. It displays as much information as possible about the current song, displays its artwork on the right, shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)
+
+#### Preset 2: Minimalistic Mode
+![Preset 2: Minimalistic Mode](https://i.imgur.com/grUDDlM.png)
+
+A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast.
+
+#### Preset 3: Queue Mode
+![Preset 3: Queue Mode](https://i.imgur.com/uzPLhwF.png)
+
+Similar to Complete Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information.
 
 ## Installation
 Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either:
@@ -27,33 +53,17 @@ Here's a basic guide on how to set this app up, as a few people have been reques
 6. Once prompted to log in, copy-paste the displayed URL into your preferred browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`) and log in
 7. If everything worked out, the app will be available under http://localhost:8183/
 
-## Usage and Features
-### General Idea
-This interface is entirely read-only. Specifically, this means that you **cannot actually control your music**. Instead, the idea is to set this app up once, and then it permanently runs as a pure information display.
-
-An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near to the dance floor that you connect to a Raspberry Pi.
-
-### Visual Preferences
-![Visual Preferences](https://i.imgur.com/INoK3jS.png)
-
-Click the cog symbol in the top left of the interface to open the settings for visual preferences. By default, most of the settings are enabled, but you got full control over which features you might want to turn off. A detailed explanation for each option appears when you hover over the individual settings.
-
-### Idle Mode
-After two hours of playing no music, the interface will turn black and stop rendering anything to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
-
-It may take up to a minute during idle mode for the interface to catch up again; alternatively, you can simply refresh the page.
-
-### Color
-The background image uses a copy of the album artwork, stretched to fit the screen and blurred in order to avoid clashes with the main image. Furthermore, the most dominant color of the art will be used as additional overlay to increase contrast. It's also used to give the text and icons a different color than white.
-
-This was done using [ColorThief.js](https://lokeshdhakar.com/projects/color-thief).
-
 ## Troubleshooting
 First and foremost:
 
 1. This app has been optimized for **Firefox**! It may work to some degree on Chrome and the likes, but I won't guarantee full stability over there
 
 2. Getting your current queue is **only** available for Spotify premium users. For free users, only the current song can be displayed. For albums, more than a good guess whichever song comes next is unfortunately not possible
+
+### Idle Mode
+After two hours of playing no music, the interface will turn black and stop rendering anything to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
+
+It may take up to a minute during idle mode for the interface to catch up again; alternatively, you can simply refresh the page.
 
 ### Interface doesn't update?
 
