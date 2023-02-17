@@ -42,7 +42,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'spotify:spotify-dependencies:1.5.1'
+    implementation 'spotify:spotify-dependencies:1.5.2'
     implementation 'de.selbi:color-fetch:1.1.0'
 
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"

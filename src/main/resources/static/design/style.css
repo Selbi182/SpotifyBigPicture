@@ -773,6 +773,7 @@ div#device {
     flex-direction: row;
     justify-content: space-between;
     max-height: 4vh;
+    position: relative;
 }
 
 #bottom-meta-container.hide-info #bottom-left {
@@ -918,7 +919,6 @@ div#device {
 #settings-buttons {
     width: min-content;
     height: 100%;
-    display: flex;
     justify-content: space-between;
     font-family: var(--font-bold);
     flex-direction: column;
@@ -981,11 +981,12 @@ div#device {
     mask-size: contain;
     mask-position: right;
     mask-repeat: no-repeat;
-    height: 10vh;
-    width: 20vh;
     background-color: var(--color);
     opacity: 0.5;
     cursor: pointer;
+    width: calc(16vh * var(--preset-button-scale));
+    height: calc(9vh * var(--preset-button-scale));
+    --preset-button-scale: 2;
 }
 
 #settings-presets > .preset:hover {
@@ -993,20 +994,25 @@ div#device {
 }
 
 #settings-description {
+    width: 100%;
     height: 100%;
     display: flex;
     justify-content: space-between;
     flex-direction: column;
-    width: 100%;
     font-size: 3vh;
     pointer-events: none;
     position: relative;
 }
 
 #settings-description > div {
+    width: 100%;
     opacity: 0;
     overflow: visible;
     position: absolute;
+}
+
+#settings-description > div[id*="preset-"] {
+    text-align: center;
 }
 
 #settings-description > div > div {
@@ -1031,6 +1037,13 @@ div#device {
     z-index: 1;
     font-size: 3vh;
     width: fit-content;
+}
+
+#bottom-meta-container.hide-info #clock-wrapper {
+    position: absolute;
+    margin: auto;
+    left: 0;
+    right: 0;
 }
 
 #clock.hide, #clock:empty, #main.vertical #clock-wrapper {

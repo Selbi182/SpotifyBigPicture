@@ -88,7 +88,7 @@ function submitVisualPreferencesToBackend() {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(PREFERENCES)
+    body: JSON.stringify([...PREFERENCES_PRESETS, ...PREFERENCES])
   })
     .then(response => {
       if (response.status >= 400) {
@@ -1307,9 +1307,38 @@ const PREFERENCES = [
 
 const PREFERENCES_PRESETS = [
   {
+    id: "preset-advanced",
+    name: "Preset: Complete Mode",
+    hotkey: "1",
+    image: "/design/img/symbols/preset-advanced.png",
+    description: "A design preset that displays as much information as possible about the current song (including artwork), the upcoming songs, and the playback state",
+    enabled: [
+      "show-queue",
+      "display-artwork",
+      "bg-artwork",
+      "bg-tint",
+      "bg-grain",
+      "colored-text",
+      "colored-symbols",
+      "show-release",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "strip-titles",
+      "show-timestamps",
+      "show-info-icons",
+      "show-clock"
+    ],
+    disabled: [
+      "bg-black",
+      "reverse-bottom",
+      "vertical-mode"
+    ]
+  },
+  {
     id: "preset-minimalistic",
     name: "Preset: Minimalistic Mode",
-    hotkey: "1",
+    hotkey: "2",
     image: "/design/img/symbols/preset-minimalistic.png",
     description: "A minimalistic design preset only containing the most relevant information about the current song",
     enabled: [
@@ -1336,37 +1365,8 @@ const PREFERENCES_PRESETS = [
     ]
   },
   {
-    id: "preset-advanced",
-    name: "Preset: Advanced Mode",
-    hotkey: "2",
-    image: "/design/img/symbols/preset-advanced.png",
-    description: "An advanced design preset that displays as much information as possible about the current song (including artwork), the upcoming songs, and the playback state",
-    enabled: [
-      "show-queue",
-      "display-artwork",
-      "bg-artwork",
-      "bg-tint",
-      "bg-grain",
-      "colored-text",
-      "colored-symbols",
-      "show-release",
-      "show-context",
-      "show-logo",
-      "transitions",
-      "strip-titles",
-      "show-timestamps",
-      "show-info-icons",
-      "show-clock"
-    ],
-    disabled: [
-      "bg-black",
-      "reverse-bottom",
-      "vertical-mode"
-    ]
-  },
-  {
     id: "preset-background",
-    name: "Preset: Background Artwork",
+    name: "Preset: Queue Mode",
     hotkey: "3",
     image: "/design/img/symbols/preset-background.png",
     description: "A design that moves the artwork to the background and opens up more room for the queue",
@@ -1458,13 +1458,13 @@ function initVisualPreferences() {
 
     presetElem.onclick = () => {
       for (let settingId of preset.enabled) {
-        let pref = PREFERENCES.find(pref => pref.id === settingId);
+        let pref = findPreference(settingId);
         if (pref) {
           setVisualPreference(pref, true)
         }
       }
       for (let settingId of preset.disabled) {
-        let pref = PREFERENCES.find(pref => pref.id === settingId);
+        let pref = findPreference(settingId);
         if (pref) {
           setVisualPreference(pref, false)
         }
@@ -1542,9 +1542,14 @@ function updateExternallyToggledPreferences(changes) {
         if (setting === "reload") {
           reload = true;
         } else {
-          let preference = PREFERENCES.find(pref => pref.id === setting);
+          let preference = findPreference(setting);
           if (preference) {
             toggleVisualPreference(preference);
+          } else {
+            let preset = PREFERENCES_PRESETS.find(preset => preset.id === setting);
+            if (preset) {
+              document.getElementById(preset.id).click();
+            } PREFERENCES.find(pref => pref.id === id);
           }
         }
       }

@@ -10,7 +10,7 @@ fetch("/settings/list")
     .then(json => loadedSettings = json)
     .then(() => {
       let settingsListContainer = document.getElementById("settings");
-      for (let setting of [reloadSetting, ...loadedSettings]) {
+      for (let setting of [...loadedSettings, reloadSetting]) {
         if (setting.id === "fullscreen") {
           continue; // Fullscreen cannot be controlled externally
         }
@@ -40,7 +40,6 @@ function toggleSetting(settingContainer, settingId) {
     })
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
-          // alert("toggled setting")
         } else if (response.status >= 400) {
           console.warn("Failed to transmit settings to backend");
         }

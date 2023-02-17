@@ -28,7 +28,7 @@ body {
 
 #settings {
     min-height: 75vh;
-    max-height: 75vh;
+    max-height: 100vh;
     display: flex;
     flex-direction: column;
     gap: 1vh;
@@ -64,7 +64,7 @@ body {
     display: none;
 }
 
-#settings > div:is(#dark-mode, #reload) {
+#settings > div:is(#dark-mode, #reload), #settings > div[id*="preset-"] {
     display: flex;
 }
 
