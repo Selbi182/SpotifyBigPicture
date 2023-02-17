@@ -767,28 +767,27 @@ div#device {
     z-index: 1;
 }
 
-#bottom-lr-container {
+#bottom-meta-container {
     width: 100%;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    gap: 32vh;
     max-height: 4vh;
 }
 
-#bottom-lr-container.hide-info #bottom-left {
+#bottom-meta-container.hide-info #bottom-left {
     display: none;
 }
 
-#bottom-lr-container.hide-info #bottom-right {
+#bottom-meta-container.hide-info #bottom-right {
     justify-content: space-between;
 }
 
-#bottom-lr-container.hide-timestamps #bottom-right {
+#bottom-meta-container.hide-timestamps #bottom-right {
     display: none;
 }
 
-#bottom-lr-container.hide-timestamps.hide-info {
+#bottom-meta-container.hide-timestamps.hide-info {
     display: none;
 }
 
@@ -842,7 +841,7 @@ div#device {
     opacity: 0;
 }
 
-#bottom-lr-container:not(.hide-info) #bottom-right #time-total::before {
+#bottom-meta-container:not(.hide-info) #bottom-right #time-total::before {
     content: "/";
     opacity: 0.25;
     padding: 1.5vh;
@@ -1026,21 +1025,12 @@ div#device {
 }
 
 #clock-wrapper {
-    position: absolute;
-    bottom: 8vh;
-    left: 0;
-    right: 0;
     text-align: center;
     font-weight: bold;
     opacity: 0.65;
     z-index: 1;
-    font-size: 2.6vh;
+    font-size: 3vh;
     width: fit-content;
-    margin: 0 auto;
-}
-
-#clock-wrapper.higher {
-    bottom: 12vh;
 }
 
 #clock.hide, #clock:empty, #main.vertical #clock-wrapper {
@@ -1094,7 +1084,7 @@ div#device {
         flex-direction: row;
     }
 
-    #bottom-lr-container {
+    #bottom-meta-container {
         gap: initial;
         flex-wrap: wrap;
     }

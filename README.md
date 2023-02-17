@@ -39,7 +39,7 @@ An example where this is useful would be hosting a party where you want to let y
 Click the cog symbol in the top left of the interface to open the settings for visual preferences. By default, most of the settings are enabled, but you got full control over which features you might want to turn off. A detailed explanation for each option appears when you hover over the individual settings.
 
 ### Idle Mode
-After two hours of playing no music, the interface will turn black and stop rendering anything (other than the optional clock) to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
+After two hours of playing no music, the interface will turn black and stop rendering anything to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
 
 It may take up to a minute during idle mode for the interface to catch up again; alternatively, you can simply refresh the page.
 

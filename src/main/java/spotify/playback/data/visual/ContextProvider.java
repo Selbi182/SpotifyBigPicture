@@ -273,19 +273,20 @@ public class ContextProvider {
   }
 
   private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {
-    Episode episode = (Episode) info.getItem();
-    ShowSimplified showSimplified = episode.getShow();
-    if (force || didContextChange(episode.toString())) {
+    if (info.getItem() instanceof Episode) {
+      Episode episode = (Episode) info.getItem();
+      ShowSimplified showSimplified = episode.getShow();
+      if (force || didContextChange(episode.toString())) {
+        Image[] artistImages = showSimplified.getImages();
+        String largestImage = BotUtils.findLargestImage(artistImages);
+        this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
-      Image[] artistImages = showSimplified.getImages();
-      String largestImage = BotUtils.findLargestImage(artistImages);
-      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
+        Show show = SpotifyCall.execute(spotifyApi.getShow(showSimplified.getId()));
+        setTrackCount(show.getEpisodes().getTotal());
+        setTotalTrackDuration(List.of());
 
-      Show show = SpotifyCall.execute(spotifyApi.getShow(showSimplified.getId()));
-      setTrackCount(show.getEpisodes().getTotal());
-      setTotalTrackDuration(List.of());
-
-      return "PODCAST: " + show.getName();
+        return "PODCAST: " + show.getName();
+      }
     }
     return null;
   }

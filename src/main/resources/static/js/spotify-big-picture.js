@@ -1028,9 +1028,11 @@ function advanceCurrentTime(updateProgressBar) {
 
 function setIdleModeState(state) {
   let content = document.getElementById("main");
+  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button"); // just to avoid a COMPLETELY black screen
   if (state) {
     if (!idle) {
       console.info("No music was played in 2 hours. Enabling idle mode...");
+      settingsMenuToggleButton.classList.add("show");
       idle = true;
       clearTimers();
       initPolling(POLLING_INTERVAL_IDLE_MS);
@@ -1039,6 +1041,7 @@ function setIdleModeState(state) {
   } else {
     if (idle) {
       idle = false;
+      settingsMenuToggleButton.classList.remove("show");
       initPolling(POLLING_INTERVAL_MS);
       showHide(content, true);
     }
@@ -1225,7 +1228,7 @@ const PREFERENCES = [
     state: true,
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide-timestamps", !state);
-      setClass(document.getElementById("bottom-lr-container"), "hide-timestamps", !state);
+      setClass(document.getElementById("bottom-meta-container"), "hide-timestamps", !state);
       refreshBackgroundRender();
     }
   },
@@ -1237,7 +1240,7 @@ const PREFERENCES = [
     state: true,
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide-info", !state);
-      setClass(document.getElementById("bottom-lr-container"), "hide-info", !state);
+      setClass(document.getElementById("bottom-meta-container"), "hide-info", !state);
       refreshBackgroundRender();
     }
   },
@@ -1249,7 +1252,6 @@ const PREFERENCES = [
     state: false,
     callback: (state) => {
       setClass(document.getElementById("content-bottom"), "reverse", state);
-      setClass(document.getElementById("clock-wrapper"), "higher", state);
     }
   },
   {
