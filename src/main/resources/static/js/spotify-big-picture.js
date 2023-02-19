@@ -353,7 +353,7 @@ function setCorrectTracklistView(changes) {
 
   let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
   let titleDisplayed = specialQueue || listViewType !== "ALBUM";
-  let queueMode = specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0;
+  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0) && findPreference("show-queue").state;
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   showHide(titleContainer, titleDisplayed);
@@ -378,7 +378,7 @@ function setCorrectTracklistView(changes) {
       if (isExpectedNextSongInQueue(currentId, currentData.trackData.queue)) {
         // Special animation when the expected next song comes up
         let trackListContainer = printTrackList([currentData.trackData.queue[0], ...changes.trackData.queue], false);
-        window.requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
           let currentTrackListTopElem = trackListContainer.querySelector(".track-elem:first-child");
           currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
             let parent = e.target.parentNode;
@@ -436,7 +436,7 @@ function trackListEquals(trackList1, trackList2) {
 }
 
 function scaleTrackList(trackListContainer, scaleIteration) {
-  window.requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
     if (scaleIteration < 10) {
       let visibleHeight = trackListContainer.offsetHeight;
       let realHeight = trackListContainer.scrollHeight;
@@ -635,7 +635,7 @@ function updateScrollGradients() {
 }
 
 function updateScrollPositions(trackNumber) {
-  window.requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
     let trackListContainer = document.getElementById("track-list");
     let previouslyPlayingRow = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
     if (trackNumber) {
@@ -847,7 +847,7 @@ function refreshBackgroundRender() {
         let imageColors = currentData.currentlyPlaying.imageData.imageColors;
         if (imageUrl && imageColors) {
           setArtworkAndPrerender(imageUrl, imageColors)
-              .then(pngData => setRenderedBackground(pngData));
+            .then(pngData => setRenderedBackground(pngData));
         }
       }
     });
@@ -1063,9 +1063,8 @@ const PREFERENCES = [
   {
     id: "fullscreen",
     name: "Full Screen",
-    hotkey: "f",
-    description: "Toggles full screen on and off (can also be toggled by double clicking anywhere on the screen). " +
-        "This setting is not persisted between sessions due to browser security limitations",
+    description: "Toggles full screen on or off. Can also be toggled by double clicking anywhere on the screen. " +
+        "(This setting is not persisted between sessions due to browser security limitations)",
     state: false,
     callback: () => toggleFullscreen(),
     volatile: true // don't add fullscreen in the URL params, as it won't work (browser security shenanigans)
@@ -1073,24 +1072,18 @@ const PREFERENCES = [
   {
     id: "show-queue",
     name: "Queue",
-    hotkey: "q",
     description: "If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song is displayed",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("title"), "force-display", !state);
       let trackListContainer = document.getElementById("track-list");
       setClass(trackListContainer, "hidden", !state);
-      if (state) {
-        trackListContainer.style.setProperty("--scale", "0");
-        finishAnimations(trackListContainer);
-        scaleTrackList(trackListContainer, 1);
-      }
+      setCorrectTracklistView(currentData);
     }
   },
   {
     id: "display-artwork",
     name: "Artwork",
-    hotkey: "a",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
     state: true,
     callback: (state) => {
@@ -1102,8 +1095,7 @@ const PREFERENCES = [
   {
     id: "bg-artwork",
     name: "Background Artwork",
-    hotkey: "b",
-    description: "If enabled, uses the release artwork for the background as a blurry, darkened version. Otherwise, only a gradient color will be displayed",
+    description: "If enabled, uses the release artwork for the background as a blurry, darkened version. Otherwise, only a gradient will be displayed",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("background-canvas"), "color-only", !state);
@@ -1113,7 +1105,6 @@ const PREFERENCES = [
   {
     id: "bg-tint",
     name: "Background Overlay Color",
-    hotkey: "o",
     description: "Add a subtle layer of one of the artwork's most dominant colors to the background",
     state: true,
     callback: (state) => {
@@ -1123,8 +1114,7 @@ const PREFERENCES = [
   },
   {
     id: "bg-grain",
-    name: "Background Grain",
-    hotkey: "g",
+    name: "Background Film Grain",
     description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images",
     state: true,
     callback: (state) => {
@@ -1135,11 +1125,11 @@ const PREFERENCES = [
   {
     id: "bg-black",
     name: "Black Background",
-    hotkey: "k",
     description: "If enabled, the background stays permanently black and overrides any other background-related settings",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("bg-artwork"), "overridden", state);
+      setClass(document.getElementById("bg-tint"), "overridden", state);
       setClass(document.getElementById("bg-grain"), "overridden", state);
       setClass(document.getElementById("background-canvas"), "black", state);
       refreshBackgroundRender();
@@ -1148,7 +1138,6 @@ const PREFERENCES = [
   {
     id: "colored-text",
     name: "Colored Text",
-    hotkey: "c",
     description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     state: true,
     callback: (state) => setClass(document.body, "no-colored-text", !state)
@@ -1156,8 +1145,7 @@ const PREFERENCES = [
   {
     id: "colored-symbols",
     name: "Colored Symbols",
-    hotkey: "y",
-    description: "If enabled, the dominant color of the current artwork will be used as color for the for the Spotify logo and the playlist thumbnail. Otherwise, keep them unchanged",
+    description: "If enabled, the dominant color of the current artwork will be used as color for the for the Spotify logo and the playlist thumbnail",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("logo"), "colored", state);
@@ -1166,9 +1154,8 @@ const PREFERENCES = [
   },
   {
     id: "show-release",
-    name: "Release",
-    hotkey: "r",
-    description: "Displays the release name with its release year (usually the album of the currently playing song)",
+    name: "Release Name/Date",
+    description: "Displays the release name with its release date (usually the year of the currently playing song's album)",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("album"), "hide", !state);
@@ -1176,9 +1163,8 @@ const PREFERENCES = [
   },
   {
     id: "show-context",
-    name: "Playlist Info",
-    hotkey: "p",
-    description: "Displays the playlist/artist/album name along with some additional information the top of the page. " +
+    name: "Context",
+    description: "Displays the playlist/artist/album name along with some additional information at the top of the page. " +
         "Also displays a thumbnail, if available",
     state: true,
     callback: (state) => {
@@ -1189,8 +1175,7 @@ const PREFERENCES = [
   {
     id: "show-logo",
     name: "Spotify Logo",
-    hotkey: "l",
-    description: "Whether to display the Spotify logo in the top right or not. If it's disabled, the playlist name " +
+    description: "Whether to display the Spotify logo in the top right or not. If it's disabled, the Playlist Info " +
         "is pulled right",
     state: true,
     callback: (state) => {
@@ -1200,17 +1185,15 @@ const PREFERENCES = [
   },
   {
     id: "transitions",
-    name: "Transitions",
-    hotkey: "t",
-    description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed immediately",
+    name: "Smooth Transitions",
+    description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed instantaneously",
     state: true,
     callback: (state) => setTransitions(state)
   },
   {
     id: "strip-titles",
     name: "Strip Titles",
-    hotkey: "s",
-    description: "Hides any kind of unnecessary extra information from song tiles and release names " +
+    description: "Hides any kind of potentially unnecessary extra information from song tiles and release names " +
         `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
     state: true,
     callback: (state) => {
@@ -1220,11 +1203,19 @@ const PREFERENCES = [
     }
   },
   {
+    id: "show-progress-bar",
+    name: "Progress Bar",
+    description: "Displays a bar of that spans the entire screen, indicating how far along the currently played track is",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("progress"), "hide", !state);
+      refreshBackgroundRender();
+    }
+  },
+  {
     id: "show-timestamps",
     name: "Timestamps",
-    hotkey: "h",
-    description: "If enabled, display the current and total timestamps of the currently playing track. " +
-        "Otherwise, only the progress bar is visible",
+    description: "Displays the current and total timestamps of the currently playing track as numeric values",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide-timestamps", !state);
@@ -1232,11 +1223,11 @@ const PREFERENCES = [
       refreshBackgroundRender();
     }
   },
+
   {
     id: "show-info-icons",
-    name: "Playback State Info",
-    hotkey: "i",
-    description: "Shows the playback state info at the bottom left of the page (play, shuffle, repeat, volume, device name)",
+    name: "Meta Information",
+    description: "Shows the playback state info at the bottom left of the page (play, shuffle, repeat, volume, and device name)",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide-info", !state);
@@ -1246,8 +1237,7 @@ const PREFERENCES = [
   },
   {
     id: "reverse-bottom",
-    name: "Upside-Down Bottom",
-    hotkey: "u",
+    name: "Invert Bottom",
     description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
     state: false,
     callback: (state) => {
@@ -1257,7 +1247,6 @@ const PREFERENCES = [
   {
     id: "show-clock",
     name: "Clock",
-    hotkey: "w",
     description: "Displays a clock at the bottom center of the page",
     state: false,
     callback: (state) => setClass(document.getElementById("clock"), "hide", !state)
@@ -1265,7 +1254,6 @@ const PREFERENCES = [
   {
     id: "dark-mode",
     name: "Dark Mode",
-    hotkey: "d",
     description: "Darkens the entire screen. This mode will be automatically disabled after 8 hours",
     state: false,
     callback: (state) => {
@@ -1282,8 +1270,7 @@ const PREFERENCES = [
   {
     id: "vertical-mode",
     name: "Vertical Mode",
-    hotkey: "v",
-    description: "Convert the two-panel layout into a vertical, centered layout. This will disable the queue, but it results in a more minimalistic appearance",
+    description: "Convert the two-panel layout into a vertical, centered layout. This will disable the queue, clock, and release, but it results in a more minimalistic appearance",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("show-clock"), "overridden", state);
@@ -1296,7 +1283,6 @@ const PREFERENCES = [
   {
     id: "show-fps",
     name: "FPS Counter",
-    hotkey: "x",
     description: "Display the frames-per-second in the top right of the screen (intended for performance debugging)",
     state: false,
     callback: (state) => {
@@ -1309,9 +1295,8 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-advanced",
     name: "Preset: Complete Mode",
-    hotkey: "1",
     image: "/design/img/symbols/preset-advanced.png",
-    description: "A design preset that displays as much information as possible about the current song (including artwork), the upcoming songs, and the playback state",
+    description: "A preset that displays as much information as possible about the current song, along with its artwork on the right. Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)",
     enabled: [
       "show-queue",
       "display-artwork",
@@ -1327,20 +1312,22 @@ const PREFERENCES_PRESETS = [
       "strip-titles",
       "show-timestamps",
       "show-info-icons",
+      "show-progress-bar",
       "show-clock"
     ],
     disabled: [
       "bg-black",
       "reverse-bottom",
-      "vertical-mode"
+      "vertical-mode",
+      "dark-mode",
+      "show-fps"
     ]
   },
   {
     id: "preset-minimalistic",
     name: "Preset: Minimalistic Mode",
-    hotkey: "2",
     image: "/design/img/symbols/preset-minimalistic.png",
-    description: "A minimalistic design preset only containing the most relevant information about the current song",
+    description: "A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast",
     enabled: [
       "display-artwork",
       "bg-grain",
@@ -1349,6 +1336,7 @@ const PREFERENCES_PRESETS = [
       "show-logo",
       "transitions",
       "vertical-mode",
+      "show-progress-bar",
       "strip-titles"
     ],
     disabled: [
@@ -1361,17 +1349,48 @@ const PREFERENCES_PRESETS = [
       "show-timestamps",
       "show-info-icons",
       "reverse-bottom",
-      "show-clock"
+      "show-clock",
+      "dark-mode",
+      "show-fps"
     ]
   },
   {
     id: "preset-background",
     name: "Preset: Queue Mode",
-    hotkey: "3",
     image: "/design/img/symbols/preset-background.png",
-    description: "A design that moves the artwork to the background and opens up more room for the queue",
+    description: "Similar to Complete Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information",
     enabled: [
       "show-queue",
+      "bg-artwork",
+      "bg-grain",
+      "colored-text",
+      "colored-symbols",
+      "show-release",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "strip-titles",
+      "show-progress-bar",
+      "show-timestamps",
+      "reverse-bottom"
+    ],
+    disabled: [
+      "bg-black",
+      "display-artwork",
+      "bg-tint",
+      "show-info-icons",
+      "show-clock",
+      "vertical-mode",
+      "dark-mode",
+      "show-fps"
+    ]
+  },
+  {
+    id: "preset-big-text",
+    name: "Preset: Big-Text Mode",
+    image: "/design/img/symbols/preset-big-text.png",
+    description: "Similar to Queue Mode, but with the queue disabled and the font size being doubled for the main information of the current song",
+    enabled: [
       "bg-artwork",
       "bg-tint",
       "bg-grain",
@@ -1382,16 +1401,19 @@ const PREFERENCES_PRESETS = [
       "show-logo",
       "transitions",
       "strip-titles",
+      "show-progress-bar",
       "show-timestamps",
       "reverse-bottom"
     ],
     disabled: [
+      "show-queue",
       "bg-black",
       "display-artwork",
-      "bg-tint",
       "show-info-icons",
       "show-clock",
-      "vertical-mode"
+      "vertical-mode",
+      "dark-mode",
+      "show-fps"
     ]
   }
 ]
@@ -1425,7 +1447,7 @@ function initVisualPreferences() {
     let prefElem = document.createElement("div");
     prefElem.id = pref.id;
     prefElem.classList.add("setting");
-    prefElem.innerHTML = `${pref.name} (${pref.hotkey})`;
+    prefElem.innerHTML = pref.name;
     prefElem.onclick = () => toggleVisualPreference(pref);
     settingsWrapper.appendChild(prefElem);
 
@@ -1451,24 +1473,23 @@ function initVisualPreferences() {
   const settingsPresetsWrapper = document.getElementById("settings-presets");
   for (let presetIndex in PREFERENCES_PRESETS) {
     let preset = PREFERENCES_PRESETS[presetIndex];
+
+    // Integrity check for preset
+    let unmatchedPrefIds = PREFERENCES
+        .filter(pref => !pref.volatile)
+        .map(pref => pref.id)
+        .filter(prefId => ![...preset.enabled, ...preset.disabled].includes(prefId));
+    if (unmatchedPrefIds.length > 0) {
+      console.warn(`"${preset.name}" lacks configuration information for these preferences: ${unmatchedPrefIds}`);
+    }
+
     let presetElem = document.createElement("div");
     presetElem.id = preset.id;
     presetElem.classList.add("preset");
     presetElem.style.setProperty("--image", `url("${preset.image}")`);
 
     presetElem.onclick = () => {
-      for (let settingId of preset.enabled) {
-        let pref = findPreference(settingId);
-        if (pref) {
-          setVisualPreference(pref, true)
-        }
-      }
-      for (let settingId of preset.disabled) {
-        let pref = findPreference(settingId);
-        if (pref) {
-          setVisualPreference(pref, false)
-        }
-      }
+      applyPreset(preset);
     };
 
     settingsPresetsWrapper.append(presetElem);
@@ -1478,13 +1499,20 @@ function initVisualPreferences() {
     descElem.id = preset.id + "-description";
 
     let descHeader = document.createElement("div");
-    descHeader.innerHTML = `${preset.name} (${preset.hotkey})`;
+    descHeader.innerHTML = preset.name;
 
     let descContent = document.createElement("div");
     descContent.innerHTML = preset.description;
 
     descElem.append(descHeader, descContent);
     settingsDescriptionWrapper.appendChild(descElem);
+  }
+
+  // If this is the first load, force settings menu opening
+  if (!urlParams.has(PREFS_URL_PARAM)) {
+    requestAnimationFrame(() => {
+      setSettingsMenuState(true);
+    });
   }
 
   // Finally, update the URL
@@ -1513,8 +1541,10 @@ function toggleVisualPreference(pref) {
 }
 
 function setVisualPreference(pref, newState) {
-  refreshPreference(pref, newState);
-  refreshPrefsQueryParam();
+  if (pref) {
+    refreshPreference(pref, newState);
+    refreshPrefsQueryParam();
+  }
 }
 
 let darkModeTimeout;
@@ -1534,6 +1564,16 @@ function refreshPreference(preference, state) {
   }
 }
 
+function applyPreset(preset) {
+  [...preset.enabled]
+    .map(settingId => findPreference(settingId))
+    .forEach(pref => setVisualPreference(pref, true));
+
+  [...preset.disabled]
+    .map(settingId => findPreference(settingId))
+    .forEach(pref => setVisualPreference(pref, false));
+}
+
 function updateExternallyToggledPreferences(changes) {
   return new Promise(resolve => {
     let reload = false;
@@ -1548,8 +1588,11 @@ function updateExternallyToggledPreferences(changes) {
           } else {
             let preset = PREFERENCES_PRESETS.find(preset => preset.id === setting);
             if (preset) {
-              document.getElementById(preset.id).click();
-            } PREFERENCES.find(pref => pref.id === id);
+              applyPreset(preset);
+              requestAnimationFrame(() => {
+                setMouseVisibility(false);
+              });
+            }
           }
         }
       }
@@ -1654,19 +1697,9 @@ window.onresize = () => {
 ///////////////////////////////
 
 document.onkeydown = (e) => {
+  // Toggle settings menu with space bar
   if (e.key === ' ') {
-    let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
-    settingsMenuToggleButton.click();
-  } else {
-    let pref = PREFERENCES.find(element => element.hotkey === e.key);
-    if (pref) {
-      toggleVisualPreference(pref);
-    } else {
-      let preset = PREFERENCES_PRESETS.find(element => element.hotkey === e.key);
-      if (preset) {
-        document.getElementById(preset.id).click();
-      }
-    }
+    toggleSettingsMenu();
   }
 };
 
@@ -1676,6 +1709,7 @@ document.onkeydown = (e) => {
 ///////////////////////////////
 
 let settingsVisible = false;
+let settingsExpertMode = false;
 document.addEventListener("mousemove", handleMouseEvent);
 document.addEventListener("click", handleMouseEvent);
 let cursorTimeout;
@@ -1702,7 +1736,6 @@ function handleMouseEvent() {
 window.addEventListener('load', initSettingsMouseMove);
 function initSettingsMouseMove() {
   setMouseVisibility(false);
-  let settings = document.getElementById("settings-buttons");
   let settingsWrapper = document.getElementById("settings-wrapper");
 
   let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
@@ -1710,14 +1743,22 @@ function initSettingsMouseMove() {
     requestAnimationFrame(() => toggleSettingsMenu());
   };
 
+  let settingsMenuExpertModeToggleButton = document.getElementById("settings-expert-mode-toggle");
+  settingsMenuExpertModeToggleButton.onclick = () => {
+    settingsExpertMode = !settingsExpertMode;
+    setClass(settingsWrapper, "expert", settingsExpertMode);
+    setExpertModeToggleButtonText(settingsExpertMode);
+  };
+  setExpertModeToggleButtonText(settingsExpertMode);
+
   document.body.onclick = (e) => {
-    if (settingsVisible && e.target !== settingsMenuToggleButton && !e.target.classList.contains("setting") && !e.target.classList.contains("preset")) {
-      toggleSettingsMenu();
+    if (settingsVisible && !isSettingControlElem(e)) {
+      setSettingsMenuState(false);
     }
   }
 
   document.addEventListener("dblclick", (e) => {
-    if (!settingsVisible && e.target !== settingsMenuToggleButton && !settings.contains(e.target)) {
+    if (!settingsVisible && !isSettingControlElem(e)) {
       toggleFullscreen();
     }
   });
@@ -1734,12 +1775,35 @@ function initSettingsMouseMove() {
   }
 }
 
+function isSettingControlElem(e) {
+  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
+  let settingsMenuExpertModeToggleButton = document.getElementById("settings-expert-mode-toggle");
+  return e.target === settingsMenuToggleButton
+      || e.target === settingsMenuExpertModeToggleButton
+      || e.target.classList.contains("setting")
+      || e.target.classList.contains("preset");
+}
+
 function toggleSettingsMenu() {
-  settingsVisible = !settingsVisible;
+  setSettingsMenuState(!settingsVisible);
+}
+
+function setSettingsMenuState(state) {
+  settingsVisible = state;
+
+  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
+  setClass(settingsMenuToggleButton, "show", settingsVisible);
+  setMouseVisibility(settingsVisible)
+
   let settingsWrapper = document.getElementById("settings-wrapper");
   let mainBody = document.getElementById("main");
   setClass(settingsWrapper, "show", settingsVisible);
   setClass(mainBody, "blur", settingsVisible);
+}
+
+function setExpertModeToggleButtonText(state) {
+  let settingsMenuExpertModeToggleButton = document.getElementById("settings-expert-mode-toggle");
+  settingsMenuExpertModeToggleButton.innerHTML = state ? "Preset Mode" : "Expert Mode";
 }
 
 
@@ -1786,6 +1850,6 @@ function fpsTick() {
     fpsStartTime = time;
     fpsFrame = 0;
   }
-  window.requestAnimationFrame(fpsTick);
+  requestAnimationFrame(fpsTick);
 }
 fpsTick();
