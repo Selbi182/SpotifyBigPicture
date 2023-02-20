@@ -436,6 +436,7 @@ function trackListEquals(trackList1, trackList2) {
 }
 
 function scaleTrackList(trackListContainer, scaleIteration) {
+  trackListContainer.classList.add("scaling");
   requestAnimationFrame(() => {
     if (scaleIteration < 10) {
       let visibleHeight = trackListContainer.offsetHeight;
@@ -444,10 +445,13 @@ function scaleTrackList(trackListContainer, scaleIteration) {
         if (scaleIteration > 0) {
           trackListContainer.style.setProperty("--scale", (scaleIteration - 1).toString());
         }
+        trackListContainer.classList.remove("scaling");
       } else {
         trackListContainer.style.setProperty("--scale", (scaleIteration + 1).toString());
         scaleTrackList(trackListContainer, scaleIteration + 1)
       }
+    } else {
+      trackListContainer.classList.remove("scaling");
     }
   });
 }
@@ -683,10 +687,8 @@ let defaultPrerender = {
 };
 refreshDefaultPrerender().then();
 
-let nextImagePrerenderPngData = {
-  imageUrl: null,
-  pngData: null
-};
+let nextImagePrerenderPngData;
+unsetNextImagePrerender();
 
 function changeImage(changes) {
   return new Promise(resolve => {
@@ -721,19 +723,22 @@ function changeImage(changes) {
 const PRERENDER_DELAY_MS = 1000;
 function prerenderNextImage(changes, delay = PRERENDER_DELAY_MS) {
   return new Promise(resolve => {
-    let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
-    let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
-    if (currentImageUrl !== nextImageUrl && nextImagePrerenderPngData.imageUrl !== nextImageUrl) {
-      setTimeout(() => {
-        let nextImageColors = getChange(changes, "trackData.nextImageData.imageColors").value;
-        setArtworkAndPrerender(nextImageUrl, nextImageColors)
-          .then(pngData => {
-            nextImagePrerenderPngData = {
-              imageUrl: nextImageUrl,
-              pngData: pngData
-            };
-          });
-      }, delay)
+    let prerenderEnabled = findPreference("prerender-background").state;
+    if (prerenderEnabled) {
+      let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
+      let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
+      if (currentImageUrl !== nextImageUrl && nextImagePrerenderPngData.imageUrl !== nextImageUrl) {
+        setTimeout(() => {
+          let nextImageColors = getChange(changes, "trackData.nextImageData.imageColors").value;
+          setArtworkAndPrerender(nextImageUrl, nextImageColors)
+              .then(pngData => {
+                nextImagePrerenderPngData = {
+                  imageUrl: nextImageUrl,
+                  pngData: pngData
+                };
+              });
+        }, delay)
+      }
     }
     resolve();
   });
@@ -834,10 +839,7 @@ function prerenderBackground() {
 }
 
 function refreshBackgroundRender() {
-  nextImagePrerenderPngData = {
-    imageUrl: null,
-    pngData: null
-  };
+  unsetNextImagePrerender();
   refreshDefaultPrerender()
     .then(() => {
       let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
@@ -851,6 +853,13 @@ function refreshBackgroundRender() {
         }
       }
     });
+}
+
+function unsetNextImagePrerender() {
+  nextImagePrerenderPngData = {
+    imageUrl: null,
+    pngData: null
+  };
 }
 
 function refreshDefaultPrerender() {
@@ -1089,6 +1098,17 @@ const PREFERENCES = [
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide", !state);
       setClass(document.getElementById("content"), "full-content", !state);
+      setClass(document.getElementById("xxl-artwork"), "overridden", !state);
+      refreshBackgroundRender();
+    }
+  },
+  {
+    id: "xxl-artwork",
+    name: "XXL Artwork",
+    description: "When enabled, the artwork is stretched to its maximum possible size. Do note that this leaves less room for all the other information",
+    state: false,
+    callback: (state) => {
+      setClass(document.getElementById("main"), "maximum-artwork", state);
       refreshBackgroundRender();
     }
   },
@@ -1136,20 +1156,21 @@ const PREFERENCES = [
     }
   },
   {
+    id: "xxl-text",
+    name: "XXL Text",
+    description: "If enabled, the font size for the current song's title, artist, and release is doubled. " +
+        "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    state: false,
+    callback: (state) => setClass(document.getElementById("center-info-main"), "big-text", state)
+  },
+  {
     id: "colored-text",
     name: "Colored Text",
     description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     state: true,
-    callback: (state) => setClass(document.body, "no-colored-text", !state)
-  },
-  {
-    id: "colored-symbols",
-    name: "Colored Symbols",
-    description: "If enabled, the dominant color of the current artwork will be used as color for the for the Spotify logo and the playlist thumbnail",
-    state: false,
     callback: (state) => {
-      setClass(document.getElementById("logo"), "colored", state);
-      setClass(document.getElementById("thumbnail"), "colored", state);
+      setClass(document.getElementById("colored-symbols"), "overridden", !state);
+      setClass(document.body, "no-colored-text", !state);
     }
   },
   {
@@ -1168,6 +1189,7 @@ const PREFERENCES = [
         "Also displays a thumbnail, if available",
     state: true,
     callback: (state) => {
+      setClass(document.getElementById("swap-top"), "overridden-1", !state);
       setClass(document.getElementById("colored-symbols"), "overridden-1", !state);
       setClass(document.getElementById("meta-left"), "hide", !state)
     }
@@ -1175,12 +1197,31 @@ const PREFERENCES = [
   {
     id: "show-logo",
     name: "Spotify Logo",
-    description: "Whether to display the Spotify logo in the top right or not. If it's disabled, the Playlist Info " +
-        "is pulled right",
+    description: "Whether to display the Spotify logo in the top right",
     state: true,
     callback: (state) => {
+      setClass(document.getElementById("swap-top"), "overridden-2", !state);
       setClass(document.getElementById("colored-symbols"), "overridden-2", !state);
-      setClass(document.getElementById("top-info"), "no-logo", !state)
+      setClass(document.getElementById("meta-right"), "hide", !state)
+    }
+  },
+  {
+    id: "swap-top",
+    name: "Swap Top Bar",
+    description: "If enabled, the Context and Spotify Logo swap positions",
+    state: false,
+    callback: (state) => {
+      setClass(document.getElementById("top-info"), "swap", state)
+    }
+  },
+  {
+    id: "colored-symbols",
+    name: "Colored Top Bar",
+    description: "If enabled, the dominant color of the current artwork will be used as color for the for the Spotify logo and the playlist thumbnail",
+    state: false,
+    callback: (state) => {
+      setClass(document.getElementById("logo"), "colored", state);
+      setClass(document.getElementById("thumbnail"), "colored", state);
     }
   },
   {
@@ -1220,19 +1261,53 @@ const PREFERENCES = [
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide-timestamps", !state);
       setClass(document.getElementById("bottom-meta-container"), "hide-timestamps", !state);
+      setClass(document.getElementById("spread-timestamps"), "overridden", !state);
       refreshBackgroundRender();
     }
   },
-
   {
-    id: "show-info-icons",
-    name: "Meta Information",
-    description: "Shows the playback state info at the bottom left of the page (play, shuffle, repeat, volume, and device name)",
+    id: "spread-timestamps",
+    name: "Spread-out Timestamps",
+    description: "When enabled, the current timestamp is separated from the total timestamp and displayed on the left",
     state: true,
     callback: (state) => {
-      setClass(document.getElementById("artwork"), "hide-info", !state);
-      setClass(document.getElementById("bottom-meta-container"), "hide-info", !state);
-      refreshBackgroundRender();
+      let timeCurrent = document.getElementById("time-current");
+      let bottomMetaContainer = document.getElementById("bottom-meta-container");
+      let bottomLeft = document.getElementById("bottom-left");
+      let bottomRight = document.getElementById("bottom-right");
+      if (state) {
+        bottomLeft.insertBefore(timeCurrent, bottomLeft.firstChild);
+      } else {
+        bottomRight.insertBefore(timeCurrent, bottomRight.firstChild);
+      }
+      setClass(bottomMetaContainer, "spread-timestamps", state);
+    }
+  },
+  {
+    id: "show-info-icons",
+    name: "Play/Pause/Shuffle/Repeat",
+    description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("info-symbols"), "hide", !state);
+    }
+  },
+  {
+    id: "show-volume",
+    name: "Volume",
+    description: "Display the current volume in the bottom left",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("volume"), "hide", !state);
+    }
+  },
+  {
+    id: "show-device",
+    name: "Device",
+    description: "Display the name of the current playback device in the bottom left",
+    state: true,
+    callback: (state) => {
+      setClass(document.getElementById("device"), "hide", !state);
     }
   },
   {
@@ -1273,9 +1348,9 @@ const PREFERENCES = [
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the queue, clock, and release, but it results in a more minimalistic appearance",
     state: false,
     callback: (state) => {
-      setClass(document.getElementById("show-clock"), "overridden", state);
+      setClass(document.getElementById("xxl-text"), "overridden", state);
+      setClass(document.getElementById("xxl-artwork"), "overridden", state);
       setClass(document.getElementById("show-queue"), "overridden", state);
-      setClass(document.getElementById("show-release"), "overridden", state);
       setClass(document.getElementById("main"), "vertical", state);
       refreshBackgroundRender();
     }
@@ -1288,15 +1363,29 @@ const PREFERENCES = [
     callback: (state) => {
       setClass(document.getElementById("fps-counter"), "show", state);
     }
+  },
+  {
+    id: "prerender-background",
+    name: "Prerender Background",
+    description: "[Keep this option enabled if you're unsure what it does!] " +
+        "Captures screenshots of the background images and displays those instead of the live backgrounds. " +
+        "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
+    state: true,
+    callback: (state) => {
+      showHide(document.getElementById("background-rendered"), state);
+      setClass(document.getElementById("prerender-canvas"), "no-prerender", !state);
+      refreshBackgroundRender();
+    }
   }
 ];
 
 const PREFERENCES_PRESETS = [
   {
     id: "preset-advanced",
-    name: "Preset: Complete Mode",
-    image: "/design/img/symbols/preset-advanced.png",
-    description: "A preset that displays as much information as possible about the current song, along with its artwork on the right. Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)",
+    name: "Preset: Balanced Mode",
+    image: "/design/img/presets/preset-advanced.png",
+    description: "The default mode. This preset displays as much information as possible about the current song, along with its artwork on the right, without compromising on readability. " +
+        "Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)",
     enabled: [
       "show-queue",
       "display-artwork",
@@ -1312,13 +1401,20 @@ const PREFERENCES_PRESETS = [
       "strip-titles",
       "show-timestamps",
       "show-info-icons",
+      "show-volume",
+      "show-device",
       "show-progress-bar",
-      "show-clock"
+      "show-clock",
+      "prerender-background"
     ],
     disabled: [
       "bg-black",
       "reverse-bottom",
       "vertical-mode",
+      "xxl-artwork",
+      "xxl-text",
+      "swap-top",
+      "spread-timestamps",
       "dark-mode",
       "show-fps"
     ]
@@ -1326,7 +1422,7 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-minimalistic",
     name: "Preset: Minimalistic Mode",
-    image: "/design/img/symbols/preset-minimalistic.png",
+    image: "/design/img/presets/preset-minimalistic.png",
     description: "A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast",
     enabled: [
       "display-artwork",
@@ -1336,19 +1432,26 @@ const PREFERENCES_PRESETS = [
       "show-logo",
       "transitions",
       "vertical-mode",
+      "reverse-bottom",
+      "spread-timestamps",
       "show-progress-bar",
-      "strip-titles"
+      "strip-titles",
+      "prerender-background"
     ],
     disabled: [
       "show-queue",
       "bg-artwork",
       "bg-black",
+      "xxl-artwork",
+      "xxl-text",
+      "swap-top",
       "colored-text",
       "colored-symbols",
       "show-release",
       "show-timestamps",
       "show-info-icons",
-      "reverse-bottom",
+      "show-volume",
+      "show-device",
       "show-clock",
       "dark-mode",
       "show-fps"
@@ -1357,8 +1460,8 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-background",
     name: "Preset: Queue Mode",
-    image: "/design/img/symbols/preset-background.png",
-    description: "Similar to Complete Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information",
+    image: "/design/img/presets/preset-background.png",
+    description: "Similar to Balanced Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information",
     enabled: [
       "show-queue",
       "bg-artwork",
@@ -1372,13 +1475,20 @@ const PREFERENCES_PRESETS = [
       "strip-titles",
       "show-progress-bar",
       "show-timestamps",
-      "reverse-bottom"
+      "spread-timestamps",
+      "reverse-bottom",
+      "prerender-background"
     ],
     disabled: [
       "bg-black",
-      "display-artwork",
       "bg-tint",
+      "display-artwork",
+      "xxl-artwork",
+      "xxl-text",
+      "swap-top",
       "show-info-icons",
+      "show-volume",
+      "show-device",
       "show-clock",
       "vertical-mode",
       "dark-mode",
@@ -1388,9 +1498,50 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-big-text",
     name: "Preset: Big-Text Mode",
-    image: "/design/img/symbols/preset-big-text.png",
-    description: "Similar to Queue Mode, but with the queue disabled and the font size being doubled for the main information of the current song",
+    image: "/design/img/presets/preset-big-text.png",
+    description: "Only shows the current song's title, artist and release. Queue is disabled, artwork is moved to the background. Font size is doubled",
     enabled: [
+      "bg-artwork",
+      "bg-tint",
+      "bg-grain",
+      "colored-text",
+      "colored-symbols",
+      "xxl-text",
+      "show-release",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "strip-titles",
+      "show-progress-bar",
+      "show-timestamps",
+      "spread-timestamps",
+      "reverse-bottom",
+      "prerender-background"
+    ],
+    disabled: [
+      "show-queue",
+      "bg-black",
+      "display-artwork",
+      "xxl-artwork",
+      "swap-top",
+      "show-info-icons",
+      "show-clock",
+      "show-volume",
+      "show-device",
+      "vertical-mode",
+      "dark-mode",
+      "show-fps"
+    ]
+  },
+  {
+    id: "preset-big-artwork",
+    name: "Preset: XXL-Artwork Mode",
+    image: "/design/img/presets/preset-big-artwork.png",
+    description: "Functionally similar to Balanced Mode, but with the artwork stretched to the maximum possible size. Everything else is crammed into the right",
+    enabled: [
+      "show-queue",
+      "display-artwork",
+      "xxl-artwork",
       "bg-artwork",
       "bg-tint",
       "bg-grain",
@@ -1401,21 +1552,25 @@ const PREFERENCES_PRESETS = [
       "show-logo",
       "transitions",
       "strip-titles",
-      "show-progress-bar",
       "show-timestamps",
-      "reverse-bottom"
+      "show-info-icons",
+      "show-progress-bar",
+      "prerender-background"
     ],
     disabled: [
-      "show-queue",
       "bg-black",
-      "display-artwork",
-      "show-info-icons",
-      "show-clock",
+      "reverse-bottom",
       "vertical-mode",
+      "xxl-text",
+      "swap-top",
+      "spread-timestamps",
+      "show-volume",
+      "show-device",
+      "show-clock",
       "dark-mode",
       "show-fps"
     ]
-  }
+  },
 ]
 
 function findPreference(id) {
@@ -1464,10 +1619,13 @@ function initVisualPreferences() {
     descElem.append(descHeader, descContent);
     settingsDescriptionWrapper.appendChild(descElem);
 
-    // Init setting
-    refreshPreference(pref, state);
   }
   document.getElementById("fullscreen").onclick = toggleFullscreen;
+
+  // Init setting states
+  PREFERENCES.forEach(pref => {
+    refreshPreference(pref, pref.state);
+  });
 
   // Preset buttons
   const settingsPresetsWrapper = document.getElementById("settings-presets");
@@ -1698,8 +1856,11 @@ window.onresize = () => {
 
 document.onkeydown = (e) => {
   // Toggle settings menu with space bar
+  // Toggle expert settings mode with Ctrl
   if (e.key === ' ') {
     toggleSettingsMenu();
+  } else if (e.key === 'Control') {
+    toggleSettingsExpertMode();
   }
 };
 
@@ -1734,6 +1895,8 @@ function handleMouseEvent() {
 }
 
 window.addEventListener('load', initSettingsMouseMove);
+
+
 function initSettingsMouseMove() {
   setMouseVisibility(false);
   let settingsWrapper = document.getElementById("settings-wrapper");
@@ -1745,9 +1908,7 @@ function initSettingsMouseMove() {
 
   let settingsMenuExpertModeToggleButton = document.getElementById("settings-expert-mode-toggle");
   settingsMenuExpertModeToggleButton.onclick = () => {
-    settingsExpertMode = !settingsExpertMode;
-    setClass(settingsWrapper, "expert", settingsExpertMode);
-    setExpertModeToggleButtonText(settingsExpertMode);
+    toggleSettingsExpertMode();
   };
   setExpertModeToggleButtonText(settingsExpertMode);
 
@@ -1799,6 +1960,13 @@ function setSettingsMenuState(state) {
   let mainBody = document.getElementById("main");
   setClass(settingsWrapper, "show", settingsVisible);
   setClass(mainBody, "blur", settingsVisible);
+}
+
+function toggleSettingsExpertMode() {
+  settingsExpertMode = !settingsExpertMode;
+  let settingsWrapper = document.getElementById("settings-wrapper");
+  setClass(settingsWrapper, "expert", settingsExpertMode);
+  setExpertModeToggleButtonText(settingsExpertMode);
 }
 
 function setExpertModeToggleButtonText(state) {
