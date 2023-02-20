@@ -23,24 +23,34 @@ Click the cog symbol in the top left of the interface to open the settings for V
 A detailed explanation for each option appears when you hover over the individual settings. To save your settings, bookmark the URL with all its parameters after you're done editing.
 
 ### Presets
-![Themes](https://i.imgur.com/OLQlvup.png)
+![Presets](https://i.imgur.com/xCfpyEm.png)
 
 If you feel overwhelmed by the amount of options, you can also choose to simply select one of three presets. These are combinations of visual preferences that form a unique purpose and identiy. From left to right:
 
-#### Preset 1: Complete Mode
-![Preset 1: Complete Mode](https://i.imgur.com/LD4MGXP.png)
+#### Preset 1: Balanced Mode
+![Preset 1: Balanced Mode](https://i.imgur.com/LD4MGXP.png)
 
-This is the default mode. It displays as much information as possible about the current song, displays its artwork on the right, shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)
+The default mode. This preset displays as much information as possible about the current song, along with its artwork on the right, without compromising on readability. Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)
 
 #### Preset 2: Minimalistic Mode
 ![Preset 2: Minimalistic Mode](https://i.imgur.com/grUDDlM.png)
 
-A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast.
+A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast
 
 #### Preset 3: Queue Mode
 ![Preset 3: Queue Mode](https://i.imgur.com/uzPLhwF.png)
 
-Similar to Complete Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information.
+Similar to Balanced Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information.
+
+#### Preset 4: Big-Text Mode
+![Preset 4: Big-Text Mode](https://i.imgur.com/EEwX8qX.png)
+
+Only shows the current song's title, artist and release. Queue is disabled, artwork is moved to the background. Font size is doubled
+
+#### Preset 5: XXL-Artwork Mode
+![Preset 5: XXL-Artwork Mode](https://i.imgur.com/fB33SPB.png)
+
+Functionally similar to Balanced Mode, but with the artwork stretched to the maximum possible size. Everything else is crammed into the right
 
 ## Installation
 Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either:
