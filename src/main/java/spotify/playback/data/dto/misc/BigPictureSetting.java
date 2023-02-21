@@ -3,16 +3,16 @@ package spotify.playback.data.dto.misc;
 public class BigPictureSetting {
   private String id;
   private String name;
-  private String hotkey;
+  private String category;
   private String description;
 
   public BigPictureSetting() {
   }
 
-  public BigPictureSetting(String id, String name, String hotkey, String description) {
+  public BigPictureSetting(String id, String name, String category, String description) {
     this.id = id;
     this.name = name;
-    this.hotkey = hotkey;
+    this.category = category;
     this.description = description;
   }
 
@@ -32,12 +32,12 @@ public class BigPictureSetting {
     this.name = name;
   }
 
-  public String getHotkey() {
-    return hotkey;
+  public String getCategory() {
+    return category;
   }
 
-  public void setHotkey(String hotkey) {
-    this.hotkey = hotkey;
+  public void setCategory(String category) {
+    this.category = category;
   }
 
   public String getDescription() {

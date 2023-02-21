@@ -1074,6 +1074,7 @@ const PREFERENCES = [
     name: "Full Screen",
     description: "Toggles full screen on or off. Can also be toggled by double clicking anywhere on the screen. " +
         "(This setting is not persisted between sessions due to browser security limitations)",
+    category: "General",
     state: false,
     callback: () => toggleFullscreen(),
     volatile: true // don't add fullscreen in the URL params, as it won't work (browser security shenanigans)
@@ -1082,6 +1083,7 @@ const PREFERENCES = [
     id: "show-queue",
     name: "Queue",
     description: "If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song is displayed",
+    category: "Main Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("title"), "force-display", !state);
@@ -1094,6 +1096,7 @@ const PREFERENCES = [
     id: "display-artwork",
     name: "Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
+    category: "Artwork",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide", !state);
@@ -1106,6 +1109,7 @@ const PREFERENCES = [
     id: "xxl-artwork",
     name: "XXL Artwork",
     description: "When enabled, the artwork is stretched to its maximum possible size. Do note that this leaves less room for all the other information",
+    category: "Artwork",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("main"), "maximum-artwork", state);
@@ -1116,6 +1120,7 @@ const PREFERENCES = [
     id: "bg-artwork",
     name: "Background Artwork",
     description: "If enabled, uses the release artwork for the background as a blurry, darkened version. Otherwise, only a gradient will be displayed",
+    category: "Background",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("background-canvas"), "color-only", !state);
@@ -1126,6 +1131,7 @@ const PREFERENCES = [
     id: "bg-tint",
     name: "Background Overlay Color",
     description: "Add a subtle layer of one of the artwork's most dominant colors to the background",
+    category: "Background",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("background-canvas-overlay"), "no-tint", !state);
@@ -1136,6 +1142,7 @@ const PREFERENCES = [
     id: "bg-grain",
     name: "Background Film Grain",
     description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images",
+    category: "Background",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("grain"), "show", state);
@@ -1146,6 +1153,7 @@ const PREFERENCES = [
     id: "bg-black",
     name: "Black Background",
     description: "If enabled, the background stays permanently black and overrides any other background-related settings",
+    category: "Background",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("bg-artwork"), "overridden", state);
@@ -1160,6 +1168,7 @@ const PREFERENCES = [
     name: "XXL Text",
     description: "If enabled, the font size for the current song's title, artist, and release is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    category: "Main Content",
     state: false,
     callback: (state) => setClass(document.getElementById("center-info-main"), "big-text", state)
   },
@@ -1167,6 +1176,7 @@ const PREFERENCES = [
     id: "colored-text",
     name: "Colored Text",
     description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
+    category: "General",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("colored-symbols"), "overridden", !state);
@@ -1177,6 +1187,7 @@ const PREFERENCES = [
     id: "show-release",
     name: "Release Name/Date",
     description: "Displays the release name with its release date (usually the year of the currently playing song's album)",
+    category: "Main Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("album"), "hide", !state);
@@ -1187,6 +1198,7 @@ const PREFERENCES = [
     name: "Context",
     description: "Displays the playlist/artist/album name along with some additional information at the top of the page. " +
         "Also displays a thumbnail, if available",
+    category: "Top Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("swap-top"), "overridden-1", !state);
@@ -1198,6 +1210,7 @@ const PREFERENCES = [
     id: "show-logo",
     name: "Spotify Logo",
     description: "Whether to display the Spotify logo in the top right",
+    category: "Top Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("swap-top"), "overridden-2", !state);
@@ -1209,6 +1222,7 @@ const PREFERENCES = [
     id: "swap-top",
     name: "Swap Top Bar",
     description: "If enabled, the Context and Spotify Logo swap positions",
+    category: "Top Content",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("top-info"), "swap", state)
@@ -1218,6 +1232,7 @@ const PREFERENCES = [
     id: "colored-symbols",
     name: "Colored Top Bar",
     description: "If enabled, the dominant color of the current artwork will be used as color for the for the Spotify logo and the playlist thumbnail",
+    category: "Top Content",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("logo"), "colored", state);
@@ -1228,6 +1243,7 @@ const PREFERENCES = [
     id: "transitions",
     name: "Smooth Transitions",
     description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed instantaneously",
+    category: "General",
     state: true,
     callback: (state) => setTransitions(state)
   },
@@ -1236,6 +1252,7 @@ const PREFERENCES = [
     name: "Strip Titles",
     description: "Hides any kind of potentially unnecessary extra information from song tiles and release names " +
         `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
+    category: "Main Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("title-extra"), "hide", state);
@@ -1247,6 +1264,7 @@ const PREFERENCES = [
     id: "show-progress-bar",
     name: "Progress Bar",
     description: "Displays a bar of that spans the entire screen, indicating how far along the currently played track is",
+    category: "Bottom Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("progress"), "hide", !state);
@@ -1257,6 +1275,7 @@ const PREFERENCES = [
     id: "show-timestamps",
     name: "Timestamps",
     description: "Displays the current and total timestamps of the currently playing track as numeric values",
+    category: "Bottom Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("artwork"), "hide-timestamps", !state);
@@ -1269,7 +1288,8 @@ const PREFERENCES = [
     id: "spread-timestamps",
     name: "Spread-out Timestamps",
     description: "When enabled, the current timestamp is separated from the total timestamp and displayed on the left",
-    state: true,
+    category: "Bottom Content",
+    state: false,
     callback: (state) => {
       let timeCurrent = document.getElementById("time-current");
       let bottomMetaContainer = document.getElementById("bottom-meta-container");
@@ -1287,6 +1307,7 @@ const PREFERENCES = [
     id: "show-info-icons",
     name: "Play/Pause/Shuffle/Repeat",
     description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left",
+    category: "Bottom Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("info-symbols"), "hide", !state);
@@ -1296,6 +1317,7 @@ const PREFERENCES = [
     id: "show-volume",
     name: "Volume",
     description: "Display the current volume in the bottom left",
+    category: "Bottom Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("volume"), "hide", !state);
@@ -1305,6 +1327,7 @@ const PREFERENCES = [
     id: "show-device",
     name: "Device",
     description: "Display the name of the current playback device in the bottom left",
+    category: "Bottom Content",
     state: true,
     callback: (state) => {
       setClass(document.getElementById("device"), "hide", !state);
@@ -1314,6 +1337,7 @@ const PREFERENCES = [
     id: "reverse-bottom",
     name: "Invert Bottom",
     description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
+    category: "Bottom Content",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("content-bottom"), "reverse", state);
@@ -1323,6 +1347,7 @@ const PREFERENCES = [
     id: "show-clock",
     name: "Clock",
     description: "Displays a clock at the bottom center of the page",
+    category: "Bottom Content",
     state: false,
     callback: (state) => setClass(document.getElementById("clock"), "hide", !state)
   },
@@ -1330,6 +1355,7 @@ const PREFERENCES = [
     id: "dark-mode",
     name: "Dark Mode",
     description: "Darkens the entire screen. This mode will be automatically disabled after 8 hours",
+    category: "General",
     state: false,
     callback: (state) => {
       const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 8 * 60 * 60 * 1000;
@@ -1346,6 +1372,7 @@ const PREFERENCES = [
     id: "vertical-mode",
     name: "Vertical Mode",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the queue, clock, and release, but it results in a more minimalistic appearance",
+    category: "Main Content",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("xxl-text"), "overridden", state);
@@ -1359,6 +1386,7 @@ const PREFERENCES = [
     id: "show-fps",
     name: "FPS Counter",
     description: "Display the frames-per-second in the top right of the screen (intended for performance debugging)",
+    category: "Developer Tools",
     state: false,
     callback: (state) => {
       setClass(document.getElementById("fps-counter"), "show", state);
@@ -1370,6 +1398,7 @@ const PREFERENCES = [
     description: "[Keep this option enabled if you're unsure what it does!] " +
         "Captures screenshots of the background images and displays those instead of the live backgrounds. " +
         "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
+    category: "Developer Tools",
     state: true,
     callback: (state) => {
       showHide(document.getElementById("background-rendered"), state);
@@ -1383,6 +1412,7 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-advanced",
     name: "Preset: Balanced Mode",
+    category: "Presets",
     image: "/design/img/presets/preset-advanced.png",
     description: "The default mode. This preset displays as much information as possible about the current song, along with its artwork on the right, without compromising on readability. " +
         "Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)",
@@ -1422,6 +1452,7 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-minimalistic",
     name: "Preset: Minimalistic Mode",
+    category: "Presets",
     image: "/design/img/presets/preset-minimalistic.png",
     description: "A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast",
     enabled: [
@@ -1460,6 +1491,7 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-background",
     name: "Preset: Queue Mode",
+    category: "Presets",
     image: "/design/img/presets/preset-background.png",
     description: "Similar to Balanced Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information",
     enabled: [
@@ -1498,6 +1530,7 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-big-text",
     name: "Preset: Big-Text Mode",
+    category: "Presets",
     image: "/design/img/presets/preset-big-text.png",
     description: "Only shows the current song's title, artist and release. Queue is disabled, artwork is moved to the background. Font size is doubled",
     enabled: [
@@ -1536,6 +1569,7 @@ const PREFERENCES_PRESETS = [
   {
     id: "preset-big-artwork",
     name: "Preset: XXL-Artwork Mode",
+    category: "Presets",
     image: "/design/img/presets/preset-big-artwork.png",
     description: "Functionally similar to Balanced Mode, but with the artwork stretched to the maximum possible size. Everything else is crammed into the right",
     enabled: [
@@ -1582,12 +1616,14 @@ const PREFS_URL_PARAM = "p";
 window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
-  const settingsWrapper = document.getElementById("settings-buttons");
+  const settingsWrapper = document.getElementById("settings-categories");
   const settingsDescriptionWrapper = document.getElementById("settings-description");
   const urlParams = new URLSearchParams(window.location.search);
   const urlPrefs = urlParams.has(PREFS_URL_PARAM)
       ? unescape(urlParams.get(PREFS_URL_PARAM)).split(" ")
       : null;
+
+  let categories = {};
   for (let prefIndex in PREFERENCES) {
     let pref = PREFERENCES[prefIndex];
 
@@ -1604,7 +1640,20 @@ function initVisualPreferences() {
     prefElem.classList.add("setting");
     prefElem.innerHTML = pref.name;
     prefElem.onclick = () => toggleVisualPreference(pref);
-    settingsWrapper.appendChild(prefElem);
+
+    // Group to category
+    if (!categories.hasOwnProperty(pref.category)) {
+      let categoryElem = document.createElement("div");
+      categoryElem.classList.add("setting-category");
+      let categoryElemHeader = document.createElement("div");
+      categoryElemHeader.classList.add("setting-category-header");
+      categoryElemHeader.innerHTML = pref.category;
+      categoryElem.appendChild(categoryElemHeader);
+      settingsWrapper.appendChild(categoryElem);
+      categories[pref.category] = categoryElem;
+    }
+    let categoryElem = categories[pref.category];
+    categoryElem.appendChild(prefElem);
 
     // Create description element
     let descElem = document.createElement("div");
@@ -1971,7 +2020,7 @@ function toggleSettingsExpertMode() {
 
 function setExpertModeToggleButtonText(state) {
   let settingsMenuExpertModeToggleButton = document.getElementById("settings-expert-mode-toggle");
-  settingsMenuExpertModeToggleButton.innerHTML = state ? "Preset Mode" : "Expert Mode";
+  settingsMenuExpertModeToggleButton.innerHTML = state ? "Expert Mode" : "Preset Mode";
 }
 
 

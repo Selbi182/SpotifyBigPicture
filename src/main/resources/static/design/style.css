@@ -172,14 +172,15 @@ img:not([src]) {
 }
 
 #background-canvas-overlay.no-tint {
-    --background-color: black !important;
-    --background-brightness: 0.2 !important;
+    --background-brightness: 1 !important;
+    background: var(--background-gradients);
     mix-blend-mode: multiply;
 }
 
 #background-canvas.color-only #background-canvas-overlay.no-tint {
     --background-color: white !important;
     --background-brightness: 0.5 !important;
+    background: var(--background-gradients), var(--background-color);
     mix-blend-mode: hard-light;
 }
 
@@ -941,6 +942,7 @@ div#device {
     opacity: 0;
     font-size: 3vh;
     display: flex;
+    flex-direction: column;
     gap: var(--margin-main);
     pointer-events: none;
 }
@@ -976,7 +978,7 @@ div#device {
 }
 
 
-#settings-wrapper.expert #settings-buttons {
+#settings-wrapper.expert #settings-categories {
     display: flex;
 }
 
@@ -984,40 +986,47 @@ div#device {
     display: none;
 }
 
-#settings-buttons {
-    width: min-content;
-    height: 100%;
+#settings-categories {
+    width: 100%;
+    height: min-content;
     justify-content: space-between;
     font-family: var(--font-bold);
-    flex-direction: column;
+    flex-direction: row;
     font-size: 2vh;
     display: none;
+    flex-wrap: wrap;
+    gap: 4vh;
 }
 
-#settings-buttons > div {
+#settings-categories .setting {
     width: min-content;
     opacity: 0.65;
     cursor: pointer;
     white-space: pre;
 }
 
-#settings-buttons > div.overridden,
-#settings-buttons > div.overridden-1.overridden-2 {
+#settings-categories .setting.overridden,
+#settings-categories .setting.overridden-1.overridden-2 {
     opacity: 0.25 !important;
 }
 
-#settings-buttons > div:hover {
+#settings-categories .setting:hover {
     opacity: 1;
 }
 
-#settings-buttons > div::before {
+#settings-categories .setting::before {
     content: "\2713";
     margin-right: 1vh;
     opacity: 0;
 }
 
-#settings-buttons > .on::before {
+#settings-categories .setting.on::before {
     opacity: 1;
+}
+
+#settings-categories .setting-category-header {
+    font-size: 3vh;
+    margin-bottom: 1vh;
 }
 
 #settings-right {
@@ -1079,9 +1088,6 @@ div#device {
     opacity: 0;
     overflow: visible;
     position: absolute;
-}
-
-#settings-description > div[id*="preset-"] {
     text-align: center;
 }
 
@@ -1102,8 +1108,8 @@ div#device {
 
 #settings-expert-mode-toggle {
     position: absolute;
-    bottom: 0;
-    right: 0;
+    top: 2vh;
+    left: 8vh;
     opacity: 0.5;
     cursor: pointer;
     font-family: var(--font-bold);
@@ -1140,6 +1146,7 @@ div#device {
 #clock.hide, #clock:empty {
     display: none;
 }
+
 
 @media only screen and (max-aspect-ratio: 3/2) {
     #content {

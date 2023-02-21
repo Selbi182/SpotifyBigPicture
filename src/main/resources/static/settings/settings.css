@@ -27,62 +27,55 @@ body {
 }
 
 #settings {
-    min-height: 75vh;
-    max-height: 100vh;
     display: flex;
     flex-direction: column;
     gap: 1vh;
+    max-width: 100%;
 }
 
 #settings.expand {
     flex-wrap: wrap;
 }
 
-#settings > div {
+#settings .setting-category {
     background-color: #222;
     padding: 1vh;
     border-radius: 1vh;
     text-align: center;
-    cursor: pointer;
     transition: opacity 0.1s;
-    opacity: 0.5;
     justify-content: center;
     align-items: center;
     flex: 1;
+    flex-direction: column;
+    display: flex;
 }
 
-#settings > div:hover {
+#settings .setting-category:not(.expand) div:not(.setting-category-header) {
+    display: none;
+}
+
+#settings .setting {
+    cursor: pointer;
+    opacity: 0.5;
+    margin: 1vh;
+}
+
+#settings .setting:hover {
     opacity: 1;
 }
 
-#settings > div.disabled {
+#settings .setting.disabled {
     cursor: wait;
     opacity: 0.1;
 }
 
-#settings > div {
-    display: none;
-}
-
-#settings > div:is(#dark-mode, #reload), #settings > div[id*="preset-"] {
-    display: flex;
-}
-
-#settings.expand > div  {
-    display: flex;
-    max-width: 50%;
-}
-
-#expand-button {
-    margin: 1vh;
-    padding: 1vh;
-    border-radius: 1vh;
-    text-align: center;
+#settings .setting-category .setting-category-header {
     cursor: pointer;
-    transition: opacity 0.1s;
-    opacity: 1;
+    font-size: 4vh;
+    font-weight: bold;
+    opacity: 0.5;
 }
-
-#expand-button.hide {
-    visibility: hidden;
+#settings .setting-category .setting-category-header:hover,
+#settings .setting-category.expand .setting-category-header {
+    opacity: 1;
 }
