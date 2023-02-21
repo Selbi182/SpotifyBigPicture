@@ -1149,19 +1149,16 @@ div#device {
 
 
 @media only screen and (max-aspect-ratio: 3/2) {
+    #artwork {
+        margin-top: 12vh;
+    }
+    
     #content {
         padding: calc(var(--margin-main) / 2);
     }
 
     #info {
         user-select: none !important;
-    }
-
-    #artwork, #clock-wrapper, #top-info {
-        display: none;
-    }
-
-    #info {
         width: 100%;
     }
 
@@ -1169,11 +1166,7 @@ div#device {
         max-height: 100%;
     }
 
-    #background-canvas {
-        transform: scale(1.05);
-    }
-
-    #settings-description, #settings-expert-mode-toggle {
+    #settings-description {
         display: none;
     }
 
@@ -1206,17 +1199,18 @@ div#device {
         flex-wrap: wrap;
     }
 
-    #bottom-left {
-        display: none;
-    }
-
-    #bottom-right {
-        justify-content: space-between;
-    }
-
     #bottom-right:not(.stretch) #time-total::before {
         content: "";
         opacity: 0;
         padding: 0;
+    }
+
+    #settings-categories {
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    #settings-categories .setting-category {
+        width: 100%;
     }
 }
