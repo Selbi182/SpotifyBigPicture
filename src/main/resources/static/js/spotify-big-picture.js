@@ -134,6 +134,10 @@ function initPolling(pollingIntervalMs = POLLING_INTERVAL_MS) {
 // MAIN DISPLAY STUFF
 ///////////////////////////////
 
+function getById(id) {
+  return document.getElementById(id);
+}
+
 const BLANK = "BLANK";
 
 function processJson(json) {
@@ -170,12 +174,12 @@ function getChange(changes, path) {
 
 function setTextData(changes) {
   // Main Info
-  let titleContainer = document.getElementById("title");
+  let titleContainer = getById("title");
 
   let artists = getChange(changes, "currentlyPlaying.artists");
   if (artists.wasChanged) {
     let artistsNew = artists.value;
-    let artistContainer = document.getElementById("artists");
+    let artistContainer = getById("artists");
     let artistsString = artistsNew[0] + buildFeaturedArtistsString(artistsNew);
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
 
@@ -190,8 +194,8 @@ function setTextData(changes) {
     let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
     let titleMain = splitTitle.main;
     let titleExtra = splitTitle.extra;
-    document.getElementById("title-main").innerHTML = titleMain;
-    document.getElementById("title-extra").innerHTML = titleExtra;
+    getById("title-main").innerHTML = titleMain;
+    getById("title-extra").innerHTML = titleExtra;
 
     balanceTextClamp(titleContainer);
     fadeIn(titleContainer);
@@ -204,20 +208,20 @@ function setTextData(changes) {
     let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
     let albumTitleMain = splitTitle.main;
     let albumTitleExtra = splitTitle.extra;
-    document.getElementById("album-title-main").innerHTML = albumTitleMain;
-    document.getElementById("album-title-extra").innerHTML = albumTitleExtra;
+    getById("album-title-main").innerHTML = albumTitleMain;
+    getById("album-title-extra").innerHTML = albumTitleExtra;
 
-    document.getElementById("album-release").innerHTML = year.value;
+    getById("album-release").innerHTML = year.value;
 
-    let albumMainContainer = document.getElementById("album-title");
+    let albumMainContainer = getById("album-title");
     balanceTextClamp(albumMainContainer);
-    let albumContainer = document.getElementById("album");
+    let albumContainer = getById("album");
     fadeIn(albumContainer);
   }
 
   let description = getChange(changes, "currentlyPlaying.description");
   if (description.wasChanged) {
-    let descriptionContainer = document.getElementById("description");
+    let descriptionContainer = getById("description");
     let isPodcast = description.value !== BLANK;
     descriptionContainer.innerHTML = isPodcast ? description.value : "";
     balanceTextClamp(descriptionContainer);
@@ -227,8 +231,8 @@ function setTextData(changes) {
   // Context
   let context = getChange(changes, "playbackContext.context");
   if (context.wasChanged) {
-    let contextMain = document.getElementById("context-main");
-    let contextExtra = document.getElementById("context-extra");
+    let contextMain = getById("context-main");
+    let contextExtra = getById("context-extra");
 
     // Context name
     contextMain.innerHTML = convertToTextEmoji(context.value);
@@ -259,8 +263,8 @@ function setTextData(changes) {
     }
 
     // Thumbnail
-    let thumbnailWrapperContainer = document.getElementById("thumbnail-wrapper");
-    let thumbnailContainer = document.getElementById("thumbnail");
+    let thumbnailWrapperContainer = getById("thumbnail-wrapper");
+    let thumbnailContainer = getById("thumbnail");
     let thumbnailUrl = getChange(changes, "playbackContext.thumbnailUrl").value;
     if (thumbnailUrl === BLANK) {
       thumbnailContainer.src = "";
@@ -271,7 +275,7 @@ function setTextData(changes) {
       fadeIn(thumbnailContainer);
     }
 
-    let contextContainer = document.getElementById("context");
+    let contextContainer = getById("context");
     fadeIn(contextContainer);
   }
 
@@ -281,28 +285,28 @@ function setTextData(changes) {
   if (timeCurrent.wasChanged || timeTotal.wasChanged) {
     updateProgress(changes, true);
     if (getChange(changes, "currentlyPlaying.id").value) {
-      finishAnimations(document.getElementById("progress-current"));
+      finishAnimations(getById("progress-current"));
     }
   }
 
   // States
   let paused = getChange(changes, "playbackContext.paused");
   if (paused.wasChanged) {
-    let pauseElem = document.getElementById("play-pause");
+    let pauseElem = getById("play-pause");
     setClass(pauseElem, "paused", paused.value);
     fadeIn(pauseElem);
   }
 
   let shuffle = getChange(changes, "playbackContext.shuffle");
   if (shuffle.wasChanged) {
-    let shuffleElem = document.getElementById("shuffle");
+    let shuffleElem = getById("shuffle");
     setClass(shuffleElem, "show", shuffle.value);
     fadeIn(shuffleElem);
   }
 
   let repeat = getChange(changes, "playbackContext.repeat");
   if (repeat.wasChanged) {
-    let repeatElem = document.getElementById("repeat");
+    let repeatElem = getById("repeat");
     setClass(repeatElem, "show", repeat.value !== "off");
     if (repeat.value === "track") {
       repeatElem.classList.add("once");
@@ -320,7 +324,7 @@ function setTextData(changes) {
   }
 
   if (device.wasChanged) {
-    document.getElementById("device").innerHTML = convertToTextEmoji(device.value);
+    getById("device").innerHTML = convertToTextEmoji(device.value);
     handleDeviceChange(device.value);
   }
 
@@ -340,9 +344,9 @@ function setTextData(changes) {
 }
 
 function setCorrectTracklistView(changes) {
-  let mainContainer = document.getElementById("center-info");
-  let titleContainer = document.getElementById("title");
-  let trackListContainer = document.getElementById("track-list");
+  let mainContainer = getById("center-info");
+  let titleContainer = getById("title");
+  let trackListContainer = getById("track-list");
   let listViewType = getChange(changes, "trackData.trackListView").value;
   let listTracks = getChange(changes, "trackData.listTracks").value;
   let currentId = getChange(changes, "currentlyPlaying.id").value;
@@ -545,7 +549,7 @@ function fadeIn(elem) {
 }
 
 function printTrackList(trackList, printDiscs) {
-  let trackListContainer = document.getElementById("track-list");
+  let trackListContainer = getById("track-list");
   trackListContainer.innerHTML = "";
 
   let previousDiscNumber = 0;
@@ -625,13 +629,13 @@ function createSingleTrackListItem(trackItem, trackNumPadLength) {
 
 window.addEventListener('load', setupScrollGradients);
 function setupScrollGradients() {
-  let trackList = document.getElementById("track-list");
+  let trackList = getById("track-list");
   trackList.onscroll = () => updateScrollGradients();
 }
 
 const SCROLL_GRADIENTS_TOLERANCE = 4;
 function updateScrollGradients() {
-  let trackList = document.getElementById("track-list");
+  let trackList = getById("track-list");
   let topGradient = trackList.scrollTop > SCROLL_GRADIENTS_TOLERANCE;
   let bottomGradient = (trackList.scrollHeight - trackList.clientHeight) > (trackList.scrollTop + SCROLL_GRADIENTS_TOLERANCE);
   setClass(trackList, "gradient-top", topGradient);
@@ -640,7 +644,7 @@ function updateScrollGradients() {
 
 function updateScrollPositions(trackNumber) {
   requestAnimationFrame(() => {
-    let trackListContainer = document.getElementById("track-list");
+    let trackListContainer = getById("track-list");
     let previouslyPlayingRow = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
     if (trackNumber) {
       let currentlyPlayingRow = trackListContainer.childNodes[trackNumber - 1];
@@ -746,8 +750,8 @@ function prerenderNextImage(changes, delay = PRERENDER_DELAY_MS) {
 
 function setRenderedBackground(pngData) {
   return new Promise((resolve) => {
-    let backgroundImg = document.getElementById("background-img");
-    let backgroundCrossfade = document.getElementById("background-img-crossfade");
+    let backgroundImg = getById("background-img");
+    let backgroundCrossfade = getById("background-img-crossfade");
     setClass(backgroundCrossfade, "show", true);
     backgroundCrossfade.onload = () => {
       finishAnimations(backgroundCrossfade);
@@ -779,7 +783,7 @@ function setArtworkAndPrerender(newImageUrl, colors) {
 
 function loadArtwork(newImage) {
   return new Promise((resolve) => {
-    let artwork = document.getElementById("artwork-img");
+    let artwork = getById("artwork-img");
     artwork.onload = () => {
       resolve();
     }
@@ -790,12 +794,12 @@ function loadArtwork(newImage) {
 
 function loadBackground(newImage, colors) {
   return new Promise((resolve) => {
-    let backgroundCanvasImg = document.getElementById("background-canvas-img");
+    let backgroundCanvasImg = getById("background-canvas-img");
     backgroundCanvasImg.onload = () => {
       let rgbOverlay = colors.secondary;
       let averageBrightness = colors.averageBrightness;
-      let backgroundCanvasOverlay = document.getElementById("background-canvas-overlay");
-      let grainOverlay = document.getElementById("grain");
+      let backgroundCanvasOverlay = getById("background-canvas-overlay");
+      let grainOverlay = getById("grain");
 
       let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
       backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
@@ -811,7 +815,7 @@ function loadBackground(newImage, colors) {
 
 function prerenderBackground() {
   return new Promise((resolve) => {
-    let prerenderCanvas = document.getElementById("prerender-canvas");
+    let prerenderCanvas = getById("prerender-canvas");
     setClass(prerenderCanvas, "show", true);
 
     // While PNG produces the by far largest Base64 image data, the actual conversion process
@@ -889,10 +893,10 @@ function updateProgress(changes, updateProgressBar) {
   let formattedCurrentTime = formattedTimes.current;
   let formattedTotalTime = formattedTimes.total;
 
-  let elemTimeCurrent = document.getElementById("time-current");
+  let elemTimeCurrent = getById("time-current");
   elemTimeCurrent.innerHTML = formattedCurrentTime;
 
-  let elemTimeTotal = document.getElementById("time-total");
+  let elemTimeTotal = getById("time-total");
   if (formattedTotalTime !== elemTimeTotal.innerHTML) {
     elemTimeTotal.innerHTML = formattedTotalTime;
   }
@@ -915,7 +919,7 @@ function updateProgress(changes, updateProgressBar) {
 }
 
 function setProgressBarTarget(current, total, paused) {
-  let progressBarElem = document.getElementById("progress-current");
+  let progressBarElem = getById("progress-current");
 
   let progressPercent = Math.min(1, ((current / total))) * 100;
   if (isNaN(progressPercent)) {
@@ -1036,8 +1040,8 @@ function advanceCurrentTime(updateProgressBar) {
 }
 
 function setIdleModeState(state) {
-  let content = document.getElementById("main");
-  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button"); // just to avoid a COMPLETELY black screen
+  let content = getById("main");
+  let settingsMenuToggleButton = getById("settings-menu-toggle-button"); // just to avoid a COMPLETELY black screen
   if (state) {
     if (!idle) {
       console.info("No music was played in 2 hours. Enabling idle mode...");
@@ -1075,7 +1079,6 @@ const PREFERENCES = [
     description: "Toggles full screen on or off. Can also be toggled by double clicking anywhere on the screen. " +
         "(This setting is not persisted between sessions due to browser security limitations)",
     category: "General",
-    state: false,
     callback: () => toggleFullscreen(),
     volatile: true // don't add fullscreen in the URL params, as it won't work (browser security shenanigans)
   },
@@ -1084,10 +1087,9 @@ const PREFERENCES = [
     name: "Queue",
     description: "If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song is displayed",
     category: "Main Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("title"), "force-display", !state);
-      let trackListContainer = document.getElementById("track-list");
+      setClass(getById("title"), "force-display", !state);
+      let trackListContainer = getById("track-list");
       setClass(trackListContainer, "hidden", !state);
       setCorrectTracklistView(currentData);
     }
@@ -1097,11 +1099,10 @@ const PREFERENCES = [
     name: "Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
     category: "Artwork",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("artwork"), "hide", !state);
-      setClass(document.getElementById("content"), "full-content", !state);
-      setClass(document.getElementById("xxl-artwork"), "overridden", !state);
+      setClass(getById("artwork"), "hide", !state);
+      setClass(getById("content"), "full-content", !state);
+      setClass(getById("xxl-artwork"), "overridden", !state);
       refreshBackgroundRender();
     }
   },
@@ -1110,9 +1111,8 @@ const PREFERENCES = [
     name: "XXL Artwork",
     description: "When enabled, the artwork is stretched to its maximum possible size. Do note that this leaves less room for all the other information",
     category: "Artwork",
-    state: false,
     callback: (state) => {
-      setClass(document.getElementById("main"), "maximum-artwork", state);
+      setClass(getById("main"), "maximum-artwork", state);
       refreshBackgroundRender();
     }
   },
@@ -1121,9 +1121,8 @@ const PREFERENCES = [
     name: "Background Artwork",
     description: "If enabled, uses the release artwork for the background as a blurry, darkened version. Otherwise, only a gradient will be displayed",
     category: "Background",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("background-canvas"), "color-only", !state);
+      setClass(getById("background-canvas"), "color-only", !state);
       refreshBackgroundRender();
     }
   },
@@ -1132,9 +1131,8 @@ const PREFERENCES = [
     name: "Background Overlay Color",
     description: "Add a subtle layer of one of the artwork's most dominant colors to the background",
     category: "Background",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("background-canvas-overlay"), "no-tint", !state);
+      setClass(getById("background-canvas-overlay"), "no-tint", !state);
       refreshBackgroundRender();
     }
   },
@@ -1143,9 +1141,8 @@ const PREFERENCES = [
     name: "Background Film Grain",
     description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images",
     category: "Background",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("grain"), "show", state);
+      setClass(getById("grain"), "show", state);
       refreshBackgroundRender();
     }
   },
@@ -1154,12 +1151,11 @@ const PREFERENCES = [
     name: "Black Background",
     description: "If enabled, the background stays permanently black and overrides any other background-related settings",
     category: "Background",
-    state: false,
     callback: (state) => {
-      setClass(document.getElementById("bg-artwork"), "overridden", state);
-      setClass(document.getElementById("bg-tint"), "overridden", state);
-      setClass(document.getElementById("bg-grain"), "overridden", state);
-      setClass(document.getElementById("background-canvas"), "black", state);
+      setClass(getById("bg-artwork"), "overridden", state);
+      setClass(getById("bg-tint"), "overridden", state);
+      setClass(getById("bg-grain"), "overridden", state);
+      setClass(getById("background-canvas"), "black", state);
       refreshBackgroundRender();
     }
   },
@@ -1169,17 +1165,15 @@ const PREFERENCES = [
     description: "If enabled, the font size for the current song's title, artist, and release is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
-    state: false,
-    callback: (state) => setClass(document.getElementById("center-info-main"), "big-text", state)
+    callback: (state) => setClass(getById("center-info-main"), "big-text", state)
   },
   {
     id: "colored-text",
     name: "Colored Text",
     description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     category: "General",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("colored-symbols"), "overridden", !state);
+      setClass(getById("colored-symbols"), "overridden", !state);
       setClass(document.body, "no-colored-text", !state);
     }
   },
@@ -1188,9 +1182,8 @@ const PREFERENCES = [
     name: "Release Name/Date",
     description: "Displays the release name with its release date (usually the year of the currently playing song's album)",
     category: "Main Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("album"), "hide", !state);
+      setClass(getById("album"), "hide", !state);
     }
   },
   {
@@ -1199,11 +1192,10 @@ const PREFERENCES = [
     description: "Displays the playlist/artist/album name along with some additional information at the top of the page. " +
         "Also displays a thumbnail, if available",
     category: "Top Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("swap-top"), "overridden-1", !state);
-      setClass(document.getElementById("colored-symbols"), "overridden-1", !state);
-      setClass(document.getElementById("meta-left"), "hide", !state)
+      setClass(getById("swap-top"), "overridden-1", !state);
+      setClass(getById("colored-symbols"), "overridden-1", !state);
+      setClass(getById("meta-left"), "hide", !state)
     }
   },
   {
@@ -1211,11 +1203,10 @@ const PREFERENCES = [
     name: "Spotify Logo",
     description: "Whether to display the Spotify logo in the top right",
     category: "Top Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("swap-top"), "overridden-2", !state);
-      setClass(document.getElementById("colored-symbols"), "overridden-2", !state);
-      setClass(document.getElementById("meta-right"), "hide", !state)
+      setClass(getById("swap-top"), "overridden-2", !state);
+      setClass(getById("colored-symbols"), "overridden-2", !state);
+      setClass(getById("meta-right"), "hide", !state)
     }
   },
   {
@@ -1223,9 +1214,8 @@ const PREFERENCES = [
     name: "Swap Top Bar",
     description: "If enabled, the Context and Spotify Logo swap positions",
     category: "Top Content",
-    state: false,
     callback: (state) => {
-      setClass(document.getElementById("top-info"), "swap", state)
+      setClass(getById("top-info"), "swap", state)
     }
   },
   {
@@ -1233,10 +1223,9 @@ const PREFERENCES = [
     name: "Colored Top Bar",
     description: "If enabled, the dominant color of the current artwork will be used as color for the for the Spotify logo and the playlist thumbnail",
     category: "Top Content",
-    state: false,
     callback: (state) => {
-      setClass(document.getElementById("logo"), "colored", state);
-      setClass(document.getElementById("thumbnail"), "colored", state);
+      setClass(getById("logo"), "colored", state);
+      setClass(getById("thumbnail"), "colored", state);
     }
   },
   {
@@ -1244,7 +1233,6 @@ const PREFERENCES = [
     name: "Smooth Transitions",
     description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed instantaneously",
     category: "General",
-    state: true,
     callback: (state) => setTransitions(state)
   },
   {
@@ -1253,11 +1241,10 @@ const PREFERENCES = [
     description: "Hides any kind of potentially unnecessary extra information from song tiles and release names " +
         `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
     category: "Main Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("title-extra"), "hide", state);
-      setClass(document.getElementById("album-title-extra"), "hide", state);
-      setClass(document.getElementById("track-list"), "strip", state);
+      setClass(getById("title-extra"), "hide", state);
+      setClass(getById("album-title-extra"), "hide", state);
+      setClass(getById("track-list"), "strip", state);
     }
   },
   {
@@ -1265,9 +1252,8 @@ const PREFERENCES = [
     name: "Progress Bar",
     description: "Displays a bar of that spans the entire screen, indicating how far along the currently played track is",
     category: "Bottom Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("progress"), "hide", !state);
+      setClass(getById("progress"), "hide", !state);
       refreshBackgroundRender();
     }
   },
@@ -1276,11 +1262,10 @@ const PREFERENCES = [
     name: "Timestamps",
     description: "Displays the current and total timestamps of the currently playing track as numeric values",
     category: "Bottom Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("artwork"), "hide-timestamps", !state);
-      setClass(document.getElementById("bottom-meta-container"), "hide-timestamps", !state);
-      setClass(document.getElementById("spread-timestamps"), "overridden", !state);
+      setClass(getById("artwork"), "hide-timestamps", !state);
+      setClass(getById("bottom-meta-container"), "hide-timestamps", !state);
+      setClass(getById("spread-timestamps"), "overridden", !state);
       refreshBackgroundRender();
     }
   },
@@ -1289,12 +1274,11 @@ const PREFERENCES = [
     name: "Spread-out Timestamps",
     description: "When enabled, the current timestamp is separated from the total timestamp and displayed on the left",
     category: "Bottom Content",
-    state: false,
     callback: (state) => {
-      let timeCurrent = document.getElementById("time-current");
-      let bottomMetaContainer = document.getElementById("bottom-meta-container");
-      let bottomLeft = document.getElementById("bottom-left");
-      let bottomRight = document.getElementById("bottom-right");
+      let timeCurrent = getById("time-current");
+      let bottomMetaContainer = getById("bottom-meta-container");
+      let bottomLeft = getById("bottom-left");
+      let bottomRight = getById("bottom-right");
       if (state) {
         bottomLeft.insertBefore(timeCurrent, bottomLeft.firstChild);
       } else {
@@ -1308,9 +1292,8 @@ const PREFERENCES = [
     name: "Play/Pause/Shuffle/Repeat",
     description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left",
     category: "Bottom Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("info-symbols"), "hide", !state);
+      setClass(getById("info-symbols"), "hide", !state);
     }
   },
   {
@@ -1318,9 +1301,8 @@ const PREFERENCES = [
     name: "Volume",
     description: "Display the current volume in the bottom left",
     category: "Bottom Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("volume"), "hide", !state);
+      setClass(getById("volume"), "hide", !state);
     }
   },
   {
@@ -1328,9 +1310,8 @@ const PREFERENCES = [
     name: "Device",
     description: "Display the name of the current playback device in the bottom left",
     category: "Bottom Content",
-    state: true,
     callback: (state) => {
-      setClass(document.getElementById("device"), "hide", !state);
+      setClass(getById("device"), "hide", !state);
     }
   },
   {
@@ -1338,9 +1319,8 @@ const PREFERENCES = [
     name: "Invert Bottom",
     description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
     category: "Bottom Content",
-    state: false,
     callback: (state) => {
-      setClass(document.getElementById("content-bottom"), "reverse", state);
+      setClass(getById("content-bottom"), "reverse", state);
     }
   },
   {
@@ -1348,18 +1328,16 @@ const PREFERENCES = [
     name: "Clock",
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
-    state: false,
-    callback: (state) => setClass(document.getElementById("clock"), "hide", !state)
+    callback: (state) => setClass(getById("clock"), "hide", !state)
   },
   {
     id: "dark-mode",
     name: "Dark Mode",
     description: "Darkens the entire screen. This mode will be automatically disabled after 8 hours",
     category: "General",
-    state: false,
     callback: (state) => {
       const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 8 * 60 * 60 * 1000;
-      setClass(document.getElementById("dark-overlay"), "show", state);
+      setClass(getById("dark-overlay"), "show", state);
       clearTimeout(darkModeTimeout);
       if (state) {
         darkModeTimeout = setTimeout(() => {
@@ -1373,12 +1351,11 @@ const PREFERENCES = [
     name: "Vertical Mode",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the queue, clock, and release, but it results in a more minimalistic appearance",
     category: "Main Content",
-    state: false,
     callback: (state) => {
-      setClass(document.getElementById("xxl-text"), "overridden", state);
-      setClass(document.getElementById("xxl-artwork"), "overridden", state);
-      setClass(document.getElementById("show-queue"), "overridden", state);
-      setClass(document.getElementById("main"), "vertical", state);
+      setClass(getById("xxl-text"), "overridden", state);
+      setClass(getById("xxl-artwork"), "overridden", state);
+      setClass(getById("show-queue"), "overridden", state);
+      setClass(getById("main"), "vertical", state);
       refreshBackgroundRender();
     }
   },
@@ -1387,9 +1364,9 @@ const PREFERENCES = [
     name: "FPS Counter",
     description: "Display the frames-per-second in the top right of the screen (intended for performance debugging)",
     category: "Developer Tools",
-    state: false,
     callback: (state) => {
-      setClass(document.getElementById("fps-counter"), "show", state);
+      setClass(getById("fps-counter"), "show", state);
+      fpsTick();
     }
   },
   {
@@ -1399,10 +1376,9 @@ const PREFERENCES = [
         "Captures screenshots of the background images and displays those instead of the live backgrounds. " +
         "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
     category: "Developer Tools",
-    state: true,
     callback: (state) => {
-      showHide(document.getElementById("background-rendered"), state);
-      setClass(document.getElementById("prerender-canvas"), "no-prerender", !state);
+      showHide(getById("background-rendered"), state);
+      setClass(getById("prerender-canvas"), "no-prerender", !state);
       refreshBackgroundRender();
     }
   }
@@ -1616,23 +1592,12 @@ const PREFS_URL_PARAM = "p";
 window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
-  const settingsWrapper = document.getElementById("settings-categories");
-  const settingsDescriptionWrapper = document.getElementById("settings-description");
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlPrefs = urlParams.has(PREFS_URL_PARAM)
-      ? unescape(urlParams.get(PREFS_URL_PARAM)).split(" ")
-      : null;
+  const settingsWrapper = getById("settings-categories");
+  const settingsDescriptionWrapper = getById("settings-description");
 
   let categories = {};
   for (let prefIndex in PREFERENCES) {
     let pref = PREFERENCES[prefIndex];
-
-    // Set state on site load
-    let state = pref.state;
-    if (urlPrefs) {
-      state = urlPrefs.includes(pref.id);
-    }
-    pref.state = state;
 
     // Create button element
     let prefElem = document.createElement("div");
@@ -1669,15 +1634,10 @@ function initVisualPreferences() {
     settingsDescriptionWrapper.appendChild(descElem);
 
   }
-  document.getElementById("fullscreen").onclick = toggleFullscreen;
-
-  // Init setting states
-  PREFERENCES.forEach(pref => {
-    refreshPreference(pref, pref.state);
-  });
+  getById("fullscreen").onclick = toggleFullscreen;
 
   // Preset buttons
-  const settingsPresetsWrapper = document.getElementById("settings-presets");
+  const settingsPresetsWrapper = getById("settings-presets");
   for (let presetIndex in PREFERENCES_PRESETS) {
     let preset = PREFERENCES_PRESETS[presetIndex];
 
@@ -1715,8 +1675,19 @@ function initVisualPreferences() {
     settingsDescriptionWrapper.appendChild(descElem);
   }
 
-  // If this is the first load, force settings menu opening
-  if (!urlParams.has(PREFS_URL_PARAM)) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlPrefs = urlParams.has(PREFS_URL_PARAM)
+      ? unescape(urlParams.get(PREFS_URL_PARAM)).split(" ")
+      : null;
+
+  if (urlPrefs) {
+    // Init setting states from URL params
+    for (let pref of PREFERENCES) {
+      refreshPreference(pref, urlPrefs.includes(pref.id));
+    }
+  } else {
+    // On first load, apply first preset of the list
+    applyPreset(PREFERENCES_PRESETS[0]);
     requestAnimationFrame(() => {
       setSettingsMenuState(true);
     });
@@ -1762,7 +1733,7 @@ function refreshPreference(preference, state) {
     preference.callback(state);
 
     // Toggle Checkmark
-    let classList = document.getElementById(preference.id).classList;
+    let classList = getById(preference.id).classList;
     if (state) {
       classList.add("on");
     } else {
@@ -1814,7 +1785,7 @@ function updateExternallyToggledPreferences(changes) {
 
 function setTransitions(state) {
   setClass(document.body, "transition", state);
-  showHide(document.getElementById("background-img-crossfade"), state, true);
+  showHide(getById("background-img-crossfade"), state, true);
 }
 
 function toggleFullscreen() {
@@ -1851,8 +1822,8 @@ function handleAlternateDarkModeToggle() {
 
 let volumeTimeout;
 function handleVolumeChange(volume, device) {
-  let volumeContainer = document.getElementById("volume");
-  let volumeTextContainer = document.getElementById("volume-text");
+  let volumeContainer = getById("volume");
+  let volumeTextContainer = getById("volume-text");
 
   let volumeWithPercent = volume + "%";
   if (device === "Den") {
@@ -1874,7 +1845,7 @@ function handleVolumeChange(volume, device) {
 
 let deviceTimeout;
 function handleDeviceChange(device) {
-  let deviceContainer = document.getElementById("device");
+  let deviceContainer = getById("device");
   deviceContainer.innerHTML = device;
 
   deviceContainer.classList.add("active");
@@ -1893,9 +1864,12 @@ let refreshBackgroundEvent;
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   refreshBackgroundEvent = setTimeout(() => {
+    for (let id of ["artists", "title", "album-title", "description"]) {
+      balanceTextClamp(getById(id));
+    }
     refreshBackgroundRender();
+    updateScrollGradients();
   }, REFRESH_BACKGROUND_ON_RESIZE_DELAY);
-  updateScrollGradients();
 };
 
 
@@ -1933,7 +1907,7 @@ function handleMouseEvent() {
   clearTimeout(cursorTimeout);
   setMouseVisibility(true)
 
-  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
   setClass(settingsMenuToggleButton, "show", true);
   cursorTimeout = setTimeout(() => {
     setMouseVisibility(false);
@@ -1948,14 +1922,14 @@ window.addEventListener('load', initSettingsMouseMove);
 
 function initSettingsMouseMove() {
   setMouseVisibility(false);
-  let settingsWrapper = document.getElementById("settings-wrapper");
+  let settingsWrapper = getById("settings-wrapper");
 
-  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
   settingsMenuToggleButton.onclick = () => {
     requestAnimationFrame(() => toggleSettingsMenu());
   };
 
-  let settingsMenuExpertModeToggleButton = document.getElementById("settings-expert-mode-toggle");
+  let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
   settingsMenuExpertModeToggleButton.onclick = () => {
     toggleSettingsExpertMode();
   };
@@ -1975,19 +1949,19 @@ function initSettingsMouseMove() {
 
   settingsWrapper.onmousemove = (event) => {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
-    document.getElementById("settings-description").childNodes
+    getById("settings-description").childNodes
       .forEach(elem => setClass(elem, "show", false));
     let target = event.target;
     if (target.classList.contains("setting") || target.classList.contains("preset")) {
-      let targetLabel = document.getElementById(target.id + "-description");
+      let targetLabel = getById(target.id + "-description");
       setClass(targetLabel, "show", true);
     }
   }
 }
 
 function isSettingControlElem(e) {
-  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
-  let settingsMenuExpertModeToggleButton = document.getElementById("settings-expert-mode-toggle");
+  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
+  let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
   return e.target === settingsMenuToggleButton
       || e.target === settingsMenuExpertModeToggleButton
       || e.target.classList.contains("setting")
@@ -2001,25 +1975,25 @@ function toggleSettingsMenu() {
 function setSettingsMenuState(state) {
   settingsVisible = state;
 
-  let settingsMenuToggleButton = document.getElementById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
   setClass(settingsMenuToggleButton, "show", settingsVisible);
   setMouseVisibility(settingsVisible)
 
-  let settingsWrapper = document.getElementById("settings-wrapper");
-  let mainBody = document.getElementById("main");
+  let settingsWrapper = getById("settings-wrapper");
+  let mainBody = getById("main");
   setClass(settingsWrapper, "show", settingsVisible);
   setClass(mainBody, "blur", settingsVisible);
 }
 
 function toggleSettingsExpertMode() {
   settingsExpertMode = !settingsExpertMode;
-  let settingsWrapper = document.getElementById("settings-wrapper");
+  let settingsWrapper = getById("settings-wrapper");
   setClass(settingsWrapper, "expert", settingsExpertMode);
   setExpertModeToggleButtonText(settingsExpertMode);
 }
 
 function setExpertModeToggleButtonText(state) {
-  let settingsMenuExpertModeToggleButton = document.getElementById("settings-expert-mode-toggle");
+  let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
   settingsMenuExpertModeToggleButton.innerHTML = state ? "Expert Mode" : "Preset Mode";
 }
 
@@ -2038,13 +2012,19 @@ const DATE_OPTIONS = {
   hourCycle: 'h23'
 };
 let prevTime;
+let clockPref;
 setInterval(() => {
-  let date = new Date();
-  let time = date.toLocaleDateString('en-UK', DATE_OPTIONS);
-  if (time !== prevTime) {
-    prevTime = time;
-    let clock = document.querySelector("#clock");
-    clock.innerHTML = time;
+  if (!clockPref) {
+    clockPref = findPreference("show-clock");
+  }
+  if (clockPref.state) {
+    let date = new Date();
+    let time = date.toLocaleDateString('en-UK', DATE_OPTIONS);
+    if (time !== prevTime) {
+      prevTime = time;
+      let clock = getById("clock");
+      clock.innerHTML = time;
+    }
   }
 }, 1000);
 
@@ -2053,20 +2033,24 @@ setInterval(() => {
 // FPS Counter
 ///////////////////////////////
 
-let fps = document.getElementById("fps-counter");
+let fps = getById("fps-counter");
 let fpsStartTime = Date.now();
 let fpsFrame = 0;
-
+let fpsPref;
 function fpsTick() {
-  let time = Date.now();
-  fpsFrame++;
-  if (time - fpsStartTime > 100) {
-    if (fps.classList.contains("show")) {
-      fps.innerHTML = (fpsFrame / ((time - fpsStartTime) / 1000)).toFixed(1);
-    }
-    fpsStartTime = time;
-    fpsFrame = 0;
+  if (!fpsPref) {
+    fpsPref = findPreference("show-fps");
   }
-  requestAnimationFrame(fpsTick);
+  if (fpsPref.state) {
+    let time = Date.now();
+    fpsFrame++;
+    if (time - fpsStartTime > 100) {
+      if (fps.classList.contains("show")) {
+        fps.innerHTML = (fpsFrame / ((time - fpsStartTime) / 1000)).toFixed(1);
+      }
+      fpsStartTime = time;
+      fpsFrame = 0;
+    }
+    requestAnimationFrame(fpsTick);
+  }
 }
-fpsTick();
