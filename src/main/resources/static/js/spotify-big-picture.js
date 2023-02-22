@@ -357,7 +357,7 @@ function setCorrectTracklistView(changes) {
 
   let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
   let titleDisplayed = specialQueue || listViewType !== "ALBUM";
-  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0) && findPreference("show-queue").state;
+  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !findPreference("scrolling-track-list").state) && findPreference("show-queue").state;
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   showHide(titleContainer, titleDisplayed);
@@ -1084,13 +1084,37 @@ const PREFERENCES = [
   },
   {
     id: "show-queue",
-    name: "Queue",
-    description: "If enabled, show the queue of upcoming tracks for playlists and albums. Otherwise, only the current song is displayed",
+    name: "Track List",
+    description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
     category: "Main Content",
     callback: (state) => {
       setClass(getById("title"), "force-display", !state);
       let trackListContainer = getById("track-list");
       setClass(trackListContainer, "hidden", !state);
+      setClass(getById("scrolling-track-list"), "overridden", !state);
+      setClass(getById("enlarge-scrolling-track-list"), "overridden", !state);
+      setClass(getById("xxl-tracklist"), "overridden", !state);
+      setCorrectTracklistView(currentData);
+    }
+  },
+  {
+    id: "scrolling-track-list",
+    name: "Scrolling Track List",
+    description: "If enabled, the track list is replaced by an alternate design that displays the surrounding songs in an automatically scrolling list. " +
+        "Do note that this only works when shuffle is disabled and the playlist has less than 200 songs (for performance reasons)",
+    category: "Main Content",
+    callback: (state) => {
+      setClass(getById("enlarge-scrolling-track-list"), "overridden", !state);
+      setCorrectTracklistView(currentData);
+    }
+  },
+  {
+    id: "enlarge-scrolling-track-list",
+    name: "Enlarge Current (Scrolling)",
+    description: "If Scrolling Track List is enabled, the font size of current song in the track list is slightly increased",
+    category: "Main Content",
+    callback: (state) => {
+      setClass(getById("track-list"), "enlarge-current", state);
       setCorrectTracklistView(currentData);
     }
   },
@@ -1161,11 +1185,19 @@ const PREFERENCES = [
   },
   {
     id: "xxl-text",
-    name: "XXL Text",
+    name: "XXL Main Text",
     description: "If enabled, the font size for the current song's title, artist, and release is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
     callback: (state) => setClass(getById("center-info-main"), "big-text", state)
+  },
+  {
+    id: "xxl-tracklist",
+    name: "XXL Track List",
+    description: "If enabled, the font size for the track list is doubled. " +
+        "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    category: "Main Content",
+    callback: (state) => setClass(getById("track-list"), "big-text", state)
   },
   {
     id: "colored-text",
@@ -1173,7 +1205,8 @@ const PREFERENCES = [
     description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     category: "General",
     callback: (state) => {
-      setClass(getById("colored-symbols"), "overridden", !state);
+      setClass(getById("colored-symbol-context"), "overridden", !state);
+      setClass(getById("colored-symbol-spotify"), "overridden", !state);
       setClass(document.body, "no-colored-text", !state);
     }
   },
@@ -1194,7 +1227,7 @@ const PREFERENCES = [
     category: "Top Content",
     callback: (state) => {
       setClass(getById("swap-top"), "overridden-1", !state);
-      setClass(getById("colored-symbols"), "overridden-1", !state);
+      setClass(getById("colored-symbol-context"), "overridden", !state);
       setClass(getById("meta-left"), "hide", !state)
     }
   },
@@ -1205,27 +1238,35 @@ const PREFERENCES = [
     category: "Top Content",
     callback: (state) => {
       setClass(getById("swap-top"), "overridden-2", !state);
-      setClass(getById("colored-symbols"), "overridden-2", !state);
+      setClass(getById("colored-symbol-spotify"), "overridden", !state);
       setClass(getById("meta-right"), "hide", !state)
     }
   },
   {
+    id: "colored-symbol-context",
+    name: "Colored Context Thumbnail",
+    description: "If enabled, the dominant color of the current artwork will be used as color for the context thumbnail",
+    category: "Top Content",
+    callback: (state) => {
+      setClass(getById("thumbnail"), "colored", state);
+    }
+  },
+  {
+    id: "colored-symbol-spotify",
+    name: "Colored Spotify Logo",
+    description: "If enabled, the dominant color of the current artwork will be used as color for the Spotify logo",
+    category: "Top Content",
+    callback: (state) => {
+      setClass(getById("logo"), "colored", state);
+    }
+  },
+  {
     id: "swap-top",
-    name: "Swap Top Bar",
+    name: "Swap Top Content",
     description: "If enabled, the Context and Spotify Logo swap positions",
     category: "Top Content",
     callback: (state) => {
       setClass(getById("top-info"), "swap", state)
-    }
-  },
-  {
-    id: "colored-symbols",
-    name: "Colored Top Bar",
-    description: "If enabled, the dominant color of the current artwork will be used as color for the for the Spotify logo and the playlist thumbnail",
-    category: "Top Content",
-    callback: (state) => {
-      setClass(getById("logo"), "colored", state);
-      setClass(getById("thumbnail"), "colored", state);
     }
   },
   {
@@ -1234,6 +1275,17 @@ const PREFERENCES = [
     description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed instantaneously",
     category: "General",
     callback: (state) => setTransitions(state)
+  },
+  {
+    id: "decreased-margins",
+    name: "Decreased Margins",
+    description: "If enabled, all margins are halved. " +
+        "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
+    category: "General",
+    callback: (state) => {
+      setClass(getById("main"), "decreased-margins", state)
+      refreshBackgroundRender();
+    }
   },
   {
     id: "strip-titles",
@@ -1316,7 +1368,7 @@ const PREFERENCES = [
   },
   {
     id: "reverse-bottom",
-    name: "Invert Bottom",
+    name: "Swap Bottom Content",
     description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
     category: "Bottom Content",
     callback: (state) => {
@@ -1394,12 +1446,15 @@ const PREFERENCES_PRESETS = [
         "Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)",
     enabled: [
       "show-queue",
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
       "display-artwork",
       "bg-artwork",
       "bg-tint",
       "bg-grain",
       "colored-text",
-      "colored-symbols",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
       "show-release",
       "show-context",
       "show-logo",
@@ -1414,6 +1469,8 @@ const PREFERENCES_PRESETS = [
       "prerender-background"
     ],
     disabled: [
+      "decreased-margins",
+      "xxl-tracklist",
       "bg-black",
       "reverse-bottom",
       "vertical-mode",
@@ -1447,13 +1504,18 @@ const PREFERENCES_PRESETS = [
     ],
     disabled: [
       "show-queue",
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "xxl-tracklist",
+      "decreased-margins",
       "bg-artwork",
       "bg-black",
       "xxl-artwork",
       "xxl-text",
       "swap-top",
       "colored-text",
-      "colored-symbols",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
       "show-release",
       "show-timestamps",
       "show-info-icons",
@@ -1475,7 +1537,8 @@ const PREFERENCES_PRESETS = [
       "bg-artwork",
       "bg-grain",
       "colored-text",
-      "colored-symbols",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
       "show-release",
       "show-context",
       "show-logo",
@@ -1488,6 +1551,10 @@ const PREFERENCES_PRESETS = [
       "prerender-background"
     ],
     disabled: [
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "xxl-tracklist",
+      "decreased-margins",
       "bg-black",
       "bg-tint",
       "display-artwork",
@@ -1514,7 +1581,8 @@ const PREFERENCES_PRESETS = [
       "bg-tint",
       "bg-grain",
       "colored-text",
-      "colored-symbols",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
       "xxl-text",
       "show-release",
       "show-context",
@@ -1529,6 +1597,10 @@ const PREFERENCES_PRESETS = [
     ],
     disabled: [
       "show-queue",
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "xxl-tracklist",
+      "decreased-margins",
       "bg-black",
       "display-artwork",
       "xxl-artwork",
@@ -1550,13 +1622,16 @@ const PREFERENCES_PRESETS = [
     description: "Functionally similar to Balanced Mode, but with the artwork stretched to the maximum possible size. Everything else is crammed into the right",
     enabled: [
       "show-queue",
+      "scrolling-track-list",
+      "decreased-margins",
       "display-artwork",
       "xxl-artwork",
       "bg-artwork",
       "bg-tint",
       "bg-grain",
       "colored-text",
-      "colored-symbols",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
       "show-release",
       "show-context",
       "show-logo",
@@ -1568,6 +1643,8 @@ const PREFERENCES_PRESETS = [
       "prerender-background"
     ],
     disabled: [
+      "enlarge-scrolling-track-list",
+      "xxl-tracklist",
       "bg-black",
       "reverse-bottom",
       "vertical-mode",

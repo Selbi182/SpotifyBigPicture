@@ -107,6 +107,10 @@ img:not([src]) {
     height: 100%;
 }
 
+#main.decreased-margins {
+    --margin-main: 4vh;
+}
+
 #main.blur {
     filter: blur(var(--blur));
 }
@@ -525,6 +529,10 @@ div#description {
     flex: 1;
 }
 
+#track-list.big-text {
+    font-size: calc(var(--font-size) * 2);
+}
+
 #track-list.gradient-top {
     --gradient-top: transparent;
 }
@@ -545,8 +553,11 @@ div#description {
     transition: font-size var(--transition), opacity var(--transition);
 }
 
+#center-info:not(.queue) #track-list.enlarge-current .track-elem.current div {
+    font-size: calc(var(--font-size) * 1.25);
+}
+
 #center-info:not(.queue) #track-list .track-elem.current div {
-    font-size: calc(var(--font-size) * 1.2);
     opacity: 1;
 }
 
@@ -1151,10 +1162,6 @@ div#device {
 @media only screen and (max-aspect-ratio: 3/2) {
     #artwork {
         margin-top: 12vh;
-    }
-    
-    #content {
-        padding: calc(var(--margin-main) / 2);
     }
 
     #info {
