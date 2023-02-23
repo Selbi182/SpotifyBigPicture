@@ -156,7 +156,7 @@ function calculateNextPollingTimeout(success) {
         if (timeCurrent && timeTotal && remainingTime > 0 && remainingTime < POLLING_INTERVAL_MS) {
           clearTimeout(fakeSongTransition);
           fakeSongTransition = setTimeout(() => simulateNextSongTransition(), remainingTime);
-          return remainingTime;
+          return POLLING_INTERVAL_MS * 2;
         }
       }
       return POLLING_INTERVAL_MS;
@@ -169,27 +169,19 @@ function calculateNextPollingTimeout(success) {
 }
 
 function simulateNextSongTransition() {
-  // TODO fake song transition
-  // if (currentData.trackData.queue.length > 0) {
-  //   let nextTrack = currentData.trackData.queue[0];
-  //   processJson({
-  //     currentlyPlaying: {
-  //       id: nextTrack.id,
-  //       artists: nextTrack.artists,
-  //       title: nextTrack.title,
-  //       album: "",
-  //       releaseDate: "",
-  //       trackNumber: 0,
-  //       timeCurrent: 0,
-  //       timeTotal: 0,
-  //       imageData: currentData.trackData.nextImageData
-  //     },
-  //     trackData: {
-  //       discNumber: 0,
-  //       queue: currentData.trackData.queue.slice(1)
-  //     },
-  //   })
-  // }
+  if (currentData.trackData.queue.length > 0) {
+    let fakeNextData = JSON.parse(JSON.stringify(currentData));
+    fakeNextData.type = "FAKE_DATA";
+
+    let fakeNextSong = fakeNextData.trackData.queue.shift();
+    fakeNextSong.timeCurrent = 0;
+    fakeNextSong.imageData = fakeNextData.trackData.nextImageData;
+    fakeNextData.currentlyPlaying = fakeNextSong;
+    fakeNextData.trackData.trackNumber = fakeNextData.trackData.listTracks.findIndex(track => track.id === fakeNextSong.id) + 1;
+    fakeNextData.trackData.discNumber = fakeNextSong.discNumber;
+
+    processJson(fakeNextData);
+  }
 }
 
 ///////////////////////////////
@@ -205,7 +197,7 @@ const BLANK = "BLANK";
 function processJson(json) {
   if (json && json.type !== "EMPTY") {
     console.info(json);
-    if (json.type === "DATA") {
+    if (json.type === "DATA" || json.type === "FAKE_DATA") {
       if (currentData.deployTime > 0 && getChange(json, "deployTime").wasChanged) {
         window.location.reload(true);
       } else {
@@ -467,7 +459,7 @@ function setCorrectTracklistView(changes) {
 
     trackListContainer.style.setProperty("--scale", "0");
     finishAnimations(trackListContainer);
-    if (newQueue.length < 20) {
+    if ((queueMode && newQueue.length < 20) || !deepEqual(oldQueue, newQueue)) {
       scaleTrackList(trackListContainer, 1);
     }
   }

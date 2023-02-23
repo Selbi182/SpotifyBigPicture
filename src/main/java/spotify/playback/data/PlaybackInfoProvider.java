@@ -173,6 +173,8 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setId(currentTrack.getId());
     currentlyPlaying.setTimeCurrent(context.getProgress_ms());
     currentlyPlaying.setTimeTotal(currentTrack.getDurationMs());
+    currentlyPlaying.setTrackNumber(1);
+    currentlyPlaying.setDiscNumber(0);
 
     ImageData imageData = currentlyPlaying.getImageData();
     String artworkUrl = artworkUrlCache.findArtworkUrl(currentTrack);
@@ -216,6 +218,8 @@ public class PlaybackInfoProvider {
           if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
             trackData.setTrackListView(TrackData.ListViewType.ALBUM);
           }
+          currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
+          currentlyPlaying.setDiscNumber(contextProvider.getCurrentlyPlayingAlbumTrackDiscNumber());
           break;
         case PLAYLIST:
           // Playlist context
@@ -226,6 +230,7 @@ public class PlaybackInfoProvider {
           trackData.setCombinedTime(playlistTotalTime);
           trackData.setTrackListView(TrackData.ListViewType.PLAYLIST);
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
+          currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
           break;
         case ARTIST:
           // Artist top tracks context
@@ -234,6 +239,7 @@ public class PlaybackInfoProvider {
           trackData.setTrackCount(contextProvider.getTrackCount());
           trackData.setCombinedTime(contextProvider.getTotalTime());
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
+          currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
           break;
         case SHOW:
         case EPISODE:
@@ -243,6 +249,7 @@ public class PlaybackInfoProvider {
           trackData.setTrackCount(contextProvider.getTrackCount());
           trackData.setCombinedTime(contextProvider.getTotalTime());
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
+          currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
           break;
       }
     } else {
@@ -252,6 +259,7 @@ public class PlaybackInfoProvider {
       trackData.setTrackCount(contextProvider.getTrackCount());
       trackData.setCombinedTime(contextProvider.getTotalTime());
       playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
+      currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
     }
 
     // Killswitch for gigantic playlists, to save performance
