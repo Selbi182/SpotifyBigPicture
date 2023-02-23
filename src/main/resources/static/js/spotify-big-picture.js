@@ -374,7 +374,6 @@ function setTextData(changes) {
       repeatElem.classList.remove("once");
     }
     fadeIn(repeatElem);
-    handleAlternateDarkModeToggle();
   }
 
   let volume = getChange(changes, "playbackContext.volume");
@@ -437,7 +436,7 @@ function setCorrectTracklistView(changes) {
       if (isExpectedNextSongInQueue(currentId, currentData.trackData.queue)) {
         // Special animation when the expected next song comes up
         let trackListContainer = printTrackList([currentData.trackData.queue[0], ...changes.trackData.queue], false);
-        requestAnimationFrame(() => {
+        requestAnimationFrame(() => requestAnimationFrame(() => { // double requestAnimationFrame to avoid race conditions...
           let currentTrackListTopElem = trackListContainer.querySelector(".track-elem:first-child");
           currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
             let parent = e.target.parentNode;
@@ -448,7 +447,8 @@ function setCorrectTracklistView(changes) {
             }
           }
           currentTrackListTopElem.childNodes.forEach(node => node.classList.add("shrink"));
-        });
+        }));
+
       } else {
         printTrackList(changes.trackData.queue, false);
       }
@@ -457,10 +457,12 @@ function setCorrectTracklistView(changes) {
       printTrackList(listTracks, listViewType === "ALBUM" && isMultiDisc && !shuffle);
     }
 
-    trackListContainer.style.setProperty("--scale", "0");
-    finishAnimations(trackListContainer);
-    if ((queueMode && newQueue.length < 20) || !deepEqual(oldQueue, newQueue)) {
-      scaleTrackList(trackListContainer, 1);
+    if (!deepEqual(oldQueue.slice(1), newQueue)) {
+      trackListContainer.style.setProperty("--scale", "0");
+      finishAnimations(trackListContainer);
+      if (queueMode && newQueue.length < 20) {
+        scaleTrackList(trackListContainer, 1);
+      }
     }
   }
 
@@ -1950,21 +1952,6 @@ function toggleDarkMode() {
   let darkModePref = findPreference("dark-mode");
   if (darkModePref) {
     toggleVisualPreference(darkModePref);
-  }
-}
-
-const TOGGLE_DARK_MODE_COUNT = 3;
-let toggleDarkModeCount = 0;
-let toggleDarkModeTimeout;
-
-function handleAlternateDarkModeToggle() {
-  clearTimeout(toggleDarkModeTimeout);
-  toggleDarkModeCount++;
-  if (toggleDarkModeCount >= TOGGLE_DARK_MODE_COUNT) {
-    toggleDarkMode();
-    toggleDarkModeCount = 0;
-  } else {
-    toggleDarkModeTimeout = setTimeout(() => toggleDarkModeCount = 0, 1000 * 3);
   }
 }
 

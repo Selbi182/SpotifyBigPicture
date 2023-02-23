@@ -270,15 +270,19 @@ public class PlaybackInfoProvider {
 
     List<IPlaylistItem> playbackQueueQueue = playbackQueue.getQueue();
     List<TrackElement> queue = playbackQueueQueue.stream()
-        .map(TrackElement::fromPlaylistItem)
-        .collect(Collectors.toList());
-    Optional<TrackElement> firstSongOfQueue = queue.stream().findFirst();
-    if (firstSongOfQueue.isPresent()) {
-      TrackElement firstSong = firstSongOfQueue.get();
-      if (queue.stream().allMatch(t -> t.equals(firstSong))) {
-        queue = List.of();
+      .map(TrackElement::fromPlaylistItem)
+      .collect(Collectors.toList());
+
+    // Because Spotify returns the queue with repeated sessions in mind (even if the option is disabled), we need to clean up manually
+    if (!playbackContext.getShuffle() && playbackContext.getRepeat().equals("off") && !trackData.getListTracks().isEmpty())  {
+      List<TrackElement> listTracks = trackData.getListTracks();
+      TrackElement lastTrackOfList = listTracks.get(listTracks.size() - 1);
+      Optional<TrackElement> queueCutOffTrack = queue.stream().filter(track -> track.getId().equals(lastTrackOfList.getId())).findFirst();
+      if (queueCutOffTrack.isPresent()) {
+        queue = queue.subList(0, queue.lastIndexOf(queueCutOffTrack.get()) + 1);
       }
     }
+
     trackData.setQueue(queue);
 
     if (playbackQueueQueue.size() > 1) {
