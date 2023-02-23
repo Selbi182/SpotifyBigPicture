@@ -1,0 +1,161 @@
+package spotify.playback.data.dto.sub;
+
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.lang.NonNull;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.google.common.base.Objects;
+
+import se.michaelthelin.spotify.enums.ModelObjectType;
+import se.michaelthelin.spotify.model_objects.IPlaylistItem;
+import se.michaelthelin.spotify.model_objects.specification.Album;
+import se.michaelthelin.spotify.model_objects.specification.Episode;
+import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
+import spotify.util.BotUtils;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class TrackElement implements Comparable<TrackElement> {
+  private String id;
+  private List<String> artists;
+  private String title;
+  private String album;
+  private String releaseDate;
+  private String description;
+  private Integer timeTotal;
+  private Integer trackNumber;
+  private Integer discNumber;
+
+  public TrackElement() {
+  }
+
+  public TrackElement(String id, int trackNumber, int discNumber, List<String> artists, String title, String album, String releaseDate, String description, int timeTotal) {
+    this.id = id;
+    this.trackNumber = trackNumber;
+    this.discNumber = discNumber;
+    this.artists = artists;
+    this.title = title;
+    this.album = album;
+    this.releaseDate = releaseDate;
+    this.description = description;
+    this.timeTotal = timeTotal;
+  }
+
+  public static TrackElement fromTrackSimplified(TrackSimplified track, Album album) {
+    return new TrackElement(track.getId(), track.getTrackNumber(), track.getDiscNumber(), BotUtils.toArtistNamesList(track), track.getName(), album.getName(), BotUtils.findReleaseYear(album), "", track.getDurationMs());
+  }
+
+  public static TrackElement fromPlaylistItem(IPlaylistItem item) {
+    if (ModelObjectType.TRACK.equals(item.getType())) {
+      if (item instanceof Track) {
+        Track track = (Track) item;
+        return new TrackElement(track.getId(), track.getTrackNumber(), track.getDiscNumber(), BotUtils.toArtistNamesList(track), track.getName(), track.getAlbum().getName(), BotUtils.findReleaseYear(track), "", track.getDurationMs());
+      }
+    } else if (ModelObjectType.EPISODE.equals(item.getType())) {
+      if (item instanceof Episode) {
+        Episode episode = (Episode) item;
+        return new TrackElement(episode.getId(), 0, 0, List.of(episode.getShow().getName()), episode.getName(), episode.getShow().getName(), episode.getReleaseDate(), episode.getDescription(), episode.getDurationMs());
+      }
+    }
+    throw new IllegalArgumentException("Illegal IPlaylistItem type");
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public List<String> getArtists() {
+    return artists;
+  }
+
+  public void setArtists(List<String> artists) {
+    this.artists = artists;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public String getAlbum() {
+    return album;
+  }
+
+  public void setAlbum(String album) {
+    this.album = album;
+  }
+
+  public String getReleaseDate() {
+    return releaseDate;
+  }
+
+  public void setReleaseDate(String releaseDate) {
+    this.releaseDate = releaseDate;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public Integer getTimeTotal() {
+    return timeTotal;
+  }
+
+  public void setTimeTotal(Integer timeTotal) {
+    this.timeTotal = timeTotal;
+  }
+
+  public Integer getTrackNumber() {
+    return trackNumber;
+  }
+
+  public void setTrackNumber(Integer trackNumber) {
+    this.trackNumber = trackNumber;
+  }
+
+  public Integer getDiscNumber() {
+    return discNumber;
+  }
+
+  public void setDiscNumber(Integer discNumber) {
+    this.discNumber = discNumber;
+  }
+
+  @Override
+  public int compareTo(@NonNull TrackElement o) {
+    return Comparator
+        .comparing(TrackElement::getDiscNumber)
+        .thenComparing(TrackElement::getTrackNumber)
+        .compare(this, o);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (!(o instanceof TrackElement))
+      return false;
+    TrackElement that = (TrackElement) o;
+    return Objects.equal(id, that.id) && Objects.equal(artists, that.artists) && Objects.equal(title, that.title) && Objects.equal(album, that.album)
+        && Objects.equal(releaseDate, that.releaseDate) && Objects.equal(description, that.description) && Objects.equal(timeTotal, that.timeTotal) && Objects.equal(
+        trackNumber, that.trackNumber) && Objects.equal(discNumber, that.discNumber);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(id, artists, title, album, releaseDate, description, timeTotal, trackNumber, discNumber);
+  }
+}

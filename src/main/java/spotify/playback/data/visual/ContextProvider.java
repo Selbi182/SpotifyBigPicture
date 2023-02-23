@@ -32,7 +32,7 @@ import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 import spotify.api.SpotifyApiException;
 import spotify.api.SpotifyCall;
 import spotify.playback.data.dto.PlaybackInfo;
-import spotify.playback.data.dto.sub.TrackData;
+import spotify.playback.data.dto.sub.TrackElement;
 import spotify.playback.data.help.BigPictureConstants;
 import spotify.playback.data.help.BigPictureUtils;
 import spotify.services.UserService;
@@ -51,7 +51,7 @@ public class ContextProvider {
   private String previousContextString;
   private Album currentContextAlbum;
   private List<TrackSimplified> currentContextAlbumTracks;
-  private List<TrackData.ListTrack> listTracks;
+  private List<TrackElement> listTracks;
   private Integer currentlyPlayingAlbumTrackNumber;
   private Integer currentlyPlayingAlbumTrackDiscNumber;
   private Integer trackCount;
@@ -111,7 +111,7 @@ public class ContextProvider {
     }
   }
 
-  public List<TrackData.ListTrack> getListTracks() {
+  public List<TrackElement> getListTracks() {
     return listTracks;
   }
 
@@ -143,8 +143,8 @@ public class ContextProvider {
     this.trackCount = trackCount;
   }
 
-  private void setTotalTrackDuration(List<TrackData.ListTrack> listTracks) {
-    this.totalTrackDuration = listTracks.stream().mapToLong(TrackData.ListTrack::getLength).sum();
+  private void setTotalTrackDuration(List<TrackElement> listTracks) {
+    this.totalTrackDuration = listTracks.stream().mapToLong(TrackElement::getTimeTotal).sum();
   }
 
   public Integer getCurrentlyPlayingPlaylistTrackNumber(CurrentlyPlayingContext context) {
@@ -179,7 +179,7 @@ public class ContextProvider {
       this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
       this.listTracks = Arrays.stream(SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, getMarketOfCurrentUser())))
-          .map(TrackData.ListTrack::fromPlaylistItem)
+          .map(TrackElement::fromPlaylistItem)
           .collect(Collectors.toList());
 
       setTrackCount(contextArtist.getFollowers().getTotal());
@@ -204,7 +204,7 @@ public class ContextProvider {
       PlaylistTrack[] secondHalf = SpotifyCall.execute(spotifyApi.getPlaylistsItems(playlistId).offset(firstHalf.length)).getItems();
       this.listTracks = Stream.concat(Arrays.stream(firstHalf), Arrays.stream(secondHalf))
           .map(PlaylistTrack::getTrack)
-          .map(TrackData.ListTrack::fromPlaylistItem)
+          .map(TrackElement::fromPlaylistItem)
           .collect(Collectors.toList());
 
       Integer realTrackCount = contextPlaylist.getTracks().getTotal();
@@ -245,8 +245,7 @@ public class ContextProvider {
           .orElse(BigPictureUtils.BLANK);
 
       this.listTracks = currentContextAlbumTracks.stream()
-          .map(BotUtils::asTrack)
-          .map(TrackData.ListTrack::fromPlaylistItem)
+          .map(trackSimplified -> TrackElement.fromTrackSimplified(trackSimplified, currentContextAlbum))
           .collect(Collectors.toList());
 
       setTrackCount(this.listTracks.size());
@@ -300,7 +299,7 @@ public class ContextProvider {
       String smallestImage = BotUtils.findSmallestImage(trackImages);
       this.thumbnailUrl = smallestImage != null ? smallestImage : BigPictureUtils.BLANK;
 
-      this.listTracks = List.of(TrackData.ListTrack.fromPlaylistItem(track));
+      this.listTracks = List.of(TrackElement.fromPlaylistItem(track));
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
 

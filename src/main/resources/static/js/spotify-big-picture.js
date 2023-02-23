@@ -9,7 +9,8 @@ let currentData = {
     title: "",
     description: "",
     album: "",
-    year: "",
+    releaseDate: "",
+    discNumber: 0,
     trackNumber: 0,
     timeCurrent: 0,
     timeTotal: 0,
@@ -34,7 +35,7 @@ let currentData = {
     discNumber: 0,
     totalDiscCount: 0,
     trackCount: 0,
-    totalTime: 0,
+    combinedTime: 0,
     listTracks: [],
     queue: [],
     trackListView: "",
@@ -143,6 +144,7 @@ function pollingLoop() {
     .then(pollingMs => setTimeout(pollingLoop, pollingMs));
 }
 
+let fakeSongTransition;
 function calculateNextPollingTimeout(success) {
   if (success) {
     pollingRetryAttempt = 0;
@@ -152,6 +154,8 @@ function calculateNextPollingTimeout(success) {
         let timeTotal = currentData.currentlyPlaying.timeTotal;
         let remainingTime = timeTotal - timeCurrent;
         if (timeCurrent && timeTotal && remainingTime > 0 && remainingTime < POLLING_INTERVAL_MS) {
+          clearTimeout(fakeSongTransition);
+          fakeSongTransition = setTimeout(() => simulateNextSongTransition(), remainingTime);
           return remainingTime;
         }
       }
@@ -162,6 +166,30 @@ function calculateNextPollingTimeout(success) {
   let retryTimeoutMs = POLLING_INTERVAL_MS * (2 << Math.min(pollingRetryAttempt, MAX_POLLING_RETRY_ATTEMPT));
   pollingRetryAttempt++;
   return retryTimeoutMs;
+}
+
+function simulateNextSongTransition() {
+  // TODO fake song transition
+  // if (currentData.trackData.queue.length > 0) {
+  //   let nextTrack = currentData.trackData.queue[0];
+  //   processJson({
+  //     currentlyPlaying: {
+  //       id: nextTrack.id,
+  //       artists: nextTrack.artists,
+  //       title: nextTrack.title,
+  //       album: "",
+  //       releaseDate: "",
+  //       trackNumber: 0,
+  //       timeCurrent: 0,
+  //       timeTotal: 0,
+  //       imageData: currentData.trackData.nextImageData
+  //     },
+  //     trackData: {
+  //       discNumber: 0,
+  //       queue: currentData.trackData.queue.slice(1)
+  //     },
+  //   })
+  // }
 }
 
 ///////////////////////////////
@@ -242,8 +270,8 @@ function setTextData(changes) {
   }
 
   let album = getChange(changes, "currentlyPlaying.album");
-  let year = getChange(changes, "currentlyPlaying.year");
-  if (album.wasChanged || year.wasChanged) {
+  let releaseDate = getChange(changes, "currentlyPlaying.releaseDate");
+  if (album.wasChanged || releaseDate.wasChanged) {
     let normalizedEmoji = convertToTextEmoji(album.value);
     let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
     let albumTitleMain = splitTitle.main;
@@ -251,7 +279,7 @@ function setTextData(changes) {
     getById("album-title-main").innerHTML = albumTitleMain;
     getById("album-title-extra").innerHTML = albumTitleExtra;
 
-    getById("album-release").innerHTML = year.value;
+    getById("album-release").innerHTML = releaseDate.value;
 
     let albumMainContainer = getById("album-title");
     balanceTextClamp(albumMainContainer);
@@ -292,9 +320,9 @@ function setTextData(changes) {
       }
       let lengthInfo = `${trackCountFormatted} ${numericDescription}${trackCount !== 1 ? "s" : ""}`;
 
-      let totalTime = getChange(changes, "trackData.totalTime").value;
-      if (totalTime > 0) {
-        let totalTimeFormatted = formatTimeVerbose(totalTime);
+      let combinedTime = getChange(changes, "trackData.combinedTime").value;
+      if (combinedTime > 0) {
+        let totalTimeFormatted = formatTimeVerbose(combinedTime);
         lengthInfo += ` (${totalTimeFormatted})`;
       }
       contextExtra.innerHTML = lengthInfo;
@@ -653,8 +681,8 @@ function createSingleTrackListItem(trackItem, trackNumPadLength) {
   // Length
   let trackLength = document.createElement("div");
   trackLength.className = "track-length"
-  if ('length' in trackItem) {
-    trackLength.innerHTML = formatTime(0, trackItem.length).total;
+  if ('timeTotal' in trackItem) {
+    trackLength.innerHTML = formatTime(0, trackItem.timeTotal).total;
   }
 
   // Append

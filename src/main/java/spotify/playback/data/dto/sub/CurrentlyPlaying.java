@@ -7,68 +7,19 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 
 @JsonInclude(Include.NON_NULL)
-public class CurrentlyPlaying {
-  private String id;
-  private List<String> artists;
-  private String title;
-  private String album;
-  private String year;
-  private String description;
+public class CurrentlyPlaying extends TrackElement {
   private Integer timeCurrent;
-  private Integer timeTotal;
-
   private ImageData imageData;
 
   public CurrentlyPlaying() {
+    super();
     this.imageData = new ImageData();
   }
 
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public List<String> getArtists() {
-    return artists;
-  }
-
-  public void setArtists(List<String> artists) {
-    this.artists = artists;
-  }
-
-  public String getTitle() {
-    return title;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-  public String getAlbum() {
-    return album;
-  }
-
-  public void setAlbum(String album) {
-    this.album = album;
-  }
-
-  public String getYear() {
-    return year;
-  }
-
-  public void setYear(String year) {
-    this.year = year;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
+  public CurrentlyPlaying(String id, int trackNumber, int discNumber, List<String> artists, String title, String album, String releaseDate, String description, int timeTotal, int timeCurrent, ImageData imageData) {
+    super(id, trackNumber, discNumber, artists, title, album, releaseDate, description, timeTotal);
+    this.timeCurrent = timeCurrent;
+    this.imageData = imageData;
   }
 
   public Integer getTimeCurrent() {
@@ -77,14 +28,6 @@ public class CurrentlyPlaying {
 
   public void setTimeCurrent(Integer timeCurrent) {
     this.timeCurrent = timeCurrent;
-  }
-
-  public Integer getTimeTotal() {
-    return timeTotal;
-  }
-
-  public void setTimeTotal(Integer timeTotal) {
-    this.timeTotal = timeTotal;
   }
 
   public ImageData getImageData() {
@@ -103,14 +46,14 @@ public class CurrentlyPlaying {
       return true;
     if (!(o instanceof CurrentlyPlaying))
       return false;
+    if (!super.equals(o))
+      return false;
     CurrentlyPlaying that = (CurrentlyPlaying) o;
-    return Objects.equal(id, that.id) && Objects.equal(artists, that.artists) && Objects.equal(title, that.title) && Objects.equal(album, that.album)
-        && Objects.equal(year, that.year) && Objects.equal(description, that.description) && Objects.equal(timeTotal, that.timeTotal);
+    return Objects.equal(imageData, that.imageData);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(id, artists, title, album, year, description, timeTotal);
+    return Objects.hashCode(super.hashCode(), imageData);
   }
-
 }

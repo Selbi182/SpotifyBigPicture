@@ -28,6 +28,7 @@ import spotify.playback.data.dto.sub.CurrentlyPlaying;
 import spotify.playback.data.dto.sub.ImageData;
 import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
+import spotify.playback.data.dto.sub.TrackElement;
 import spotify.playback.data.help.BigPictureUtils;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlCache;
@@ -193,10 +194,10 @@ public class PlaybackInfoProvider {
 
     // TrackData
     TrackData trackData = playbackInfo.getTrackData();
-    trackData.setListTracks(List.of(TrackData.ListTrack.fromPlaylistItem(currentTrack)));
+    trackData.setListTracks(List.of(TrackElement.fromPlaylistItem(currentTrack)));
     trackData.setTrackNumber(1);
     trackData.setTrackCount(1);
-    trackData.setTotalTime(0L);
+    trackData.setCombinedTime(0L);
     trackData.setDiscNumber(1);
     trackData.setTotalDiscCount(1);
     trackData.setTrackListView(TrackData.ListViewType.QUEUE);
@@ -207,7 +208,7 @@ public class PlaybackInfoProvider {
           // Album context
           trackData.setListTracks(contextProvider.getListTracks());
           trackData.setTrackCount(contextProvider.getTrackCount());
-          trackData.setTotalTime(contextProvider.getTotalTime());
+          trackData.setCombinedTime(contextProvider.getTotalTime());
           trackData.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
           trackData.setDiscNumber(contextProvider.getCurrentlyPlayingAlbumTrackDiscNumber());
           trackData.setTotalDiscCount(contextProvider.getTotalDiscCount());
@@ -222,7 +223,7 @@ public class PlaybackInfoProvider {
           trackData.setListTracks(playlistTotalTime > 0 ? contextProvider.getListTracks() : List.of());
           trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
           trackData.setTrackCount(contextProvider.getTrackCount());
-          trackData.setTotalTime(playlistTotalTime);
+          trackData.setCombinedTime(playlistTotalTime);
           trackData.setTrackListView(TrackData.ListViewType.PLAYLIST);
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           break;
@@ -231,7 +232,7 @@ public class PlaybackInfoProvider {
           trackData.setListTracks(contextProvider.getListTracks());
           trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
           trackData.setTrackCount(contextProvider.getTrackCount());
-          trackData.setTotalTime(contextProvider.getTotalTime());
+          trackData.setCombinedTime(contextProvider.getTotalTime());
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           break;
         case SHOW:
@@ -240,7 +241,7 @@ public class PlaybackInfoProvider {
           trackData.setTrackListView(TrackData.ListViewType.PODCAST);
           trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
           trackData.setTrackCount(contextProvider.getTrackCount());
-          trackData.setTotalTime(contextProvider.getTotalTime());
+          trackData.setCombinedTime(contextProvider.getTotalTime());
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           break;
       }
@@ -249,7 +250,7 @@ public class PlaybackInfoProvider {
       trackData.setTrackListView(TrackData.ListViewType.QUEUE);
       trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
       trackData.setTrackCount(contextProvider.getTrackCount());
-      trackData.setTotalTime(contextProvider.getTotalTime());
+      trackData.setCombinedTime(contextProvider.getTotalTime());
       playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
     }
 
@@ -260,12 +261,12 @@ public class PlaybackInfoProvider {
     }
 
     List<IPlaylistItem> playbackQueueQueue = playbackQueue.getQueue();
-    List<TrackData.ListTrack> queue = playbackQueueQueue.stream()
-        .map(TrackData.ListTrack::fromPlaylistItem)
+    List<TrackElement> queue = playbackQueueQueue.stream()
+        .map(TrackElement::fromPlaylistItem)
         .collect(Collectors.toList());
-    Optional<TrackData.ListTrack> firstSongOfQueue = queue.stream().findFirst();
+    Optional<TrackElement> firstSongOfQueue = queue.stream().findFirst();
     if (firstSongOfQueue.isPresent()) {
-      TrackData.ListTrack firstSong = firstSongOfQueue.get();
+      TrackElement firstSong = firstSongOfQueue.get();
       if (queue.stream().allMatch(t -> t.equals(firstSong))) {
         queue = List.of();
       }
@@ -296,7 +297,7 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setArtists(BotUtils.toArtistNamesList(track.getArtists()));
     currentlyPlaying.setTitle(track.getName());
     currentlyPlaying.setAlbum(track.getAlbum().getName());
-    currentlyPlaying.setYear(BigPictureUtils.findReleaseYear(track));
+    currentlyPlaying.setReleaseDate(BigPictureUtils.findReleaseYear(track));
     currentlyPlaying.setDescription(BigPictureUtils.BLANK);
 
     return pInfo;
@@ -312,7 +313,7 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setTitle(episode.getName());
     currentlyPlaying.setAlbum(episode.getShow().getPublisher());
     currentlyPlaying.setDescription(episode.getDescription());
-    currentlyPlaying.setYear(episode.getReleaseDate());
+    currentlyPlaying.setReleaseDate(episode.getReleaseDate());
 
     return pInfo;
   }
