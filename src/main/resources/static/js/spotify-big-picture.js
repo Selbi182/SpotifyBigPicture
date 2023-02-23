@@ -220,7 +220,7 @@ function setTextData(changes) {
   if (artists.wasChanged) {
     let artistsNew = artists.value;
     let artistContainer = getById("artists");
-    let artistsString = artistsNew[0] + buildFeaturedArtistsString(artistsNew);
+    let artistsString = artistsNew[0] + buildFeaturedArtistsSpan(artistsNew);
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
 
     balanceTextClamp(artistContainer);
@@ -560,10 +560,10 @@ function convertToTextEmoji(text) {
     .join('');
 }
 
-function buildFeaturedArtistsString(artists) {
+function buildFeaturedArtistsSpan(artists) {
   if (artists.length > 1) {
     let featuredArtists = artists.slice(1).join(" & ");
-    return ` (feat. ${featuredArtists})`;
+    return `<span class="feat"> (feat. ${featuredArtists})</span>`;
   }
   return "";
 }
@@ -643,7 +643,7 @@ function createSingleTrackListItem(trackItem, trackNumPadLength) {
   if ('title' in trackItem) {
     let splitTitle = separateUnimportantTitleInfo(trackItem.title);
     let trackNameMain = document.createElement("span");
-    trackNameMain.innerHTML = removeFeaturedArtists(splitTitle.main) + buildFeaturedArtistsString(trackItem.artists);
+    trackNameMain.innerHTML = removeFeaturedArtists(splitTitle.main) + buildFeaturedArtistsSpan(trackItem.artists);
     let trackNameExtra = document.createElement("span");
     trackNameExtra.className = "extra";
     trackNameExtra.innerHTML = splitTitle.extra;
@@ -1114,9 +1114,9 @@ const PREFERENCES = [
   },
   {
     id: "show-queue",
-    name: "Track List",
+    name: "Show Track List",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
-    category: "Main Content",
+    category: "Track List",
     callback: (state) => {
       setClass(getById("title"), "force-display", !state);
       let trackListContainer = getById("track-list");
@@ -1132,7 +1132,7 @@ const PREFERENCES = [
     name: "Scrolling Track List",
     description: "If enabled, the track list is replaced by an alternate design that displays the surrounding songs in an automatically scrolling list. " +
         "Do note that this only works when shuffle is disabled and the playlist has less than 200 songs (for performance reasons)",
-    category: "Main Content",
+    category: "Track List",
     callback: (state) => {
       setClass(getById("enlarge-scrolling-track-list"), "overridden", !state);
       setCorrectTracklistView(currentData);
@@ -1141,8 +1141,8 @@ const PREFERENCES = [
   {
     id: "enlarge-scrolling-track-list",
     name: "Enlarge Current (Scrolling)",
-    description: "If Scrolling Track List is enabled, the font size of current song in the track list is slightly increased",
-    category: "Main Content",
+    description: "If Scrolling Track List is enabled, the font size of the current song in the track list is slightly increased",
+    category: "Track List",
     callback: (state) => {
       setClass(getById("track-list"), "enlarge-current", state);
       setCorrectTracklistView(currentData);
@@ -1211,6 +1211,15 @@ const PREFERENCES = [
     }
   },
   {
+    id: "show-featured-artists",
+    name: "Show Featured Artists",
+    description: "Display any potential featured artists. Otherwise, only show the main artist",
+    category: "Main Content",
+    callback: (state) => {
+      setClass(getById("center-info"), "no-feat", !state);
+    }
+  },
+  {
     id: "xxl-text",
     name: "XXL Main Text",
     description: "If enabled, the font size for the current song's title, artist, and release is doubled. " +
@@ -1223,7 +1232,7 @@ const PREFERENCES = [
     name: "XXL Track List",
     description: "If enabled, the font size for the track list is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
-    category: "Main Content",
+    category: "Track List",
     callback: (state) => setClass(getById("track-list"), "big-text", state)
   },
   {
@@ -1480,6 +1489,7 @@ const PREFERENCES_PRESETS = [
       "bg-tint",
       "bg-gradient",
       "bg-grain",
+      "show-featured-artists",
       "colored-text",
       "colored-symbol-context",
       "colored-symbol-spotify",
@@ -1535,6 +1545,7 @@ const PREFERENCES_PRESETS = [
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
       "xxl-tracklist",
+      "show-featured-artists",
       "decreased-margins",
       "bg-artwork",
       "xxl-artwork",
@@ -1564,6 +1575,7 @@ const PREFERENCES_PRESETS = [
       "bg-artwork",
       "bg-grain",
       "bg-gradient",
+      "show-featured-artists",
       "colored-text",
       "colored-symbol-context",
       "colored-symbol-spotify",
@@ -1627,6 +1639,7 @@ const PREFERENCES_PRESETS = [
       "show-queue",
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
+      "show-featured-artists",
       "xxl-tracklist",
       "decreased-margins",
       "display-artwork",
@@ -1672,6 +1685,7 @@ const PREFERENCES_PRESETS = [
     ],
     disabled: [
       "enlarge-scrolling-track-list",
+      "show-featured-artists",
       "xxl-tracklist",
       "reverse-bottom",
       "vertical-mode",

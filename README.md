@@ -16,16 +16,11 @@ This interface is entirely read-only. Specifically, this means that you **cannot
 ![Playlist View](https://i.imgur.com/HsrgpeQ.png)
 
 ### Visual Preferences
-![Visual Preferences](https://i.imgur.com/H4Yzeca.png)
+Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can customize the styling of the interface with a single click! Settings are automatically stored locally in cookies.
 
-Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can individually customize every setting to your liking with a single click. By default, most of the settings are enabled, but you got full control over which features you might want to turn off.
-
-A detailed explanation for each option appears when you hover over the individual settings. Settings are automatically stored locally in cookies.
-
-### Presets
 ![Presets](https://i.imgur.com/xCfpyEm.png)
 
-If you feel overwhelmed by the amount of options, you can also choose to simply select one of three presets. These are combinations of visual preferences that form a unique purpose and identiy. From left to right:
+If you feel overwhelmed by the amount of options, you can also choose to simply select one of three presets. These are combinations of visual preferences that form a unique purpose and identity. From left to right:
 
 #### Preset 1: Balanced Mode
 ![Preset 1: Balanced Mode](https://i.imgur.com/LD4MGXP.png)
@@ -40,7 +35,7 @@ A minimalistic design preset only containing the most relevant information about
 #### Preset 3: Queue Mode
 ![Preset 3: Queue Mode](https://i.imgur.com/uzPLhwF.png)
 
-Similar to Balanced Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information.
+Similar to Balanced Mode, but the artwork is disabled and instead only dimly shown in the background. Doing this opens up more room for the queue. Also disables some lesser useful information.
 
 #### Preset 4: Big-Text Mode
 ![Preset 4: Big-Text Mode](https://i.imgur.com/EEwX8qX.png)
@@ -51,6 +46,11 @@ Only shows the current song's title, artist and release. Queue is disabled, artw
 ![Preset 5: XXL-Artwork Mode](https://i.imgur.com/fB33SPB.png)
 
 Functionally similar to Balanced Mode, but with the artwork stretched to the maximum possible size. Everything else is crammed into the right
+
+#### Expert Mode
+If you wish for a more nuanced way to control the appearance, press Ctrl on your keyboard to enable _Expert Mode_. In here, you will be able to customize every single option individually.
+
+Use your scroll wheel to browse through the categories. A detailed explanation for each option appears when you hover over the respective settings.
 
 ## Installation
 Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either:

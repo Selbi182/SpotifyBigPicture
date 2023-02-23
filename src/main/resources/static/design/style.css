@@ -404,6 +404,10 @@ div#context-main {
     max-height: calc(var(--artwork-size) - 12vh);
 }
 
+#center-info.no-feat .feat {
+    display: none;
+}
+
 #content.full-content #center-info {
     max-height: calc(var(--artwork-size) + 2vh);
 }
@@ -1003,13 +1007,14 @@ div#device {
 
 #settings-categories {
     width: 100%;
-    height: min-content;
+    height: 100%;
     justify-content: space-between;
     font-family: var(--font-bold);
     flex-direction: row;
     font-size: 2vh;
     display: none;
     gap: 4vh;
+
     overflow: hidden;
     scrollbar-width: thin;
     mask-image: linear-gradient(to right, transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
