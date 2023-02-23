@@ -160,10 +160,6 @@ img:not([src]) {
     filter: brightness(35%);
 }
 
-#background-canvas.black {
-    display: none;
-}
-
 #background-canvas-overlay {
     --background-color: black;
     background: var(--background-gradients), var(--background-color);
@@ -175,10 +171,18 @@ img:not([src]) {
     opacity: var(--background-brightness);
 }
 
+#background-canvas-overlay.no-gradient {
+    background: var(--background-color);
+}
+
 #background-canvas-overlay.no-tint {
     --background-brightness: 1 !important;
     background: var(--background-gradients);
     mix-blend-mode: multiply;
+}
+
+#background-canvas-overlay.no-gradient.no-tint {
+    display: none;
 }
 
 #background-canvas.color-only #background-canvas-overlay.no-tint {
@@ -517,7 +521,7 @@ div#description {
 }
 
 #center-info.queue #track-list {
-    mask-image: linear-gradient(to bottom, var(--gradient-top) 20%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
     height: 100%;
 }
 
@@ -1005,8 +1009,12 @@ div#device {
     flex-direction: row;
     font-size: 2vh;
     display: none;
-    flex-wrap: wrap;
     gap: 4vh;
+    overflow: hidden;
+    scrollbar-width: thin;
+    mask-image: linear-gradient(to right, transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
+    padding: 0 var(--mask-padding);
+    --mask-padding: 3vh;
 }
 
 #settings-categories .setting {
@@ -1213,8 +1221,10 @@ div#device {
     }
 
     #settings-categories {
+        flex-direction: column;
         overflow-y: auto;
         width: 100%;
+        mask-image: unset;
     }
 
     #settings-categories .setting-category {

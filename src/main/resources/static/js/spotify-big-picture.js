@@ -79,7 +79,7 @@ window.addEventListener('load', entryPoint);
 
 function entryPoint() {
   submitVisualPreferencesToBackend();
-  initPolling();
+  pollingLoop();
 }
 
 function submitVisualPreferencesToBackend() {
@@ -106,36 +106,62 @@ function submitVisualPreferencesToBackend() {
 }
 
 function singleRequest() {
-  let url = `${INFO_URL}?v=${currentData.versionId}`;
-  fetch(url)
-    .then(response => {
-      if (response.status >= 200 && response.status < 300) {
-        return response.json()
-      } else {
-        return {
-          type: "EMPTY"
+  return new Promise(resolve => {
+    let url = `${INFO_URL}?v=${currentData.versionId}`;
+    fetch(url)
+      .then(response => {
+        if (response.status >= 200 && response.status < 300) {
+          return response.json()
+        } else {
+          return {
+            type: "EMPTY"
+          }
         }
-      }
-    })
-    .then(json => processJson(json))
-    .catch(ex => {
-      console.error(ex);
-    });
+      })
+      .then(json => processJson(json))
+      .then(() => resolve(true))
+      .catch(ex => {
+        console.error(ex);
+        resolve(false);
+      });
+  });
 }
 
 ///////////////////////////////
 // WEB STUFF - Polling
 ///////////////////////////////
 
-let pollingInterval;
 const POLLING_INTERVAL_MS = 2 * 1000;
 const POLLING_INTERVAL_IDLE_MS = 60 * 1000;
 
-function initPolling(pollingIntervalMs = POLLING_INTERVAL_MS) {
-  clearTimeout(pollingInterval);
-  pollingInterval = setInterval(() => {
-    singleRequest();
-  }, pollingIntervalMs);
+let pollingRetryAttempt = 0;
+const MAX_POLLING_RETRY_ATTEMPT = 5;
+
+function pollingLoop() {
+  singleRequest()
+    .then(success => calculateNextPollingTimeout(success))
+    .then(pollingMs => setTimeout(pollingLoop, pollingMs));
+}
+
+function calculateNextPollingTimeout(success) {
+  if (success) {
+    pollingRetryAttempt = 0;
+    if (!idle) {
+      if (!currentData.playbackContext.paused) {
+        let timeCurrent = currentData.currentlyPlaying.timeCurrent;
+        let timeTotal = currentData.currentlyPlaying.timeTotal;
+        let remainingTime = timeTotal - timeCurrent;
+        if (timeCurrent && timeTotal && remainingTime > 0 && remainingTime < POLLING_INTERVAL_MS) {
+          return remainingTime;
+        }
+      }
+      return POLLING_INTERVAL_MS;
+    }
+    return POLLING_INTERVAL_IDLE_MS;
+  }
+  let retryTimeoutMs = POLLING_INTERVAL_MS * (2 << Math.min(pollingRetryAttempt, MAX_POLLING_RETRY_ATTEMPT));
+  pollingRetryAttempt++;
+  return retryTimeoutMs;
 }
 
 ///////////////////////////////
@@ -1040,9 +1066,6 @@ function advanceCurrentTime(updateProgressBar) {
     let elapsedTime = now - startTime;
     startTime = now;
     let newTime = timeCurrent + elapsedTime;
-    if (newTime > timeTotal && timeCurrent < timeTotal) {
-      singleRequest();
-    }
     currentData.currentlyPlaying.timeCurrent = Math.min(timeTotal, newTime);
     updateProgress(currentData, updateProgressBar);
   }
@@ -1057,14 +1080,12 @@ function setIdleModeState(state) {
       settingsMenuToggleButton.classList.add("show");
       idle = true;
       clearTimers();
-      initPolling(POLLING_INTERVAL_IDLE_MS);
       showHide(content, false);
     }
   } else {
     if (idle) {
       idle = false;
       settingsMenuToggleButton.classList.remove("show");
-      initPolling(POLLING_INTERVAL_MS);
       showHide(content, true);
     }
   }
@@ -1170,25 +1191,22 @@ const PREFERENCES = [
     }
   },
   {
+    id: "bg-gradient",
+    name: "Background Gradient",
+    description: "Add a subtle gradient to the background",
+    category: "Background",
+    callback: (state) => {
+      setClass(getById("background-canvas-overlay"), "no-gradient", !state);
+      refreshBackgroundRender();
+    }
+  },
+  {
     id: "bg-grain",
     name: "Background Film Grain",
     description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images",
     category: "Background",
     callback: (state) => {
       setClass(getById("grain"), "show", state);
-      refreshBackgroundRender();
-    }
-  },
-  {
-    id: "bg-black",
-    name: "Black Background",
-    description: "If enabled, the background stays permanently black and overrides any other background-related settings",
-    category: "Background",
-    callback: (state) => {
-      setClass(getById("bg-artwork"), "overridden", state);
-      setClass(getById("bg-tint"), "overridden", state);
-      setClass(getById("bg-grain"), "overridden", state);
-      setClass(getById("background-canvas"), "black", state);
       refreshBackgroundRender();
     }
   },
@@ -1460,6 +1478,7 @@ const PREFERENCES_PRESETS = [
       "display-artwork",
       "bg-artwork",
       "bg-tint",
+      "bg-gradient",
       "bg-grain",
       "colored-text",
       "colored-symbol-context",
@@ -1480,7 +1499,6 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "decreased-margins",
       "xxl-tracklist",
-      "bg-black",
       "reverse-bottom",
       "vertical-mode",
       "xxl-artwork",
@@ -1501,6 +1519,7 @@ const PREFERENCES_PRESETS = [
       "display-artwork",
       "bg-grain",
       "bg-tint",
+      "bg-gradient",
       "show-context",
       "show-logo",
       "transitions",
@@ -1518,7 +1537,6 @@ const PREFERENCES_PRESETS = [
       "xxl-tracklist",
       "decreased-margins",
       "bg-artwork",
-      "bg-black",
       "xxl-artwork",
       "xxl-text",
       "swap-top",
@@ -1545,6 +1563,7 @@ const PREFERENCES_PRESETS = [
       "show-queue",
       "bg-artwork",
       "bg-grain",
+      "bg-gradient",
       "colored-text",
       "colored-symbol-context",
       "colored-symbol-spotify",
@@ -1564,7 +1583,6 @@ const PREFERENCES_PRESETS = [
       "enlarge-scrolling-track-list",
       "xxl-tracklist",
       "decreased-margins",
-      "bg-black",
       "bg-tint",
       "display-artwork",
       "xxl-artwork",
@@ -1588,6 +1606,7 @@ const PREFERENCES_PRESETS = [
     enabled: [
       "bg-artwork",
       "bg-tint",
+      "bg-gradient",
       "bg-grain",
       "colored-text",
       "colored-symbol-context",
@@ -1610,7 +1629,6 @@ const PREFERENCES_PRESETS = [
       "enlarge-scrolling-track-list",
       "xxl-tracklist",
       "decreased-margins",
-      "bg-black",
       "display-artwork",
       "xxl-artwork",
       "swap-top",
@@ -1637,6 +1655,7 @@ const PREFERENCES_PRESETS = [
       "xxl-artwork",
       "bg-artwork",
       "bg-tint",
+      "bg-gradient",
       "bg-grain",
       "colored-text",
       "colored-symbol-context",
@@ -1654,7 +1673,6 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "enlarge-scrolling-track-list",
       "xxl-tracklist",
-      "bg-black",
       "reverse-bottom",
       "vertical-mode",
       "xxl-text",
@@ -1797,9 +1815,9 @@ function refreshPrefsCookie() {
 
 function getCookie(name) {
   return document.cookie.split(";")
+    .map(cookie => cookie.trim())
     .find(cookie => cookie.startsWith(`${name}=`))
-    ?.split("=")[1]
-    .trim();
+    ?.split("=")[1].trim();
 }
 
 function setCookie(name, value) {
@@ -1992,6 +2010,7 @@ let settingsVisible = false;
 let settingsExpertMode = false;
 document.addEventListener("mousemove", handleMouseEvent);
 document.addEventListener("click", handleMouseEvent);
+document.addEventListener("wheel", handleWheelEvent);
 let cursorTimeout;
 const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 
@@ -2013,9 +2032,34 @@ function handleMouseEvent() {
   }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }
 
+function isMobileView() {
+  return window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
+}
+
+function handleWheelEvent(e) {
+  if (!isMobileView()) {
+    e.preventDefault();
+    let delta = e.deltaY;
+    if (settingsVisible) {
+      let settingsCategories = getById("settings-categories");
+      settingsCategories.scroll({
+        top: 0,
+        left: (delta * 3) + settingsCategories.scrollLeft,
+        behavior: 'smooth'
+      });
+    } else {
+      let trackList = getById("track-list");
+      trackList.scroll({
+        top: delta + trackList.scrollTop,
+        left: 0,
+        behavior: 'smooth'
+      });
+      updateScrollPositions();
+    }
+  }
+}
+
 window.addEventListener('load', initSettingsMouseMove);
-
-
 function initSettingsMouseMove() {
   setMouseVisibility(false);
   let settingsWrapper = getById("settings-wrapper");
