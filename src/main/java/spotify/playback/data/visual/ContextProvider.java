@@ -96,6 +96,8 @@ public class ContextProvider {
               break;
           }
         }
+      } else {
+        contextName = getFallbackContext(info);
       }
     } catch (SpotifyApiException e) {
       e.printStackTrace();
@@ -289,6 +291,22 @@ public class ContextProvider {
       }
     }
     return null;
+  }
+
+  private String getFallbackContext(CurrentlyPlayingContext info) {
+    if (info.getItem() != null && info.getItem() instanceof Track) {
+      Track track = (Track) info.getItem();
+      Image[] trackImages = track.getAlbum().getImages();
+      String smallestImage = BotUtils.findSmallestImage(trackImages);
+      this.thumbnailUrl = smallestImage != null ? smallestImage : BigPictureUtils.BLANK;
+
+      this.listTracks = List.of(TrackData.ListTrack.fromPlaylistItem(track));
+      setTrackCount(this.listTracks.size());
+      setTotalTrackDuration(this.listTracks);
+
+      return "SEARCH: " + BotUtils.getFirstArtistName(track) + " \u2013 " + track.getName();
+    }
+    return "Spotify";
   }
 
   private String getReleaseTypeString() {

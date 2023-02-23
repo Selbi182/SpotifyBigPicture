@@ -57,18 +57,18 @@ Here's a basic guide on how to set this app up, as a few people have been reques
 
 1. Download the [current release](https://github.com/Selbi182/SpotifyBigPicture/releases)
 2. Create an app on the [Spotify Developers dashboard](https://developer.spotify.com/dashboard) (you might need to create an account first)
-3. As redirect URI for the app, use `http://localhost:8183/login-callback`
+3. As redirect URI for the app, use `http://localhost:8183/login-callback` (make sure you click the little green "Add" button before saving!)
 4. Copy the *Client ID* and *Client Secret* and insert them into the respective fields in the `spotifybot.properties` file
-5. Open a terminal and start the app using `java -jar SpotifyBigPicture.jar` (Minimum required version: Java 11)
+5. Start the app with `Start_SpotifyBigPicture.sh` (or open a terminal and just write `java -jar SpotifyBigPicture.jar`)
 6. Once prompted to log in, copy-paste the displayed URL into your preferred browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`) and log in
 7. If everything worked out, the app will be available under http://localhost:8183/
 
 ## Troubleshooting
-First and foremost:
+1. You will need at least Java 11
 
-1. This app has been optimized for **Firefox**! It may work to some degree on Chrome and the likes, but I won't guarantee full stability over there
+2. This app has been optimized for **Firefox**! It may work to some degree on Chrome and the likes, but I won't guarantee full stability over there
 
-2. Getting your current queue is **only** available for Spotify premium users. For free users, only the current song can be displayed. For albums, more than a good guess whichever song comes next is unfortunately not possible
+3. Getting your current queue is **only** available for Spotify premium users. For free users, only the current song can be displayed. For albums, more than a good guess whichever song comes next is unfortunately not possible
 
 ### Idle Mode
 After two hours of playing no music, the interface will turn black and stop rendering anything to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
@@ -76,7 +76,6 @@ After two hours of playing no music, the interface will turn black and stop rend
 It may take up to a minute during idle mode for the interface to catch up again; alternatively, you can simply refresh the page.
 
 ### Interface doesn't update?
-
 The information is fetched from Spotify's API by polling it once a second. Unfortunately, there is no "proper" way of doing it, as webhooks for song changes (like Discord uses them, for example) are unavailable for the public API.
 
 As a result, the connection might get stuck from time to time. The app will automatically try to reestablish connections when possible, which usually only takes a few seconds. To keep the interface appearance as smooth as possible though, _the timer will simulate playback by keep counting up seconds on its own_ if a song is currently playing.

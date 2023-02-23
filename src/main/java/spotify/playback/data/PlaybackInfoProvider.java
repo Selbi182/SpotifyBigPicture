@@ -244,6 +244,13 @@ public class PlaybackInfoProvider {
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           break;
       }
+    } else {
+      // Fallback context
+      trackData.setTrackListView(TrackData.ListViewType.QUEUE);
+      trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
+      trackData.setTrackCount(contextProvider.getTrackCount());
+      trackData.setTotalTime(contextProvider.getTotalTime());
+      playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
     }
 
     // Killswitch for gigantic playlists, to save performance
