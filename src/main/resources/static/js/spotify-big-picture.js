@@ -83,12 +83,20 @@ function entryPoint() {
 }
 
 function submitVisualPreferencesToBackend() {
+  let simplifiedPrefs = [...PREFERENCES_PRESETS, ...PREFERENCES].map(pref => {
+    return {
+      id: pref.id,
+      name: pref.name,
+      category: pref.category
+    }
+  });
+
   fetch("/settings/list", {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify([...PREFERENCES_PRESETS, ...PREFERENCES])
+    body: JSON.stringify(simplifiedPrefs)
   })
     .then(response => {
       if (response.status >= 400) {
@@ -151,7 +159,13 @@ function processJson(json) {
           .then(() => changeImage(json))
           .then(() => prerenderNextImage(json))
           .then(() => setTextData(json))
-          .then(() => refreshTimers());
+          .then(() => refreshTimers())
+          .finally(() => {
+            // Update properties in local storage
+            for (let prop in json) {
+              currentData[prop] = json[prop];
+            }
+          });
       }
     }
   }
@@ -336,11 +350,6 @@ function setTextData(changes) {
 
   // Playlist View
   setCorrectTracklistView(changes);
-
-  // Update properties in local storage
-  for (let prop in changes) {
-    currentData[prop] = changes[prop];
-  }
 }
 
 function setCorrectTracklistView(changes) {
@@ -422,7 +431,7 @@ function setCorrectTracklistView(changes) {
 }
 
 function isExpectedNextSongInQueue(newSongId, previousQueue) {
-  if (newSongId && previousQueue && previousQueue.length > 1) {
+  if (newSongId && previousQueue?.length > 1) {
     let expectedNextSong = previousQueue[0];
     return newSongId === expectedNextSong.id;
   }
@@ -761,7 +770,7 @@ function setRenderedBackground(pngData) {
       };
       backgroundImg.src = pngData;
     };
-    backgroundCrossfade.src = backgroundImg.src ? backgroundImg.src : defaultPrerender.pngData;
+    backgroundCrossfade.src = backgroundImg.src || defaultPrerender.pngData;
   });
 }
 
@@ -1080,7 +1089,7 @@ const PREFERENCES = [
         "(This setting is not persisted between sessions due to browser security limitations)",
     category: "General",
     callback: () => toggleFullscreen(),
-    volatile: true // don't add fullscreen in the URL params, as it won't work (browser security shenanigans)
+    volatile: true // don't add fullscreen in the cookies, as it won't work (browser security shenanigans)
   },
   {
     id: "show-queue",
@@ -1661,11 +1670,12 @@ const PREFERENCES_PRESETS = [
 ]
 
 function findPreference(id) {
-  return PREFERENCES.find(pref => pref.id === id);
+  let pref = PREFERENCES.find(pref => pref.id === id);
+  if (!pref.hasOwnProperty("state")) {
+    pref.state = false;
+  }
+  return pref;
 }
-
-const PREFS_URL_PARAM = "p";
-
 window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
@@ -1752,15 +1762,11 @@ function initVisualPreferences() {
     settingsDescriptionWrapper.appendChild(descElem);
   }
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlPrefs = urlParams.has(PREFS_URL_PARAM)
-      ? unescape(urlParams.get(PREFS_URL_PARAM)).split(" ")
-      : null;
-
-  if (urlPrefs) {
-    // Init setting states from URL params
+  let visualPreferencesFromCookie = getVisualPreferencesFromCookie();
+  if (visualPreferencesFromCookie) {
+    // Init setting states from cookie
     for (let pref of PREFERENCES) {
-      refreshPreference(pref, urlPrefs.includes(pref.id));
+      refreshPreference(pref, visualPreferencesFromCookie.includes(pref.id));
     }
   } else {
     // On first load, apply first preset of the list
@@ -1769,22 +1775,35 @@ function initVisualPreferences() {
       setSettingsMenuState(true);
     });
   }
-
-  // Finally, update the URL
-  refreshPrefsQueryParam();
 }
 
-function refreshPrefsQueryParam() {
-  let urlPrefs = [];
-  for (let pref of PREFERENCES) {
-    if (!pref.volatile && pref.state) {
-      urlPrefs.push(pref.id);
-    }
+const COOKIE_KEY = "visual_preferences";
+const COOKIE_SPLIT_CHAR = "+";
+function getVisualPreferencesFromCookie() {
+  let cookie = getCookie(COOKIE_KEY);
+  if (cookie) {
+    return cookie.split(COOKIE_SPLIT_CHAR);
   }
+  return "";
+}
 
-  const url = new URL(window.location);
-  url.searchParams.set(PREFS_URL_PARAM, urlPrefs.join("+"));
-  window.history.replaceState({}, 'Spotify Big Picture', unescape(url.toString()));
+function refreshPrefsCookie() {
+  let setPreferences = PREFERENCES
+    .filter(pref => !pref.volatile && pref.state)
+    .map(pref => pref.id)
+    .join(COOKIE_SPLIT_CHAR);
+  setCookie(COOKIE_KEY, setPreferences);
+}
+
+function getCookie(name) {
+  return document.cookie.split(";")
+    .find(cookie => cookie.startsWith(`${name}=`))
+    ?.split("=")[1]
+    .trim();
+}
+
+function setCookie(name, value) {
+  document.cookie = name + "=" + (value || "") + "; SameSite=Lax; path=/";
 }
 
 function toggleVisualPreference(pref) {
@@ -1798,7 +1817,7 @@ function toggleVisualPreference(pref) {
 function setVisualPreference(pref, newState) {
   if (pref) {
     refreshPreference(pref, newState);
-    refreshPrefsQueryParam();
+    refreshPrefsCookie();
   }
 }
 
@@ -1832,7 +1851,7 @@ function applyPreset(preset) {
 function updateExternallyToggledPreferences(changes) {
   return new Promise(resolve => {
     let reload = false;
-    if (changes.settingsToToggle && changes.settingsToToggle.length > 0) {
+    if (changes.settingsToToggle?.length > 0) {
       for (let setting of changes.settingsToToggle) {
         if (setting === "reload") {
           reload = true;

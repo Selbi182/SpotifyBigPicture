@@ -48,6 +48,7 @@ public class PlaybackController {
   /**
    * Get a view to manage the visual preferences from anywhere.
    */
+  @CrossOrigin
   @GetMapping("/settings")
   public ModelAndView createSettingsView() {
     checkSettingAreSet();
@@ -61,11 +62,12 @@ public class PlaybackController {
   /**
    * Set a flag to toggle the given setting with the next polling request.
    */
+  @CrossOrigin
   @PostMapping("/settings/toggle/{settingId}")
-  public ResponseEntity<String> toggleSetting(@PathVariable String settingId) {
+  public ResponseEntity<Void> toggleSetting(@PathVariable String settingId) {
     checkSettingAreSet();
     playbackInfoProvider.addSettingToToggleForNextPoll(settingId);
-    return ResponseEntity.ok("");
+    return ResponseEntity.ok().build();
   }
 
 

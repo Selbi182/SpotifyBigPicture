@@ -20,7 +20,7 @@ This interface is entirely read-only. Specifically, this means that you **cannot
 
 Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can individually customize every setting to your liking with a single click. By default, most of the settings are enabled, but you got full control over which features you might want to turn off.
 
-A detailed explanation for each option appears when you hover over the individual settings. To save your settings, bookmark the URL with all its parameters after you're done editing.
+A detailed explanation for each option appears when you hover over the individual settings. Settings are automatically stored locally in cookies.
 
 ### Presets
 ![Presets](https://i.imgur.com/xCfpyEm.png)
