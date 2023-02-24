@@ -50,10 +50,6 @@ fetch("/settings/list")
       }
     })
 
-document.getElementById("expand-button").onclick = () => {
-  expandAll();
-}
-
 function toggleSetting(settingContainer, settingId) {
   if (!settingContainer.classList.contains("disabled")) {
     settingContainer.classList.add("disabled");
@@ -75,9 +71,4 @@ function toggleSetting(settingContainer, settingId) {
         }, 1000);
       })
   }
-}
-
-function expandAll() {
-  document.getElementById("expand-button").classList.add("hide");
-  document.getElementById("settings").classList.add("expand");
 }

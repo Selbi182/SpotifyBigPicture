@@ -409,7 +409,7 @@ function setTextData(changes) {
 }
 
 function setCorrectTracklistView(changes) {
-  let mainContainer = getById("center-info");
+  let mainContainer = getById("content-center");
   let titleContainer = getById("title");
   let trackListContainer = getById("track-list");
   let listViewType = getChange(changes, "trackData.trackListView").value;
@@ -1249,7 +1249,7 @@ const PREFERENCES = [
     description: "Display any potential featured artists. Otherwise, only show the main artist",
     category: "Main Content",
     callback: (state) => {
-      setClass(getById("center-info"), "no-feat", !state);
+      setClass(getById("content-center"), "no-feat", !state);
     }
   },
   {
@@ -1335,7 +1335,7 @@ const PREFERENCES = [
     description: "If enabled, the Context and Spotify Logo swap positions",
     category: "Top Content",
     callback: (state) => {
-      setClass(getById("top-info"), "swap", state)
+      setClass(getById("content-top"), "swap", state)
     }
   },
   {
@@ -1935,6 +1935,7 @@ function updateExternallyToggledPreferences(changes) {
           }
         }
       }
+      changes.settingsToToggle = [];
       if (reload) {
         window.location.reload(true);
       }

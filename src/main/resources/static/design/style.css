@@ -240,20 +240,29 @@ img:not([src]) {
     padding: var(--margin-main);
     gap: var(--margin-main);
     align-items: end;
+    justify-content: space-between;
 }
 
 #main.vertical #content, #content.full-content {
-    gap: initial;
+    gap: calc(var(--margin-main) / 2);
 }
 
 #content-top {
     flex-direction: row;
     width: 100%;
-    height: 100%;
+    height: min-content;
     display: flex;
-    justify-content: end;
+    justify-content: space-between;
     position: relative;
     max-height: var(--artwork-size);
+}
+
+#main:not(.vertical) #content:not(.full-content) :is(#content-top, #content-center) {
+    max-width: calc(100% - var(--artwork-size) - var(--margin-main));
+}
+
+#content-top.swap {
+    flex-direction: row-reverse;
 }
 
 #main.vertical #content-top {
@@ -321,8 +330,7 @@ img:not([src]) {
     max-width: 50vh;
 }
 
-
-#top-info.swap #meta-left {
+#content-top.swap #meta-left {
     text-align: right;
     flex-direction: row-reverse;
     justify-content: end;
@@ -393,7 +401,7 @@ div#context-main {
     background-color: var(--color);
 }
 
-#center-info {
+#content-center {
     display: flex;
     align-items: center;
     text-align: center;
@@ -401,22 +409,24 @@ div#context-main {
     justify-content: center;
     flex: 1;
     width: 100%;
-    max-height: calc(var(--artwork-size) - 12vh);
+    min-height: 0;
+    gap: 4vh;
 }
 
-#center-info.no-feat .feat {
+#content-center.no-feat .feat {
     display: none;
 }
 
-#content.full-content #center-info {
+#content.full-content #content-center {
     max-height: calc(var(--artwork-size) + 2vh);
 }
 
-#main.vertical #center-info {
-    max-height: 24vh;
+#main.vertical #content-center {
+    margin-top: auto;
+    max-height: calc(var(--artwork-size) - 40vh);
 }
 
-#main.maximum-artwork:not(.vertical) #center-info {
+#main.maximum-artwork:not(.vertical) #content-center {
     max-height: calc(var(--artwork-size) - 26vh);
 }
 
@@ -507,7 +517,6 @@ div#description {
     grid-gap: 0 2vh;
     max-width: 100%;
     scrollbar-width: thin;
-    margin-top: 4vh;
     overflow-y: hidden;
     mask-repeat: no-repeat;
     font-size: var(--font-size);
@@ -524,7 +533,7 @@ div#description {
     display: none;
 }
 
-#center-info.queue #track-list {
+#content-center.queue #track-list {
     mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
     height: 100%;
 }
@@ -553,28 +562,28 @@ div#description {
     display: contents;
 }
 
-#center-info:not(.queue) #track-list .track-elem:not(.disc) div {
+#content-center:not(.queue) #track-list .track-elem:not(.disc) div {
     opacity: 0.5;
 }
 
-#center-info:not(.queue) #track-list:not(.scaling) .track-elem:not(.disc) div {
+#content-center:not(.queue) #track-list:not(.scaling) .track-elem:not(.disc) div {
     transition: font-size var(--transition), opacity var(--transition);
 }
 
-#center-info:not(.queue) #track-list.enlarge-current .track-elem.current div {
+#content-center:not(.queue) #track-list.enlarge-current .track-elem.current div {
     font-size: calc(var(--font-size) * 1.25);
 }
 
-#center-info:not(.queue) #track-list .track-elem.current div {
+#content-center:not(.queue) #track-list .track-elem.current div {
     opacity: 1;
 }
 
-#center-info.queue #track-list .track-elem:first-child div {
+#content-center.queue #track-list .track-elem:first-child div {
     will-change: opacity, font-size;
 }
 
-#center-info.queue #track-list .track-elem:first-child div.shrink,
-#center-info.queue #track-list .track-elem:nth-child(n+20) > div {
+#content-center.queue #track-list .track-elem:first-child div.shrink,
+#content-center.queue #track-list .track-elem:nth-child(n+20) > div {
     transition: opacity var(--transition), font-size var(--transition);
     opacity: 0;
     font-size: 0;
@@ -639,7 +648,7 @@ div#description {
 }
 
 #context-main, #artists, #album-title, #title, #description, #device,
-#center-info:not(.queue) #track-list .track-elem.current div {
+#content-center:not(.queue) #track-list .track-elem.current div {
     --max-lines: 3;
     display: -webkit-box;
     -webkit-line-clamp: var(--max-lines);
@@ -652,32 +661,7 @@ div#description {
     --max-lines: 1;
 }
 
-#info {
-    width: calc(100% - var(--artwork-size) - var(--margin-main));
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
-    gap: 4vh;
-}
-
-#content.full-content #info,
-#main.vertical #info {
-    width: 100%;
-    gap: initial;
-}
-
-#top-info {
-    display: flex;
-    flex: 0;
-    gap: 3vh;
-}
-
-#top-info.swap {
-    flex-direction: row-reverse;
-}
-
-#main.vertical #top-info {
+#main.vertical #content-top {
     justify-content: space-between;
 }
 
@@ -887,7 +871,6 @@ div#device {
 #content-bottom {
     display: flex;
     align-items: end;
-    flex: 1;
     gap: 3vh;
     flex-direction: column;
     justify-content: end;
@@ -1177,12 +1160,7 @@ div#device {
         margin-top: 12vh;
     }
 
-    #info {
-        user-select: none !important;
-        width: 100%;
-    }
-
-    #center-info {
+    #content-center {
         max-height: 100%;
     }
 
@@ -1194,7 +1172,7 @@ div#device {
         flex-direction: column;
     }
 
-    #center-info:not(.queue) #track-list {
+    #content-center:not(.queue) #track-list {
         overflow-y: auto;
     }
 
