@@ -1050,8 +1050,8 @@ div#device {
 }
 
 #settings-categories .setting-category {
-    background: #ffffff10;
-    border-radius: 1vh;
+    background: #000000c0;
+    border-radius: 2vh;
     padding: 2vh;
 }
 

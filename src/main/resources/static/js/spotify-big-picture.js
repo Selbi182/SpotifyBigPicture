@@ -523,6 +523,12 @@ function balanceTextClamp(elem) {
   elem.style.removeProperty("-webkit-line-clamp");
 }
 
+function refreshTextBalance() {
+  for (let id of ["artists", "title", "album-title", "description"]) {
+    balanceTextClamp(getById(id));
+  }
+}
+
 function setClass(elem, className, state) {
   if (state) {
     elem.classList.add(className);
@@ -1499,7 +1505,7 @@ const PREFERENCES = [
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
     callback: (state) => {
-      setClass(getById("content-center"), "split-main-panels", state); // TODO prevent overflow
+      setClass(getById("content-center"), "split-main-panels", state);
     }
   },
   {
@@ -1992,6 +1998,7 @@ function setVisualPreference(pref, newState) {
   if (pref) {
     refreshPreference(pref, newState);
     refreshPrefsLocalStorage();
+    refreshTextBalance();
   }
 }
 
@@ -2134,9 +2141,7 @@ let refreshBackgroundEvent;
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   refreshBackgroundEvent = setTimeout(() => {
-    for (let id of ["artists", "title", "album-title", "description"]) {
-      balanceTextClamp(getById(id));
-    }
+    refreshTextBalance();
     refreshBackgroundRender();
     updateScrollGradients();
   }, REFRESH_BACKGROUND_ON_RESIZE_DELAY);
