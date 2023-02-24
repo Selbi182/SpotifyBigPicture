@@ -168,20 +168,31 @@ function calculateNextPollingTimeout(success) {
   return retryTimeoutMs;
 }
 
+
 function simulateNextSongTransition() {
   if (currentData.trackData.queue.length > 0) {
-    let fakeNextData = JSON.parse(JSON.stringify(currentData));
-    fakeNextData.type = "FAKE_DATA";
+    let newTrackData = cloneObject(currentData.trackData);
 
-    let fakeNextSong = fakeNextData.trackData.queue.shift();
-    fakeNextSong.timeCurrent = 0;
-    fakeNextSong.imageData = fakeNextData.trackData.nextImageData;
-    fakeNextData.currentlyPlaying = fakeNextSong;
-    fakeNextData.trackData.trackNumber = fakeNextData.trackData.listTracks.findIndex(track => track.id === fakeNextSong.id) + 1;
-    fakeNextData.trackData.discNumber = fakeNextSong.discNumber;
+    let expectedSong = newTrackData.queue.shift();
+    expectedSong.timeCurrent = 0;
+    expectedSong.imageData = newTrackData.nextImageData;
+
+    newTrackData.trackNumber = newTrackData.listTracks.findIndex(track => track.id === expectedSong.id) + 1;
+    newTrackData.discNumber = expectedSong.discNumber;
+    delete newTrackData.nextImageData;
+
+    let fakeNextData = {
+      type: "SIMULATED_TRANSITION",
+      currentlyPlaying: expectedSong,
+      trackData: newTrackData
+    };
 
     processJson(fakeNextData);
   }
+}
+
+function cloneObject(object) {
+  return JSON.parse(JSON.stringify(object));
 }
 
 ///////////////////////////////
@@ -197,7 +208,7 @@ const BLANK = "BLANK";
 function processJson(json) {
   if (json && json.type !== "EMPTY") {
     console.info(json);
-    if (json.type === "DATA" || json.type === "FAKE_DATA") {
+    if (json.type === "DATA" || json.type === "SIMULATED_TRANSITION") {
       if (currentData.deployTime > 0 && getChange(json, "deployTime").wasChanged) {
         window.location.reload(true);
       } else {
