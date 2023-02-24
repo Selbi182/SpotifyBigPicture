@@ -23,7 +23,14 @@ body {
     text-align: center;
     font-weight: bold;
     font-size: 4vh;
-    margin: 4vh 0;
+    margin: 1vh 0;
+}
+
+#subtitle {
+    text-align: center;
+    font-size: 3vh;
+    opacity: 0.5;
+    margin-bottom: 4vh;
 }
 
 #settings {

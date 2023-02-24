@@ -250,12 +250,15 @@ function setTextData(changes) {
   let artists = getChange(changes, "currentlyPlaying.artists");
   if (artists.wasChanged) {
     let artistsNew = artists.value;
+    let mainArtist = artistsNew[0];
     let artistContainer = getById("artists");
-    let artistsString = artistsNew[0] + buildFeaturedArtistsSpan(artistsNew);
+    let artistsString = mainArtist + buildFeaturedArtistsSpan(artistsNew);
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
 
-    balanceTextClamp(artistContainer);
-    fadeIn(artistContainer);
+    if (findPreference("show-featured-artists").state || currentData.currentlyPlaying.artists[0] !== mainArtist) {
+      balanceTextClamp(artistContainer);
+      fadeIn(artistContainer);
+    }
   }
 
   let title = getChange(changes, "currentlyPlaying.title");
@@ -425,8 +428,7 @@ function setCorrectTracklistView(changes) {
   let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !findPreference("scrolling-track-list").state) && findPreference("show-queue").state;
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
-  showHide(titleContainer, titleDisplayed);
-
+  setClass(titleContainer, "hide", !titleDisplayed);
   setClass(mainContainer, "queue", queueMode);
 
   let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
@@ -1156,6 +1158,7 @@ const PREFERENCES = [
       setClass(trackListContainer, "hidden", !state);
       setClass(getById("scrolling-track-list"), "overridden", !state);
       setClass(getById("enlarge-scrolling-track-list"), "overridden", !state);
+      setClass(getById("hide-title-scrolling-track-list"), "overridden", !state);
       setClass(getById("xxl-tracklist"), "overridden", !state);
       setCorrectTracklistView(currentData);
     }
@@ -1168,6 +1171,7 @@ const PREFERENCES = [
     category: "Track List",
     callback: (state) => {
       setClass(getById("enlarge-scrolling-track-list"), "overridden", !state);
+      setClass(getById("hide-title-scrolling-track-list"), "overridden", !state);
       setCorrectTracklistView(currentData);
     }
   },
@@ -1178,6 +1182,17 @@ const PREFERENCES = [
     category: "Track List",
     callback: (state) => {
       setClass(getById("track-list"), "enlarge-current", state);
+      setCorrectTracklistView(currentData);
+    }
+  },
+  {
+    id: "hide-title-scrolling-track-list",
+    name: "Hide Current Song Name (Scrolling)",
+    description: "If Scrolling Track List is enabled, the current song's name will not be displayed in the main info container " +
+        "(since it's already visible in the track list)",
+    category: "Track List",
+    callback: (state) => {
+      setClass(getById("title"), "display-anyway", !state);
       setCorrectTracklistView(currentData);
     }
   },
@@ -1285,7 +1300,17 @@ const PREFERENCES = [
     description: "Displays the release name with its release date (usually the year of the currently playing song's album)",
     category: "Main Content",
     callback: (state) => {
+      setClass(getById("separate-release-line"), "overridden", !state);
       setClass(getById("album"), "hide", !state);
+    }
+  },
+  {
+    id: "separate-release-line",
+    name: "Separate Release Date",
+    description: "Displays the release date in a new line, rather than right next to the release name",
+    category: "Main Content",
+    callback: (state) => {
+      setClass(getById("album"), "separate-date", state);
     }
   },
   {
@@ -1468,9 +1493,29 @@ const PREFERENCES = [
     }
   },
   {
+    id: "main-content-left",
+    name: "Left-Align Main Info",
+    description: "Left-align the main content (current song information), instead of centering it. "
+      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    category: "Main Content",
+    callback: (state) => {
+      setClass(getById("center-info-main"), "left", state);
+    }
+  },
+  {
+    id: "split-main-panels",
+    name: "Split Main Content",
+    description: "Separate the main info from the track list and display both in their own panel. "
+      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    category: "Main Content",
+    callback: (state) => {
+      setClass(getById("content-center"), "split-main-panels", state); // TODO prevent overflow
+    }
+  },
+  {
     id: "vertical-mode",
     name: "Vertical Mode",
-    description: "Convert the two-panel layout into a vertical, centered layout. This will disable the queue, clock, and release, but it results in a more minimalistic appearance",
+    description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
     category: "Main Content",
     callback: (state) => {
       setClass(getById("xxl-text"), "overridden", state);
@@ -1517,6 +1562,7 @@ const PREFERENCES_PRESETS = [
       "show-queue",
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
       "display-artwork",
       "bg-artwork",
       "bg-tint",
@@ -1542,6 +1588,9 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "decreased-margins",
       "xxl-tracklist",
+      "separate-release-line",
+      "main-content-left",
+      "split-main-panels",
       "reverse-bottom",
       "vertical-mode",
       "xxl-artwork",
@@ -1565,6 +1614,7 @@ const PREFERENCES_PRESETS = [
       "bg-gradient",
       "show-context",
       "show-logo",
+      "separate-release-line",
       "transitions",
       "vertical-mode",
       "reverse-bottom",
@@ -1577,6 +1627,7 @@ const PREFERENCES_PRESETS = [
       "show-queue",
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
       "xxl-tracklist",
       "show-featured-artists",
       "decreased-margins",
@@ -1587,6 +1638,8 @@ const PREFERENCES_PRESETS = [
       "colored-text",
       "colored-symbol-context",
       "colored-symbol-spotify",
+      "main-content-left",
+      "split-main-panels",
       "show-release",
       "show-timestamps",
       "show-info-icons",
@@ -1626,12 +1679,16 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
+      "separate-release-line",
       "xxl-tracklist",
       "decreased-margins",
       "bg-tint",
       "display-artwork",
       "xxl-artwork",
       "xxl-text",
+      "main-content-left",
+      "split-main-panels",
       "swap-top",
       "show-info-icons",
       "show-volume",
@@ -1658,6 +1715,8 @@ const PREFERENCES_PRESETS = [
       "colored-symbol-spotify",
       "xxl-text",
       "show-release",
+      "separate-release-line",
+      "split-main-panels",
       "show-context",
       "show-logo",
       "transitions",
@@ -1672,11 +1731,13 @@ const PREFERENCES_PRESETS = [
       "show-queue",
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
       "show-featured-artists",
       "xxl-tracklist",
       "decreased-margins",
       "display-artwork",
       "xxl-artwork",
+      "main-content-left",
       "swap-top",
       "show-info-icons",
       "show-clock",
@@ -1696,6 +1757,7 @@ const PREFERENCES_PRESETS = [
     enabled: [
       "show-queue",
       "scrolling-track-list",
+      "hide-title-scrolling-track-list",
       "decreased-margins",
       "display-artwork",
       "xxl-artwork",
@@ -1719,7 +1781,10 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "enlarge-scrolling-track-list",
       "show-featured-artists",
+      "separate-release-line",
       "xxl-tracklist",
+      "main-content-left",
+      "split-main-panels",
       "reverse-bottom",
       "vertical-mode",
       "xxl-text",
@@ -2071,7 +2136,9 @@ function isMobileView() {
 
 function handleWheelEvent(e) {
   if (!isMobileView()) {
-    e.preventDefault();
+    if (e.passive) {
+      e.preventDefault();
+    }
     let delta = e.deltaY;
     if (settingsVisible) {
       let settingsCategories = getById("settings-categories");

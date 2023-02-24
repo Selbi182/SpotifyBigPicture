@@ -65,6 +65,10 @@ a, a:visited, a:hover, a:active {
     color: var(--color);
 }
 
+a:hover {
+    opacity: 1 !important;
+}
+
 body.transition * {
     transition: opacity var(--transition),
         color var(--transition),
@@ -291,10 +295,6 @@ img:not([src]) {
     margin-right: auto;
 }
 
-#main.vertical #artwork.hide-timestamps.hide-info {
-    --artwork-size: 59vh;
-}
-
 #artwork.hide {
     display: none;
 }
@@ -404,7 +404,6 @@ div#context-main {
 #content-center {
     display: flex;
     align-items: center;
-    text-align: center;
     flex-direction: column;
     justify-content: center;
     flex: 1;
@@ -417,26 +416,29 @@ div#context-main {
     display: none;
 }
 
-#content.full-content #content-center {
-    max-height: calc(var(--artwork-size) + 2vh);
-}
-
 #main.vertical #content-center {
     margin-top: auto;
-    max-height: calc(var(--artwork-size) - 40vh);
+    max-height: calc(var(--artwork-size) - 50vh);
 }
 
-#main.maximum-artwork:not(.vertical) #content-center {
-    max-height: calc(var(--artwork-size) - 26vh);
+#content-center.split-main-panels {
+    flex-direction: row;
 }
 
 #center-info-main {
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
     width: 100%;
     gap: 1vh;
     --font-scale: 1vh;
+    text-align: center;
+}
+
+#center-info-main.left {
+    align-items: start;
+    text-align: left;
 }
 
 #main:not(.vertical) #center-info-main.big-text {
@@ -446,6 +448,14 @@ div#context-main {
 #title {
     font-size: calc(var(--font-scale) * 6);
     font-weight: bold;
+}
+
+#title.hide {
+    display: none;
+}
+
+#title.hide.display-anyway {
+    display: initial;
 }
 
 #main.vertical #title {
@@ -471,9 +481,13 @@ div#context-main {
 
 #album {
     display: flex;
-    align-items: center;
+    align-items: inherit;
     font-size: calc(var(--font-scale) * 3);
-    gap: 1vh;
+    gap: 0 1vh;
+}
+
+#album.separate-date {
+    flex-direction: column;
 }
 
 #album.hide {
@@ -485,11 +499,11 @@ div#context-main {
     word-break: normal;
 }
 
-#album-release::before {
+#album:not(.separate-date) #album-release::before {
     content: "(";
 }
 
-#album-release:after {
+#album:not(.separate-date) #album-release:after {
     content: ")";
 }
 #album-release:empty {
@@ -538,10 +552,6 @@ div#description {
     height: 100%;
 }
 
-#track-list.show-discs {
-    margin-top: 0 !important;
-}
-
 #track-list.fit {
     flex: 1;
 }
@@ -572,6 +582,10 @@ div#description {
 
 #content-center:not(.queue) #track-list.enlarge-current .track-elem.current div {
     font-size: calc(var(--font-size) * 1.25);
+}
+
+#content-center:not(.queue) #track-list.enlarge-current.big-text .track-elem.current div {
+    font-size: calc(var(--font-size) * 1.25 * 2);
 }
 
 #content-center:not(.queue) #track-list .track-elem.current div {
@@ -823,19 +837,7 @@ div#device {
     align-items: end;
 }
 
-#bottom-meta-container.hide-info #bottom-left {
-    display: none;
-}
-
-#bottom-meta-container.hide-info #bottom-right {
-    justify-content: space-between;
-}
-
 #bottom-meta-container.hide-timestamps :is(#bottom-right, #time-current) {
-    display: none;
-}
-
-#bottom-meta-container.hide-timestamps.hide-info {
     display: none;
 }
 
@@ -1113,10 +1115,25 @@ div#device {
     opacity: 1;
 }
 
+#settings-external {
+    position: absolute;
+    top: 2vh;
+    right: var(--margin-main);
+    opacity: 0.5;
+    cursor: pointer;
+    font-family: var(--font-bold);
+    text-decoration: none;
+}
+
+#settings-external::before {
+    content: "\21AA\FE0E\FE0F\FE0E";
+    padding-right: 1vh;
+}
+
 #settings-expert-mode-toggle {
     position: absolute;
     top: 2vh;
-    left: 8vh;
+    left: var(--margin-main);
     opacity: 0.5;
     cursor: pointer;
     font-family: var(--font-bold);
@@ -1141,13 +1158,6 @@ div#device {
     width: fit-content;
     height: min-content;
     line-height: 1;
-}
-
-#bottom-meta-container.hide-info #clock-wrapper {
-    position: absolute;
-    margin: auto;
-    left: 0;
-    right: 0;
 }
 
 #clock.hide, #clock:empty {
@@ -1201,6 +1211,13 @@ div#device {
         content: "";
         opacity: 0;
         padding: 0;
+    }
+
+    #settings-external {
+        bottom: 2vh;
+        left: var(--margin-main);
+        top: unset;
+        right: unset;
     }
 
     #settings-categories {
