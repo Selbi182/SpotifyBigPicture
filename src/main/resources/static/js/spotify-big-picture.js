@@ -84,13 +84,15 @@ function entryPoint() {
 }
 
 function submitVisualPreferencesToBackend() {
-  let simplifiedPrefs = [...PREFERENCES_PRESETS, ...PREFERENCES].map(pref => {
-    return {
-      id: pref.id,
-      name: pref.name,
-      category: pref.category
-    }
-  });
+  let simplifiedPrefs = [...PREFERENCES_PRESETS, ...PREFERENCES]
+    .sort((a, b) => PREFERENCES_CATEGORY_ORDER.indexOf(a.category) - PREFERENCES_CATEGORY_ORDER.indexOf(b.category))
+    .map(pref => {
+        return {
+          id: pref.id,
+          name: pref.name,
+          category: pref.category
+        }
+      });
 
   fetch("/settings/list", {
     method: 'POST',
@@ -411,16 +413,15 @@ function setTextData(changes) {
   setCorrectTracklistView(changes);
 }
 
-function setCorrectTracklistView(changes) {
+function setCorrectTracklistView(changes, forceReprint = false) {
   let mainContainer = getById("content-center");
-  let titleContainer = getById("title");
   let trackListContainer = getById("track-list");
   let listViewType = getChange(changes, "trackData.trackListView").value;
   let listTracks = getChange(changes, "trackData.listTracks").value;
   let currentId = getChange(changes, "currentlyPlaying.id").value;
   let trackNumber = getChange(changes, "trackData.trackNumber").value;
-  let currentDiscNumber =  getChange(changes, "trackData.discNumber").value;
-  let totalDiscCount =  getChange(changes, "trackData.totalDiscCount").value;
+  let currentDiscNumber = getChange(changes, "trackData.discNumber").value;
+  let totalDiscCount = getChange(changes, "trackData.totalDiscCount").value;
   let shuffle = getChange(changes, "playbackContext.shuffle").value;
 
   let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
@@ -428,7 +429,7 @@ function setCorrectTracklistView(changes) {
   let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !findPreference("scrolling-track-list").state) && findPreference("show-queue").state;
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
-  setClass(titleContainer, "hide", !titleDisplayed);
+  setClass(mainContainer, "hide-title", !titleDisplayed);
   setClass(mainContainer, "queue", queueMode);
 
   let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
@@ -440,9 +441,9 @@ function setCorrectTracklistView(changes) {
   let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
-  let refreshPrintedList =
-       (queueMode !== wasPreviouslyInQueueMode)
-    || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue));
+  let refreshPrintedList = forceReprint
+      || (queueMode !== wasPreviouslyInQueueMode)
+      || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue));
 
   if (refreshPrintedList) {
     if (queueMode) {
@@ -473,12 +474,13 @@ function setCorrectTracklistView(changes) {
     // Scale track list to fit container
     trackListContainer.style.setProperty("--font-size-scale", "0");
     finishAnimations(trackListContainer);
+    let horizontal = findPreference("split-main-panels").state;
     let contentCenterContainer = trackListContainer.parentElement;
-    let contentCenterHeight = contentCenterContainer.offsetHeight;
-    let contentMainHeight = getById("center-info-main").offsetHeight;
-    let contentCenterGap =  parseFloat(window.getComputedStyle(contentCenterContainer).gap);
-    let trackListHeight = trackListContainer.scrollHeight;
-    let trackListScaleRatio = (contentCenterHeight - contentMainHeight - contentCenterGap) / trackListHeight;
+    let trackListSize = horizontal ? trackListContainer.scrollWidth : trackListContainer.scrollHeight;
+    let contentCenterSize = horizontal ? contentCenterContainer.offsetWidth : contentCenterContainer.offsetHeight;
+    let contentMainSize = horizontal ? getById("center-info-main").offsetWidth : getById("center-info-main").offsetHeight;
+    let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
+    let trackListScaleRatio = Math.max(2, (contentCenterSize - contentMainSize - contentCenterGap) / trackListSize);
     if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
       trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
       finishAnimations(trackListContainer);
@@ -486,7 +488,7 @@ function setCorrectTracklistView(changes) {
     }
   }
 
-  let updateHighlightedTrack = (refreshPrintedList) || getChange(changes, "trackData.trackNumber").wasChanged;
+  let updateHighlightedTrack = refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged;
 
   if (updateHighlightedTrack) {
     if (queueMode) {
@@ -1141,7 +1143,7 @@ const PREFERENCES = [
   },
   {
     id: "show-queue",
-    name: "Show Track List",
+    name: "Show Tracklist/Queue",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
     category: "Track List",
     requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist"],
@@ -1180,7 +1182,7 @@ const PREFERENCES = [
         "(since it's already visible in the track list)",
     category: "Track List",
     callback: (state) => {
-      setClass(getById("title"), "display-anyway", !state);
+      setClass(getById("center-info-main"), "hide-title-in-album-view", state);
       setCorrectTracklistView(currentData);
     }
   },

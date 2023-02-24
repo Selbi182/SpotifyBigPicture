@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
-import com.neovisionaries.i18n.CountryCode;
 
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.AlbumType;
@@ -35,7 +34,6 @@ import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.sub.TrackElement;
 import spotify.playback.data.help.BigPictureConstants;
 import spotify.playback.data.help.BigPictureUtils;
-import spotify.services.UserService;
 import spotify.util.BotUtils;
 import spotify.util.data.AlbumTrackPair;
 
@@ -44,9 +42,6 @@ public class ContextProvider {
   public static final String QUEUE_PREFIX = "Queue >> ";
 
   private final SpotifyApi spotifyApi;
-  private final UserService userService;
-
-  private CountryCode market;
 
   private String previousContextString;
   private Album currentContextAlbum;
@@ -58,9 +53,8 @@ public class ContextProvider {
   private Long totalTrackDuration;
   private String thumbnailUrl;
 
-  ContextProvider(SpotifyApi spotifyApi, UserService userService) {
+  ContextProvider(SpotifyApi spotifyApi) {
     this.spotifyApi = spotifyApi;
-    this.userService = userService;
     this.listTracks = new ArrayList<>();
   }
 
@@ -178,9 +172,7 @@ public class ContextProvider {
       String largestImage = BotUtils.findLargestImage(artistImages);
       this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
-      this.listTracks = Arrays.stream(SpotifyCall.execute(spotifyApi.getArtistsTopTracks(artistId, getMarketOfCurrentUser())))
-          .map(TrackElement::fromPlaylistItem)
-          .collect(Collectors.toList());
+      this.listTracks = List.of();
 
       setTrackCount(contextArtist.getFollowers().getTotal());
       setTotalTrackDuration(List.of());
@@ -251,7 +243,7 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
     }
-    String contextString = getReleaseTypeString() + ": " + BotUtils.getFirstArtistName(currentContextAlbum) + " \u2013 " + currentContextAlbum.getName();
+    String contextString = String.format("%s: %s \u2013 %s (%s)", getReleaseTypeString(), BotUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName(), BotUtils.findReleaseYear(currentContextAlbum));
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
@@ -328,15 +320,5 @@ public class ContextProvider {
       return true;
     }
     return false;
-  }
-
-  private CountryCode getMarketOfCurrentUser() {
-    if (this.market == null) {
-      this.market = userService.getMarketOfCurrentUser();
-      if (this.market == null) {
-        throw new IllegalStateException("Market is null (user-read-private scope missing?)");
-      }
-    }
-    return this.market;
   }
 }

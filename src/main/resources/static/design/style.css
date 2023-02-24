@@ -418,11 +418,12 @@ div#context-main {
 
 #main.vertical #content-center {
     margin-top: auto;
-    max-height: calc(var(--artwork-size) - 50vh);
+    max-height: calc(var(--artwork-size) - 48vh);
 }
 
 #content-center.split-main-panels {
     flex-direction: row;
+    padding: 0 var(--margin-main);
 }
 
 #content-center.split-main-panels #center-info-main {
@@ -445,6 +446,7 @@ div#context-main {
     text-align: left;
 }
 
+#main:not(.vertical) #content-center:not(.queue).split-main-panels #center-info-main.hide-title-in-album-view,
 #main:not(.vertical) #center-info-main.big-text {
     --font-scale: 2vh;
 }
@@ -454,12 +456,9 @@ div#context-main {
     font-weight: bold;
 }
 
-#title.hide {
+#content-center:not(.queue) #center-info-main.hide-title-in-album-view #title,
+#center-info-main.hide-title #title {
     display: none;
-}
-
-#title.hide.display-anyway {
-    display: initial;
 }
 
 #main.vertical #title {
@@ -519,7 +518,7 @@ div#context-main {
 }
 
 div#description {
-    text-align: center;
+    text-align: inherit;
     margin-bottom: 3vh;
     --max-lines: 10;
 }
@@ -539,13 +538,17 @@ div#description {
     overflow-y: hidden;
     mask-repeat: no-repeat;
     font-size: var(--font-size-base);
-    --font-size-base: calc(1vh * clamp(2, var(--font-size-scale), 3));
+    --font-size-base: calc(1vh * clamp(1, var(--font-size-scale), 3));
     --font-size-scale: 0;
     --gradient-height: 6vh;
     --gradient-top: white;
     --gradient-bottom: white;
     mask-image: linear-gradient(to bottom, var(--gradient-top) 0%, white var(--gradient-height),
         white calc(100% - var(--gradient-height)), var(--gradient-bottom)  100%);
+}
+
+#content-center.split-main-panels #track-list {
+    max-width: 50%;
 }
 
 #track-list:empty, #main.vertical #track-list {

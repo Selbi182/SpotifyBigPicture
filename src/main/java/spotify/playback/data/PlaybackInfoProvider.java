@@ -234,7 +234,6 @@ public class PlaybackInfoProvider {
           break;
         case ARTIST:
           // Artist top tracks context
-          trackData.setListTracks(contextProvider.getListTracks());
           trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
           trackData.setTrackCount(contextProvider.getTrackCount());
           trackData.setCombinedTime(contextProvider.getTotalTime());
@@ -262,7 +261,7 @@ public class PlaybackInfoProvider {
       currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
     }
 
-    // Killswitch for gigantic playlists, to save performance
+    // Kill-switch for gigantic playlists, to save performance
     if (playbackContext.getShuffle() || (trackData.getListTracks() != null && trackData.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD)) {
       trackData.setTrackListView(TrackData.ListViewType.QUEUE);
       trackData.setListTracks(List.of());
@@ -279,7 +278,11 @@ public class PlaybackInfoProvider {
       TrackElement lastTrackOfList = listTracks.get(listTracks.size() - 1);
       Optional<TrackElement> queueCutOffTrack = queue.stream().filter(track -> track.getId().equals(lastTrackOfList.getId())).findFirst();
       if (queueCutOffTrack.isPresent()) {
-        queue = queue.subList(0, queue.lastIndexOf(queueCutOffTrack.get()) + 1);
+        TrackElement cutOffTrackElement = queueCutOffTrack.get();
+        queue = queue.subList(0, queue.indexOf(cutOffTrackElement) + 1);
+        if (queue.size() == 1 && currentlyPlaying.getId().equals(cutOffTrackElement.getId())) {
+          queue = List.of();
+        }
       }
     }
 
