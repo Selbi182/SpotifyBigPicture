@@ -1591,156 +1591,6 @@ const PREFERENCES_PRESETS = [
     ]
   },
   {
-    id: "preset-minimalistic",
-    name: "Preset: Minimalistic Mode",
-    category: "Presets",
-    image: "/design/img/presets/preset-minimalistic.png",
-    description: "A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast",
-    enabled: [
-      "display-artwork",
-      "bg-grain",
-      "bg-tint",
-      "bg-gradient",
-      "show-context",
-      "show-logo",
-      "separate-release-line",
-      "transitions",
-      "vertical-mode",
-      "reverse-bottom",
-      "spread-timestamps",
-      "show-progress-bar",
-      "strip-titles",
-      "prerender-background"
-    ],
-    disabled: [
-      "show-queue",
-      "scrolling-track-list",
-      "enlarge-scrolling-track-list",
-      "hide-title-scrolling-track-list",
-      "show-timestamps-track-list",
-      "xxl-tracklist",
-      "show-featured-artists",
-      "decreased-margins",
-      "bg-artwork",
-      "xxl-artwork",
-      "xxl-text",
-      "swap-top",
-      "colored-text",
-      "colored-symbol-context",
-      "colored-symbol-spotify",
-      "main-content-left",
-      "split-main-panels",
-      "show-release",
-      "show-timestamps",
-      "show-info-icons",
-      "show-volume",
-      "show-device",
-      "show-clock",
-      "dark-mode",
-      "show-fps"
-    ]
-  },
-  {
-    id: "preset-background",
-    name: "Preset: Queue Mode",
-    category: "Presets",
-    image: "/design/img/presets/preset-background.png",
-    description: "Similar to Balanced Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information",
-    enabled: [
-      "show-queue",
-      "show-timestamps-track-list",
-      "bg-artwork",
-      "bg-grain",
-      "bg-gradient",
-      "show-featured-artists",
-      "colored-text",
-      "colored-symbol-context",
-      "colored-symbol-spotify",
-      "show-release",
-      "show-context",
-      "show-logo",
-      "transitions",
-      "strip-titles",
-      "show-progress-bar",
-      "show-timestamps",
-      "spread-timestamps",
-      "reverse-bottom",
-      "prerender-background"
-    ],
-    disabled: [
-      "scrolling-track-list",
-      "enlarge-scrolling-track-list",
-      "hide-title-scrolling-track-list",
-      "separate-release-line",
-      "xxl-tracklist",
-      "decreased-margins",
-      "bg-tint",
-      "display-artwork",
-      "xxl-artwork",
-      "xxl-text",
-      "main-content-left",
-      "split-main-panels",
-      "swap-top",
-      "show-info-icons",
-      "show-volume",
-      "show-device",
-      "show-clock",
-      "vertical-mode",
-      "dark-mode",
-      "show-fps"
-    ]
-  },
-  {
-    id: "preset-big-text",
-    name: "Preset: Big-Text Mode",
-    category: "Presets",
-    image: "/design/img/presets/preset-big-text.png",
-    description: "Only shows the current song's title, artist and release. Queue is disabled, artwork is moved to the background. Font size is doubled",
-    enabled: [
-      "bg-artwork",
-      "bg-tint",
-      "bg-gradient",
-      "bg-grain",
-      "colored-text",
-      "colored-symbol-context",
-      "colored-symbol-spotify",
-      "xxl-text",
-      "show-release",
-      "separate-release-line",
-      "split-main-panels",
-      "show-context",
-      "show-logo",
-      "transitions",
-      "strip-titles",
-      "show-progress-bar",
-      "show-timestamps",
-      "spread-timestamps",
-      "reverse-bottom",
-      "prerender-background"
-    ],
-    disabled: [
-      "show-queue",
-      "scrolling-track-list",
-      "enlarge-scrolling-track-list",
-      "hide-title-scrolling-track-list",
-      "show-timestamps-track-list",
-      "show-featured-artists",
-      "xxl-tracklist",
-      "decreased-margins",
-      "display-artwork",
-      "xxl-artwork",
-      "main-content-left",
-      "swap-top",
-      "show-info-icons",
-      "show-clock",
-      "show-volume",
-      "show-device",
-      "vertical-mode",
-      "dark-mode",
-      "show-fps"
-    ]
-  },
-  {
     id: "preset-big-artwork",
     name: "Preset: XXL-Artwork Mode",
     category: "Presets",
@@ -1790,7 +1640,218 @@ const PREFERENCES_PRESETS = [
       "show-fps"
     ]
   },
-]
+  {
+    id: "preset-background",
+    name: "Preset: Track-List Mode",
+    category: "Presets",
+    image: "/design/img/presets/preset-background.png",
+    description: "Disables the artwork and instead only dimly displays it in the background. This opens up more room for the track list. Also disables some lesser useful information",
+    enabled: [
+      "show-queue",
+      "show-timestamps-track-list",
+      "bg-artwork",
+      "bg-grain",
+      "bg-gradient",
+      "show-featured-artists",
+      "colored-text",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
+      "show-release",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "strip-titles",
+      "show-progress-bar",
+      "show-timestamps",
+      "spread-timestamps",
+      "reverse-bottom",
+      "prerender-background"
+    ],
+    disabled: [
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
+      "separate-release-line",
+      "xxl-tracklist",
+      "decreased-margins",
+      "bg-tint",
+      "display-artwork",
+      "xxl-artwork",
+      "xxl-text",
+      "main-content-left",
+      "split-main-panels",
+      "swap-top",
+      "show-info-icons",
+      "show-volume",
+      "show-device",
+      "show-clock",
+      "vertical-mode",
+      "dark-mode",
+      "show-fps"
+    ]
+  },
+  {
+    id: "preset-split-text",
+    name: "Preset: Split-Text Mode",
+    category: "Presets",
+    image: "/design/img/presets/preset-split-text.png",
+    description: "A variant of Track-List Mode that puts the current song information on the right (extra large) and the track list on the left",
+    enabled: [
+      "show-queue",
+      "show-timestamps-track-list",
+      "bg-artwork",
+      "bg-grain",
+      "bg-gradient",
+      "split-main-panels",
+      "main-content-left",
+      "xxl-text",
+      "colored-text",
+      "colored-symbol-spotify",
+      "swap-top",
+      "show-release",
+      "separate-release-line",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "strip-titles",
+      "show-progress-bar",
+      "show-timestamps",
+      "spread-timestamps",
+      "reverse-bottom",
+      "prerender-background"
+    ],
+    disabled: [
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
+      "xxl-tracklist",
+      "decreased-margins",
+      "show-featured-artists",
+      "colored-symbol-context",
+      "bg-tint",
+      "display-artwork",
+      "xxl-artwork",
+      "show-info-icons",
+      "show-volume",
+      "show-device",
+      "show-clock",
+      "vertical-mode",
+      "dark-mode",
+      "show-fps"
+    ]
+  },
+  {
+    id: "preset-big-text",
+    name: "Preset: Current-Song Mode",
+    category: "Presets",
+    image: "/design/img/presets/preset-big-text.png",
+    description: "Only shows the current song's title, artist and release. Track list is disabled, artwork is moved to the background",
+    enabled: [
+      "bg-artwork",
+      "bg-tint",
+      "bg-gradient",
+      "bg-grain",
+      "colored-text",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
+      "xxl-text",
+      "show-release",
+      "split-main-panels",
+      "show-context",
+      "show-logo",
+      "transitions",
+      "strip-titles",
+      "show-progress-bar",
+      "show-timestamps",
+      "spread-timestamps",
+      "reverse-bottom",
+      "prerender-background"
+    ],
+    disabled: [
+      "show-queue",
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
+      "show-timestamps-track-list",
+      "show-featured-artists",
+      "xxl-tracklist",
+      "separate-release-line",
+      "decreased-margins",
+      "display-artwork",
+      "xxl-artwork",
+      "main-content-left",
+      "swap-top",
+      "show-info-icons",
+      "show-clock",
+      "show-volume",
+      "show-device",
+      "vertical-mode",
+      "dark-mode",
+      "show-fps"
+    ]
+  },
+  {
+    id: "preset-minimalistic",
+    name: "Preset: Minimalistic Mode",
+    category: "Presets",
+    image: "/design/img/presets/preset-minimalistic.png",
+    description: "A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast",
+    enabled: [
+      "display-artwork",
+      "bg-grain",
+      "bg-tint",
+      "bg-gradient",
+      "show-context",
+      "show-logo",
+      "separate-release-line",
+      "transitions",
+      "vertical-mode",
+      "reverse-bottom",
+      "spread-timestamps",
+      "show-progress-bar",
+      "strip-titles",
+      "prerender-background"
+    ],
+    disabled: [
+      "show-queue",
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
+      "show-timestamps-track-list",
+      "xxl-tracklist",
+      "show-featured-artists",
+      "decreased-margins",
+      "bg-artwork",
+      "xxl-artwork",
+      "xxl-text",
+      "swap-top",
+      "colored-text",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
+      "main-content-left",
+      "split-main-panels",
+      "show-release",
+      "show-timestamps",
+      "show-info-icons",
+      "show-volume",
+      "show-device",
+      "show-clock",
+      "dark-mode",
+      "show-fps"
+    ]
+  }
+];
+
+const PREFERENCES_CATEGORY_ORDER = [
+    "General",
+    "Main Content",
+    "Track List",
+    "Top Content",
+    "Bottom Content",
+    "Artwork",
+    "Background",
+    "Developer Tools"
+];
 
 function findPreference(id) {
   let pref = PREFERENCES.find(pref => pref.id === id);
@@ -1806,6 +1867,17 @@ function initVisualPreferences() {
   const settingsDescriptionWrapper = getById("settings-description");
 
   let categories = {};
+  for (let category of PREFERENCES_CATEGORY_ORDER) {
+    let categoryElem = document.createElement("div");
+    categoryElem.classList.add("setting-category");
+    let categoryElemHeader = document.createElement("div");
+    categoryElemHeader.classList.add("setting-category-header");
+    categoryElemHeader.innerHTML = category;
+    categoryElem.appendChild(categoryElemHeader);
+    settingsWrapper.appendChild(categoryElem);
+    categories[category] = categoryElem;
+  }
+
   for (let prefIndex in PREFERENCES) {
     let pref = PREFERENCES[prefIndex];
 
@@ -1817,16 +1889,6 @@ function initVisualPreferences() {
     prefElem.onclick = () => toggleVisualPreference(pref);
 
     // Group to category
-    if (!categories.hasOwnProperty(pref.category)) {
-      let categoryElem = document.createElement("div");
-      categoryElem.classList.add("setting-category");
-      let categoryElemHeader = document.createElement("div");
-      categoryElemHeader.classList.add("setting-category-header");
-      categoryElemHeader.innerHTML = pref.category;
-      categoryElem.appendChild(categoryElemHeader);
-      settingsWrapper.appendChild(categoryElem);
-      categories[pref.category] = categoryElem;
-    }
     let categoryElem = categories[pref.category];
     categoryElem.appendChild(prefElem);
 
@@ -2241,7 +2303,7 @@ function toggleSettingsExpertMode() {
 
 function setExpertModeToggleButtonText(state) {
   let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
-  settingsMenuExpertModeToggleButton.innerHTML = state ? "Expert Mode" : "Preset Mode";
+  settingsMenuExpertModeToggleButton.innerHTML = state ? "Expert Mode" : "Presets";
 }
 
 
