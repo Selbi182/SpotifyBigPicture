@@ -479,7 +479,6 @@ function setCorrectTracklistView(changes) {
     let contentCenterGap =  parseFloat(window.getComputedStyle(contentCenterContainer).gap);
     let trackListHeight = trackListContainer.scrollHeight;
     let trackListScaleRatio = (contentCenterHeight - contentMainHeight - contentCenterGap) / trackListHeight;
-    console.log(trackListScaleRatio);
     if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
       trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
       finishAnimations(trackListContainer);
@@ -1146,6 +1145,7 @@ const PREFERENCES = [
       setClass(getById("scrolling-track-list"), "overridden", !state);
       setClass(getById("enlarge-scrolling-track-list"), "overridden", !state);
       setClass(getById("hide-title-scrolling-track-list"), "overridden", !state);
+      setClass(getById("show-timestamps-track-list"), "overridden", !state);
       setClass(getById("xxl-tracklist"), "overridden", !state);
       setCorrectTracklistView(currentData);
     }
@@ -1180,6 +1180,16 @@ const PREFERENCES = [
     category: "Track List",
     callback: (state) => {
       setClass(getById("title"), "display-anyway", !state);
+      setCorrectTracklistView(currentData);
+    }
+  },
+  {
+    id: "show-timestamps-track-list",
+    name: "Show Time Stamps",
+    description: "Show the timestamps for each song in the track list",
+    category: "Track List",
+    callback: (state) => {
+      setClass(getById("track-list"), "show-timestamps", state);
       setCorrectTracklistView(currentData);
     }
   },
@@ -1550,6 +1560,7 @@ const PREFERENCES_PRESETS = [
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
       "hide-title-scrolling-track-list",
+      "show-timestamps-track-list",
       "display-artwork",
       "bg-artwork",
       "bg-tint",
@@ -1615,6 +1626,7 @@ const PREFERENCES_PRESETS = [
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
       "hide-title-scrolling-track-list",
+      "show-timestamps-track-list",
       "xxl-tracklist",
       "show-featured-artists",
       "decreased-margins",
@@ -1645,6 +1657,7 @@ const PREFERENCES_PRESETS = [
     description: "Similar to Balanced Mode, but the artwork is disabled and instead only dimly shown in the background. This opens up more room for the queue. Also disables some lesser useful information",
     enabled: [
       "show-queue",
+      "show-timestamps-track-list",
       "bg-artwork",
       "bg-grain",
       "bg-gradient",
@@ -1719,6 +1732,7 @@ const PREFERENCES_PRESETS = [
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
       "hide-title-scrolling-track-list",
+      "show-timestamps-track-list",
       "show-featured-artists",
       "xxl-tracklist",
       "decreased-margins",
@@ -1745,6 +1759,7 @@ const PREFERENCES_PRESETS = [
       "show-queue",
       "scrolling-track-list",
       "hide-title-scrolling-track-list",
+      "show-timestamps-track-list",
       "decreased-margins",
       "display-artwork",
       "xxl-artwork",
@@ -2131,7 +2146,7 @@ function handleWheelEvent(e) {
       let settingsCategories = getById("settings-categories");
       settingsCategories.scroll({
         top: 0,
-        left: (delta * 3) + settingsCategories.scrollLeft,
+        left: (delta * 6) + settingsCategories.scrollLeft,
         behavior: 'smooth'
       });
     } else {

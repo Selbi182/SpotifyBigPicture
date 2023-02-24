@@ -529,7 +529,7 @@ div#description {
 
 #track-list {
     display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: auto auto;
     grid-auto-rows: min-content;
     grid-gap: 0 2vh;
     max-width: 100%;
@@ -554,8 +554,8 @@ div#description {
     mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
 }
 
-#track-list.fit {
-    flex: 1;
+#track-list.show-timestamps {
+    grid-template-columns: auto auto auto;
 }
 
 #track-list.big-text {
@@ -615,6 +615,11 @@ div#description {
     text-align: left;
 }
 
+#track-list.show-tracklist-numbers:not(.show-timestamps) .track-elem.disc .disc-number {
+    grid-column: 2;
+}
+
+
 #track-list.show-tracklist-numbers div:is(.track-number, .disc-symbol) {
     text-align: center;
     min-width: 3vh;
@@ -629,6 +634,10 @@ div#description {
     text-align: right;
     font-feature-settings: "tnum";
     white-space: nowrap;
+}
+
+#track-list:not(.show-timestamps) .track-elem .track-length {
+    display: none !important;
 }
 
 #track-list.show-tracklist-numbers .track-artist {
@@ -1038,6 +1047,12 @@ div#device {
 #settings-categories .setting-category-header {
     font-size: 3vh;
     margin-bottom: 1vh;
+}
+
+#settings-categories .setting-category {
+    background: #ffffff10;
+    border-radius: 1vh;
+    padding: 2vh;
 }
 
 #settings-right {
