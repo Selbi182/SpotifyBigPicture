@@ -1131,7 +1131,7 @@ const PREFERENCES = [
         "(This setting is not persisted between sessions due to browser security limitations)",
     category: "General",
     callback: () => toggleFullscreen(),
-    volatile: true // don't add fullscreen in the cookies, as it won't work (browser security shenanigans)
+    volatile: true // don't add fullscreen in the local storage, as it won't work (browser security shenanigans)
   },
   {
     id: "show-queue",
@@ -1947,11 +1947,11 @@ function initVisualPreferences() {
     settingsDescriptionWrapper.appendChild(descElem);
   }
 
-  let visualPreferencesFromCookie = getVisualPreferencesFromCookie();
-  if (visualPreferencesFromCookie) {
-    // Init setting states from cookie
+  let visualPreferencesFromLocalStorage = getVisualPreferencesFromLocalStorage();
+  if (visualPreferencesFromLocalStorage) {
+    // Init setting states from local storage
     for (let pref of PREFERENCES) {
-      refreshPreference(pref, visualPreferencesFromCookie.includes(pref.id));
+      refreshPreference(pref, visualPreferencesFromLocalStorage.includes(pref.id));
     }
   } else {
     // On first load, apply first preset of the list
@@ -1962,33 +1962,22 @@ function initVisualPreferences() {
   }
 }
 
-const COOKIE_KEY = "visual_preferences";
-const COOKIE_SPLIT_CHAR = "+";
-function getVisualPreferencesFromCookie() {
-  let cookie = getCookie(COOKIE_KEY);
-  if (cookie) {
-    return cookie.split(COOKIE_SPLIT_CHAR);
+const LOCAL_STORAGE_KEY = "visual_preferences";
+const LOCAL_STORAGE_SPLIT_CHAR = "+";
+function getVisualPreferencesFromLocalStorage() {
+  let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (storedVisualPreferences) {
+    return storedVisualPreferences.split(LOCAL_STORAGE_SPLIT_CHAR);
   }
   return "";
 }
 
-function refreshPrefsCookie() {
-  let setPreferences = PREFERENCES
+function refreshPrefsLocalStorage() {
+  let enabledPreferences = PREFERENCES
     .filter(pref => !pref.volatile && pref.state)
     .map(pref => pref.id)
-    .join(COOKIE_SPLIT_CHAR);
-  setCookie(COOKIE_KEY, setPreferences);
-}
-
-function getCookie(name) {
-  return document.cookie.split(";")
-    .map(cookie => cookie.trim())
-    .find(cookie => cookie.startsWith(`${name}=`))
-    ?.split("=")[1].trim();
-}
-
-function setCookie(name, value) {
-  document.cookie = name + "=" + (value || "") + "; SameSite=Lax; path=/";
+    .join(LOCAL_STORAGE_SPLIT_CHAR);
+  localStorage.setItem(LOCAL_STORAGE_KEY, enabledPreferences);
 }
 
 function toggleVisualPreference(pref) {
@@ -2002,7 +1991,7 @@ function toggleVisualPreference(pref) {
 function setVisualPreference(pref, newState) {
   if (pref) {
     refreshPreference(pref, newState);
-    refreshPrefsCookie();
+    refreshPrefsLocalStorage();
   }
 }
 
