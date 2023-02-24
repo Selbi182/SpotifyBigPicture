@@ -425,9 +425,12 @@ div#context-main {
     flex-direction: row;
 }
 
+#content-center.split-main-panels #center-info-main {
+    flex: 1;
+}
+
 #center-info-main {
     display: flex;
-    flex: 1;
     flex-direction: column;
     align-items: center;
     width: 100%;
@@ -533,9 +536,9 @@ div#description {
     scrollbar-width: thin;
     overflow-y: hidden;
     mask-repeat: no-repeat;
-    font-size: var(--font-size);
-    --font-size: clamp(2vh, calc(2vh + calc(var(--scale) * 0.1vh)), 3vh);
-    --scale: 0;
+    font-size: var(--font-size-base);
+    --font-size-base: calc(1vh * clamp(2, var(--font-size-scale), 3));
+    --font-size-scale: 0;
     --gradient-height: 6vh;
     --gradient-top: white;
     --gradient-bottom: white;
@@ -549,7 +552,6 @@ div#description {
 
 #content-center.queue #track-list {
     mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
-    height: 100%;
 }
 
 #track-list.fit {
@@ -557,7 +559,7 @@ div#description {
 }
 
 #track-list.big-text {
-    font-size: calc(var(--font-size) * 2);
+    font-size: calc(var(--font-size-base) * 2);
 }
 
 #track-list.gradient-top {
@@ -581,11 +583,11 @@ div#description {
 }
 
 #content-center:not(.queue) #track-list.enlarge-current .track-elem.current div {
-    font-size: calc(var(--font-size) * 1.25);
+    font-size: calc(var(--font-size-base) * 1.25);
 }
 
 #content-center:not(.queue) #track-list.enlarge-current.big-text .track-elem.current div {
-    font-size: calc(var(--font-size) * 1.25 * 2);
+    font-size: calc(var(--font-size-base) * 1.25 * 2);
 }
 
 #content-center:not(.queue) #track-list .track-elem.current div {

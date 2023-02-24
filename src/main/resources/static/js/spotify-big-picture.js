@@ -141,7 +141,7 @@ const MAX_POLLING_RETRY_ATTEMPT = 5;
 function pollingLoop() {
   singleRequest()
     .then(success => calculateNextPollingTimeout(success))
-    .then(pollingMs => setTimeout(pollingLoop, pollingMs));
+    .then(pollingMs => setTimeout(pollingLoop, parseInt(pollingMs.toString())));
 }
 
 let fakeSongTransition;
@@ -470,12 +470,20 @@ function setCorrectTracklistView(changes) {
       printTrackList(listTracks, listViewType === "ALBUM" && isMultiDisc && !shuffle);
     }
 
-    if (!deepEqual(oldQueue.slice(1), newQueue)) {
-      trackListContainer.style.setProperty("--scale", "0");
+    // Scale track list to fit container
+    trackListContainer.style.setProperty("--font-size-scale", "0");
+    finishAnimations(trackListContainer);
+    let contentCenterContainer = trackListContainer.parentElement;
+    let contentCenterHeight = contentCenterContainer.offsetHeight;
+    let contentMainHeight = getById("center-info-main").offsetHeight;
+    let contentCenterGap =  parseFloat(window.getComputedStyle(contentCenterContainer).gap);
+    let trackListHeight = trackListContainer.scrollHeight;
+    let trackListScaleRatio = (contentCenterHeight - contentMainHeight - contentCenterGap) / trackListHeight;
+    console.log(trackListScaleRatio);
+    if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
+      trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
       finishAnimations(trackListContainer);
-      if (queueMode && newQueue.length < 20) {
-        scaleTrackList(trackListContainer, 1);
-      }
+      updateScrollGradients();
     }
   }
 
@@ -507,27 +515,6 @@ function trackListEquals(trackList1, trackList2) {
     }
   }
   return true;
-}
-
-function scaleTrackList(trackListContainer, scaleIteration) {
-  trackListContainer.classList.add("scaling");
-  requestAnimationFrame(() => {
-    if (scaleIteration < 10) {
-      let visibleHeight = trackListContainer.offsetHeight;
-      let realHeight = trackListContainer.scrollHeight;
-      if (realHeight > visibleHeight) {
-        if (scaleIteration > 0) {
-          trackListContainer.style.setProperty("--scale", (scaleIteration - 1).toString());
-        }
-        trackListContainer.classList.remove("scaling");
-      } else {
-        trackListContainer.style.setProperty("--scale", (scaleIteration + 1).toString());
-        scaleTrackList(trackListContainer, scaleIteration + 1)
-      }
-    } else {
-      trackListContainer.classList.remove("scaling");
-    }
-  });
 }
 
 function balanceTextClamp(elem) {
@@ -703,7 +690,7 @@ function setupScrollGradients() {
   trackList.onscroll = () => updateScrollGradients();
 }
 
-const SCROLL_GRADIENTS_TOLERANCE = 4;
+const SCROLL_GRADIENTS_TOLERANCE = 10;
 function updateScrollGradients() {
   let trackList = getById("track-list");
   let topGradient = trackList.scrollTop > SCROLL_GRADIENTS_TOLERANCE;
