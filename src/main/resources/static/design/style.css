@@ -1025,8 +1025,7 @@ div#device {
     white-space: pre;
 }
 
-#settings-categories .setting.overridden,
-#settings-categories .setting.overridden-1.overridden-2 {
+#settings-categories .setting[class*='overridden-'] {
     opacity: 0.25 !important;
 }
 

@@ -1138,15 +1138,11 @@ const PREFERENCES = [
     name: "Show Track List",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
     category: "Track List",
+    requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xxl-tracklist"],
     callback: (state) => {
       setClass(getById("title"), "force-display", !state);
       let trackListContainer = getById("track-list");
       setClass(trackListContainer, "hidden", !state);
-      setClass(getById("scrolling-track-list"), "overridden", !state);
-      setClass(getById("enlarge-scrolling-track-list"), "overridden", !state);
-      setClass(getById("hide-title-scrolling-track-list"), "overridden", !state);
-      setClass(getById("show-timestamps-track-list"), "overridden", !state);
-      setClass(getById("xxl-tracklist"), "overridden", !state);
       setCorrectTracklistView(currentData);
     }
   },
@@ -1156,9 +1152,8 @@ const PREFERENCES = [
     description: "If enabled, the track list is replaced by an alternate design that displays the surrounding songs in an automatically scrolling list. " +
         "Do note that this only works when shuffle is disabled and the playlist has less than 200 songs (for performance reasons)",
     category: "Track List",
-    callback: (state) => {
-      setClass(getById("enlarge-scrolling-track-list"), "overridden", !state);
-      setClass(getById("hide-title-scrolling-track-list"), "overridden", !state);
+    requiredFor: ["enlarge-scrolling-track-list", "hide-title-scrolling-track-list"],
+    callback: () => {
       setCorrectTracklistView(currentData);
     }
   },
@@ -1198,10 +1193,10 @@ const PREFERENCES = [
     name: "Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
     category: "Artwork",
+    requiredFor: ["xxl-artwork"],
     callback: (state) => {
       setClass(getById("artwork"), "hide", !state);
       setClass(getById("content"), "full-content", !state);
-      setClass(getById("xxl-artwork"), "overridden", !state);
       refreshBackgroundRender();
     }
   },
@@ -1285,8 +1280,8 @@ const PREFERENCES = [
     name: "Colored Text",
     description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     category: "General",
+    requiredFor: ["show-context", "show-logo"],
     callback: (state) => {
-      setClass(getById("colored-symbol-context"), "overridden", !state);
       setClass(getById("colored-symbol-spotify"), "overridden", !state);
       setClass(document.body, "no-colored-text", !state);
     }
@@ -1296,8 +1291,8 @@ const PREFERENCES = [
     name: "Release Name/Date",
     description: "Displays the release name with its release date (usually the year of the currently playing song's album)",
     category: "Main Content",
+    requiredFor: ["separate-release-line"],
     callback: (state) => {
-      setClass(getById("separate-release-line"), "overridden", !state);
       setClass(getById("album"), "hide", !state);
     }
   },
@@ -1316,9 +1311,8 @@ const PREFERENCES = [
     description: "Displays the playlist/artist/album name along with some additional information at the top of the page. " +
         "Also displays a thumbnail, if available",
     category: "Top Content",
+    requiredFor: ["colored-symbol-context", "swap-top"],
     callback: (state) => {
-      setClass(getById("swap-top"), "overridden-1", !state);
-      setClass(getById("colored-symbol-context"), "overridden", !state);
       setClass(getById("meta-left"), "hide", !state)
     }
   },
@@ -1327,9 +1321,8 @@ const PREFERENCES = [
     name: "Spotify Logo",
     description: "Whether to display the Spotify logo in the top right",
     category: "Top Content",
+    requiredFor: ["colored-symbol-spotify", "swap-top"],
     callback: (state) => {
-      setClass(getById("swap-top"), "overridden-2", !state);
-      setClass(getById("colored-symbol-spotify"), "overridden", !state);
       setClass(getById("meta-right"), "hide", !state)
     }
   },
@@ -1405,10 +1398,10 @@ const PREFERENCES = [
     name: "Timestamps",
     description: "Displays the current and total timestamps of the currently playing track as numeric values",
     category: "Bottom Content",
+    requiredFor: ["spread-timestamps"],
     callback: (state) => {
       setClass(getById("artwork"), "hide-timestamps", !state);
       setClass(getById("bottom-meta-container"), "hide-timestamps", !state);
-      setClass(getById("spread-timestamps"), "overridden", !state);
       refreshBackgroundRender();
     }
   },
@@ -1514,10 +1507,8 @@ const PREFERENCES = [
     name: "Vertical Mode",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
     category: "Main Content",
+    overrides: ["show-queue", "xxl-text", "xxl-artwork"],
     callback: (state) => {
-      setClass(getById("xxl-text"), "overridden", state);
-      setClass(getById("xxl-artwork"), "overridden", state);
-      setClass(getById("show-queue"), "overridden", state);
       setClass(getById("main"), "vertical", state);
       refreshBackgroundRender();
     }
@@ -1960,13 +1951,27 @@ function refreshPreference(preference, state) {
     preference.state = state;
     preference.callback(state);
 
+    updateOverridden(preference);
+
     // Toggle Checkmark
-    let classList = getById(preference.id).classList;
-    if (state) {
-      classList.add("on");
-    } else {
-      classList.remove("on");
-    }
+    setClass(getById(preference.id), "on", state);
+  }
+}
+
+function updateOverridden(preference) {
+  let byId = getById(preference.id);
+  let state = preference.state && !byId.classList.toString().includes("overridden-");
+  if ('requiredFor' in preference) {
+    preference.requiredFor.forEach(override => {
+      setClass(getById(override), `overridden-${preference.id}`, !state);
+      updateOverridden(findPreference(override));
+    });
+  }
+  if ('overrides' in preference) {
+    preference.overrides.forEach(override => {
+      setClass(getById(override), `overridden-${preference.id}`, state);
+      updateOverridden(findPreference(override));
+    });
   }
 }
 
