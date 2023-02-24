@@ -1138,7 +1138,7 @@ const PREFERENCES = [
     name: "Show Track List",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
     category: "Track List",
-    requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xxl-tracklist"],
+    requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist"],
     callback: (state) => {
       setClass(getById("title"), "force-display", !state);
       let trackListContainer = getById("track-list");
@@ -1193,7 +1193,7 @@ const PREFERENCES = [
     name: "Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
     category: "Artwork",
-    requiredFor: ["xxl-artwork"],
+    requiredFor: ["xl-artwork"],
     callback: (state) => {
       setClass(getById("artwork"), "hide", !state);
       setClass(getById("content"), "full-content", !state);
@@ -1201,8 +1201,8 @@ const PREFERENCES = [
     }
   },
   {
-    id: "xxl-artwork",
-    name: "XXL Artwork",
+    id: "xl-artwork",
+    name: "XL Artwork",
     description: "When enabled, the artwork is stretched to its maximum possible size. Do note that this leaves less room for all the other information",
     category: "Artwork",
     callback: (state) => {
@@ -1260,16 +1260,16 @@ const PREFERENCES = [
     }
   },
   {
-    id: "xxl-text",
-    name: "XXL Main Text",
+    id: "xl-text",
+    name: "XL Main Text",
     description: "If enabled, the font size for the current song's title, artist, and release is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
     callback: (state) => setClass(getById("center-info-main"), "big-text", state)
   },
   {
-    id: "xxl-tracklist",
-    name: "XXL Track List",
+    id: "xl-tracklist",
+    name: "XL Track List",
     description: "If enabled, the font size for the track list is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Track List",
@@ -1507,7 +1507,7 @@ const PREFERENCES = [
     name: "Vertical Mode",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
     category: "Main Content",
-    overrides: ["show-queue", "xxl-text", "xxl-artwork"],
+    overrides: ["show-queue", "xl-text", "xl-artwork"],
     callback: (state) => {
       setClass(getById("main"), "vertical", state);
       refreshBackgroundRender();
@@ -1576,14 +1576,14 @@ const PREFERENCES_PRESETS = [
     ],
     disabled: [
       "decreased-margins",
-      "xxl-tracklist",
+      "xl-tracklist",
       "separate-release-line",
       "main-content-left",
       "split-main-panels",
       "reverse-bottom",
       "vertical-mode",
-      "xxl-artwork",
-      "xxl-text",
+      "xl-artwork",
+      "xl-text",
       "swap-top",
       "spread-timestamps",
       "dark-mode",
@@ -1592,7 +1592,7 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-big-artwork",
-    name: "Preset: XXL-Artwork Mode",
+    name: "Preset: XL-Artwork Mode",
     category: "Presets",
     image: "/design/img/presets/preset-big-artwork.png",
     description: "Functionally similar to Balanced Mode, but with the artwork stretched to the maximum possible size. Everything else is crammed into the right",
@@ -1603,7 +1603,7 @@ const PREFERENCES_PRESETS = [
       "show-timestamps-track-list",
       "decreased-margins",
       "display-artwork",
-      "xxl-artwork",
+      "xl-artwork",
       "bg-artwork",
       "bg-tint",
       "bg-gradient",
@@ -1625,12 +1625,12 @@ const PREFERENCES_PRESETS = [
       "enlarge-scrolling-track-list",
       "show-featured-artists",
       "separate-release-line",
-      "xxl-tracklist",
+      "xl-tracklist",
       "main-content-left",
       "split-main-panels",
       "reverse-bottom",
       "vertical-mode",
-      "xxl-text",
+      "xl-text",
       "swap-top",
       "spread-timestamps",
       "show-volume",
@@ -1672,12 +1672,12 @@ const PREFERENCES_PRESETS = [
       "enlarge-scrolling-track-list",
       "hide-title-scrolling-track-list",
       "separate-release-line",
-      "xxl-tracklist",
+      "xl-tracklist",
       "decreased-margins",
       "bg-tint",
       "display-artwork",
-      "xxl-artwork",
-      "xxl-text",
+      "xl-artwork",
+      "xl-text",
       "main-content-left",
       "split-main-panels",
       "swap-top",
@@ -1704,7 +1704,7 @@ const PREFERENCES_PRESETS = [
       "bg-gradient",
       "split-main-panels",
       "main-content-left",
-      "xxl-text",
+      "xl-text",
       "colored-text",
       "colored-symbol-spotify",
       "swap-top",
@@ -1724,13 +1724,13 @@ const PREFERENCES_PRESETS = [
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
       "hide-title-scrolling-track-list",
-      "xxl-tracklist",
+      "xl-tracklist",
       "decreased-margins",
       "show-featured-artists",
       "colored-symbol-context",
       "bg-tint",
       "display-artwork",
-      "xxl-artwork",
+      "xl-artwork",
       "show-info-icons",
       "show-volume",
       "show-device",
@@ -1754,7 +1754,7 @@ const PREFERENCES_PRESETS = [
       "colored-text",
       "colored-symbol-context",
       "colored-symbol-spotify",
-      "xxl-text",
+      "xl-text",
       "show-release",
       "split-main-panels",
       "show-context",
@@ -1774,11 +1774,11 @@ const PREFERENCES_PRESETS = [
       "hide-title-scrolling-track-list",
       "show-timestamps-track-list",
       "show-featured-artists",
-      "xxl-tracklist",
+      "xl-tracklist",
       "separate-release-line",
       "decreased-margins",
       "display-artwork",
-      "xxl-artwork",
+      "xl-artwork",
       "main-content-left",
       "swap-top",
       "show-info-icons",
@@ -1818,12 +1818,12 @@ const PREFERENCES_PRESETS = [
       "enlarge-scrolling-track-list",
       "hide-title-scrolling-track-list",
       "show-timestamps-track-list",
-      "xxl-tracklist",
+      "xl-tracklist",
       "show-featured-artists",
       "decreased-margins",
       "bg-artwork",
-      "xxl-artwork",
-      "xxl-text",
+      "xl-artwork",
+      "xl-text",
       "swap-top",
       "colored-text",
       "colored-symbol-context",
@@ -2303,7 +2303,7 @@ function toggleSettingsExpertMode() {
 
 function setExpertModeToggleButtonText(state) {
   let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
-  settingsMenuExpertModeToggleButton.innerHTML = state ? "Expert Mode" : "Presets";
+  settingsMenuExpertModeToggleButton.innerHTML = state ? "Expert Mode (scroll with mouse wheel)" : "Preset Mode";
 }
 
 

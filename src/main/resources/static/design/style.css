@@ -955,7 +955,6 @@ div#device {
     z-index: 2;
     position: absolute;
     padding: var(--margin-main);
-    background: linear-gradient(to right, black 0%, transparent 150%);
     opacity: 0;
     font-size: 3vh;
     display: flex;
