@@ -1,6 +1,6 @@
 # Spotify Big Picture
 
-An interface that displays your current playback status on Spotify in a beautiful little browser page!
+A highly customizable interface that displays your current playback status on Spotify in a beautiful little browser page!
 
 You might want to use this over [Spotify's own (in my opinion, rather underwhelming) full-screen mode](https://i.imgur.com/dvreOAX.jpg), or you can use it for your TV/media-streamer to give [that outdated, low-resolution OSD](https://i.imgur.com/lNfCcrW.jpg) a fresh paint job!
 
@@ -15,42 +15,23 @@ This interface is entirely read-only. Specifically, this means that you **cannot
 ### Playlist View
 ![Playlist View](https://i.imgur.com/HsrgpeQ.png)
 
-### Visual Preferences
-Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can customize the styling of the interface with a single click! Settings are automatically stored locally in cookies.
+### Customization
+Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can customize the styling of the interface from a number of presets with a single click!
 
-![Presets](https://i.imgur.com/xCfpyEm.png)
+Your settings are automatically stored locally, so you won't need to worry about reconfiguring everything each time you reopen the website.
 
-If you feel overwhelmed by the amount of options, you can also choose to simply select one of three presets. These are combinations of visual preferences that form a unique purpose and identity. From left to right:
+#### Choose a Presets
+The recommended way to customize the appearance is to choose one of the various available presets:
 
-#### Preset 1: Balanced Mode
-![Preset 1: Balanced Mode](https://i.imgur.com/LD4MGXP.png)
+![Presets](https://i.imgur.com/1nrYKLp.png)
+*From left to right: Balanced Mode, XL-Artwork Mode, Track-List Mode, Split-Text Mode, Current-Song Mode, Minimalistic Mode*
 
-The default mode. This preset displays as much information as possible about the current song, along with its artwork on the right, without compromising on readability. Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)
+There's no harm done in just switching between presets at any time, so feel free to experiment until you find your desired configuration!
 
-#### Preset 2: Minimalistic Mode
-![Preset 2: Minimalistic Mode](https://i.imgur.com/grUDDlM.png)
+#### All Settings
+If you wish for a more nuanced way to control the appearance, click the button next to the cog symbol to switch show *all* settings. In here, you will be able to customize every single option individually. A detailed explanation for each option appears when you hover over the respective settings.
 
-A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast
-
-#### Preset 3: Queue Mode
-![Preset 3: Queue Mode](https://i.imgur.com/uzPLhwF.png)
-
-Similar to Balanced Mode, but the artwork is disabled and instead only dimly shown in the background. Doing this opens up more room for the queue. Also disables some lesser useful information.
-
-#### Preset 4: Big-Text Mode
-![Preset 4: Big-Text Mode](https://i.imgur.com/EEwX8qX.png)
-
-Only shows the current song's title, artist and release. Queue is disabled, artwork is moved to the background. Font size is doubled
-
-#### Preset 5: XXL-Artwork Mode
-![Preset 5: XXL-Artwork Mode](https://i.imgur.com/fB33SPB.png)
-
-Functionally similar to Balanced Mode, but with the artwork stretched to the maximum possible size. Everything else is crammed into the right
-
-#### Expert Mode
-If you wish for a more nuanced way to control the appearance, press Ctrl on your keyboard to enable _Expert Mode_. In here, you will be able to customize every single option individually.
-
-Use your scroll wheel to browse through the categories. A detailed explanation for each option appears when you hover over the respective settings.
+Do note that, under the hood, presets are just preconfigured selections of these individual settings; they each form a unique purpose and identity. While you're free to change individual settings as you like, there are combinations that simply won't make sense together. Stick to the presets if you're unsure about anything.
 
 ## Installation
 Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either:
@@ -63,12 +44,15 @@ Here's a basic guide on how to set this app up, as a few people have been reques
 6. Once prompted to log in, copy-paste the displayed URL into your preferred browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`) and log in
 7. If everything worked out, the app will be available under http://localhost:8183/
 
-## Troubleshooting
-1. You will need at least Java 11
-
-2. This app has been optimized for **Firefox**! It may work to some degree on Chrome and the likes, but I won't guarantee full stability over there
-
-3. Getting your current queue is **only** available for Spotify premium users. For free users, only the current song can be displayed. For albums, more than a good guess whichever song comes next is unfortunately not possible
+## Requirements
+* **Java 11:**
+  * [Download here](https://adoptium.net/de/temurin/releases/?version=11) 
+* **Monitor should have 16:9 aspect ratio:**
+  * While most features should work in any aspect ratio, this app has been optimized primarily for 16:9 (landscape mode). For anything else (namely portrait mode, such as on your phone), expect some limitations
+* **Mozilla Firefox:**
+  * While this app may work to some degree on Chrome and other browsers, I won't guarantee full stability over there. This app has been solely optimized for Firefox
+* **Spotify Premium:**
+  * You can still use this app as a free user, but you won't get the full functionality. For example, getting your current queue is **only** available for Spotify premium users. For free users, only the current song can be displayed. For albums, more than a good guess whichever song comes next is unfortunately not possible
 
 ### Idle Mode
 After two hours of playing no music, the interface will turn black and stop rendering anything to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
