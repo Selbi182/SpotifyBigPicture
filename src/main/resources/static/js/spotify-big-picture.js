@@ -157,8 +157,12 @@ function calculateNextPollingTimeout(success) {
         let remainingTime = timeTotal - timeCurrent;
         if (timeCurrent && timeTotal && remainingTime > 0 && remainingTime < POLLING_INTERVAL_MS) {
           clearTimeout(fakeSongTransition);
-          fakeSongTransition = setTimeout(() => simulateNextSongTransition(), remainingTime);
-          return POLLING_INTERVAL_MS * 2;
+          if (findPreference("fake-song-transition").state) {
+            fakeSongTransition = setTimeout(() => simulateNextSongTransition(), remainingTime);
+            return POLLING_INTERVAL_MS * 2;
+          } else {
+            return remainingTime;
+          }
         }
       }
       return POLLING_INTERVAL_MS;
@@ -413,7 +417,11 @@ function setTextData(changes) {
   setCorrectTracklistView(changes);
 }
 
-function setCorrectTracklistView(changes, forceReprint = false) {
+function refreshTrackList() {
+  setCorrectTracklistView(currentData);
+}
+
+function setCorrectTracklistView(changes) {
   let mainContainer = getById("content-center");
   let trackListContainer = getById("track-list");
   let listViewType = getChange(changes, "trackData.trackListView").value;
@@ -441,9 +449,9 @@ function setCorrectTracklistView(changes, forceReprint = false) {
   let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
-  let refreshPrintedList = forceReprint
-      || (queueMode !== wasPreviouslyInQueueMode)
-      || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue));
+  let refreshPrintedList =
+       (queueMode !== wasPreviouslyInQueueMode)
+    || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue));
 
   if (refreshPrintedList) {
     if (queueMode) {
@@ -474,13 +482,19 @@ function setCorrectTracklistView(changes, forceReprint = false) {
     // Scale track list to fit container
     trackListContainer.style.setProperty("--font-size-scale", "0");
     finishAnimations(trackListContainer);
-    let horizontal = findPreference("split-main-panels").state;
-    let contentCenterContainer = trackListContainer.parentElement;
-    let trackListSize = horizontal ? trackListContainer.scrollWidth : trackListContainer.scrollHeight;
-    let contentCenterSize = horizontal ? contentCenterContainer.offsetWidth : contentCenterContainer.offsetHeight;
-    let contentMainSize = horizontal ? getById("center-info-main").offsetWidth : getById("center-info-main").offsetHeight;
-    let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
-    let trackListScaleRatio = Math.max(2, (contentCenterSize - contentMainSize - contentCenterGap) / trackListSize);
+    let contentMainSize = getById("center-info-main").offsetHeight;
+    let trackListSize = trackListContainer.scrollHeight;
+    let splitMode = findPreference("split-main-panels").state;
+
+    let trackListScaleRatio;
+    if (splitMode) {
+      trackListScaleRatio = Math.max(2, contentMainSize / trackListSize);
+    } else {
+      let contentCenterContainer = trackListContainer.parentElement;
+      let contentCenterSize = contentCenterContainer.offsetHeight;
+      let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
+      trackListScaleRatio = Math.max(2, (contentCenterSize - contentMainSize - contentCenterGap) / trackListSize);
+    }
     if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
       trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
       finishAnimations(trackListContainer);
@@ -1138,20 +1152,34 @@ const PREFERENCES = [
     description: "Toggles full screen on or off. Can also be toggled by double clicking anywhere on the screen. " +
         "(This setting is not persisted between sessions due to browser security limitations)",
     category: "General",
-    callback: () => toggleFullscreen(),
+    callback: () => {
+      toggleFullscreen()
+    },
     volatile: true // don't add fullscreen in the local storage, as it won't work (browser security shenanigans)
+  },
+  {
+    id: "fake-song-transition",
+    name: "Simulate Song Transition (Beta)",
+    description: "If enabled, simulate the transition to the expected next song in the queue. Otherwise, wait for the actual data to arrive. " +
+        "Enabling this will make the transitions feel much smoother, but it may be inconsistent at times",
+    category: "General",
+    callback: (state) => {
+      if (!state) {
+        clearTimeout(fakeSongTransition);
+      }
+    }
   },
   {
     id: "show-queue",
     name: "Show Tracklist/Queue",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
     category: "Track List",
-    requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist"],
+    requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
     callback: (state) => {
       setClass(getById("title"), "force-display", !state);
       let trackListContainer = getById("track-list");
       setClass(trackListContainer, "hidden", !state);
-      setCorrectTracklistView(currentData);
+      refreshTrackList();
     }
   },
   {
@@ -1160,9 +1188,9 @@ const PREFERENCES = [
     description: "If enabled, the track list is replaced by an alternate design that displays the surrounding songs in an automatically scrolling list. " +
         "Do note that this only works when shuffle is disabled and the playlist has less than 200 songs (for performance reasons)",
     category: "Track List",
-    requiredFor: ["enlarge-scrolling-track-list", "hide-title-scrolling-track-list"],
+    requiredFor: ["enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "xl-main-info-scrolling"],
     callback: () => {
-      setCorrectTracklistView(currentData);
+      refreshTrackList();
     }
   },
   {
@@ -1172,7 +1200,7 @@ const PREFERENCES = [
     category: "Track List",
     callback: (state) => {
       setClass(getById("track-list"), "enlarge-current", state);
-      setCorrectTracklistView(currentData);
+      refreshTrackList();
     }
   },
   {
@@ -1181,9 +1209,20 @@ const PREFERENCES = [
     description: "If Scrolling Track List is enabled, the current song's name will not be displayed in the main info container " +
         "(since it's already visible in the track list)",
     category: "Track List",
+    requiredFor: ["xl-main-info-scrolling"],
     callback: (state) => {
       setClass(getById("center-info-main"), "hide-title-in-album-view", state);
-      setCorrectTracklistView(currentData);
+      refreshTrackList();
+    }
+  },
+  {
+    id: "xl-main-info-scrolling",
+    name: "XL Main Info (Scrolling)",
+    description: "If Hide Current Song Name (Scrolling) is enabled, the font size of the main content will automatically be doubled",
+    category: "Track List",
+    callback: (state) => {
+      setClass(getById("center-info-main"), "big-text-scrolling", state);
+      refreshTrackList();
     }
   },
   {
@@ -1193,7 +1232,7 @@ const PREFERENCES = [
     category: "Track List",
     callback: (state) => {
       setClass(getById("track-list"), "show-timestamps", state);
-      setCorrectTracklistView(currentData);
+      refreshTrackList();
     }
   },
   {
@@ -1273,7 +1312,9 @@ const PREFERENCES = [
     description: "If enabled, the font size for the current song's title, artist, and release is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
-    callback: (state) => setClass(getById("center-info-main"), "big-text", state)
+    callback: (state) => {
+      setClass(getById("center-info-main"), "big-text", state)
+    }
   },
   {
     id: "xl-tracklist",
@@ -1281,7 +1322,9 @@ const PREFERENCES = [
     description: "If enabled, the font size for the track list is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Track List",
-    callback: (state) => setClass(getById("track-list"), "big-text", state)
+    callback: (state) => {
+      setClass(getById("track-list"), "big-text", state)
+    }
   },
   {
     id: "colored-text",
@@ -1311,6 +1354,15 @@ const PREFERENCES = [
     category: "Main Content",
     callback: (state) => {
       setClass(getById("album"), "separate-date", state);
+    }
+  },
+  {
+    id: "show-podcast-descriptions",
+    name: "Show Podcast Descriptions",
+    description: "While listening to a podcast episode, displays the description of that episode underneath the title",
+    category: "Main Content",
+    callback: (state) => {
+      setClass(getById("description"), "hide", !state);
     }
   },
   {
@@ -1366,7 +1418,9 @@ const PREFERENCES = [
     name: "Smooth Transitions",
     description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed instantaneously",
     category: "General",
-    callback: (state) => setTransitions(state)
+    callback: (state) => {
+      setTransitions(state)
+    }
   },
   {
     id: "decreased-margins",
@@ -1472,7 +1526,9 @@ const PREFERENCES = [
     name: "Clock",
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
-    callback: (state) => setClass(getById("clock"), "hide", !state)
+    callback: (state) => {
+      setClass(getById("clock"), "hide", !state)
+    }
   },
   {
     id: "dark-mode",
@@ -1560,6 +1616,7 @@ const PREFERENCES_PRESETS = [
       "enlarge-scrolling-track-list",
       "hide-title-scrolling-track-list",
       "show-timestamps-track-list",
+      "show-podcast-descriptions",
       "display-artwork",
       "bg-artwork",
       "bg-tint",
@@ -1581,21 +1638,6 @@ const PREFERENCES_PRESETS = [
       "show-progress-bar",
       "show-clock",
       "prerender-background"
-    ],
-    disabled: [
-      "decreased-margins",
-      "xl-tracklist",
-      "separate-release-line",
-      "main-content-left",
-      "split-main-panels",
-      "reverse-bottom",
-      "vertical-mode",
-      "xl-artwork",
-      "xl-text",
-      "swap-top",
-      "spread-timestamps",
-      "dark-mode",
-      "show-fps"
     ]
   },
   {
@@ -1610,6 +1652,7 @@ const PREFERENCES_PRESETS = [
       "hide-title-scrolling-track-list",
       "show-timestamps-track-list",
       "decreased-margins",
+      "show-podcast-descriptions",
       "display-artwork",
       "xl-artwork",
       "bg-artwork",
@@ -1628,24 +1671,6 @@ const PREFERENCES_PRESETS = [
       "show-info-icons",
       "show-progress-bar",
       "prerender-background"
-    ],
-    disabled: [
-      "enlarge-scrolling-track-list",
-      "show-featured-artists",
-      "separate-release-line",
-      "xl-tracklist",
-      "main-content-left",
-      "split-main-panels",
-      "reverse-bottom",
-      "vertical-mode",
-      "xl-text",
-      "swap-top",
-      "spread-timestamps",
-      "show-volume",
-      "show-device",
-      "show-clock",
-      "dark-mode",
-      "show-fps"
     ]
   },
   {
@@ -1656,17 +1681,22 @@ const PREFERENCES_PRESETS = [
     description: "Disables the artwork and instead only dimly displays it in the background. This opens up more room for the track list. Also disables some lesser useful information",
     enabled: [
       "show-queue",
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
+      "xl-main-info-scrolling",
       "show-timestamps-track-list",
       "bg-artwork",
-      "bg-grain",
       "bg-gradient",
+      "bg-grain",
       "show-featured-artists",
       "colored-text",
-      "colored-symbol-context",
-      "colored-symbol-spotify",
       "show-release",
+      "show-podcast-descriptions",
       "show-context",
       "show-logo",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
       "transitions",
       "strip-titles",
       "show-progress-bar",
@@ -1674,28 +1704,6 @@ const PREFERENCES_PRESETS = [
       "spread-timestamps",
       "reverse-bottom",
       "prerender-background"
-    ],
-    disabled: [
-      "scrolling-track-list",
-      "enlarge-scrolling-track-list",
-      "hide-title-scrolling-track-list",
-      "separate-release-line",
-      "xl-tracklist",
-      "decreased-margins",
-      "bg-tint",
-      "display-artwork",
-      "xl-artwork",
-      "xl-text",
-      "main-content-left",
-      "split-main-panels",
-      "swap-top",
-      "show-info-icons",
-      "show-volume",
-      "show-device",
-      "show-clock",
-      "vertical-mode",
-      "dark-mode",
-      "show-fps"
     ]
   },
   {
@@ -1706,46 +1714,33 @@ const PREFERENCES_PRESETS = [
     description: "A variant of Track-List Mode that puts the current song information on the right (extra large) and the track list on the left",
     enabled: [
       "show-queue",
+      "scrolling-track-list",
+      "hide-title-scrolling-track-list",
+      "xl-main-info-scrolling",
       "show-timestamps-track-list",
       "bg-artwork",
-      "bg-grain",
       "bg-gradient",
-      "split-main-panels",
-      "main-content-left",
-      "xl-text",
+      "bg-grain",
       "colored-text",
-      "colored-symbol-spotify",
-      "swap-top",
       "show-release",
       "separate-release-line",
+      "show-podcast-descriptions",
       "show-context",
       "show-logo",
+      "colored-symbol-spotify",
+      "swap-top",
       "transitions",
       "strip-titles",
       "show-progress-bar",
       "show-timestamps",
-      "spread-timestamps",
-      "reverse-bottom",
-      "prerender-background"
-    ],
-    disabled: [
-      "scrolling-track-list",
-      "enlarge-scrolling-track-list",
-      "hide-title-scrolling-track-list",
-      "xl-tracklist",
-      "decreased-margins",
-      "show-featured-artists",
-      "colored-symbol-context",
-      "bg-tint",
-      "display-artwork",
-      "xl-artwork",
       "show-info-icons",
       "show-volume",
       "show-device",
+      "reverse-bottom",
       "show-clock",
-      "vertical-mode",
-      "dark-mode",
-      "show-fps"
+      "main-content-left",
+      "split-main-panels",
+      "prerender-background"
     ]
   },
   {
@@ -1774,28 +1769,6 @@ const PREFERENCES_PRESETS = [
       "spread-timestamps",
       "reverse-bottom",
       "prerender-background"
-    ],
-    disabled: [
-      "show-queue",
-      "scrolling-track-list",
-      "enlarge-scrolling-track-list",
-      "hide-title-scrolling-track-list",
-      "show-timestamps-track-list",
-      "show-featured-artists",
-      "xl-tracklist",
-      "separate-release-line",
-      "decreased-margins",
-      "display-artwork",
-      "xl-artwork",
-      "main-content-left",
-      "swap-top",
-      "show-info-icons",
-      "show-clock",
-      "show-volume",
-      "show-device",
-      "vertical-mode",
-      "dark-mode",
-      "show-fps"
     ]
   },
   {
@@ -1819,33 +1792,6 @@ const PREFERENCES_PRESETS = [
       "show-progress-bar",
       "strip-titles",
       "prerender-background"
-    ],
-    disabled: [
-      "show-queue",
-      "scrolling-track-list",
-      "enlarge-scrolling-track-list",
-      "hide-title-scrolling-track-list",
-      "show-timestamps-track-list",
-      "xl-tracklist",
-      "show-featured-artists",
-      "decreased-margins",
-      "bg-artwork",
-      "xl-artwork",
-      "xl-text",
-      "swap-top",
-      "colored-text",
-      "colored-symbol-context",
-      "colored-symbol-spotify",
-      "main-content-left",
-      "split-main-panels",
-      "show-release",
-      "show-timestamps",
-      "show-info-icons",
-      "show-volume",
-      "show-device",
-      "show-clock",
-      "dark-mode",
-      "show-fps"
     ]
   }
 ];
@@ -1863,7 +1809,8 @@ const PREFERENCES_CATEGORY_ORDER = [
 
 function findPreference(id) {
   let pref = PREFERENCES.find(pref => pref.id === id);
-  if (!pref.hasOwnProperty("state")) {
+  if (pref && !pref.hasOwnProperty('state')) {
+    // Just to fix IDE warnings
     pref.state = false;
   }
   return pref;
@@ -1920,15 +1867,6 @@ function initVisualPreferences() {
   const settingsPresetsWrapper = getById("settings-presets");
   for (let presetIndex in PREFERENCES_PRESETS) {
     let preset = PREFERENCES_PRESETS[presetIndex];
-
-    // Integrity check for preset
-    let unmatchedPrefIds = PREFERENCES
-        .filter(pref => !pref.volatile)
-        .map(pref => pref.id)
-        .filter(prefId => ![...preset.enabled, ...preset.disabled].includes(prefId));
-    if (unmatchedPrefIds.length > 0) {
-      console.warn(`"${preset.name}" lacks configuration information for these preferences: ${unmatchedPrefIds}`);
-    }
 
     let presetElem = document.createElement("div");
     presetElem.id = preset.id;
@@ -2036,13 +1974,10 @@ function updateOverridden(preference) {
 }
 
 function applyPreset(preset) {
-  [...preset.enabled]
-    .map(settingId => findPreference(settingId))
-    .forEach(pref => setVisualPreference(pref, true));
-
-  [...preset.disabled]
-    .map(settingId => findPreference(settingId))
-    .forEach(pref => setVisualPreference(pref, false));
+  for (let pref of PREFERENCES) {
+    let prefEnabled = preset.enabled.includes(pref.id);
+    setVisualPreference(pref, prefEnabled);
+  }
 }
 
 function updateExternallyToggledPreferences(changes) {
@@ -2230,8 +2165,13 @@ function initSettingsMouseMove() {
   let settingsWrapper = getById("settings-wrapper");
 
   let settingsMenuToggleButton = getById("settings-menu-toggle-button");
-  settingsMenuToggleButton.onclick = () => {
-    requestAnimationFrame(() => toggleSettingsMenu());
+  settingsMenuToggleButton.onclick = (e) => {
+    if (e.shiftKey) {
+      // Print the current settings to console when shift key is held down
+      console.debug(PREFERENCES.filter(pref => pref.state).map(pref => `"${pref.id}"`).join(",\n"));
+    } else {
+      requestAnimationFrame(() => toggleSettingsMenu());
+    }
   };
 
   let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
@@ -2299,7 +2239,7 @@ function toggleSettingsExpertMode() {
 
 function setExpertModeToggleButtonText(state) {
   let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
-  settingsMenuExpertModeToggleButton.innerHTML = state ? "Expert Mode (scroll with mouse wheel)" : "Preset Mode";
+  settingsMenuExpertModeToggleButton.innerHTML = state ? "All Settings" : "Choose a Preset";
 }
 
 

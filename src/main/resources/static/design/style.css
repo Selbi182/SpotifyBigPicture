@@ -446,7 +446,7 @@ div#context-main {
     text-align: left;
 }
 
-#main:not(.vertical) #content-center:not(.queue).split-main-panels #center-info-main.hide-title-in-album-view,
+#main:not(.vertical) #content-center:not(.queue).split-main-panels #center-info-main.hide-title-in-album-view.big-text-scrolling,
 #main:not(.vertical) #center-info-main.big-text {
     --font-scale: 2vh;
 }
@@ -523,7 +523,7 @@ div#description {
     --max-lines: 10;
 }
 
-#description:empty, #main.vertical #description {
+#description:empty, #description.hide, #main.vertical #description {
     display: none;
 }
 
@@ -845,7 +845,6 @@ div#device {
     justify-content: space-between;
     max-height: 4vh;
     position: relative;
-    line-height: 1;
     align-items: start;
 }
 
@@ -1014,11 +1013,11 @@ div#device {
     font-size: 2vh;
     display: none;
     gap: 4vh;
-
-    overflow: hidden;
+    overflow-x: scroll;
+    overflow-y: hidden;
     scrollbar-width: thin;
     mask-image: linear-gradient(to right, transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
-    padding: 0 var(--mask-padding);
+    padding: var(--mask-padding);
     --mask-padding: 3vh;
 }
 
