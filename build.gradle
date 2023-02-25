@@ -25,6 +25,10 @@ jar {
     archiveFileName = "${archiveBaseName}-${archiveVersion}"
 }
 
+bootJar {
+    exclude("static/design/img/presets/preset-template.pdn")
+}
+
 springBoot {
     mainClass.set('spotify.SpotifyBigPicture')
 }
