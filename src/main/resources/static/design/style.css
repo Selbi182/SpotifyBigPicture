@@ -261,6 +261,10 @@ img:not([src]) {
     max-height: var(--artwork-size);
 }
 
+#content-top.hide {
+    display: none;
+}
+
 #main:not(.vertical) #content:not(.full-content) :is(#content-top, #content-center) {
     max-width: calc(100% - var(--artwork-size) - var(--margin-main));
 }
@@ -485,8 +489,16 @@ div#context-main {
     font-size: calc(var(--font-scale) * 4);
 }
 
+#artists.hide {
+    display: none;
+}
+
 #title, #artists, #time-current, #time-total {
     font-family: var(--font-bold);
+}
+
+div#title.hide {
+    display: none !important;
 }
 
 #title-extra.hide {
@@ -905,6 +917,10 @@ div#device {
     width: 100%;
 }
 
+#content-bottom.hide {
+    display: none;
+}
+
 #main.maximum-artwork:not(.vertical) #content:not(.full-content) #content-bottom {
     max-width: calc(100% - var(--artwork-size) - var(--margin-main));
 }
@@ -1016,6 +1032,7 @@ div#device {
 }
 
 #settings-categories {
+    flex: 2;
     width: 100%;
     height: 100%;
     justify-content: space-between;
@@ -1120,6 +1137,7 @@ div#device {
     font-size: 3vh;
     pointer-events: none;
     position: relative;
+    flex: 1;
 }
 
 #settings-description > div {

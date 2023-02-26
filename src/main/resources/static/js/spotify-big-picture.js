@@ -1300,6 +1300,16 @@ const PREFERENCES = [
     }
   },
   {
+    id: "show-artists",
+    name: "Show Artists",
+    description: "Display the artist(s)",
+    category: "Main Content",
+    requiredFor: ["show-featured-artists"],
+    callback: (state) => {
+      setClass(getById("artists"), "hide", !state);
+    }
+  },
+  {
     id: "show-featured-artists",
     name: "Show Featured Artists",
     description: "Display any potential featured artists. Otherwise, only show the main artist",
@@ -1341,7 +1351,7 @@ const PREFERENCES = [
   },
   {
     id: "show-release",
-    name: "Release Name/Date",
+    name: "Show Release Name/Date",
     description: "Displays the release name with its release date (usually the year of the currently playing song's album)",
     category: "Main Content",
     requiredFor: ["separate-release-line"],
@@ -1365,6 +1375,26 @@ const PREFERENCES = [
     category: "Main Content",
     callback: (state) => {
       setClass(getById("description"), "hide", !state);
+    }
+  },
+  {
+    id: "enable-top-content",
+    name: "Enable Top Context",
+    description: "Enable the top content, the container for the context and Spotify logo. " +
+        "Disabling this will increase the available space for the main content",
+    category: "Top Content",
+    requiredFor: ["show-context", "show-logo", "swap-top"],
+    callback: (state) => {
+      setClass(getById("content-top"), "hide", !state)
+    }
+  },
+  {
+    id: "swap-top",
+    name: "Swap Top Content",
+    description: "If enabled, the Context and Spotify Logo swap positions",
+    category: "Top Content",
+    callback: (state) => {
+      setClass(getById("content-top"), "swap", state)
     }
   },
   {
@@ -1407,15 +1437,6 @@ const PREFERENCES = [
     }
   },
   {
-    id: "swap-top",
-    name: "Swap Top Content",
-    description: "If enabled, the Context and Spotify Logo swap positions",
-    category: "Top Content",
-    callback: (state) => {
-      setClass(getById("content-top"), "swap", state)
-    }
-  },
-  {
     id: "transitions",
     name: "Smooth Transitions",
     description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed instantaneously",
@@ -1436,6 +1457,16 @@ const PREFERENCES = [
     }
   },
   {
+    id: "show-titles",
+    name: "Show Titles",
+    description: "Show the title of the currently playing song",
+    category: "Main Content",
+    requiredFor: ["hide-title-scrolling-track-list"],
+    callback: (state) => {
+      setClass(getById("title"), "hide", !state);
+    }
+  },
+  {
     id: "strip-titles",
     name: "Strip Titles",
     description: "Hides any kind of potentially unnecessary extra information from song tiles and release names " +
@@ -1445,6 +1476,17 @@ const PREFERENCES = [
       setClass(getById("title-extra"), "hide", state);
       setClass(getById("album-title-extra"), "hide", state);
       setClass(getById("track-list"), "strip", state);
+    }
+  },
+  {
+    id: "enable-bottom-content",
+    name: "Enable Bottom Context",
+    description: "Enable the bottom content, the container for the progress bar and various meta information. " +
+        "Disabling this will increase the available space for the main content",
+    category: "Bottom Content",
+    requiredFor: ["show-progress-bar", "show-timestamps", "show-info-icons", "show-volume", "show-device", "reverse-bottom", "show-clock"],
+    callback: (state) => {
+      setClass(getById("content-bottom"), "hide", !state)
     }
   },
   {
@@ -1635,11 +1677,15 @@ const PREFERENCES_PRESETS = [
       "bg-tint",
       "bg-gradient",
       "bg-grain",
+      "show-artists",
       "show-featured-artists",
+      "show-titles",
       "colored-text",
       "colored-symbol-context",
       "colored-symbol-spotify",
       "show-release",
+      "enable-top-content",
+      "enable-bottom-content",
       "show-context",
       "show-logo",
       "transitions",
@@ -1658,30 +1704,31 @@ const PREFERENCES_PRESETS = [
     name: "Preset: XL-Artwork Mode",
     category: "Presets",
     image: "/design/img/presets/preset-big-artwork.png",
-    description: "Functionally similar to Balanced Mode, but with the artwork stretched to the maximum possible size. Everything else is crammed into the right",
+    description: "Just the the artwork stretched to the maximum possible size and the track list and progress bar",
     enabled: [
       "show-queue",
       "scrolling-track-list",
       "hide-title-scrolling-track-list",
       "show-timestamps-track-list",
-      "decreased-margins",
-      "show-podcast-descriptions",
       "display-artwork",
       "xl-artwork",
       "bg-artwork",
       "bg-tint",
       "bg-gradient",
       "bg-grain",
+      "show-artists",
       "colored-text",
-      "colored-symbol-context",
-      "colored-symbol-spotify",
       "show-release",
+      "show-podcast-descriptions",
       "show-context",
       "show-logo",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
       "transitions",
+      "decreased-margins",
+      "show-titles",
       "strip-titles",
-      "show-timestamps",
-      "show-info-icons",
+      "enable-bottom-content",
       "show-progress-bar",
       "prerender-background"
     ]
@@ -1702,10 +1749,14 @@ const PREFERENCES_PRESETS = [
       "bg-artwork",
       "bg-gradient",
       "bg-grain",
+      "show-artists",
+      "show-titles",
       "show-featured-artists",
       "colored-text",
       "show-release",
       "show-podcast-descriptions",
+      "enable-top-content",
+      "enable-bottom-content",
       "show-context",
       "show-logo",
       "colored-symbol-context",
@@ -1734,10 +1785,14 @@ const PREFERENCES_PRESETS = [
       "bg-artwork",
       "bg-gradient",
       "bg-grain",
+      "show-artists",
+      "show-titles",
       "colored-text",
       "show-release",
       "separate-release-line",
       "show-podcast-descriptions",
+      "enable-top-content",
+      "enable-bottom-content",
       "show-context",
       "show-logo",
       "colored-symbol-spotify",
@@ -1768,12 +1823,16 @@ const PREFERENCES_PRESETS = [
       "bg-tint",
       "bg-gradient",
       "bg-grain",
+      "show-artists",
+      "show-titles",
       "colored-text",
       "colored-symbol-context",
       "colored-symbol-spotify",
       "xl-text",
       "show-release",
       "split-main-panels",
+      "enable-top-content",
+      "enable-bottom-content",
       "show-context",
       "show-logo",
       "transitions",
@@ -1794,8 +1853,12 @@ const PREFERENCES_PRESETS = [
     enabled: [
       "display-artwork",
       "bg-grain",
+      "show-artists",
+      "show-titles",
       "bg-tint",
       "bg-gradient",
+      "enable-top-content",
+      "enable-bottom-content",
       "show-context",
       "show-logo",
       "separate-release-line",
