@@ -34,7 +34,7 @@ import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.sub.TrackElement;
 import spotify.playback.data.help.BigPictureConstants;
 import spotify.playback.data.help.BigPictureUtils;
-import spotify.util.BotUtils;
+import spotify.util.SpotifyUtils;
 import spotify.util.data.AlbumTrackPair;
 
 @Component
@@ -152,7 +152,7 @@ public class ContextProvider {
           ModelObjectType type = item.getType();
           if (ModelObjectType.TRACK.equals(type)) {
             Track track = (Track) item;
-            return t.getArtists().containsAll(BotUtils.toArtistNamesList(track)) && track.getName().equals(t.getTitle());
+            return t.getArtists().containsAll(SpotifyUtils.toArtistNamesList(track)) && track.getName().equals(t.getTitle());
           } else if (ModelObjectType.EPISODE.equals(type)) {
             Episode episode = (Episode) item;
             return t.getArtists().contains(episode.getShow().getName()) && episode.getName().equals(t.getTitle());
@@ -169,7 +169,7 @@ public class ContextProvider {
       Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
 
       Image[] artistImages = contextArtist.getImages();
-      String largestImage = BotUtils.findLargestImage(artistImages);
+      String largestImage = SpotifyUtils.findLargestImage(artistImages);
       this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
       this.listTracks = List.of();
@@ -188,7 +188,7 @@ public class ContextProvider {
       Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 
       Image[] playlistImages = contextPlaylist.getImages();
-      String largestImage = BotUtils.findLargestImage(playlistImages);
+      String largestImage = SpotifyUtils.findLargestImage(playlistImages);
       this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
       // Limit to 200 for performance reasons
@@ -216,7 +216,7 @@ public class ContextProvider {
       track = (Track) info.getItem();
       albumId = track.getAlbum().getId();
     } else {
-      albumId = BotUtils.getIdFromUri(context.getUri());
+      albumId = SpotifyUtils.getIdFromUri(context.getUri());
     }
 
     if (force || didContextChange(context)) {
@@ -233,7 +233,7 @@ public class ContextProvider {
           .map(ArtistSimplified::getId)
           .map(id -> SpotifyCall.execute(spotifyApi.getArtist(id)))
           .map(Artist::getImages)
-          .map(BotUtils::findSmallestImage)
+          .map(SpotifyUtils::findSmallestImage)
           .orElse(BigPictureUtils.BLANK);
 
       this.listTracks = currentContextAlbumTracks.stream()
@@ -243,7 +243,7 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
     }
-    String contextString = String.format("%s: %s \u2013 %s (%s)", getReleaseTypeString(), BotUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName(), BotUtils.findReleaseYear(currentContextAlbum));
+    String contextString = String.format("%s: %s \u2013 %s (%s)", getReleaseTypeString(), SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName(), SpotifyUtils.findReleaseYear(currentContextAlbum));
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
@@ -271,7 +271,7 @@ public class ContextProvider {
       ShowSimplified showSimplified = episode.getShow();
       if (force || didContextChange(episode.toString())) {
         Image[] artistImages = showSimplified.getImages();
-        String largestImage = BotUtils.findLargestImage(artistImages);
+        String largestImage = SpotifyUtils.findLargestImage(artistImages);
         this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
 
         Show show = SpotifyCall.execute(spotifyApi.getShow(showSimplified.getId()));
@@ -288,22 +288,22 @@ public class ContextProvider {
     if (info.getItem() != null && info.getItem() instanceof Track) {
       Track track = (Track) info.getItem();
       Image[] trackImages = track.getAlbum().getImages();
-      String smallestImage = BotUtils.findSmallestImage(trackImages);
+      String smallestImage = SpotifyUtils.findSmallestImage(trackImages);
       this.thumbnailUrl = smallestImage != null ? smallestImage : BigPictureUtils.BLANK;
 
       this.listTracks = List.of(TrackElement.fromPlaylistItem(track));
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
 
-      return "SEARCH: " + BotUtils.getFirstArtistName(track) + " \u2013 " + track.getName();
+      return "SEARCH: " + SpotifyUtils.getFirstArtistName(track) + " \u2013 " + track.getName();
     }
     return "Spotify";
   }
 
   private String getReleaseTypeString() {
     if (currentContextAlbum.getAlbumType() == AlbumType.SINGLE) {
-      AlbumTrackPair atp = AlbumTrackPair.of(BotUtils.asAlbumSimplified(currentContextAlbum), currentContextAlbumTracks);
-      if (BotUtils.isExtendedPlay(atp)) {
+      AlbumTrackPair atp = AlbumTrackPair.of(SpotifyUtils.asAlbumSimplified(currentContextAlbum), currentContextAlbumTracks);
+      if (SpotifyUtils.isExtendedPlay(atp)) {
         return "EP";
       }
     }

@@ -1,8 +1,9 @@
 package spotify.playback.data.dto.sub;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.common.base.Objects;
 
 @JsonInclude(Include.NON_NULL)
 public class PlaybackContext {
@@ -77,12 +78,12 @@ public class PlaybackContext {
     if (!(o instanceof PlaybackContext))
       return false;
     PlaybackContext that = (PlaybackContext) o;
-    return Objects.equal(paused, that.paused) && Objects.equal(shuffle, that.shuffle) && Objects.equal(repeat, that.repeat) && Objects.equal(volume, that.volume)
-        && Objects.equal(context, that.context) && Objects.equal(device, that.device) && Objects.equal(thumbnailUrl, that.thumbnailUrl);
+    return Objects.equals(paused, that.paused) && Objects.equals(shuffle, that.shuffle) && Objects.equals(repeat, that.repeat) && Objects.equals(volume, that.volume) && Objects.equals(context, that.context)
+        && Objects.equals(device, that.device) && Objects.equals(thumbnailUrl, that.thumbnailUrl);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(paused, shuffle, repeat, volume, context, device, thumbnailUrl);
+    return Objects.hash(paused, shuffle, repeat, volume, context, device, thumbnailUrl);
   }
 }

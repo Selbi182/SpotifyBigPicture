@@ -8,7 +8,7 @@ import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Image;
 import se.michaelthelin.spotify.model_objects.specification.Track;
-import spotify.util.BotUtils;
+import spotify.util.SpotifyUtils;
 
 @Component
 public class SpotifyArtworkUrlProvider implements ArtworkUrlProvider {
@@ -24,11 +24,11 @@ public class SpotifyArtworkUrlProvider implements ArtworkUrlProvider {
 
   private Optional<String> getImageFromTrack(Track track) {
     Image[] images = track.getAlbum().getImages();
-    return Optional.ofNullable(BotUtils.findLargestImage(images));
+    return Optional.ofNullable(SpotifyUtils.findLargestImage(images));
   }
 
   private Optional<String> getImageFromEpisode(Episode episode) {
     Image[] images = episode.getImages();
-    return Optional.ofNullable(BotUtils.findLargestImage(images));
+    return Optional.ofNullable(SpotifyUtils.findLargestImage(images));
   }
 }

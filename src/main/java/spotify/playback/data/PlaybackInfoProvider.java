@@ -33,7 +33,7 @@ import spotify.playback.data.help.BigPictureUtils;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlCache;
 import spotify.playback.data.visual.color.ColorProviderSetup;
-import spotify.util.BotUtils;
+import spotify.util.SpotifyUtils;
 
 @Component
 public class PlaybackInfoProvider {
@@ -309,7 +309,7 @@ public class PlaybackInfoProvider {
     Track track = (Track) playbackQueue.getCurrentlyPlaying();
     CurrentlyPlaying currentlyPlaying = pInfo.getCurrentlyPlaying();
 
-    currentlyPlaying.setArtists(BotUtils.toArtistNamesList(track.getArtists()));
+    currentlyPlaying.setArtists(SpotifyUtils.toArtistNamesList(track.getArtists()));
     currentlyPlaying.setTitle(track.getName());
     currentlyPlaying.setAlbum(track.getAlbum().getName());
     currentlyPlaying.setReleaseDate(BigPictureUtils.findReleaseYear(track));

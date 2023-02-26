@@ -1,11 +1,11 @@
 package spotify.playback.data.dto;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.common.base.Objects;
 
 import spotify.playback.data.dto.sub.CurrentlyPlaying;
 import spotify.playback.data.dto.sub.PlaybackContext;
@@ -107,12 +107,12 @@ public class PlaybackInfo {
     if (!(o instanceof PlaybackInfo))
       return false;
     PlaybackInfo that = (PlaybackInfo) o;
-    return type == that.type && Objects.equal(deployTime, that.deployTime) && Objects.equal(currentlyPlaying, that.currentlyPlaying) && Objects.equal(playbackContext, that.playbackContext)
-        && Objects.equal(trackData, that.trackData) && Objects.equal(settingsToToggle, that.settingsToToggle);
+    return type == that.type && Objects.equals(deployTime, that.deployTime) && Objects.equals(currentlyPlaying, that.currentlyPlaying) && Objects.equals(playbackContext, that.playbackContext) && Objects.equals(trackData,
+        that.trackData) && Objects.equals(settingsToToggle, that.settingsToToggle);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(type, deployTime, currentlyPlaying, playbackContext, trackData, settingsToToggle);
+    return Objects.hash(type, deployTime, currentlyPlaying, playbackContext, trackData, settingsToToggle);
   }
 }

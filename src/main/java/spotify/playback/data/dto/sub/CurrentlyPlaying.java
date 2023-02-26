@@ -1,10 +1,10 @@
 package spotify.playback.data.dto.sub;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.common.base.Objects;
 
 @JsonInclude(Include.NON_NULL)
 public class CurrentlyPlaying extends TrackElement {
@@ -49,11 +49,11 @@ public class CurrentlyPlaying extends TrackElement {
     if (!super.equals(o))
       return false;
     CurrentlyPlaying that = (CurrentlyPlaying) o;
-    return Objects.equal(imageData, that.imageData);
+    return Objects.equals(imageData, that.imageData);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), imageData);
+    return Objects.hash(super.hashCode(), imageData);
   }
 }

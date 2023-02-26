@@ -17,7 +17,7 @@ import com.google.gson.JsonParser;
 
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.specification.Track;
-import spotify.util.BotUtils;
+import spotify.util.SpotifyUtils;
 
 @Component
 public class LastFmArtworkUrlProvider implements ArtworkUrlProvider {
@@ -46,7 +46,7 @@ public class LastFmArtworkUrlProvider implements ArtworkUrlProvider {
     if (lastFmApiUrl != null && item instanceof Track) {
       Track track = (Track) item;
       String url = lastFmApiUrl.cloneBuilder()
-          .queryParam("artist", escape(BotUtils.getFirstArtistName(track)))
+          .queryParam("artist", escape(SpotifyUtils.getFirstArtistName(track)))
           .queryParam("track", escape(track.getName()))
           .build().toUriString();
       JsonElement json = executeRequest(url);

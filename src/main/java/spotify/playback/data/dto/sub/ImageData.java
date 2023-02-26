@@ -1,8 +1,9 @@
 package spotify.playback.data.dto.sub;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.common.base.Objects;
 
 import de.selbi.colorfetch.data.ColorFetchResult;
 import spotify.playback.data.help.BigPictureUtils;
@@ -41,11 +42,11 @@ public class ImageData {
     if (!(o instanceof ImageData))
       return false;
     ImageData imageData = (ImageData) o;
-    return Objects.equal(imageUrl, imageData.imageUrl) && Objects.equal(imageColors, imageData.imageColors);
+    return Objects.equals(imageUrl, imageData.imageUrl) && Objects.equals(imageColors, imageData.imageColors);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(imageUrl, imageColors);
+    return Objects.hash(imageUrl, imageColors);
   }
 }
