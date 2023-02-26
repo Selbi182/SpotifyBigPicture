@@ -47,12 +47,11 @@ repositories {
 
 dependencies {
     implementation 'spotify:spotify-dependencies:1.6.0'
-    implementation 'de.selbi:color-fetch:1.2.2'
+    implementation 'de.selbi:color-fetch:1.2.3'
 
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
 
     implementation 'se.michaelthelin.spotify:spotify-web-api-java:8.0.0'
 
-    implementation 'de.androidpit:color-thief:1.1.2'
     implementation 'org.jsoup:jsoup:1.15.3'
 }

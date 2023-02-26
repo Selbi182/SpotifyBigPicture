@@ -32,7 +32,7 @@ import spotify.playback.data.dto.sub.TrackElement;
 import spotify.playback.data.help.BigPictureUtils;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlCache;
-import spotify.playback.data.visual.color.ColorProviderSetup;
+import spotify.playback.data.visual.color.ColorProviderService;
 import spotify.util.SpotifyUtils;
 
 @Component
@@ -42,7 +42,7 @@ public class PlaybackInfoProvider {
   private final SpotifyApi spotifyApi;
   private final ContextProvider contextProvider;
   private final ArtworkUrlCache artworkUrlCache;
-  private final ColorProviderSetup dominantColorProvider;
+  private final ColorProviderService dominantColorProvider;
 
   private final Logger logger = Logger.getLogger(PlaybackInfoProvider.class.getName());
 
@@ -60,7 +60,7 @@ public class PlaybackInfoProvider {
   PlaybackInfoProvider(SpotifyApi spotifyApi,
       ContextProvider contextProvider,
       ArtworkUrlCache artworkUrlCache,
-      ColorProviderSetup colorProvider) {
+      ColorProviderService colorProvider) {
     this.spotifyApi = spotifyApi;
     this.contextProvider = contextProvider;
     this.artworkUrlCache = artworkUrlCache;
@@ -180,7 +180,11 @@ public class PlaybackInfoProvider {
     String artworkUrl = artworkUrlCache.findArtworkUrl(currentTrack);
     if (artworkUrl != null && !artworkUrl.isEmpty()) {
       imageData.setImageUrl(artworkUrl);
-      ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl);
+      ImageData previousImageData = Optional.ofNullable(previous)
+        .map(PlaybackInfo::getCurrentlyPlaying)
+        .map(CurrentlyPlaying::getImageData)
+        .orElse(null);
+      ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl, previousImageData);
       imageData.setImageColors(colors);
     }
 
@@ -294,7 +298,11 @@ public class PlaybackInfoProvider {
       String nextArtworkUrl = artworkUrlCache.findArtworkUrl(nextSong);
       if (nextArtworkUrl != null && !nextArtworkUrl.isEmpty()) {
         nextImageData.setImageUrl(nextArtworkUrl);
-        ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(nextArtworkUrl);
+        ImageData previousNextImageData = Optional.ofNullable(previous)
+          .map(PlaybackInfo::getTrackData)
+          .map(TrackData::getNextImageData)
+          .orElse(null);
+        ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(nextArtworkUrl, previousNextImageData);
         nextImageData.setImageColors(colors);
       }
       trackData.setNextImageData(nextImageData);

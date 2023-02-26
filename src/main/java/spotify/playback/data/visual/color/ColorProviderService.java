@@ -1,23 +1,25 @@
 package spotify.playback.data.visual.color;
 
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import de.selbi.colorfetch.data.ColorFetchResult;
+import spotify.playback.data.dto.sub.ImageData;
 import spotify.playback.data.help.BigPictureUtils;
 
-@Component
-public class ColorProviderSetup {
+@Service
+public class ColorProviderService {
   @Value("${colorfetch.url:#{null}}")
   private String colorFetchServiceUrl;
 
   private ColorProvider colorProvider;
 
-  private final Logger logger = Logger.getLogger(ColorProviderSetup.class.getName());
+  private final Logger logger = Logger.getLogger(ColorProviderService.class.getName());
 
   @PostConstruct
   void printColorLibraryState() {
@@ -30,10 +32,19 @@ public class ColorProviderSetup {
     }
   }
 
-  public ColorFetchResult getDominantColorFromImageUrl(String artworkUrl) {
+  public ColorFetchResult getDominantColorFromImageUrl(String artworkUrl, ImageData previousImageData) {
     if (BigPictureUtils.BLANK.equals(artworkUrl)) {
       return ColorFetchResult.FALLBACK;
     }
+
+    boolean sameUrlAsInPrevious = Optional.ofNullable(previousImageData)
+      .map(ImageData::getImageUrl)
+      .map(artworkUrl::equals)
+      .orElse(false);
+    if (sameUrlAsInPrevious) {
+      return previousImageData.getImageColors();
+    }
+
     return colorProvider.getDominantColorFromImageUrl(artworkUrl);
   }
 
