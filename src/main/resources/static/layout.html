@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>Spotify Big Picture</title>
   <script src="js/spotify-big-picture.js" type="module"></script>
-  <script src="js/lib/dom-to-image.min.js"></script>
-  <script src="js/lib/balance-text.min.js"></script>
-  <script src="js/lib/fast-deep-equals.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/balance-text/3.3.1/balancetext.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <link rel="stylesheet" href="design/style.css"/>
   <link rel="icon" href="favicon.png" type="image/x-icon">
 </head>
@@ -16,7 +15,7 @@
   <div id="settings-menu-toggle-button" title="Visual Preferences (Hotkey: Space)"></div>
   <div id="settings-wrapper">
     <div id="settings-expert-mode-toggle" title="Toggle between Preset Mode and Expert Mode (Hotkey: Ctrl)"></div>
-    <a href="/settings" id="settings-external" target="_blank" title="Control every setting from an external tab">Remote Control...</a>
+    <a href="settings" id="settings-external" target="_blank" title="Control every setting from an external tab">Remote Control...</a>
     <div id="settings-categories"></div>
     <div id="settings-presets"></div>
     <div id="settings-description"></div>

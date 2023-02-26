@@ -224,7 +224,7 @@ img:not([src]) {
 #grain {
     opacity: 0;
     mix-blend-mode: screen;
-    background: url('img/grain.png') repeat;
+    background: url('img/grain.jpg') repeat;
     --intensity: 1;
     transform: translateZ(0);
     will-change: opacity;
@@ -339,7 +339,6 @@ img:not([src]) {
 #thumbnail-wrapper {
     height: 6vh;
     width: 6vh;
-    background-color: var(--color);
     box-shadow: 0.2vh 0.2vh 0.5vh #0004;
     display: none;
 }
@@ -348,12 +347,21 @@ img:not([src]) {
     display: inherit;
 }
 
+#thumbnail-wrapper.circular {
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+#thumbnail-wrapper.colored {
+    background-color: var(--color);
+}
+
 #thumbnail {
     width: inherit;
     height: inherit;
 }
 
-#thumbnail.colored {
+#thumbnail-wrapper.colored #thumbnail {
     mix-blend-mode: multiply;
     filter: grayscale(1);
 }
@@ -423,6 +431,9 @@ div#context-main {
 
 #content-center.split-main-panels {
     flex-direction: row;
+}
+
+#content-center.split-main-panels.extra-margins {
     padding: 0 var(--margin-main);
 }
 

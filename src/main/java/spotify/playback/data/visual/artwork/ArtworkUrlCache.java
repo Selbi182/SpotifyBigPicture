@@ -1,14 +1,11 @@
 package spotify.playback.data.visual.artwork;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import spotify.playback.data.help.BigPictureUtils;
@@ -20,19 +17,18 @@ import spotify.playback.data.visual.artwork.service.SpotifyArtworkUrlProvider;
 @Component
 public class ArtworkUrlCache {
 
-  private final LoadingCache<IPlaylistItem, String> artworkUrlCache;
+  private final DictionaryArtworkUrlProvider dictionaryArtworkUrlProvider;
+  private final SpotifyArtworkUrlProvider spotifyArtworkUrlProvider;
+  private final LastFmArtworkUrlProvider lastFmArtworkUrlProvider;
+
+  private final Map<IPlaylistItem, String> artworkUrlCache;
 
   public ArtworkUrlCache(DictionaryArtworkUrlProvider dictionaryArtworkUrlProvider, SpotifyArtworkUrlProvider spotifyArtworkUrlProvider, LastFmArtworkUrlProvider lastFmArtworkUrlProvider) {
-    final CacheLoader<IPlaylistItem, String> cacheLoader = CacheLoader.from((item) -> {
-      for (ArtworkUrlProvider artworkUrlProvider : List.of(dictionaryArtworkUrlProvider, spotifyArtworkUrlProvider, lastFmArtworkUrlProvider)) {
-        Optional<String> imageUrlFromItem = artworkUrlProvider.getImageUrlFromItem(item);
-        if (imageUrlFromItem.isPresent()) {
-          return imageUrlFromItem.get();
-        }
-      }
-      return BigPictureUtils.BLANK;
-    });
-    this.artworkUrlCache = CacheBuilder.newBuilder().build(cacheLoader);
+    this.dictionaryArtworkUrlProvider = dictionaryArtworkUrlProvider;
+    this.spotifyArtworkUrlProvider = spotifyArtworkUrlProvider;
+    this.lastFmArtworkUrlProvider = lastFmArtworkUrlProvider;
+
+    this.artworkUrlCache = new ConcurrentHashMap<>();
   }
 
   /**
@@ -44,11 +40,19 @@ public class ArtworkUrlCache {
    * @return the URL, empty string if none was found
    */
   public String findArtworkUrl(IPlaylistItem item) {
-    try {
-      return artworkUrlCache.get(item);
-    } catch (ExecutionException e) {
-      e.printStackTrace();
-      return BigPictureUtils.BLANK;
+    if (!artworkUrlCache.containsKey(item)) {
+      artworkUrlCache.put(item, getUrlForPlaylistItem(item));
     }
+    return artworkUrlCache.get(item);
+  }
+
+  private String getUrlForPlaylistItem(IPlaylistItem item) {
+    for (ArtworkUrlProvider artworkUrlProvider : List.of(dictionaryArtworkUrlProvider, spotifyArtworkUrlProvider, lastFmArtworkUrlProvider)) {
+      Optional<String> imageUrlFromItem = artworkUrlProvider.getImageUrlFromItem(item);
+      if (imageUrlFromItem.isPresent()) {
+        return imageUrlFromItem.get();
+      }
+    }
+    return BigPictureUtils.BLANK;
   }
 }

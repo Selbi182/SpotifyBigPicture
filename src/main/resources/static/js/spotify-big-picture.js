@@ -351,6 +351,8 @@ function setTextData(changes) {
       setClass(thumbnailWrapperContainer, "show", false);
     } else {
       setClass(thumbnailWrapperContainer, "show", true);
+      let circularThumbnail = context.value.startsWith("ARTIST: ") || context.value.startsWith("ALBUM: ");
+      setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
       thumbnailContainer.src = thumbnailUrl;
       fadeIn(thumbnailContainer);
     }
@@ -1392,7 +1394,7 @@ const PREFERENCES = [
     description: "If enabled, the dominant color of the current artwork will be used as color for the context thumbnail",
     category: "Top Content",
     callback: (state) => {
-      setClass(getById("thumbnail"), "colored", state);
+      setClass(getById("thumbnail-wrapper"), "colored", state);
     }
   },
   {
@@ -1562,8 +1564,19 @@ const PREFERENCES = [
     description: "Separate the main info from the track list and display both in their own panel. "
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
+    requiredFor: ["center-margins"],
     callback: (state) => {
       setClass(getById("content-center"), "split-main-panels", state);
+    }
+  },
+  {
+    id: "center-margins",
+    name: "Center Margins (Split Mode)",
+    description: "If split mode is enabled, add margins to the left and right of the center content",
+    category: "Main Content",
+    callback: (state) => {
+      setClass(getById("content-center"), "extra-margins", state);
+      refreshTrackList();
     }
   },
   {
@@ -1740,6 +1753,7 @@ const PREFERENCES_PRESETS = [
       "show-clock",
       "main-content-left",
       "split-main-panels",
+      "center-margins",
       "prerender-background"
     ]
   },
@@ -1911,19 +1925,34 @@ function initVisualPreferences() {
 const LOCAL_STORAGE_KEY = "visual_preferences";
 const LOCAL_STORAGE_SPLIT_CHAR = "+";
 function getVisualPreferencesFromLocalStorage() {
-  let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (storedVisualPreferences) {
-    return storedVisualPreferences.split(LOCAL_STORAGE_SPLIT_CHAR);
+  if (isLocalStorageAvailable()) {
+    let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedVisualPreferences) {
+      return storedVisualPreferences.split(LOCAL_STORAGE_SPLIT_CHAR);
+    }
   }
   return "";
 }
 
 function refreshPrefsLocalStorage() {
-  let enabledPreferences = PREFERENCES
-    .filter(pref => !pref.volatile && pref.state)
-    .map(pref => pref.id)
-    .join(LOCAL_STORAGE_SPLIT_CHAR);
-  localStorage.setItem(LOCAL_STORAGE_KEY, enabledPreferences);
+  if (isLocalStorageAvailable()) {
+    let enabledPreferences = PREFERENCES
+        .filter(pref => !pref.volatile && pref.state)
+        .map(pref => pref.id)
+        .join(LOCAL_STORAGE_SPLIT_CHAR);
+    localStorage.setItem(LOCAL_STORAGE_KEY, enabledPreferences);
+  }
+}
+
+function isLocalStorageAvailable() {
+  let test = "localStorageAvailabilityTest";
+  try {
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 function toggleVisualPreference(pref) {

@@ -4,11 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Iterables;
 
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.AlbumType;
@@ -142,25 +141,15 @@ public class ContextProvider {
   }
 
   public Integer getCurrentlyPlayingPlaylistTrackNumber(CurrentlyPlayingContext context) {
-    IPlaylistItem item = context.getItem();
-    String id = item.getId();
-    return Iterables.indexOf(listTracks, t -> {
-      if (t != null) {
-        if (t.getId() != null) {
-          return t.getId().equals(id);
-        } else {
-          ModelObjectType type = item.getType();
-          if (ModelObjectType.TRACK.equals(type)) {
-            Track track = (Track) item;
-            return t.getArtists().containsAll(SpotifyUtils.toArtistNamesList(track)) && track.getName().equals(t.getTitle());
-          } else if (ModelObjectType.EPISODE.equals(type)) {
-            Episode episode = (Episode) item;
-            return t.getArtists().contains(episode.getShow().getName()) && episode.getName().equals(t.getTitle());
-          }
-        }
-      }
-      return false;
-    }) + 1;
+    int trackIndex = -1;
+    if (context.getItem() != null && context.getItem().getId() != null) {
+      String id = context.getItem().getId();
+      trackIndex = IntStream.range(0, listTracks.size())
+        .filter(i -> id.equals(listTracks.get(i).getId()))
+        .findFirst()
+        .orElse(-1);
+    }
+    return trackIndex + 1;
   }
 
   private String getArtistContext(Context context, boolean force) {
