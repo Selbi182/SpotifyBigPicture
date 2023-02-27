@@ -6,7 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Component;
 
-import spotify.api.SpotifyApiScopes;
+import spotify.api.SpotifyDependenciesSettings;
 
 @SpringBootApplication
 public class SpotifyBigPicture {
@@ -19,7 +19,7 @@ public class SpotifyBigPicture {
   }
 
   @Component
-  public static class SpotifyBigPictureScopes implements SpotifyApiScopes {
+  public static class SpotifyBigPictureScopes implements SpotifyDependenciesSettings {
 
     @Override
     public List<String> requiredScopes() {
@@ -29,6 +29,11 @@ public class SpotifyBigPicture {
           "user-read-currently-playing",
           "user-read-private"
       );
+    }
+
+    @Override
+    public int port() {
+      return 8183;
     }
   }
 }

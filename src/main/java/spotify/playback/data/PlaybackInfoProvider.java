@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +32,7 @@ import spotify.playback.data.help.BigPictureUtils;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlCache;
 import spotify.playback.data.visual.color.ColorProviderService;
+import spotify.spring.SpringPortConfig;
 import spotify.util.SpotifyUtils;
 
 @Component
@@ -54,13 +54,13 @@ public class PlaybackInfoProvider {
 
   private final Set<String> settingsToToggle;
 
-  @Value("${server.port}")
-  private String port;
+  private final int port;
 
   PlaybackInfoProvider(SpotifyApi spotifyApi,
       ContextProvider contextProvider,
       ArtworkUrlCache artworkUrlCache,
-      ColorProviderService colorProvider) {
+      ColorProviderService colorProvider,
+      SpringPortConfig springPortConfig) {
     this.spotifyApi = spotifyApi;
     this.contextProvider = contextProvider;
     this.artworkUrlCache = artworkUrlCache;
@@ -68,6 +68,7 @@ public class PlaybackInfoProvider {
     this.ready = false;
     this.queueEnabled = true;
     this.settingsToToggle = new HashSet<>();
+    this.port = springPortConfig.getPort();
     refreshDeployTime();
   }
 
