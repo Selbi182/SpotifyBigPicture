@@ -421,10 +421,10 @@ function setTextData(changes) {
 }
 
 function refreshTrackList() {
-  setCorrectTracklistView(currentData);
+  setCorrectTracklistView(currentData, true);
 }
 
-function setCorrectTracklistView(changes) {
+function setCorrectTracklistView(changes, force = false) {
   let mainContainer = getById("content-center");
   let trackListContainer = getById("track-list");
   let listViewType = getChange(changes, "trackData.trackListView").value;
@@ -452,8 +452,8 @@ function setCorrectTracklistView(changes) {
   let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
-  let refreshPrintedList =
-       (queueMode !== wasPreviouslyInQueueMode)
+  let refreshPrintedList = force
+    || (queueMode !== wasPreviouslyInQueueMode)
     || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue));
 
   if (refreshPrintedList) {
@@ -1273,7 +1273,7 @@ const PREFERENCES = [
   {
     id: "bg-tint",
     name: "Background Overlay Color",
-    description: "Add a subtle layer of one of the artwork's most dominant colors to the background",
+    description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps increasing the contrast for very dark artworks",
     category: "Background",
     callback: (state) => {
       setClass(getById("background-canvas-overlay"), "no-tint", !state);
@@ -1344,7 +1344,7 @@ const PREFERENCES = [
     name: "Colored Text",
     description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     category: "General",
-    requiredFor: ["show-context", "show-logo"],
+    requiredFor: ["colored-symbol-context", "colored-symbol-spotify"],
     callback: (state) => {
       setClass(getById("colored-symbol-spotify"), "overridden", !state);
       setClass(document.body, "no-colored-text", !state);
@@ -1950,7 +1950,7 @@ function initVisualPreferences() {
     let presetElem = document.createElement("div");
     presetElem.id = preset.id;
     presetElem.classList.add("preset");
-    presetElem.style.setProperty("--image", `url("${preset.image}")`);
+    presetElem.innerHTML = `<img src="${preset.image}">`;
 
     presetElem.onclick = () => {
       applyPreset(preset);
@@ -2067,7 +2067,9 @@ function updateOverridden(preference) {
   }
 }
 
+let activePreset = PREFERENCES_PRESETS[0];
 function applyPreset(preset) {
+  activePreset = preset;
   for (let pref of PREFERENCES) {
     let prefEnabled = preset.enabled.includes(pref.id);
     setVisualPreference(pref, prefEnabled);
@@ -2255,8 +2257,7 @@ function initSettingsMouseMove() {
   let settingsMenuToggleButton = getById("settings-menu-toggle-button");
   settingsMenuToggleButton.onclick = (e) => {
     if (e.shiftKey) {
-      // Print the current settings to console when shift key is held down
-      console.debug(PREFERENCES.filter(pref => pref.state).map(pref => `"${pref.id}"`).join(",\n"));
+      generatePresetThumbnail();
     } else {
       requestAnimationFrame(() => toggleSettingsMenu());
     }
@@ -2269,13 +2270,13 @@ function initSettingsMouseMove() {
   setExpertModeToggleButtonText(settingsExpertMode);
 
   document.body.onclick = (e) => {
-    if (settingsVisible && !isSettingControlElem(e)) {
+    if (settingsVisible && !isSettingControlElem(e, true)) {
       setSettingsMenuState(false);
     }
   }
 
   document.addEventListener("dblclick", (e) => {
-    if (!settingsVisible && !isSettingControlElem(e)) {
+    if (!settingsVisible && !isSettingControlElem(e, true)) {
       toggleFullscreen();
     }
   });
@@ -2285,6 +2286,9 @@ function initSettingsMouseMove() {
     getById("settings-description").childNodes
       .forEach(elem => setClass(elem, "show", false));
     let target = event.target;
+    if (target.parentNode.classList.contains("preset")) {
+      target = target.parentNode;
+    }
     if (target.classList.contains("setting") || target.classList.contains("preset")) {
       let targetLabel = getById(target.id + "-description");
       setClass(targetLabel, "show", true);
@@ -2330,6 +2334,43 @@ function setExpertModeToggleButtonText(state) {
   settingsMenuExpertModeToggleButton.innerHTML = state ? "All Settings" : "Choose a Preset";
 }
 
+function generatePresetThumbnail() {
+  // Print the current settings to console when shift key is held down
+  console.debug(PREFERENCES.filter(pref => pref.state).map(pref => `"${pref.id}"`).join(",\n"));
+
+  let thumbnailGenerationEnabled = getById("main").classList.toggle("preset-thumbnail-generator");
+  if (thumbnailGenerationEnabled) {
+    let artworkClone = getById("artwork").cloneNode(true);
+    artworkClone.classList.add("fake");
+    setClass(artworkClone, "center", findPreference("vertical-mode").state)
+
+    let contentMain = getById("content");
+    contentMain.insertBefore(artworkClone, contentMain.firstChild);
+
+    let content = getById("content");
+    let presetThumbnailGeneratorCanvas = getById("preset-thumbnail-generator-canvas");
+    domtoimage.toPng(content)
+        .then(imgDataBase64 => {
+          setClass(presetThumbnailGeneratorCanvas, "show", true);
+          presetThumbnailGeneratorCanvas.onload = () => {
+            domtoimage.toPng(presetThumbnailGeneratorCanvas)
+                .then(thumbnailSmall => {
+                  let downloadLink = document.createElement('a');
+                  downloadLink.href = thumbnailSmall;
+                  downloadLink.download = `${activePreset.id}.png`;
+                  document.body.appendChild(downloadLink);
+                  downloadLink.click();
+                  document.body.removeChild(downloadLink);
+
+                  document.querySelector("#artwork.fake").remove();
+                  getById("main").classList.remove("preset-thumbnail-generator");
+                  setClass(presetThumbnailGeneratorCanvas, "show", false);
+                });
+          }
+          presetThumbnailGeneratorCanvas.src = imgDataBase64;
+        });
+  }
+}
 
 ///////////////////////////////
 // CLOCK

@@ -382,6 +382,7 @@ div#context-main {
 
 #context-extra {
     opacity: 0.5;
+    width: fit-content;
 }
 
 #meta-right {
@@ -1112,20 +1113,19 @@ div#device {
 }
 
 #settings-presets > .preset {
-    -webkit-mask-image: var(--image);
-    -webkit-mask-size: contain;
-    -webkit-mask-position: right;
-    -webkit-mask-repeat: no-repeat;
-    mask-image:  var(--image);
-    mask-size: contain;
-    mask-position: right;
-    mask-repeat: no-repeat;
-    background-color: var(--color);
     opacity: 0.5;
     cursor: pointer;
-    width: calc(16vh * var(--preset-button-scale));
-    height: calc(9vh * var(--preset-button-scale));
-    --preset-button-scale: 2;
+    width: auto;
+    height: 100%;
+    background: #ffffff20;
+    background-size: contain;
+    border-radius: 1vh;
+    border: 0.3vh solid white;
+}
+
+#settings-presets > .preset > img {
+    width: 100%;
+    height: 100%;
 }
 
 #settings-presets > .preset:hover {
@@ -1214,6 +1214,60 @@ div#device {
 
 #clock.hide, #clock:empty {
     display: none;
+}
+
+/* Experimental CSS for preset thumbnail generation */
+#main.preset-thumbnail-generator :is(
+        #thumbnail-wrapper, #context-main, #context-extra, #logo,
+        #artists, #title, #album-title, #album-release, #album-title-main, .track-elem *,
+        #progress, #info-symbols, #volume, #device, #clock, #time-current, #time-total,
+        #artwork.fake) {
+    background: white !important;
+    color: transparent !important;
+    border-radius: 2vh;
+    --max-lines: 1;
+    margin: 0.1vh;
+    transition: unset !important;
+    opacity: 1 !important;
+    min-height: 1vh;
+}
+
+#main.preset-thumbnail-generator #logo {
+    border-radius: 50% !important;
+    mask-image: unset;
+}
+
+#main.preset-thumbnail-generator :is(#background-rendered,
+        #title *, #description,
+        #thumbnail, #progress > div, #bottom-left > div > div,
+        #artwork.fake > img) {
+    visibility: hidden;
+}
+
+#main.preset-thumbnail-generator #artwork.fake {
+    position: absolute;
+    align-self: start;
+    margin: 0;
+}
+
+#main.preset-thumbnail-generator #artwork.fake.center {
+    align-self: center;
+}
+
+#main.preset-thumbnail-generator #content {
+    transform: scale(1.0);
+    transform-origin: top left;
+}
+
+#preset-thumbnail-generator-canvas {
+    display: none;
+    --scale: 0.25;
+    width: calc(100vw * var(--scale));
+    height: calc(100vh * var(--scale));
+}
+
+#preset-thumbnail-generator-canvas.show {
+    display: initial;
 }
 
 @media only screen and (max-aspect-ratio: 3/2) {
