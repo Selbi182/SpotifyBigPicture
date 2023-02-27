@@ -90,7 +90,8 @@ function submitVisualPreferencesToBackend() {
         return {
           id: pref.id,
           name: pref.name,
-          category: pref.category
+          category: pref.category,
+          description: pref.description
         }
       });
 
@@ -1442,7 +1443,8 @@ const PREFERENCES = [
     description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed instantaneously",
     category: "General",
     callback: (state) => {
-      setTransitions(state)
+      setClass(getById("main"), "disable-transitions", !state);
+      showHide(getById("background-img-crossfade"), state, true);
     }
   },
   {
@@ -1660,7 +1662,7 @@ const PREFERENCES = [
 const PREFERENCES_PRESETS = [
   {
     id: "preset-advanced",
-    name: "Preset: Balanced Mode",
+    name: "Balanced Mode",
     category: "Presets",
     image: "/design/img/presets/preset-advanced.png",
     description: "The default mode. This preset displays as much information as possible about the current song, along with its artwork on the right, without compromising on readability. " +
@@ -1701,7 +1703,7 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-big-artwork",
-    name: "Preset: XL-Artwork Mode",
+    name: "XL-Artwork Mode",
     category: "Presets",
     image: "/design/img/presets/preset-big-artwork.png",
     description: "Just the the artwork stretched to the maximum possible size and the track list and progress bar",
@@ -1735,7 +1737,7 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-background",
-    name: "Preset: Track-List Mode",
+    name: "Track-List Mode",
     category: "Presets",
     image: "/design/img/presets/preset-background.png",
     description: "Disables the artwork and instead only dimly displays it in the background. This opens up more room for the track list. Also disables some lesser useful information",
@@ -1772,7 +1774,7 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-split-text",
-    name: "Preset: Split-Text Mode",
+    name: "Split-Text Mode",
     category: "Presets",
     image: "/design/img/presets/preset-split-text.png",
     description: "A variant of Track-List Mode that puts the current song information on the right (extra large) and the track list on the left",
@@ -1814,7 +1816,7 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-big-text",
-    name: "Preset: Current-Song Mode",
+    name: "Current-Song Mode",
     category: "Presets",
     image: "/design/img/presets/preset-big-text.png",
     description: "Only shows the current song's title, artist and release. Track list is disabled, artwork is moved to the background",
@@ -1846,7 +1848,7 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-minimalistic",
-    name: "Preset: Minimalistic Mode",
+    name: "Minimalistic Mode",
     category: "Presets",
     image: "/design/img/presets/preset-minimalistic.png",
     description: "A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast",
@@ -1961,7 +1963,7 @@ function initVisualPreferences() {
     descElem.id = preset.id + "-description";
 
     let descHeader = document.createElement("div");
-    descHeader.innerHTML = preset.name;
+    descHeader.innerHTML = "Preset: " + preset.name;
 
     let descContent = document.createElement("div");
     descContent.innerHTML = preset.description;
@@ -2101,12 +2103,6 @@ function updateExternallyToggledPreferences(changes) {
     }
     resolve();
   });
-}
-
-
-function setTransitions(state) {
-  setClass(document.body, "transition", state);
-  showHide(getById("background-img-crossfade"), state, true);
 }
 
 function toggleFullscreen() {

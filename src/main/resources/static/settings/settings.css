@@ -8,7 +8,7 @@ html, body {
     padding: 0;
     color: #ddd;
     font-family: 'Consolas', 'Lucida Console', 'Courier New', monospace;
-    font-size: 3vh;
+    font-size: 3vmax;
     width: 100%;
     height: 100%;
     user-select: none;
@@ -16,27 +16,55 @@ html, body {
 }
 
 body {
-    padding: 2vh;
+    padding: 2vmax;
 }
 
-#header {
+header {
     text-align: center;
+    margin-bottom: 2vmax;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+header > div {
+    margin: 1vmax 0;
+}
+
+#headline {
     font-weight: bold;
-    font-size: 4vh;
-    margin: 1vh 0;
+    font-size: 4vmax;
 }
 
 #subtitle {
-    text-align: center;
-    font-size: 3vh;
+    font-size: 3vmax;
     opacity: 0.5;
-    margin-bottom: 4vh;
+}
+
+#description-toggle {
+    font-size: 2vmax;
+    opacity: 0.5;
+    cursor: pointer;
+    text-decoration: line-through;
+    background-color: #222;
+    padding: 1vmax;
+    border-radius: 1vmax;
+    width: fit-content;
+}
+
+#description-toggle:hover {
+    opacity: 1;
+}
+
+#description-toggle.on {
+    text-decoration: unset;
 }
 
 #settings {
     display: flex;
     flex-direction: column;
-    gap: 1vh;
+    gap: 1vmax;
     max-width: 100%;
 }
 
@@ -46,8 +74,8 @@ body {
 
 #settings .setting-category {
     background-color: #222;
-    padding: 1vh;
-    border-radius: 1vh;
+    padding: 1vmax;
+    border-radius: 1vmax;
     text-align: center;
     transition: opacity 0.1s;
     justify-content: center;
@@ -64,7 +92,7 @@ body {
 #settings .setting {
     cursor: pointer;
     opacity: 0.5;
-    margin: 1vh;
+    margin: 1vmax;
 }
 
 #settings .setting:hover {
@@ -78,11 +106,23 @@ body {
 
 #settings .setting-category .setting-category-header {
     cursor: pointer;
-    font-size: 4vh;
+    font-size: 4vmax;
     font-weight: bold;
     opacity: 0.5;
 }
 #settings .setting-category .setting-category-header:hover,
 #settings .setting-category.expand .setting-category-header {
     opacity: 1;
+}
+
+#settings .setting-category .setting-description {
+    display: none;
+    font-size: 1vmax;
+    opacity: 0.65;
+    text-align: justify;
+    text-align-last: center;
+}
+
+#settings.show-descriptions .setting-category .setting-description {
+    display: block;
 }

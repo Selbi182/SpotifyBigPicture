@@ -1,6 +1,7 @@
 const reloadSetting = {
   id: "reload",
-  name: "Reload Interface"
+  name: "Reload Interface",
+  description: "Trigger a page reload request to the interface. Use this if the app becomes unresponsive"
 }
 
 let loadedSettings;
@@ -20,6 +21,9 @@ fetch("/settings/list")
         settingContainer.id = setting.id;
         settingContainer.classList.add("setting");
         settingContainer.innerHTML = setting.name;
+        if (setting.description) {
+          settingContainer.innerHTML += `<div class="setting-description">${setting.description}</div>`;
+        }
         settingContainer.onclick = () => {
           toggleSetting(settingContainer, setting.id);
         }
@@ -47,8 +51,15 @@ fetch("/settings/list")
         }
         let categoryElem = categories[setting.category];
         categoryElem.appendChild(settingContainer);
+
+        // Setup show descriptions toggle button
+        let descriptionToggle = document.getElementById("description-toggle");
+        descriptionToggle.onclick = () => {
+          settingsListContainer.classList.toggle("show-descriptions");
+          descriptionToggle.classList.toggle("on");
+        }
       }
-    })
+    });
 
 function toggleSetting(settingContainer, settingId) {
   if (!settingContainer.classList.contains("disabled")) {
@@ -63,7 +74,7 @@ function toggleSetting(settingContainer, settingId) {
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
         } else if (response.status >= 400) {
-          console.warn("Failed to transmit settings to backend");
+          console.warn("Failed to transmit setting to backend");
         }
       }).finally(() => {
         setTimeout(() => {
