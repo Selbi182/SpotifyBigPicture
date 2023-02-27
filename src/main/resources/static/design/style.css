@@ -23,7 +23,7 @@ html, body {
     margin: 0;
     overflow: hidden;
     background: black;
-    color: var(--color);
+    color: white;
     font-family: var(--font-normal);
     width: 100%;
     height: 100%;
@@ -47,10 +47,6 @@ html, body {
 
 .transparent {
     opacity: 0 !important;
-}
-
-.no-colored-text {
-    --color: #ffffff;
 }
 
 .text-grow {
@@ -109,6 +105,11 @@ img:not([src]) {
 
 #main {
     height: 100%;
+    color: var(--color);
+}
+
+#main.no-colored-text {
+    --color: white;
 }
 
 #main.decreased-margins {
@@ -383,6 +384,10 @@ div#context-main {
 #context-extra {
     opacity: 0.5;
     width: fit-content;
+}
+
+#content-top.swap #context-extra {
+    align-self: end;
 }
 
 #meta-right {
