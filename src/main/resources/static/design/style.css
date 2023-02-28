@@ -14,7 +14,6 @@
     --font-normal: "Spotify Book", sans-serif;
     --font-bold: "Spotify Bold", sans-serif;
     --margin-main: 8vh;
-    --artwork-size: 68vh;
     --default-shadow: 0.5vh 0.5vh 0.5vh #00000044;
     --blur: 1vh;
 }
@@ -121,8 +120,18 @@ img:not([src]) {
     filter: blur(var(--blur)) brightness(0.5);
 }
 
-#main.maximum-artwork:not(.vertical) {
-    --artwork-size: calc(100vh - (var(--margin-main) * 2));
+#main {
+    --artwork-size: 0;
+}
+
+#main:not(.vertical) #content:not(.full-content) #content-center,
+#main.artwork-l:not(.vertical) #content:not(.full-content) #content-top,
+#main.artwork-l.artwork-xl:not(.vertical) #content:not(.full-content) #content-bottom {
+    max-width: calc(100% - var(--artwork-size) - var(--margin-main));
+}
+
+#main.artwork-right #content {
+    align-items: start;
 }
 
 #background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain {
@@ -145,6 +154,7 @@ img:not([src]) {
     overflow: hidden;
     width: 100% !important;
     height: 100% !important;
+    justify-content: start;
 }
 
 #prerender-canvas * {
@@ -152,7 +162,11 @@ img:not([src]) {
 }
 
 #prerender-canvas.show, #prerender-canvas.no-prerender {
-    display: unset;
+    display: flex;
+}
+
+#main.artwork-right #prerender-canvas {
+    justify-content: end;
 }
 
 #prerender-canvas.no-prerender {
@@ -267,10 +281,6 @@ img:not([src]) {
     display: none;
 }
 
-#main:not(.vertical) #content:not(.full-content) :is(#content-top, #content-center) {
-    max-width: calc(100% - var(--artwork-size) - var(--margin-main));
-}
-
 #content-top.swap {
     flex-direction: row-reverse;
 }
@@ -283,10 +293,6 @@ img:not([src]) {
     max-height: calc(var(--artwork-size) + var(--margin-main));
 }
 
-#main.maximum-artwork:not(.vertical) #content-top {
-    max-height: calc(var(--artwork-size) - (var(--margin-main) * 2));
-}
-
 #artwork {
     width: var(--artwork-size);
     height: var(--artwork-size);
@@ -295,8 +301,12 @@ img:not([src]) {
     margin: var(--margin-main);
 }
 
+#artwork.top-disabled.center-disabled.bottom-disabled {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #main.vertical #artwork {
-    --artwork-size: 52vh;
     margin-left: auto;
     margin-right: auto;
 }
@@ -345,6 +355,8 @@ img:not([src]) {
 #thumbnail-wrapper {
     height: 6vh;
     width: 6vh;
+    min-height: 6vh;
+    min-width: 6vh;
     box-shadow: 0.2vh 0.2vh 0.5vh #0004;
     display: none;
 }
@@ -432,13 +444,20 @@ div#context-main {
     gap: 4vh;
 }
 
+#content-center.hide {
+    visibility: hidden;
+}
+
 #content-center.no-feat .feat {
     display: none;
 }
 
 #main.vertical #content-center {
-    margin-top: auto;
-    max-height: calc(var(--artwork-size) - 48vh);
+    justify-content: end;
+}
+
+#main.vertical #center-info-main {
+    padding-top: 4vh;
 }
 
 #content-center.split-main-panels {
@@ -509,7 +528,7 @@ div#context-main {
     font-family: var(--font-bold);
 }
 
-div#title.hide {
+#content div#title.hide {
     display: none !important;
 }
 
@@ -934,10 +953,6 @@ div#device {
     display: none;
 }
 
-#main.maximum-artwork:not(.vertical) #content:not(.full-content) #content-bottom {
-    max-width: calc(100% - var(--artwork-size) - var(--margin-main));
-}
-
 #content-bottom.reverse {
     flex-direction: column-reverse;
 }
@@ -1001,7 +1016,7 @@ div#device {
     padding: var(--margin-main);
     opacity: 0;
     font-size: 3vh;
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: var(--margin-main);
     pointer-events: none;
@@ -1012,6 +1027,7 @@ div#device {
 }
 
 #settings-wrapper.show {
+    display: flex;
     opacity: 1;
     pointer-events: auto;
 }
@@ -1120,7 +1136,7 @@ div#device {
 #settings-presets > .preset {
     opacity: 0.5;
     cursor: pointer;
-    width: 20vw;
+    width: 20%;
     height: auto;
     background: #ffffff40;
     background-size: contain;
@@ -1259,7 +1275,7 @@ div#device {
     margin: 0;
 }
 
-#main.preset-thumbnail-generator #artwork.fake.center {
+#main.preset-thumbnail-generator #artwork.fake:is(.center, .center-disabled.top-disabled.bottom-disabled) {
     align-self: center;
 }
 

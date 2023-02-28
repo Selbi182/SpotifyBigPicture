@@ -158,7 +158,7 @@ function calculateNextPollingTimeout(success) {
         let remainingTime = timeTotal - timeCurrent;
         if (timeCurrent && timeTotal && remainingTime > 0 && remainingTime < POLLING_INTERVAL_MS) {
           clearTimeout(fakeSongTransition);
-          if (findPreference("fake-song-transition").state) {
+          if (isPrefEnabled("fake-song-transition")) {
             fakeSongTransition = setTimeout(() => simulateNextSongTransition(), remainingTime);
             return POLLING_INTERVAL_MS * 2;
           } else {
@@ -220,9 +220,9 @@ function processJson(json) {
         window.location.reload(true);
       } else {
         updateExternallyToggledPreferences(json)
+          .then(() => setTextData(json))
           .then(() => changeImage(json))
           .then(() => prerenderNextImage(json))
-          .then(() => setTextData(json))
           .then(() => refreshTimers())
           .finally(() => {
             // Update properties in local storage
@@ -262,7 +262,7 @@ function setTextData(changes) {
     let artistsString = mainArtist + buildFeaturedArtistsSpan(artistsNew);
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
 
-    if (findPreference("show-featured-artists").state || currentData.currentlyPlaying.artists[0] !== mainArtist) {
+    if (isPrefEnabled("show-featured-artists") || currentData.currentlyPlaying.artists[0] !== mainArtist) {
       balanceTextClamp(artistContainer);
       fadeIn(artistContainer);
     }
@@ -437,7 +437,7 @@ function setCorrectTracklistView(changes, force = false) {
 
   let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
   let titleDisplayed = specialQueue || listViewType !== "ALBUM";
-  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !findPreference("scrolling-track-list").state) && findPreference("show-queue").state;
+  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !isPrefEnabled("scrolling-track-list")) && isPrefEnabled("show-queue");
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   setClass(mainContainer, "hide-title", !titleDisplayed);
@@ -488,7 +488,7 @@ function setCorrectTracklistView(changes, force = false) {
     let contentCenterContainer = trackListContainer.parentElement;
     let contentCenterHeight = contentCenterContainer.offsetHeight;
     let trackListSize = trackListContainer.scrollHeight / previousFontSizeScale;
-    let splitMode = findPreference("split-main-panels").state;
+    let splitMode = isPrefEnabled("split-main-panels");
 
     let trackListScaleRatio;
     if (splitMode) {
@@ -741,7 +741,7 @@ function updateScrollPositions(trackNumber) {
       trackListContainer.scroll({
         top: scroll,
         left: 0,
-        behavior: findPreference("transitions").state ? 'smooth' : 'auto'
+        behavior: isPrefEnabled("transitions") ? 'smooth' : 'auto'
       });
       updateScrollGradients();
     }
@@ -780,7 +780,7 @@ let defaultPrerender = {
   imageUrl: DEFAULT_IMAGE,
   pngData: null
 };
-refreshDefaultPrerender().then();
+window.addEventListener('load', refreshDefaultPrerender);
 
 let nextImagePrerenderPngData;
 unsetNextImagePrerender();
@@ -818,7 +818,7 @@ function changeImage(changes) {
 const PRERENDER_DELAY_MS = 1000;
 function prerenderNextImage(changes, delay = PRERENDER_DELAY_MS) {
   return new Promise(resolve => {
-    let prerenderEnabled = findPreference("prerender-background").state;
+    let prerenderEnabled = isPrefEnabled("prerender-background");
     if (prerenderEnabled) {
       let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
       let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
@@ -871,9 +871,9 @@ function setArtworkAndPrerender(newImageUrl, colors) {
   });
 }
 
-
 function loadArtwork(newImage) {
   return new Promise((resolve) => {
+    calculateArtworkSize();
     let artwork = getById("artwork-img");
     artwork.onload = () => {
       resolve();
@@ -882,6 +882,35 @@ function loadArtwork(newImage) {
   });
 }
 
+function calculateArtworkSize() {
+  getById("artwork").style.removeProperty("margin-top");
+
+  let topRect = getById("content-top").getBoundingClientRect();
+  let centerRect = getById("content-center").getBoundingClientRect();
+  let bottomRect = getById("content-bottom").getBoundingClientRect();
+
+  let contentTop = isPrefEnabled("enable-top-content") ? topRect.top : centerRect.top;
+  let contentBottom = isPrefEnabled("enable-bottom-content") ? bottomRect.bottom : centerRect.bottom;
+  let centerTop = centerRect.top;
+  let centerBottom = centerRect.bottom;
+
+
+  let artworkSize = centerBottom - centerTop;
+  if (isPrefEnabled("vertical-mode")) {
+    let centerInfoMainTop = getById("center-info-main").getBoundingClientRect().top;
+    artworkSize = centerInfoMainTop - contentTop;
+  } else {
+    if (isPrefEnabled("artwork-l")) {
+      artworkSize = centerBottom - contentTop;
+      if (isPrefEnabled("artwork-xl")) {
+        artworkSize = contentBottom - contentTop;
+      }
+    } else {
+      getById("artwork").style.marginTop = centerTop + "px";
+    }
+  }
+  getById("main").style.setProperty("--artwork-size", artworkSize + "px");
+}
 
 function loadBackground(newImage, colors) {
   return new Promise((resolve) => {
@@ -1180,15 +1209,14 @@ const PREFERENCES = [
   },
   {
     id: "show-queue",
-    name: "Show Tracklist/Queue",
+    name: "Enable Tracklist/Queue",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
     category: "Track List",
     requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
     css: {
       "title": "!force-display",
       "track-list": "!hidden"
-    },
-    triggers: [refreshTrackList]
+    }
   },
   {
     id: "scrolling-track-list",
@@ -1196,16 +1224,14 @@ const PREFERENCES = [
     description: "If enabled, the track list is replaced by an alternate design that displays the surrounding songs in an automatically scrolling list. " +
         "Do note that this only works when shuffle is disabled and the playlist has less than 200 songs (for performance reasons)",
     category: "Track List",
-    requiredFor: ["enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "xl-main-info-scrolling"],
-    triggers: [refreshTrackList]
+    requiredFor: ["enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "xl-main-info-scrolling"]
   },
   {
     id: "enlarge-scrolling-track-list",
     name: "Enlarge Current (Scrolling)",
     description: "If Scrolling Track List is enabled, the font size of the current song in the track list is slightly increased",
     category: "Track List",
-    css: {"track-list": "enlarge-current"},
-    triggers: [refreshTrackList]
+    css: {"track-list": "enlarge-current"}
   },
   {
     id: "hide-title-scrolling-track-list",
@@ -1214,76 +1240,96 @@ const PREFERENCES = [
         "(since it's already visible in the track list)",
     category: "Track List",
     requiredFor: ["xl-main-info-scrolling"],
-    css: {"center-info-main": "hide-title-in-album-view"},
-    triggers: [refreshTrackList]
+    css: {"center-info-main": "hide-title-in-album-view"}
   },
   {
     id: "xl-main-info-scrolling",
     name: "XL Main Info (Scrolling)",
     description: "If Hide Current Song Name (Scrolling) is enabled, the font size of the main content will automatically be doubled",
     category: "Track List",
-    css: {"center-info-main": "big-text-scrolling"},
-    triggers: [refreshTrackList]
+    css: {"center-info-main": "big-text-scrolling"}
   },
   {
     id: "show-timestamps-track-list",
     name: "Show Time Stamps",
     description: "Show the timestamps for each song in the track list",
     category: "Track List",
-    css: {"track-list": "show-timestamps"},
-    triggers: [refreshTrackList]
+    css: {"track-list": "show-timestamps"}
   },
   {
     id: "display-artwork",
-    name: "Artwork",
+    name: "Show Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
     category: "Artwork",
-    requiredFor: ["xl-artwork"],
+    requiredFor: ["artwork-l", "artwork-xl", "artwork-right"],
     css: {
       "artwork": "!hide",
       "content": "!full-content"
-    },
-    triggers: [refreshBackgroundRender]
+    }
   },
   {
-    id: "xl-artwork",
-    name: "XL Artwork",
-    description: "When enabled, the artwork is stretched to its maximum possible size. Do note that this leaves less room for all the other information",
+    id: "artwork-l",
+    name: "Artwork Size: Large",
+    description: "Artwork spans the top content and center content. If disabled, artwork is only contained between the top and bottom content",
     category: "Artwork",
-    css: {"main": "maximum-artwork"},
-    triggers: [refreshBackgroundRender]
+    requiredFor: ["artwork-xl"],
+    css: {"main": "artwork-l"}
+  },
+  {
+    id: "artwork-xl",
+    name: "Artwork Size: Extra Large",
+    description: "Artwork spans top content, center content, and bottom content. Do note that this leaves less room for all the other information",
+    category: "Artwork",
+    css: {"main": "artwork-xl"}
+  },
+  {
+    id: "artwork-right",
+    name: "Right-Align Artwork",
+    description: "If enabled, the artwork is displayed to the right of the content, rather than the left",
+    category: "Artwork",
+    css: {
+      "main": "artwork-right"
+    }
   },
   {
     id: "bg-artwork",
     name: "Background Artwork",
     description: "If enabled, uses the release artwork for the background as a blurry, darkened version",
     category: "Background",
-    css: {"background-canvas": "!color-only"},
-    triggers: [refreshBackgroundRender]
+    css: {"background-canvas": "!color-only"}
   },
   {
     id: "bg-tint",
     name: "Background Overlay Color",
     description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps increasing the contrast for very dark artworks",
     category: "Background",
-    css: {"background-canvas-overlay": "!no-tint"},
-    triggers: [refreshBackgroundRender]
+    css: {"background-canvas-overlay": "!no-tint"}
   },
   {
     id: "bg-gradient",
     name: "Background Gradient",
     description: "Add a subtle gradient to the background that gets steadily darker towards the bottom",
     category: "Background",
-    css: {"background-canvas-overlay": "!no-gradient"},
-    triggers: [refreshBackgroundRender]
+    css: {"background-canvas-overlay": "!no-gradient"}
   },
   {
     id: "bg-grain",
     name: "Background Film Grain",
     description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images",
     category: "Background",
-    css: {"grain": "show"},
-    triggers: [refreshBackgroundRender]
+    css: {"grain": "show"}
+  },
+  {
+    id: "enable-center-content",
+    name: "Enable Main/Center Content",
+    description: "Enable the main content, the container for the current song data and the track list",
+    category: "Main Content",
+    requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
+      "main-content-left", "main-content-bottom", "split-main-panels", "reduced-center-margins", "vertical-mode"],
+    css: {
+      "content-center": "!hide",
+      "artwork": "!center-disabled"
+    }
   },
   {
     id: "show-artists",
@@ -1299,6 +1345,26 @@ const PREFERENCES = [
     description: "Display any potential featured artists. Otherwise, only show the main artist",
     category: "Main Content",
     css: {"content-center": "!no-feat"}
+  },
+  {
+    id: "show-titles",
+    name: "Show Titles",
+    description: "Show the title of the currently playing song",
+    category: "Main Content",
+    requiredFor: ["hide-title-scrolling-track-list"],
+    css: {"title": "!hide"}
+  },
+  {
+    id: "strip-titles",
+    name: "Strip Titles",
+    description: "Hides any kind of potentially unnecessary extra information from song tiles and release names " +
+        `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
+    category: "Main Content",
+    css: {
+      "title-extra": "hide",
+      "album-title-extra": "hide",
+      "track-list": "strip"
+    }
   },
   {
     id: "xl-text",
@@ -1353,7 +1419,10 @@ const PREFERENCES = [
         "Disabling this will increase the available space for the main content",
     category: "Top Content",
     requiredFor: ["show-context", "show-logo", "swap-top"],
-    css: {"content-top": "!hide"}
+    css: {
+      "content-top": "!hide",
+      "artwork": "!top-disabled"
+    }
   },
   {
     id: "swap-top",
@@ -1410,27 +1479,6 @@ const PREFERENCES = [
         "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
     category: "General",
     css: {"main": "decreased-margins"},
-    triggers: [refreshBackgroundRender]
-  },
-  {
-    id: "show-titles",
-    name: "Show Titles",
-    description: "Show the title of the currently playing song",
-    category: "Main Content",
-    requiredFor: ["hide-title-scrolling-track-list"],
-    css: {"title": "!hide"}
-  },
-  {
-    id: "strip-titles",
-    name: "Strip Titles",
-    description: "Hides any kind of potentially unnecessary extra information from song tiles and release names " +
-        `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
-    category: "Main Content",
-    css: {
-      "title-extra": "hide",
-      "album-title-extra": "hide",
-      "track-list": "strip"
-    }
   },
   {
     id: "enable-bottom-content",
@@ -1439,15 +1487,17 @@ const PREFERENCES = [
         "Disabling this will increase the available space for the main content",
     category: "Bottom Content",
     requiredFor: ["show-progress-bar", "show-timestamps", "show-info-icons", "show-volume", "show-device", "reverse-bottom", "show-clock"],
-    css: {"content-bottom": "!hide"}
+    css: {
+      "content-bottom": "!hide",
+      "artwork": "!bottom-disabled"
+    }
   },
   {
     id: "show-progress-bar",
     name: "Progress Bar",
     description: "Displays a bar of that spans the entire screen, indicating how far along the currently played track is",
     category: "Bottom Content",
-    css: {"progress": "!hide"},
-    triggers: [refreshBackgroundRender]
+    css: {"progress": "!hide"}
   },
   {
     id: "show-timestamps",
@@ -1458,8 +1508,7 @@ const PREFERENCES = [
     css: {
       "artwork": "!hide-timestamps",
       "bottom-meta-container": "!hide-timestamps"
-    },
-    triggers: [refreshBackgroundRender]
+    }
   },
   {
     id: "spread-timestamps",
@@ -1552,33 +1601,30 @@ const PREFERENCES = [
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
     requiredFor: ["split-lr-center-margins"],
-    css: {"content-center": "split-main-panels"},
-    triggers: [refreshTrackList]
+    css: {"content-center": "split-main-panels"}
   },
   {
     id: "reduced-center-margins",
     name: "Reduced Center Margins",
     description: "Halves the margins of the center container",
     category: "Main Content",
-    css: {"content": "decreased-margins"},
-    triggers: [refreshTrackList]
+    css: {"content": "decreased-margins"}
   },
   {
     id: "split-lr-center-margins",
     name: "Left/Right Center Margins (Split Mode)",
     description: "If split mode is enabled, add margins to the left and right of the center content",
     category: "Main Content",
-    css: {"content-center": "extra-margins"},
-    triggers: [refreshTrackList]
+    css: {"content-center": "extra-margins"}
   },
   {
     id: "vertical-mode",
     name: "Vertical Mode",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
     category: "Main Content",
-    overrides: ["show-queue", "xl-text", "xl-artwork"],
-    css: {"main": "vertical"},
-    triggers: [refreshBackgroundRender]
+    overrides: ["show-queue", "xl-text", "artwork-l", "artwork-xl", "artwork-right",
+      "show-podcast-descriptions", "main-content-bottom", "split-main-panels"],
+    css: {"main": "vertical"}
   },
   {
     id: "show-fps",
@@ -1586,7 +1632,9 @@ const PREFERENCES = [
     description: "Display the frames-per-second in the top right of the screen (intended for performance debugging)",
     category: "Developer Tools",
     css: {"fps-counter": "show"},
-    triggers: [fpsTick]
+    callback: () => {
+      fpsTick();
+    }
   },
   {
     id: "prerender-background",
@@ -1598,8 +1646,7 @@ const PREFERENCES = [
     css: {
       "background-rendered": "!hidden",
       "prerender-canvas": "!no-prerender"
-    },
-    triggers: [refreshBackgroundRender]
+    }
   }
 ];
 
@@ -1616,6 +1663,7 @@ const PREFERENCES_CATEGORY_ORDER = [
 
 const PREFERENCES_DEFAULT = {
   enabled: [
+    "enable-center-content",
     "show-queue",
     "scrolling-track-list",
     "enlarge-scrolling-track-list",
@@ -1623,6 +1671,7 @@ const PREFERENCES_DEFAULT = {
     "show-timestamps-track-list",
     "show-podcast-descriptions",
     "display-artwork",
+    "artwork-l",
     "bg-artwork",
     "bg-tint",
     "bg-gradient",
@@ -1663,7 +1712,8 @@ const PREFERENCES_DEFAULT = {
     "swap-top",
     "spread-timestamps",
     "reverse-bottom",
-    "xl-artwork"
+    "artwork-xl",
+    "artwork-right"
   ],
   ignore: [
     "fake-song-transition",
@@ -1687,7 +1737,7 @@ const PREFERENCES_PRESETS = [
     category: "Presets",
     description: "Just the the artwork stretched to the maximum possible size. Apart from that, only the current song, the track list, and the progress bar are displayed",
     enabled: [
-      "xl-artwork",
+      "artwork-xl",
       "decreased-margins"
     ],
     disabled: [
@@ -1779,7 +1829,6 @@ const PREFERENCES_PRESETS = [
       "vertical-mode",
       "spread-timestamps",
       "reverse-bottom",
-      "separate-release-line",
       "reduced-center-margins"
     ],
     disabled: [
@@ -1802,6 +1851,44 @@ const PREFERENCES_PRESETS = [
       "show-timestamps-track-list",
       "colored-symbol-context"
     ]
+  },
+  {
+    id: "preset-artwork-only",
+    name: "Artwork-Only Mode",
+    category: "Presets",
+    description: "Only displays the artwork, nothing else",
+    enabled: [
+      "decreased-margins",
+      "display-artwork",
+      "artwork-xl"
+    ],
+    disabled: [
+      "enable-center-content",
+      "show-queue",
+      "scrolling-track-list",
+      "enlarge-scrolling-track-list",
+      "hide-title-scrolling-track-list",
+      "show-timestamps-track-list",
+      "show-podcast-descriptions",
+      "show-artists",
+      "show-featured-artists",
+      "show-titles",
+      "colored-text",
+      "colored-symbol-context",
+      "colored-symbol-spotify",
+      "show-release",
+      "enable-top-content",
+      "enable-bottom-content",
+      "show-context",
+      "show-logo",
+      "strip-titles",
+      "show-timestamps",
+      "show-info-icons",
+      "show-volume",
+      "show-device",
+      "show-progress-bar",
+      "show-clock"
+    ]
   }
 ];
 
@@ -1813,6 +1900,11 @@ function findPreference(id) {
   }
   return pref;
 }
+
+function isPrefEnabled(id) {
+  return findPreference(id).state;
+}
+
 window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
@@ -1821,6 +1913,9 @@ function initVisualPreferences() {
 
   // Integrity check
   let allDefaultSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignore].flat();
+  if (allDefaultSettings.length > [...new Set(allDefaultSettings)].length) {
+    console.warn("Default settings contain duplicates!");
+  }
   let unclassifiedSettings = PREFERENCES
     .map(pref => pref.id)
     .filter(prefId => !allDefaultSettings.includes(prefId));
@@ -1967,6 +2062,8 @@ function setVisualPreference(pref, newState) {
 
 let darkModeTimeout;
 
+let refreshContentTimeout;
+
 function refreshPreference(preference, state) {
   preference.state = state;
 
@@ -1981,12 +2078,15 @@ function refreshPreference(preference, state) {
       setClass(getById(id), targetClass, targetState)
     }
   }
-  if ('triggers' in preference) {
-    for (let trigger of preference.triggers) {
-      trigger.call();
-    }
-  }
 
+  // Refresh Background and Tracklist, but only do it once per preset application
+  clearTimeout(refreshContentTimeout);
+  refreshContentTimeout = setTimeout(() => {
+    refreshBackgroundRender();
+    refreshTrackList();
+  }, 250);
+
+  // Update the settings that are invalidated
   updateOverridden(preference);
 
   // Toggle Checkmark
@@ -2014,11 +2114,11 @@ let activePreset = PREFERENCES_PRESETS[0]; // used for thumbnail generation
 function applyPreset(preset) {
   activePreset = preset;
 
-  [...PREFERENCES_DEFAULT.enabled, ...preset.enabled]
+  [PREFERENCES_DEFAULT.enabled, preset.enabled].flat()
     .filter(prefId => !preset.disabled.includes(prefId))
     .forEach(prefId => setVisualPreferenceFromId(prefId, true));
 
-  [...PREFERENCES_DEFAULT.disabled, ...preset.disabled]
+  [PREFERENCES_DEFAULT.disabled, preset.disabled].flat()
     .filter(prefId => !preset.enabled.includes(prefId))
     .forEach(prefId => setVisualPreferenceFromId(prefId, false));
 }
@@ -2280,7 +2380,7 @@ function generatePresetThumbnail() {
   if (thumbnailGenerationEnabled) {
     let artworkClone = getById("artwork").cloneNode(true);
     artworkClone.classList.add("fake");
-    setClass(artworkClone, "center", findPreference("vertical-mode").state)
+    setClass(artworkClone, "center", isPrefEnabled("vertical-mode"))
 
     let contentMain = getById("content");
     contentMain.insertBefore(artworkClone, contentMain.firstChild);
