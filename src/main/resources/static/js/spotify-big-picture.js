@@ -1660,8 +1660,8 @@ const PREFERENCES_PRESETS = [
     id: "preset-default",
     name: "Default",
     category: "Presets",
-    description: "The default mode. This preset displays as much information as possible about the current song, along with its artwork on the right, without compromising on readability. " +
-        "Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)",
+    description: "The default mode. A balanced mode that aims to present as much information as possible about the current song (along with its artwork) without compromising on appeal. " +
+        "Shows the upcoming songs in the queue (or the currently playing album), and the various playback information at the bottom",
     enabled: [],
     disabled: []
   },
@@ -1669,7 +1669,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-xl-artwork",
     name: "XL-Artwork Mode",
     category: "Presets",
-    description: "Just the the artwork stretched to the maximum possible size. Apart from that, only track list and progress bar are displayed",
+    description: "Just the the artwork stretched to the maximum possible size. Apart from that, only the current song, the track list, and the progress bar are displayed",
     enabled: [
       "xl-artwork",
       "decreased-margins"
@@ -1687,7 +1687,8 @@ const PREFERENCES_PRESETS = [
     id: "preset-tracklist",
     name: "Track-List Mode",
     category: "Presets",
-    description: "Disables the artwork and instead only dimly displays it in the background. This opens up more room for the track list. Also disables some lesser useful information",
+    description: "Disables the artwork and instead only dimly displays it in the background. " +
+        "This opens up more room for the track list, which becomes centered. Also disables some lesser useful information",
     enabled: [
       "xl-main-info-scrolling",
       "spread-timestamps",
@@ -1706,7 +1707,8 @@ const PREFERENCES_PRESETS = [
     id: "preset-split-text",
     name: "Split-Text Mode",
     category: "Presets",
-    description: "A variant of Track-List Mode that puts the current song information on the right (extra large) and the track list on the left",
+    description: "A combination of the default preset and Track-List Mode that puts the current song information on the left and the track list on the right. " +
+        "Disables the artwork and instead only dimly displays it in the background",
     enabled: [
       "swap-top",
       "xl-main-info-scrolling",
@@ -1728,7 +1730,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-big-current-song",
     name: "Big Current-Song Mode",
     category: "Presets",
-    description: "Only shows the current song's title, artist and release. Track list is disabled, artwork is moved to the background",
+    description: "Only shows the current song's title, artist and release in an extra large manner. Track list is disabled, artwork is moved to the background",
     enabled: [
       "xl-text",
       "split-main-panels",
@@ -1755,7 +1757,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-minimalistic",
     name: "Minimalistic Mode",
     category: "Presets",
-    description: "A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast",
+    description: "A minimalistic design preset only containing the most relevant information about the currently playing song. The background only displays a plain color. Inspired by the original Spotify fullscreen interface for Chromecast",
     enabled: [
       "vertical-mode",
       "spread-timestamps",
@@ -1768,6 +1770,7 @@ const PREFERENCES_PRESETS = [
       "scrolling-track-list",
       "enlarge-scrolling-track-list",
       "bg-artwork",
+      "bg-gradient",
       "show-device",
       "show-volume",
       "show-podcast-descriptions",

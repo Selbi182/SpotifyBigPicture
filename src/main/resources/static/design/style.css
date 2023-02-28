@@ -1107,6 +1107,7 @@ div#device {
 #settings-presets {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
     gap: var(--margin-main);
     max-height: 100%;
@@ -1120,9 +1121,9 @@ div#device {
 #settings-presets > .preset {
     opacity: 0.5;
     cursor: pointer;
-    width: auto;
-    height: 100%;
-    background: #ffffff20;
+    width: 20vw;
+    height: auto;
+    background: #ffffff40;
     background-size: contain;
     border-radius: 1vh;
     border: 0.3vh solid white;
