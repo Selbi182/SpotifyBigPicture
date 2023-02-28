@@ -106,6 +106,7 @@ img:not([src]) {
 #main {
     height: 100%;
     color: var(--color);
+    transition: filter var(--transition);
 }
 
 #main.no-colored-text {
@@ -248,7 +249,7 @@ img:not([src]) {
     justify-content: space-between;
 }
 
-#main.vertical #content, #content.full-content {
+#content.decreased-margins {
     gap: calc(var(--margin-main) / 2);
 }
 
@@ -468,6 +469,10 @@ div#context-main {
     text-align: left;
 }
 
+#center-info-main.bottom {
+    align-self: end;
+}
+
 #main:not(.vertical) #content-center:not(.queue).split-main-panels #center-info-main.hide-title-in-album-view.big-text-scrolling,
 #main:not(.vertical) #center-info-main.big-text {
     --font-scale: 2vh;
@@ -578,7 +583,7 @@ div#description {
 }
 
 #content-center.split-main-panels #track-list {
-    max-width: 50%;
+    max-width: calc(100% * (2 / 3));
 }
 
 #track-list:empty, #main.vertical #track-list {
@@ -1002,19 +1007,13 @@ div#device {
     pointer-events: none;
 }
 
-#settings-wrapper.show {
-    opacity: 1;
-    left: 0;
-    pointer-events: auto;
-}
-
-#settings-wrapper > div {
-    margin-left: -100vw;
+#settings-wrapper, #settings-wrapper * {
     transition: opacity var(--transition), margin-left var(--transition), transform var(--transition);
 }
 
-#settings-wrapper.show > div {
-    margin-left: 0;
+#settings-wrapper.show {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 #settings-wrapper::before {
@@ -1202,9 +1201,13 @@ div#device {
 }
 
 #settings-expert-mode-toggle::before {
-    content: "\00BB";
+    content: "\2610";
     margin-right: 1vh;
     opacity: 0.5;
+}
+
+#settings-wrapper.expert #settings-expert-mode-toggle::before {
+    content: "\2611";
 }
 
 #clock-wrapper {

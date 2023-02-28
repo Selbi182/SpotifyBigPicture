@@ -13,10 +13,6 @@ fetch("/settings/list")
       let settingsListContainer = document.getElementById("settings");
       let categories = {};
       for (let setting of [...loadedSettings, reloadSetting]) {
-        if (setting.id === "fullscreen") {
-          continue; // Fullscreen cannot be controlled externally
-        }
-
         let settingContainer = document.createElement("div");
         settingContainer.id = setting.id;
         settingContainer.classList.add("setting");

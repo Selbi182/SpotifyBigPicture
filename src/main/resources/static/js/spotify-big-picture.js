@@ -452,9 +452,9 @@ function setCorrectTracklistView(changes, force = false) {
   let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
-  let refreshPrintedList = force
-    || (queueMode !== wasPreviouslyInQueueMode)
-    || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue));
+  let refreshPrintedList = newQueue.length > 0 &&
+      (force || (queueMode !== wasPreviouslyInQueueMode)
+    || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue)));
 
   if (refreshPrintedList) {
     if (queueMode) {
@@ -462,8 +462,8 @@ function setCorrectTracklistView(changes, force = false) {
         // Special animation when the expected next song comes up
         let trackListContainer = printTrackList([currentData.trackData.queue[0], ...changes.trackData.queue], false);
         requestAnimationFrame(() => requestAnimationFrame(() => { // double requestAnimationFrame to avoid race conditions...
-          let currentTrackListTopElem = trackListContainer.querySelector(".track-elem:first-child");
-          let currentTrackListBottomElem = trackListContainer.querySelector(".track-elem:last-child");
+          let currentTrackListTopElem = trackListContainer.firstElementChild;
+          let currentTrackListBottomElem = trackListContainer.lastElementChild;
           currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
             let parent = e.target.parentNode;
             if (parent.classList.contains("track-elem") && parent.classList.contains("shrink")) {
@@ -473,9 +473,9 @@ function setCorrectTracklistView(changes, force = false) {
           currentTrackListTopElem.classList.add("shrink");
           currentTrackListBottomElem.classList.add("grow");
         }));
-
       } else {
-        printTrackList(changes.trackData.queue, false);
+        let trackListContainer = printTrackList(changes.trackData.queue, false);
+        trackListContainer.lastElementChild.classList.add("grow");
       }
     } else {
       let isMultiDisc = listTracks.find(t => 'discNumber' in t && t.discNumber > 1);
@@ -483,32 +483,35 @@ function setCorrectTracklistView(changes, force = false) {
     }
 
     // Scale track list to fit container
-    let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") ?? 1;
+    let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") || 1;
 
-    let contentMainSize = getById("center-info-main").offsetHeight;
+    let contentCenterContainer = trackListContainer.parentElement;
+    let contentCenterHeight = contentCenterContainer.offsetHeight;
     let trackListSize = trackListContainer.scrollHeight / previousFontSizeScale;
     let splitMode = findPreference("split-main-panels").state;
 
     let trackListScaleRatio;
     if (splitMode) {
-      trackListScaleRatio = Math.max(2, contentMainSize / trackListSize);
+      trackListScaleRatio = Math.max(2, contentCenterHeight / trackListSize);
     } else {
-      let contentCenterContainer = trackListContainer.parentElement;
-      let contentCenterSize = contentCenterContainer.offsetHeight;
+      let contentInfoSize = getById("center-info-main").offsetHeight;
       let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
-      trackListScaleRatio = Math.max(2, (contentCenterSize - contentMainSize - contentCenterGap) / trackListSize);
+      trackListScaleRatio = Math.max(2, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
     }
     if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
       trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
+
+      // Make sure the tracklist is at the correct position after the scaling transition.
+      // This is a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid.
+      let transitionFromCss = getComputedStyle(document.body).getPropertyValue("--transition");
       setTimeout(() => {
         refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
-      }, 500); // a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid
+        refreshTextBalance();
+      }, parseFloat(transitionFromCss.slice(0, -1)) * 1000);
     }
   }
 
-  let updateHighlightedTrack = refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged;
-
-  if (updateHighlightedTrack) {
+  if (refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
     refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
   }
 }
@@ -1164,15 +1167,6 @@ document.addEventListener("visibilitychange", () => {
 
 const PREFERENCES = [
   {
-    id: "fullscreen",
-    name: "Full Screen",
-    description: "Toggles full screen on or off. Can also be toggled by double clicking anywhere on the screen. " +
-        "(This setting is not persisted between sessions due to browser security limitations)",
-    category: "General",
-    triggers: [toggleFullscreen],
-    volatile: true // don't add fullscreen in the local storage, as it won't work (browser security shenanigans)
-  },
-  {
     id: "fake-song-transition",
     name: "Simulate Song Transition (Beta)",
     description: "If enabled, simulate the transition to the expected next song in the queue. Otherwise, wait for the actual data to arrive. " +
@@ -1262,7 +1256,7 @@ const PREFERENCES = [
   {
     id: "bg-artwork",
     name: "Background Artwork",
-    description: "If enabled, uses the release artwork for the background as a blurry, darkened version. Otherwise, only a gradient will be displayed",
+    description: "If enabled, uses the release artwork for the background as a blurry, darkened version",
     category: "Background",
     css: {"background-canvas": "!color-only"},
     triggers: [refreshBackgroundRender]
@@ -1278,7 +1272,7 @@ const PREFERENCES = [
   {
     id: "bg-gradient",
     name: "Background Gradient",
-    description: "Add a subtle gradient to the background",
+    description: "Add a subtle gradient to the background that gets steadily darker towards the bottom",
     category: "Background",
     css: {"background-canvas-overlay": "!no-gradient"},
     triggers: [refreshBackgroundRender]
@@ -1544,18 +1538,34 @@ const PREFERENCES = [
     css: {"center-info-main": "left"}
   },
   {
+    id: "main-content-bottom",
+    name: "Bottom-Align Main Info",
+    description: "Bottom-align the main content (current song information), instead of centering it. "
+      + "This setting is intended to be used with disabled artwork",
+    category: "Main Content",
+    css: {"center-info-main": "bottom"}
+  },
+  {
     id: "split-main-panels",
     name: "Split Main Content",
     description: "Separate the main info from the track list and display both in their own panel. "
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
-    requiredFor: ["center-margins"],
+    requiredFor: ["split-lr-center-margins"],
     css: {"content-center": "split-main-panels"},
     triggers: [refreshTrackList]
   },
   {
-    id: "center-margins",
-    name: "Center Margins (Split Mode)",
+    id: "reduced-center-margins",
+    name: "Reduced Center Margins",
+    description: "Halves the margins of the center container",
+    category: "Main Content",
+    css: {"content": "decreased-margins"},
+    triggers: [refreshTrackList]
+  },
+  {
+    id: "split-lr-center-margins",
+    name: "Left/Right Center Margins (Split Mode)",
     description: "If split mode is enabled, add margins to the left and right of the center content",
     category: "Main Content",
     css: {"content-center": "extra-margins"},
@@ -1643,8 +1653,10 @@ const PREFERENCES_DEFAULT = {
     "xl-text",
     "separate-release-line",
     "main-content-left",
+    "main-content-bottom",
     "split-main-panels",
-    "center-margins",
+    "split-lr-center-margins",
+    "reduced-center-margins",
     "vertical-mode",
     "xl-main-info-scrolling",
     "xl-tracklist",
@@ -1652,6 +1664,11 @@ const PREFERENCES_DEFAULT = {
     "spread-timestamps",
     "reverse-bottom",
     "xl-artwork"
+  ],
+  ignore: [
+    "fake-song-transition",
+    "dark-mode",
+    "show-fps"
   ]
 }
 
@@ -1660,8 +1677,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-default",
     name: "Default",
     category: "Presets",
-    description: "The default mode. A balanced mode that aims to present as much information as possible about the current song (along with its artwork) without compromising on appeal. " +
-        "Shows the upcoming songs in the queue (or the currently playing album), and the various playback information at the bottom",
+    description: "The default mode. A balanced mode that aims to present as much information as possible about the current song (along with its artwork) without compromising on appeal",
     enabled: [],
     disabled: []
   },
@@ -1712,7 +1728,8 @@ const PREFERENCES_PRESETS = [
     enabled: [
       "swap-top",
       "xl-main-info-scrolling",
-      "center-margins",
+      "split-lr-center-margins",
+      "reduced-center-margins",
       "main-content-left",
       "reverse-bottom",
       "split-main-panels",
@@ -1762,7 +1779,8 @@ const PREFERENCES_PRESETS = [
       "vertical-mode",
       "spread-timestamps",
       "reverse-bottom",
-      "separate-release-line"
+      "separate-release-line",
+      "reduced-center-margins"
     ],
     disabled: [
       "show-clock",
@@ -1801,6 +1819,16 @@ function initVisualPreferences() {
   const settingsWrapper = getById("settings-categories");
   const settingsDescriptionWrapper = getById("settings-description");
 
+  // Integrity check
+  let allDefaultSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignore].flat();
+  let unclassifiedSettings = PREFERENCES
+    .map(pref => pref.id)
+    .filter(prefId => !allDefaultSettings.includes(prefId));
+  if (unclassifiedSettings.length > 0) {
+    console.warn("The following settings don't have any defaults specified: " + unclassifiedSettings);
+  }
+
+  // Create categories
   let categories = {};
   for (let category of PREFERENCES_CATEGORY_ORDER) {
     let categoryElem = document.createElement("div");
@@ -1813,6 +1841,7 @@ function initVisualPreferences() {
     categories[category] = categoryElem;
   }
 
+  // Create expert settings
   for (let prefIndex in PREFERENCES) {
     let pref = PREFERENCES[prefIndex];
 
@@ -1841,9 +1870,8 @@ function initVisualPreferences() {
     settingsDescriptionWrapper.appendChild(descElem);
 
   }
-  getById("fullscreen").onclick = toggleFullscreen;
 
-  // Preset buttons
+  // Create preset buttons
   const settingsPresetsWrapper = getById("settings-presets");
   for (let presetIndex in PREFERENCES_PRESETS) {
     let preset = PREFERENCES_PRESETS[presetIndex];
@@ -1903,7 +1931,7 @@ function getVisualPreferencesFromLocalStorage() {
 function refreshPrefsLocalStorage() {
   if (isLocalStorageAvailable()) {
     let enabledPreferences = PREFERENCES
-        .filter(pref => !pref.volatile && pref.state)
+        .filter(pref => pref.state)
         .map(pref => pref.id)
         .join(LOCAL_STORAGE_SPLIT_CHAR);
     localStorage.setItem(LOCAL_STORAGE_KEY, enabledPreferences);
@@ -1922,13 +1950,7 @@ function isLocalStorageAvailable() {
 }
 
 function toggleVisualPreference(pref) {
-  if (pref.volatile) {
-    for (let trigger of pref.triggers) {
-      trigger.call();
-    }
-  } else {
-    setVisualPreference(pref, !pref.state);
-  }
+  setVisualPreference(pref, !pref.state);
 }
 
 function setVisualPreferenceFromId(prefId, newState) {
@@ -1946,31 +1968,29 @@ function setVisualPreference(pref, newState) {
 let darkModeTimeout;
 
 function refreshPreference(preference, state) {
-  if (!preference.volatile) {
-    preference.state = state;
+  preference.state = state;
 
-    if ('callback' in preference) {
-      preference.callback(state);
-    }
-    if ('css' in preference) {
-      for (let id in preference.css) {
-        let targetClassRaw = preference.css[id].toString();
-        let targetClass = targetClassRaw.replace("!", "");
-        let targetState = targetClassRaw.startsWith("!") ? !state : state;
-        setClass(getById(id), targetClass, targetState)
-      }
-    }
-    if ('triggers' in preference) {
-      for (let trigger of preference.triggers) {
-        trigger.call();
-      }
-    }
-
-    updateOverridden(preference);
-
-    // Toggle Checkmark
-    setClass(getById(preference.id), "on", state);
+  if ('callback' in preference) {
+    preference.callback(state);
   }
+  if ('css' in preference) {
+    for (let id in preference.css) {
+      let targetClassRaw = preference.css[id].toString();
+      let targetClass = targetClassRaw.replace("!", "");
+      let targetState = targetClassRaw.startsWith("!") ? !state : state;
+      setClass(getById(id), targetClass, targetState)
+    }
+  }
+  if ('triggers' in preference) {
+    for (let trigger of preference.triggers) {
+      trigger.call();
+    }
+  }
+
+  updateOverridden(preference);
+
+  // Toggle Checkmark
+  setClass(getById(preference.id), "on", state);
 }
 
 function updateOverridden(preference) {
@@ -1990,7 +2010,7 @@ function updateOverridden(preference) {
   }
 }
 
-let activePreset = PREFERENCES_PRESETS[0];
+let activePreset = PREFERENCES_PRESETS[0]; // used for thumbnail generation
 function applyPreset(preset) {
   activePreset = preset;
 
@@ -2194,7 +2214,6 @@ function initSettingsMouseMove() {
   settingsMenuExpertModeToggleButton.onclick = () => {
     toggleSettingsExpertMode();
   };
-  setExpertModeToggleButtonText(settingsExpertMode);
 
   document.body.onclick = (e) => {
     if (settingsVisible && !isSettingControlElem(e, true)) {
@@ -2254,12 +2273,6 @@ function toggleSettingsExpertMode() {
   settingsExpertMode = !settingsExpertMode;
   let settingsWrapper = getById("settings-wrapper");
   setClass(settingsWrapper, "expert", settingsExpertMode);
-  setExpertModeToggleButtonText(settingsExpertMode);
-}
-
-function setExpertModeToggleButtonText(state) {
-  let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
-  settingsMenuExpertModeToggleButton.innerHTML = state ? "All Settings" : "Choose a Preset";
 }
 
 function generatePresetThumbnail() {
