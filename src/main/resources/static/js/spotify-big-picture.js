@@ -463,15 +463,15 @@ function setCorrectTracklistView(changes, force = false) {
         let trackListContainer = printTrackList([currentData.trackData.queue[0], ...changes.trackData.queue], false);
         requestAnimationFrame(() => requestAnimationFrame(() => { // double requestAnimationFrame to avoid race conditions...
           let currentTrackListTopElem = trackListContainer.querySelector(".track-elem:first-child");
+          let currentTrackListBottomElem = trackListContainer.querySelector(".track-elem:last-child");
           currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
             let parent = e.target.parentNode;
-            if (e.target.classList.contains("shrink")) {
-              if (parent.classList.contains("track-elem")) {
-                parent.remove();
-              }
+            if (parent.classList.contains("track-elem") && parent.classList.contains("shrink")) {
+              parent.remove();
             }
           }
-          currentTrackListTopElem.childNodes.forEach(node => node.classList.add("shrink"));
+          currentTrackListTopElem.classList.add("shrink");
+          currentTrackListBottomElem.classList.add("grow");
         }));
 
       } else {
@@ -483,10 +483,10 @@ function setCorrectTracklistView(changes, force = false) {
     }
 
     // Scale track list to fit container
-    trackListContainer.style.setProperty("--font-size-scale", "0");
-    finishAnimations(trackListContainer);
+    let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") ?? 1;
+
     let contentMainSize = getById("center-info-main").offsetHeight;
-    let trackListSize = trackListContainer.scrollHeight;
+    let trackListSize = trackListContainer.scrollHeight / previousFontSizeScale;
     let splitMode = findPreference("split-main-panels").state;
 
     let trackListScaleRatio;
@@ -532,7 +532,8 @@ function trackListEquals(trackList1, trackList2) {
 }
 
 function balanceTextClamp(elem) {
-  // balanceText doesn't take line-clamping into account, unfortunately
+  // balanceText doesn't take line-clamping into account, unfortunately.
+  // So we gotta temporarily remove it, balance the text, then add it again.
   elem.style.setProperty("-webkit-line-clamp", "initial", "important");
   balanceText(elem);
   elem.style.removeProperty("-webkit-line-clamp");
@@ -906,7 +907,7 @@ function prerenderBackground() {
     setClass(prerenderCanvas, "show", true);
 
     // While PNG produces the by far largest Base64 image data, the actual conversion process
-    // is significantly faster than with JPEG or SVG (still not perfect though)
+    // is significantly faster than with JPEG or SVG for some reason (still not perfect though)
     let pngData;
     domtoimage
       .toPng(prerenderCanvas, {
@@ -1538,7 +1539,7 @@ const PREFERENCES = [
     id: "main-content-left",
     name: "Left-Align Main Info",
     description: "Left-align the main content (current song information), instead of centering it. "
-      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+      + "This setting is intended to be used with disabled artwork",
     category: "Main Content",
     css: {"center-info-main": "left"}
   },
@@ -1592,55 +1593,83 @@ const PREFERENCES = [
   }
 ];
 
+const PREFERENCES_CATEGORY_ORDER = [
+  "General",
+  "Main Content",
+  "Track List",
+  "Top Content",
+  "Bottom Content",
+  "Artwork",
+  "Background",
+  "Developer Tools"
+];
+
+const PREFERENCES_DEFAULT = {
+  enabled: [
+    "show-queue",
+    "scrolling-track-list",
+    "enlarge-scrolling-track-list",
+    "hide-title-scrolling-track-list",
+    "show-timestamps-track-list",
+    "show-podcast-descriptions",
+    "display-artwork",
+    "bg-artwork",
+    "bg-tint",
+    "bg-gradient",
+    "bg-grain",
+    "show-artists",
+    "show-featured-artists",
+    "show-titles",
+    "colored-text",
+    "colored-symbol-context",
+    "colored-symbol-spotify",
+    "show-release",
+    "enable-top-content",
+    "enable-bottom-content",
+    "show-context",
+    "show-logo",
+    "transitions",
+    "strip-titles",
+    "show-timestamps",
+    "show-info-icons",
+    "show-volume",
+    "show-device",
+    "show-progress-bar",
+    "show-clock",
+    "prerender-background"
+  ],
+  disabled: [
+    "decreased-margins",
+    "xl-text",
+    "separate-release-line",
+    "main-content-left",
+    "split-main-panels",
+    "center-margins",
+    "vertical-mode",
+    "xl-main-info-scrolling",
+    "xl-tracklist",
+    "swap-top",
+    "spread-timestamps",
+    "reverse-bottom",
+    "xl-artwork"
+  ]
+}
+
 const PREFERENCES_PRESETS = [
   {
-    id: "preset-advanced",
-    name: "Balanced Mode",
+    id: "preset-default",
+    name: "Default",
     category: "Presets",
-    image: "/design/img/presets/preset-advanced.png",
     description: "The default mode. This preset displays as much information as possible about the current song, along with its artwork on the right, without compromising on readability. " +
         "Shows the upcoming songs in the queue (or the currently playing album), and the playback state (shuffle, current device name, etc.)",
-    enabled: [
-      "show-queue",
-      "scrolling-track-list",
-      "enlarge-scrolling-track-list",
-      "hide-title-scrolling-track-list",
-      "show-timestamps-track-list",
-      "show-podcast-descriptions",
-      "display-artwork",
-      "bg-artwork",
-      "bg-tint",
-      "bg-gradient",
-      "bg-grain",
-      "show-artists",
-      "show-featured-artists",
-      "show-titles",
-      "colored-text",
-      "colored-symbol-context",
-      "colored-symbol-spotify",
-      "show-release",
-      "enable-top-content",
-      "enable-bottom-content",
-      "show-context",
-      "show-logo",
-      "transitions",
-      "strip-titles",
-      "show-timestamps",
-      "show-info-icons",
-      "show-volume",
-      "show-device",
-      "show-progress-bar",
-      "show-clock",
-      "prerender-background"
-    ]
+    enabled: [],
+    disabled: []
   },
   {
-    id: "preset-big-artwork",
+    id: "preset-xl-artwork",
     name: "XL-Artwork Mode",
     category: "Presets",
-    image: "/design/img/presets/preset-big-artwork.png",
     description: "Just the the artwork stretched to the maximum possible size. Apart from that, only track list and progress bar are displayed",
-    inheritFrom: "preset-advanced",
     enabled: [
       "xl-artwork",
       "decreased-margins"
@@ -1655,12 +1684,10 @@ const PREFERENCES_PRESETS = [
     ]
   },
   {
-    id: "preset-background",
+    id: "preset-tracklist",
     name: "Track-List Mode",
     category: "Presets",
-    image: "/design/img/presets/preset-background.png",
     description: "Disables the artwork and instead only dimly displays it in the background. This opens up more room for the track list. Also disables some lesser useful information",
-    inheritFrom: "preset-advanced",
     enabled: [
       "xl-main-info-scrolling",
       "spread-timestamps",
@@ -1679,9 +1706,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-split-text",
     name: "Split-Text Mode",
     category: "Presets",
-    image: "/design/img/presets/preset-split-text.png",
     description: "A variant of Track-List Mode that puts the current song information on the right (extra large) and the track list on the left",
-    inheritFrom: "preset-advanced",
     enabled: [
       "swap-top",
       "xl-main-info-scrolling",
@@ -1700,15 +1725,14 @@ const PREFERENCES_PRESETS = [
     ]
   },
   {
-    id: "preset-big-text",
-    name: "Current-Song Mode",
+    id: "preset-big-current-song",
+    name: "Big Current-Song Mode",
     category: "Presets",
-    image: "/design/img/presets/preset-big-text.png",
     description: "Only shows the current song's title, artist and release. Track list is disabled, artwork is moved to the background",
-    inheritFrom: "preset-advanced",
     enabled: [
       "xl-text",
       "split-main-panels",
+      "separate-release-line",
       "spread-timestamps",
       "reverse-bottom"
     ],
@@ -1731,9 +1755,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-minimalistic",
     name: "Minimalistic Mode",
     category: "Presets",
-    image: "/design/img/presets/preset-minimalistic.png",
     description: "A minimalistic design preset only containing the most relevant information about the currently playing song. Inspired by the original Spotify fullscreen interface for Chromecast",
-    inheritFrom: "preset-advanced",
     enabled: [
       "vertical-mode",
       "spread-timestamps",
@@ -1760,17 +1782,6 @@ const PREFERENCES_PRESETS = [
       "colored-symbol-context"
     ]
   }
-];
-
-const PREFERENCES_CATEGORY_ORDER = [
-    "General",
-    "Main Content",
-    "Track List",
-    "Top Content",
-    "Bottom Content",
-    "Artwork",
-    "Background",
-    "Developer Tools"
 ];
 
 function findPreference(id) {
@@ -1837,7 +1848,7 @@ function initVisualPreferences() {
     let presetElem = document.createElement("div");
     presetElem.id = preset.id;
     presetElem.classList.add("preset");
-    presetElem.innerHTML = `<img src="${preset.image}">`;
+    presetElem.innerHTML = `<img src="/design/img/presets/${preset.id}.png">`;
 
     presetElem.onclick = () => {
       applyPreset(preset);
@@ -1917,6 +1928,10 @@ function toggleVisualPreference(pref) {
   }
 }
 
+function setVisualPreferenceFromId(prefId, newState) {
+  setVisualPreference(PREFERENCES.find(pref => pref.id === prefId), newState);
+}
+
 function setVisualPreference(pref, newState) {
   if (pref) {
     refreshPreference(pref, newState);
@@ -1976,19 +1991,13 @@ let activePreset = PREFERENCES_PRESETS[0];
 function applyPreset(preset) {
   activePreset = preset;
 
-  let settings;
-  if ('inheritFrom' in preset) {
-    let inheritance = PREFERENCES_PRESETS.find(presetEntry => presetEntry.id === preset.inheritFrom);
-    settings = [...inheritance.enabled, ...preset.enabled]
-      .filter(setting => !preset.disabled.includes(setting));
-  } else {
-    settings = preset.enabled;
-  }
+  [...PREFERENCES_DEFAULT.enabled, ...preset.enabled]
+    .filter(prefId => !preset.disabled.includes(prefId))
+    .forEach(prefId => setVisualPreferenceFromId(prefId, true));
 
-  for (let pref of PREFERENCES) {
-    let prefEnabled = settings.includes(pref.id);
-    setVisualPreference(pref, prefEnabled);
-  }
+  [...PREFERENCES_DEFAULT.disabled, ...preset.disabled]
+    .filter(prefId => !preset.enabled.includes(prefId))
+    .forEach(prefId => setVisualPreferenceFromId(prefId, false));
 }
 
 function updateExternallyToggledPreferences(changes) {
@@ -2217,7 +2226,8 @@ function isSettingControlElem(e) {
   return e.target === settingsMenuToggleButton
       || e.target === settingsMenuExpertModeToggleButton
       || e.target.classList.contains("setting")
-      || e.target.classList.contains("preset");
+      || e.target.classList.contains("preset")
+      || e.target.parentNode.classList.contains("preset");
 }
 
 function toggleSettingsMenu() {
@@ -2250,9 +2260,6 @@ function setExpertModeToggleButtonText(state) {
 }
 
 function generatePresetThumbnail() {
-  // Print the current settings to console when shift key is held down
-  console.debug(PREFERENCES.filter(pref => pref.state).map(pref => `"${pref.id}"`).join(",\n"));
-
   let thumbnailGenerationEnabled = getById("main").classList.toggle("preset-thumbnail-generator");
   if (thumbnailGenerationEnabled) {
     let artworkClone = getById("artwork").cloneNode(true);
@@ -2265,25 +2272,19 @@ function generatePresetThumbnail() {
     let content = getById("content");
     let presetThumbnailGeneratorCanvas = getById("preset-thumbnail-generator-canvas");
     domtoimage.toPng(content)
-        .then(imgDataBase64 => {
-          setClass(presetThumbnailGeneratorCanvas, "show", true);
-          presetThumbnailGeneratorCanvas.onload = () => {
-            domtoimage.toPng(presetThumbnailGeneratorCanvas)
-                .then(thumbnailSmall => {
-                  let downloadLink = document.createElement('a');
-                  downloadLink.href = thumbnailSmall;
-                  downloadLink.download = `${activePreset.id}.png`;
-                  document.body.appendChild(downloadLink);
-                  downloadLink.click();
-                  document.body.removeChild(downloadLink);
+      .then(imgDataBase64 => {
+        setClass(presetThumbnailGeneratorCanvas, "show", true);
+        let downloadLink = document.createElement('a');
+        downloadLink.href = `${imgDataBase64}`;
+        downloadLink.download = `${activePreset.id}.png`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
 
-                  document.querySelector("#artwork.fake").remove();
-                  getById("main").classList.remove("preset-thumbnail-generator");
-                  setClass(presetThumbnailGeneratorCanvas, "show", false);
-                });
-          }
-          presetThumbnailGeneratorCanvas.src = imgDataBase64;
-        });
+        document.querySelector("#artwork.fake").remove();
+        getById("main").classList.remove("preset-thumbnail-generator");
+        setClass(presetThumbnailGeneratorCanvas, "show", false);
+      });
   }
 }
 

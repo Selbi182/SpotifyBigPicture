@@ -379,6 +379,7 @@ img:not([src]) {
 
 div#context-main {
     --max-lines: 1;
+    width: fit-content;
 }
 
 #context-extra {
@@ -568,7 +569,7 @@ div#description {
     mask-repeat: no-repeat;
     font-size: var(--font-size-base);
     --font-size-base: calc(1vh * clamp(1, var(--font-size-scale), 3));
-    --font-size-scale: 0;
+    --font-size-scale: 1;
     --gradient-height: 6vh;
     --gradient-top: white;
     --gradient-bottom: white;
@@ -612,10 +613,6 @@ div#description {
     opacity: 0.5;
 }
 
-#main:not(.disable-transitions) #content-center:not(.queue) #track-list:not(.scaling) .track-elem:not(.disc) div {
-    transition: font-size var(--transition), opacity var(--transition);
-}
-
 #content-center:not(.queue) #track-list.enlarge-current .track-elem.current div {
     font-size: calc(var(--font-size-base) * 1.25);
 }
@@ -632,9 +629,12 @@ div#description {
     will-change: opacity, font-size;
 }
 
-#main:not(.disable-transitions) #content-center.queue #track-list .track-elem:first-child div.shrink,
-#main:not(.disable-transitions) #content-center.queue #track-list .track-elem:nth-child(n+20) > div {
-    transition: opacity var(--transition), font-size var(--transition);
+#main:not(.disable-transitions)  #track-list .track-elem div {
+    transition: font-size var(--transition), opacity var(--transition);
+}
+
+#main:not(.disable-transitions) #content-center.queue #track-list .track-elem.shrink:first-child div,
+#main:not(.disable-transitions) #content-center.queue #track-list .track-elem:not(.grow):last-child > div {
     opacity: 0;
     font-size: 0;
 }
@@ -1266,9 +1266,6 @@ div#device {
 
 #preset-thumbnail-generator-canvas {
     display: none;
-    --scale: 0.25;
-    width: calc(100vw * var(--scale));
-    height: calc(100vh * var(--scale));
 }
 
 #preset-thumbnail-generator-canvas.show {
