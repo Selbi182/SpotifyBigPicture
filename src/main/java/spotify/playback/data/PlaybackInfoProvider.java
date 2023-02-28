@@ -17,6 +17,7 @@ import se.michaelthelin.spotify.exceptions.detailed.ForbiddenException;
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.special.PlaybackQueue;
+import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import spotify.api.SpotifyApiException;
@@ -220,7 +221,7 @@ public class PlaybackInfoProvider {
           trackData.setDiscNumber(contextProvider.getCurrentlyPlayingAlbumTrackDiscNumber());
           trackData.setTotalDiscCount(contextProvider.getTotalDiscCount());
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
-          if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
+          if (!playbackContext.getContext().getContextType().equals(PlaybackContext.Context.ContextType.QUEUE_IN_ALBUM)) {
             trackData.setTrackListView(TrackData.ListViewType.ALBUM);
           }
           currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
@@ -316,12 +317,13 @@ public class PlaybackInfoProvider {
     PlaybackInfo pInfo = buildBaseInfo(playbackQueue, context);
 
     Track track = (Track) playbackQueue.getCurrentlyPlaying();
+    AlbumSimplified album = track.getAlbum();
     CurrentlyPlaying currentlyPlaying = pInfo.getCurrentlyPlaying();
 
     currentlyPlaying.setArtists(SpotifyUtils.toArtistNamesList(track.getArtists()));
     currentlyPlaying.setTitle(track.getName());
-    currentlyPlaying.setAlbum(track.getAlbum().getName());
-    currentlyPlaying.setReleaseDate(BigPictureUtils.findReleaseYear(track));
+    currentlyPlaying.setAlbum(album.getName());
+    currentlyPlaying.setReleaseDate(album.getReleaseDate() != null ? album.getReleaseDate() : BigPictureUtils.BLANK);
     currentlyPlaying.setDescription(BigPictureUtils.BLANK);
 
     return pInfo;

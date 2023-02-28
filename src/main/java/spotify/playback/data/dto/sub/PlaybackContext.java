@@ -11,7 +11,8 @@ public class PlaybackContext {
   private Boolean shuffle;
   private String repeat;
   private Integer volume;
-  private String context;
+  private Context context;
+  private String contextType;
   private String device;
   private String thumbnailUrl;
 
@@ -47,12 +48,20 @@ public class PlaybackContext {
     this.volume = volume;
   }
 
-  public String getContext() {
+  public Context getContext() {
     return context;
   }
 
-  public void setContext(String context) {
+  public void setContext(Context context) {
     this.context = context;
+  }
+
+  public String getContextType() {
+    return contextType;
+  }
+
+  public void setContextType(String contextType) {
+    this.contextType = contextType;
   }
 
   public String getDevice() {
@@ -79,11 +88,68 @@ public class PlaybackContext {
       return false;
     PlaybackContext that = (PlaybackContext) o;
     return Objects.equals(paused, that.paused) && Objects.equals(shuffle, that.shuffle) && Objects.equals(repeat, that.repeat) && Objects.equals(volume, that.volume) && Objects.equals(context, that.context)
-        && Objects.equals(device, that.device) && Objects.equals(thumbnailUrl, that.thumbnailUrl);
+        && Objects.equals(contextType, that.contextType) && Objects.equals(device, that.device) && Objects.equals(thumbnailUrl, that.thumbnailUrl);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(paused, shuffle, repeat, volume, context, device, thumbnailUrl);
+    return Objects.hash(paused, shuffle, repeat, volume, context, contextType, device, thumbnailUrl);
+  }
+
+  public static class Context {
+    public enum ContextType {
+      ALBUM,
+      EP,
+      SINGLE,
+      COMPILATION,
+      PLAYLIST,
+      ARTIST,
+      PODCAST,
+      SEARCH,
+      QUEUE_IN_ALBUM,
+      FALLBACK
+    }
+    private String contextName;
+    private ContextType contextType;
+
+    private Context(String contextName, ContextType contextType) {
+      this.contextName = contextName;
+      this.contextType = contextType;
+    }
+
+    public static Context of(String context, ContextType contextType) {
+      return new Context(context, contextType);
+    }
+
+    public String getContextName() {
+      return contextName;
+    }
+
+    public void setContextName(String contextName) {
+      this.contextName = contextName;
+    }
+
+    public ContextType getContextType() {
+      return contextType;
+    }
+
+    public void setContextType(ContextType contextType) {
+      this.contextType = contextType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      if (!(o instanceof Context))
+        return false;
+      Context context1 = (Context) o;
+      return Objects.equals(contextName, context1.contextName) && contextType == context1.contextType;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(contextName, contextType);
+    }
   }
 }

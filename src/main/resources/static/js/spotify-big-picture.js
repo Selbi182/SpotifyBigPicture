@@ -57,7 +57,10 @@ let currentData = {
     }
   },
   playbackContext: {
-    context: "",
+    context: {
+      contextName: "",
+      contextType: ""
+    },
     device: "",
     paused: true,
     repeat: "",
@@ -292,7 +295,17 @@ function setTextData(changes) {
     getById("album-title-main").innerHTML = albumTitleMain;
     getById("album-title-extra").innerHTML = albumTitleExtra;
 
-    getById("album-release").innerHTML = releaseDate.value;
+    let release = releaseDate.value;
+    if (release !== BLANK) {
+      let [releaseYear, ...releaseRest] = release.split("-");
+      getById("release-year").innerHTML = releaseYear;
+      getById("release-rest").innerHTML = "-" + releaseRest.join("-");
+      setClass(getById("album-release"), "show", true);
+    } else {
+      getById("release-year").innerHTML = "";
+      getById("release-rest").innerHTML = "";
+      setClass(getById("album-release"), "show", false);
+    }
 
     let albumMainContainer = getById("album-title");
     balanceTextClamp(albumMainContainer);
@@ -310,13 +323,15 @@ function setTextData(changes) {
   }
 
   // Context
-  let context = getChange(changes, "playbackContext.context");
-  if (context.wasChanged) {
+  let contextName = getChange(changes, "playbackContext.context.contextName");
+  let contextType = getChange(changes, "playbackContext.context.contextType");
+  if (contextName.wasChanged || contextType.wasChanged) {
     let contextMain = getById("context-main");
     let contextExtra = getById("context-extra");
 
     // Context name
-    contextMain.innerHTML = convertToTextEmoji(context.value);
+    let contextTypePrefix = contextType.value !== "PLAYLIST" ? (contextType.value !== "QUEUE_IN_ALBUM" ? contextType.value + ": " : "QUEUE >> ") : "";
+    contextMain.innerHTML = `${contextTypePrefix}${convertToTextEmoji(contextName.value)}`;
 
     // Track count / total duration
     let trackCount = getChange(changes, "trackData.trackCount").value;
@@ -324,9 +339,9 @@ function setTextData(changes) {
       let trackCountFormatted = numberWithCommas(trackCount);
 
       let numericDescription;
-      if (context.value.startsWith("ARTIST: ")) {
+      if (contextType.value === "ARTIST") {
         numericDescription = "follower";
-      } else if (context.value.startsWith("PODCAST: ")) {
+      } else if (contextType.value === "PODCAST") {
         numericDescription = "episode"
       } else {
         numericDescription = "track"
@@ -352,7 +367,7 @@ function setTextData(changes) {
       setClass(thumbnailWrapperContainer, "show", false);
     } else {
       setClass(thumbnailWrapperContainer, "show", true);
-      let circularThumbnail = context.value.startsWith("ARTIST: ") || context.value.startsWith("ALBUM: ");
+      let circularThumbnail = contextType.value === "ARTIST" || contextType.value === "ALBUM";
       setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
       thumbnailContainer.src = thumbnailUrl;
       fadeIn(thumbnailContainer);
@@ -421,10 +436,10 @@ function setTextData(changes) {
 }
 
 function refreshTrackList() {
-  setCorrectTracklistView(currentData, true);
+  setCorrectTracklistView(currentData);
 }
 
-function setCorrectTracklistView(changes, force = false) {
+function setCorrectTracklistView(changes) {
   let mainContainer = getById("content-center");
   let trackListContainer = getById("track-list");
   let listViewType = getChange(changes, "trackData.trackListView").value;
@@ -435,7 +450,7 @@ function setCorrectTracklistView(changes, force = false) {
   let totalDiscCount = getChange(changes, "trackData.totalDiscCount").value;
   let shuffle = getChange(changes, "playbackContext.shuffle").value;
 
-  let specialQueue = getChange(changes, "playbackContext.context").value.startsWith("Queue >> ");
+  let specialQueue = getChange(changes, "playbackContext.context").value.contextType === "QUEUE_IN_ALBUM";
   let titleDisplayed = specialQueue || listViewType !== "ALBUM";
   let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !isPrefEnabled("scrolling-track-list")) && isPrefEnabled("show-queue");
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
@@ -453,7 +468,7 @@ function setCorrectTracklistView(changes, force = false) {
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
   let refreshPrintedList = newQueue.length > 0 &&
-      (force || (queueMode !== wasPreviouslyInQueueMode)
+      ((queueMode !== wasPreviouslyInQueueMode)
     || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue)));
 
   if (refreshPrintedList) {
@@ -481,37 +496,37 @@ function setCorrectTracklistView(changes, force = false) {
       let isMultiDisc = listTracks.find(t => 'discNumber' in t && t.discNumber > 1);
       printTrackList(listTracks, listViewType === "ALBUM" && isMultiDisc && !shuffle);
     }
-
-    // Scale track list to fit container
-    let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") || 1;
-
-    let contentCenterContainer = trackListContainer.parentElement;
-    let contentCenterHeight = contentCenterContainer.offsetHeight;
-    let trackListSize = trackListContainer.scrollHeight / previousFontSizeScale;
-    let splitMode = isPrefEnabled("split-main-panels");
-
-    let trackListScaleRatio;
-    if (splitMode) {
-      trackListScaleRatio = Math.max(2, contentCenterHeight / trackListSize);
-    } else {
-      let contentInfoSize = getById("center-info-main").offsetHeight;
-      let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
-      trackListScaleRatio = Math.max(2, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
-    }
-    if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
-      trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
-
-      // Make sure the tracklist is at the correct position after the scaling transition.
-      // This is a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid.
-      let transitionFromCss = getComputedStyle(document.body).getPropertyValue("--transition");
-      setTimeout(() => {
-        refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
-        refreshTextBalance();
-      }, parseFloat(transitionFromCss.slice(0, -1)) * 1000);
-    }
   }
 
-  if (refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
+  // Scale track list to fit container
+  let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") || 1;
+
+  let contentCenterContainer = trackListContainer.parentElement;
+  let contentCenterHeight = contentCenterContainer.offsetHeight;
+  let trackListContainerHeight = trackListContainer.scrollHeight;
+  let accountForEnlargeCurrent = trackListContainer.firstElementChild?.scrollHeight * 1.25 ?? 0;
+  let trackListSize = (trackListContainerHeight + accountForEnlargeCurrent) / previousFontSizeScale;
+  let splitMode = isPrefEnabled("split-main-panels");
+
+  let trackListScaleRatio;
+  if (splitMode) {
+    trackListScaleRatio = Math.max(2, contentCenterHeight / trackListSize);
+  } else {
+    let contentInfoSize = getById("center-info-main").offsetHeight;
+    let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
+    trackListScaleRatio = Math.max(2, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
+  }
+  if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
+    trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
+
+    // Make sure the tracklist is at the correct position after the scaling transition.
+    // This is a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid.
+    let transitionFromCss = getComputedStyle(document.body).getPropertyValue("--transition");
+    setTimeout(() => {
+      refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
+      refreshTextBalance();
+    }, parseFloat(transitionFromCss.slice(0, -1)) * 1000);
+  } else if (refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
     refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
   }
 }
@@ -554,6 +569,7 @@ function setClass(elem, className, state) {
   } else {
     elem.classList.remove(className);
   }
+  return elem;
 }
 
 function showHide(elem, show, useInvisibility) {
@@ -884,6 +900,7 @@ function loadArtwork(newImage) {
 
 function calculateArtworkSize() {
   getById("artwork").style.removeProperty("margin-top");
+  getById("artwork").style.removeProperty("--margin-multiplier");
 
   let topRect = getById("content-top").getBoundingClientRect();
   let centerRect = getById("content-center").getBoundingClientRect();
@@ -894,19 +911,23 @@ function calculateArtworkSize() {
   let centerTop = centerRect.top;
   let centerBottom = centerRect.bottom;
 
-
   let artworkSize = centerBottom - centerTop;
   if (isPrefEnabled("vertical-mode")) {
     let centerInfoMainTop = getById("center-info-main").getBoundingClientRect().top;
     artworkSize = centerInfoMainTop - contentTop;
   } else {
-    if (isPrefEnabled("artwork-l")) {
+    let expandTop = isPrefEnabled("artwork-expand-top");
+    let expandBottom = isPrefEnabled("artwork-expand-bottom");
+    if (expandTop && expandBottom) {
+      artworkSize = contentBottom - contentTop;
+    } else if (expandTop) {
       artworkSize = centerBottom - contentTop;
-      if (isPrefEnabled("artwork-xl")) {
-        artworkSize = contentBottom - contentTop;
-      }
     } else {
+      if (expandBottom) {
+        artworkSize = contentBottom - centerTop;
+      }
       getById("artwork").style.marginTop = centerTop + "px";
+      setClass(getById("artwork"), "double-margins", !(expandTop && expandTop) && isPrefEnabled("center-lr-margins"));
     }
   }
   getById("main").style.setProperty("--artwork-size", artworkSize + "px");
@@ -1261,35 +1282,25 @@ const PREFERENCES = [
     name: "Show Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
     category: "Artwork",
-    requiredFor: ["artwork-l", "artwork-xl", "artwork-right"],
+    requiredFor: ["artwork-expand-top", "artwork-expand-bottom", "artwork-right"],
     css: {
       "artwork": "!hide",
       "content": "!full-content"
     }
   },
   {
-    id: "artwork-l",
-    name: "Artwork Size: Large",
-    description: "Artwork spans the top content and center content. If disabled, artwork is only contained between the top and bottom content",
+    id: "artwork-expand-top",
+    name: "Expand to Top",
+    description: "If enabled, expand the artwork to the top content and push that content to the side",
     category: "Artwork",
-    requiredFor: ["artwork-xl"],
-    css: {"main": "artwork-l"}
+    css: {"main": "artwork-expand-top"}
   },
   {
-    id: "artwork-xl",
-    name: "Artwork Size: Extra Large",
-    description: "Artwork spans top content, center content, and bottom content. Do note that this leaves less room for all the other information",
+    id: "artwork-expand-bottom",
+    name: "Expand to Bottom",
+    description: "If enabled, expand the artwork to the bottom content and push that content to the side",
     category: "Artwork",
-    css: {"main": "artwork-xl"}
-  },
-  {
-    id: "artwork-right",
-    name: "Right-Align Artwork",
-    description: "If enabled, the artwork is displayed to the right of the content, rather than the left",
-    category: "Artwork",
-    css: {
-      "main": "artwork-right"
-    }
+    css: {"main": "artwork-expand-bottom"}
   },
   {
     id: "bg-artwork",
@@ -1321,11 +1332,11 @@ const PREFERENCES = [
   },
   {
     id: "enable-center-content",
-    name: "Enable Main/Center Content",
+    name: "Enable Main Content",
     description: "Enable the main content, the container for the current song data and the track list",
     category: "Main Content",
     requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
-      "main-content-left", "main-content-bottom", "split-main-panels", "reduced-center-margins", "vertical-mode"],
+      "main-content-centered", "main-content-bottom", "split-main-panels", "reduced-center-margins", "vertical-mode"],
     css: {
       "content-center": "!hide",
       "artwork": "!center-disabled"
@@ -1404,6 +1415,13 @@ const PREFERENCES = [
     description: "Displays the release date in a new line, rather than right next to the release name",
     category: "Main Content",
     css: {"album": "separate-date"}
+  },
+  {
+    id: "full-release-date",
+    name: "Full Release Date",
+    description: "If enabled, the whole release date is shown (including month and day). Otherwise, only the year is shown",
+    category: "Main Content",
+    css: {"release-rest": "!hide"}
   },
   {
     id: "show-podcast-descriptions",
@@ -1579,19 +1597,18 @@ const PREFERENCES = [
     }
   },
   {
-    id: "main-content-left",
-    name: "Left-Align Main Info",
-    description: "Left-align the main content (current song information), instead of centering it. "
-      + "This setting is intended to be used with disabled artwork",
-    category: "Main Content",
-    css: {"center-info-main": "left"}
+    id: "main-content-centered",
+    name: "Center Main Content",
+    description: "Center the main content (current song information and track list). Otherwise, the text will be aligned to the border",
+    category: "Main Content Layout",
+    css: {"content-center": "centered"}
   },
   {
     id: "main-content-bottom",
     name: "Bottom-Align Main Info",
     description: "Bottom-align the main content (current song information), instead of centering it. "
       + "This setting is intended to be used with disabled artwork",
-    category: "Main Content",
+    category: "Main Content Layout",
     css: {"center-info-main": "bottom"}
   },
   {
@@ -1599,30 +1616,39 @@ const PREFERENCES = [
     name: "Split Main Content",
     description: "Separate the main info from the track list and display both in their own panel. "
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
-    category: "Main Content",
-    requiredFor: ["split-lr-center-margins"],
+    category: "Main Content Layout",
     css: {"content-center": "split-main-panels"}
   },
   {
+    id: "center-lr-margins",
+    name: "Left/Right Center Margins",
+    description: "Adds margins to the left and right of the main content. " +
+        "This setting has minimum effect if Split Main Content isn't enabled",
+    category: "Main Content Layout",
+    css: {"content-center": "extra-margins"}
+  },
+  {
     id: "reduced-center-margins",
-    name: "Reduced Center Margins",
-    description: "Halves the margins of the center container",
-    category: "Main Content",
+    name: "Reduced Top/Bottom Center Margins",
+    description: "Halves the top/bottom margins of the center container",
+    category: "Main Content Layout",
     css: {"content": "decreased-margins"}
   },
   {
-    id: "split-lr-center-margins",
-    name: "Left/Right Center Margins (Split Mode)",
-    description: "If split mode is enabled, add margins to the left and right of the center content",
-    category: "Main Content",
-    css: {"content-center": "extra-margins"}
+    id: "artwork-right",
+    name: "Swap Main Content",
+    description: "If enabled, the main content swaps positions with the artwork",
+    category: "Main Content Layout",
+    css: {
+      "main": "artwork-right"
+    }
   },
   {
     id: "vertical-mode",
     name: "Vertical Mode",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
-    category: "Main Content",
-    overrides: ["show-queue", "xl-text", "artwork-l", "artwork-xl", "artwork-right",
+    category: "Main Content Layout",
+    overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right",
       "show-podcast-descriptions", "main-content-bottom", "split-main-panels"],
     css: {"main": "vertical"}
   },
@@ -1652,8 +1678,9 @@ const PREFERENCES = [
 
 const PREFERENCES_CATEGORY_ORDER = [
   "General",
-  "Main Content",
+  "Main Content Layout",
   "Track List",
+  "Main Content",
   "Top Content",
   "Bottom Content",
   "Artwork",
@@ -1671,7 +1698,7 @@ const PREFERENCES_DEFAULT = {
     "show-timestamps-track-list",
     "show-podcast-descriptions",
     "display-artwork",
-    "artwork-l",
+    "artwork-expand-top",
     "bg-artwork",
     "bg-tint",
     "bg-gradient",
@@ -1685,6 +1712,7 @@ const PREFERENCES_DEFAULT = {
     "show-release",
     "enable-top-content",
     "enable-bottom-content",
+    "main-content-centered",
     "show-context",
     "show-logo",
     "transitions",
@@ -1701,10 +1729,10 @@ const PREFERENCES_DEFAULT = {
     "decreased-margins",
     "xl-text",
     "separate-release-line",
-    "main-content-left",
+    "full-release-date",
     "main-content-bottom",
     "split-main-panels",
-    "split-lr-center-margins",
+    "center-lr-margins",
     "reduced-center-margins",
     "vertical-mode",
     "xl-main-info-scrolling",
@@ -1712,7 +1740,7 @@ const PREFERENCES_DEFAULT = {
     "swap-top",
     "spread-timestamps",
     "reverse-bottom",
-    "artwork-xl",
+    "artwork-expand-bottom",
     "artwork-right"
   ],
   ignore: [
@@ -1732,12 +1760,26 @@ const PREFERENCES_PRESETS = [
     disabled: []
   },
   {
+    id: "preset-compact",
+    name: "Compact Mode",
+    category: "Presets",
+    description: "Similar to the default mode, but the artwork is on the right and a little bit smaller, giving more room for the main content",
+    enabled: [
+        "artwork-right",
+        "center-lr-margins"
+    ],
+    disabled: [
+        "artwork-expand-top",
+        "main-content-centered"
+    ]
+  },
+  {
     id: "preset-xl-artwork",
     name: "XL-Artwork Mode",
     category: "Presets",
     description: "Just the the artwork stretched to the maximum possible size. Apart from that, only the current song, the track list, and the progress bar are displayed",
     enabled: [
-      "artwork-xl",
+      "artwork-expand-bottom",
       "decreased-margins"
     ],
     disabled: [
@@ -1771,16 +1813,15 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-split-text",
-    name: "Split-Text Mode",
+    name: "Split-Panel Mode",
     category: "Presets",
     description: "A combination of the default preset and Track-List Mode that puts the current song information on the left and the track list on the right. " +
         "Disables the artwork and instead only dimly displays it in the background",
     enabled: [
       "swap-top",
       "xl-main-info-scrolling",
-      "split-lr-center-margins",
+      "center-lr-margins",
       "reduced-center-margins",
-      "main-content-left",
       "reverse-bottom",
       "split-main-panels",
       "separate-release-line"
@@ -1788,6 +1829,7 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "colored-symbol-context",
       "show-featured-artists",
+      "main-content-centered",
       "bg-tint",
       "enlarge-scrolling-track-list",
       "display-artwork"
@@ -1860,7 +1902,7 @@ const PREFERENCES_PRESETS = [
     enabled: [
       "decreased-margins",
       "display-artwork",
-      "artwork-xl"
+      "artwork-expand-bottom"
     ],
     disabled: [
       "enable-center-content",
@@ -2084,6 +2126,7 @@ function refreshPreference(preference, state) {
   refreshContentTimeout = setTimeout(() => {
     refreshBackgroundRender();
     refreshTrackList();
+    updateProgress(currentData, true);
   }, 250);
 
   // Update the settings that are invalidated
@@ -2322,7 +2365,7 @@ function initSettingsMouseMove() {
   }
 
   document.addEventListener("dblclick", (e) => {
-    if (!settingsVisible && !isSettingControlElem(e, true)) {
+    if (!settingsVisible && !isSettingControlElem(e, true) && !window.getSelection().toString()) {
       toggleFullscreen();
     }
   });
@@ -2378,12 +2421,19 @@ function toggleSettingsExpertMode() {
 function generatePresetThumbnail() {
   let thumbnailGenerationEnabled = getById("main").classList.toggle("preset-thumbnail-generator");
   if (thumbnailGenerationEnabled) {
-    let artworkClone = getById("artwork").cloneNode(true);
-    artworkClone.classList.add("fake");
-    setClass(artworkClone, "center", isPrefEnabled("vertical-mode"))
+    let prerenderCanvas = setClass(getById("prerender-canvas"), "show", true); // needed because rect would return all 0px otherwise
+
+    let artworkBoundingBox = getById("artwork-img").getBoundingClientRect();
+
+    let fakeArtwork = document.createElement("div");
+    fakeArtwork.id = "fake-artwork";
+    fakeArtwork.style.top = artworkBoundingBox.top + "px";
+    fakeArtwork.style.left = artworkBoundingBox.left + "px";
+    fakeArtwork.style.width = artworkBoundingBox.width + "px";
+    fakeArtwork.style.height = artworkBoundingBox.width + "px";
 
     let contentMain = getById("content");
-    contentMain.insertBefore(artworkClone, contentMain.firstChild);
+    contentMain.insertBefore(fakeArtwork, contentMain.firstChild);
 
     let content = getById("content");
     let presetThumbnailGeneratorCanvas = getById("preset-thumbnail-generator-canvas");
@@ -2397,9 +2447,11 @@ function generatePresetThumbnail() {
         downloadLink.click();
         document.body.removeChild(downloadLink);
 
-        document.querySelector("#artwork.fake").remove();
+        fakeArtwork.remove();
         getById("main").classList.remove("preset-thumbnail-generator");
         setClass(presetThumbnailGeneratorCanvas, "show", false);
+
+        setClass(prerenderCanvas, "show", isPrefEnabled("prerender-background"));
       });
   }
 }

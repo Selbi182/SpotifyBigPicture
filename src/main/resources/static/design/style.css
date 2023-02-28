@@ -125,8 +125,8 @@ img:not([src]) {
 }
 
 #main:not(.vertical) #content:not(.full-content) #content-center,
-#main.artwork-l:not(.vertical) #content:not(.full-content) #content-top,
-#main.artwork-l.artwork-xl:not(.vertical) #content:not(.full-content) #content-bottom {
+#main.artwork-expand-top:not(.vertical) #content:not(.full-content) #content-top,
+#main.artwork-expand-bottom:not(.vertical) #content:not(.full-content) #content-bottom {
     max-width: calc(100% - var(--artwork-size) - var(--margin-main));
 }
 
@@ -311,6 +311,11 @@ img:not([src]) {
     margin-right: auto;
 }
 
+#artwork.double-margins {
+    margin-left: calc(var(--margin-main) * 2);
+    margin-right: calc(var(--margin-main) * 2);
+}
+
 #artwork.hide {
     display: none;
 }
@@ -435,13 +440,23 @@ div#context-main {
 
 #content-center {
     display: flex;
-    align-items: center;
+    align-items: end;
+    text-align: right;
     flex-direction: column;
     justify-content: center;
     flex: 1;
     width: 100%;
     min-height: 0;
     gap: 4vh;
+}
+
+#main.artwork-right #content:not(.full-content) #content-center:not(.centered) {
+    align-items: start;
+    text-align: left;
+}
+
+#content.full-content #content-center, #content-center.centered {
+    align-items: center;
 }
 
 #content-center.hide {
@@ -464,7 +479,7 @@ div#context-main {
     flex-direction: row;
 }
 
-#content-center.split-main-panels.extra-margins {
+#content-center.extra-margins {
     padding: 0 var(--margin-main);
 }
 
@@ -475,17 +490,22 @@ div#context-main {
 #center-info-main {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: end;
+    text-align: right;
     width: 100%;
     gap: 1vh;
     --font-scale: 1vh;
-    text-align: center;
     max-height: 100%;
 }
 
-#center-info-main.left {
+:is(#main.artwork-right, #content.full-content) #content-center:not(.centered) #center-info-main {
     align-items: start;
     text-align: left;
+}
+
+#content-center.centered #center-info-main {
+    align-items: center;
+    text-align: center;
 }
 
 #center-info-main.bottom {
@@ -554,6 +574,15 @@ div#context-main {
 #album-release {
     opacity: 0.65;
     word-break: normal;
+    display: none;
+}
+
+#album-release.show {
+    display: initial;
+}
+
+#album-release #release-rest.hide {
+    display: none;
 }
 
 #album:not(.separate-date) #album-release::before {
@@ -562,9 +591,6 @@ div#context-main {
 
 #album:not(.separate-date) #album-release:after {
     content: ")";
-}
-#album-release:empty {
-    display: none;
 }
 
 #album-title-extra.hide {
@@ -657,8 +683,8 @@ div#description {
     transition: font-size var(--transition), opacity var(--transition);
 }
 
-#main:not(.disable-transitions) #content-center.queue #track-list .track-elem.shrink:first-child div,
-#main:not(.disable-transitions) #content-center.queue #track-list .track-elem:not(.grow):last-child > div {
+#main #content-center.queue #track-list .track-elem.shrink:first-child div,
+#main #content-center.queue #track-list .track-elem:not(.grow):last-child > div {
     opacity: 0;
     font-size: 0;
 }
@@ -1246,7 +1272,7 @@ div#device {
         #thumbnail-wrapper, #context-main, #context-extra, #logo,
         #artists, #title, #album-title, #album-release, #album-title-main, .track-elem *,
         #progress, #info-symbols, #volume, #device, #clock, #time-current, #time-total,
-        #artwork.fake) {
+        #fake-artwork) {
     background: white !important;
     color: transparent !important;
     border-radius: 2vh;
@@ -1263,20 +1289,13 @@ div#device {
 }
 
 #main.preset-thumbnail-generator :is(#background-rendered,
-        #title *, #description,
-        #thumbnail, #progress > div, #bottom-left > div > div,
-        #artwork.fake > img) {
+        #title *, #description, #release-year, #release-rest,
+        #thumbnail, #progress > div, #bottom-left > div > div) {
     visibility: hidden;
 }
 
-#main.preset-thumbnail-generator #artwork.fake {
+#main.preset-thumbnail-generator #fake-artwork {
     position: absolute;
-    align-self: start;
-    margin: 0;
-}
-
-#main.preset-thumbnail-generator #artwork.fake:is(.center, .center-disabled.top-disabled.bottom-disabled) {
-    align-self: center;
 }
 
 #main.preset-thumbnail-generator #content {

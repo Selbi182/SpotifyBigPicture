@@ -13,7 +13,6 @@ import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.AlbumType;
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
-import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
@@ -30,6 +29,7 @@ import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 import spotify.api.SpotifyApiException;
 import spotify.api.SpotifyCall;
 import spotify.playback.data.dto.PlaybackInfo;
+import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackElement;
 import spotify.playback.data.help.BigPictureConstants;
 import spotify.playback.data.help.BigPictureUtils;
@@ -42,7 +42,7 @@ public class ContextProvider {
 
   private final SpotifyApi spotifyApi;
 
-  private String previousContextString;
+  private String previousSpotifyContext;
   private Album currentContextAlbum;
   private List<TrackSimplified> currentContextAlbumTracks;
   private List<TrackElement> listTracks;
@@ -65,42 +65,42 @@ public class ContextProvider {
    * @param previous the previous info to compare to
    * @return a String of the current context, null if none was found
    */
-  public String findContextName(CurrentlyPlayingContext info, PlaybackInfo previous) {
-    String contextName = null;
+  public PlaybackContext.Context findContextName(CurrentlyPlayingContext info, PlaybackInfo previous) {
+    PlaybackContext.Context contextDto = null;
     try {
       Context context = info.getContext();
       ModelObjectType type = BigPictureUtils.getModelObjectType(info);
       if (context != null || type != null) {
-        boolean force = previous == null || previous.getPlaybackContext().getContext() == null || previous.getPlaybackContext().getContext().isEmpty();
+        boolean force = previous == null || previous.getPlaybackContext().getContext() == null || previous.getPlaybackContext().getContext() != null;
         if (type != null) {
           switch (type) {
             case ALBUM:
-              contextName = getAlbumContext(info, force);
+              contextDto = getAlbumContext(info, force);
               break;
             case PLAYLIST:
-              contextName = getPlaylistContext(context, force);
+              contextDto = getPlaylistContext(context, force);
               break;
             case ARTIST:
-              contextName = getArtistContext(context, force);
+              contextDto = getArtistContext(context, force);
               break;
             case SHOW:
             case EPISODE:
-              contextName = getPodcastContext(info, force);
+              contextDto = getPodcastContext(info, force);
               break;
           }
         }
       } else {
-        contextName = getFallbackContext(info);
+        contextDto = getFallbackContext(info);
       }
     } catch (SpotifyApiException e) {
       e.printStackTrace();
     }
-    if (contextName != null) {
-      return contextName;
+    if (contextDto != null) {
+      return contextDto;
     } else {
       return previous != null && previous.getPlaybackContext().getContext() != null
           ? previous.getPlaybackContext().getContext()
-          : info.getCurrentlyPlayingType().toString();
+          : PlaybackContext.Context.of(info.getCurrentlyPlayingType().toString(), PlaybackContext.Context.ContextType.FALLBACK);
     }
   }
 
@@ -152,7 +152,7 @@ public class ContextProvider {
     return trackIndex + 1;
   }
 
-  private String getArtistContext(Context context, boolean force) {
+  private PlaybackContext.Context getArtistContext(Context context, boolean force) {
     if (force || didContextChange(context)) {
       String artistId = context.getHref().replace(BigPictureConstants.ARTIST_PREFIX, "");
       Artist contextArtist = SpotifyCall.execute(spotifyApi.getArtist(artistId));
@@ -166,12 +166,12 @@ public class ContextProvider {
       setTrackCount(contextArtist.getFollowers().getTotal());
       setTotalTrackDuration(List.of());
 
-      return "ARTIST: " + contextArtist.getName();
+      return PlaybackContext.Context.of(contextArtist.getName(), PlaybackContext.Context.ContextType.ARTIST);
     }
     return null;
   }
 
-  private String getPlaylistContext(Context context, boolean force) {
+  private PlaybackContext.Context getPlaylistContext(Context context, boolean force) {
     if (force || didContextChange(context)) {
       String playlistId = context.getHref().replace(BigPictureConstants.PLAYLIST_PREFIX, "");
       Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
@@ -192,21 +192,19 @@ public class ContextProvider {
       setTrackCount(realTrackCount);
       setTotalTrackDuration(realTrackCount <= this.listTracks.size() ? this.listTracks : List.of());
 
-      return contextPlaylist.getName();
+      return PlaybackContext.Context.of(contextPlaylist.getName(), PlaybackContext.Context.ContextType.PLAYLIST);
     }
     return null;
   }
 
-  private String getAlbumContext(CurrentlyPlayingContext info, boolean force) {
+  private PlaybackContext.Context getAlbumContext(CurrentlyPlayingContext info, boolean force) {
     Context context = info.getContext();
     Track track = null;
     String albumId;
     if (info.getCurrentlyPlayingType().equals(CurrentlyPlayingType.TRACK)) {
       track = (Track) info.getItem();
-      albumId = track.getAlbum().getId();
-    } else {
-      albumId = SpotifyUtils.getIdFromUri(context.getUri());
     }
+    albumId = SpotifyUtils.getIdFromUri(context.getUri());
 
     if (force || didContextChange(context)) {
       currentContextAlbum = SpotifyCall.execute(spotifyApi.getAlbum(albumId));
@@ -232,7 +230,7 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
     }
-    String contextString = String.format("%s: %s \u2013 %s (%s)", getReleaseTypeString(), SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName(), SpotifyUtils.findReleaseYear(currentContextAlbum));
+    String contextString = String.format("%s \u2013 %s (%s)", SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName(), SpotifyUtils.findReleaseYear(currentContextAlbum));
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
@@ -245,16 +243,16 @@ public class ContextProvider {
         this.currentlyPlayingAlbumTrackNumber = currentContextAlbumTracks.indexOf(currentTrack) + 1;
         this.currentlyPlayingAlbumTrackDiscNumber = currentTrack.getDiscNumber();
         if (this.currentlyPlayingAlbumTrackNumber > 0) {
-          return contextString;
+          return PlaybackContext.Context.of(contextString, getReleaseTypeContextType());
         }
       }
     }
 
     // Fallback when playing back from the queue
-    return QUEUE_PREFIX + contextString;
+    return PlaybackContext.Context.of(contextString, PlaybackContext.Context.ContextType.QUEUE_IN_ALBUM);
   }
 
-  private String getPodcastContext(CurrentlyPlayingContext info, boolean force) {
+  private PlaybackContext.Context getPodcastContext(CurrentlyPlayingContext info, boolean force) {
     if (info.getItem() instanceof Episode) {
       Episode episode = (Episode) info.getItem();
       ShowSimplified showSimplified = episode.getShow();
@@ -267,13 +265,13 @@ public class ContextProvider {
         setTrackCount(show.getEpisodes().getTotal());
         setTotalTrackDuration(List.of());
 
-        return "PODCAST: " + show.getName();
+        return PlaybackContext.Context.of(show.getName(), PlaybackContext.Context.ContextType.PODCAST);
       }
     }
     return null;
   }
 
-  private String getFallbackContext(CurrentlyPlayingContext info) {
+  private PlaybackContext.Context getFallbackContext(CurrentlyPlayingContext info) {
     if (info.getItem() != null && info.getItem() instanceof Track) {
       Track track = (Track) info.getItem();
       Image[] trackImages = track.getAlbum().getImages();
@@ -284,19 +282,19 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
 
-      return "SEARCH: " + SpotifyUtils.getFirstArtistName(track) + " \u2013 " + track.getName();
+      return PlaybackContext.Context.of(SpotifyUtils.getFirstArtistName(track) + " \u2013 " + track.getName(), PlaybackContext.Context.ContextType.SEARCH);
     }
-    return "Spotify";
+    return PlaybackContext.Context.of("Spotify", PlaybackContext.Context.ContextType.FALLBACK);
   }
 
-  private String getReleaseTypeString() {
+  private PlaybackContext.Context.ContextType getReleaseTypeContextType() {
     if (currentContextAlbum.getAlbumType() == AlbumType.SINGLE) {
       AlbumTrackPair atp = AlbumTrackPair.of(SpotifyUtils.asAlbumSimplified(currentContextAlbum), currentContextAlbumTracks);
       if (SpotifyUtils.isExtendedPlay(atp)) {
-        return "EP";
+        return PlaybackContext.Context.ContextType.EP;
       }
     }
-    return currentContextAlbum.getAlbumType().toString();
+    return PlaybackContext.Context.ContextType.valueOf(currentContextAlbum.getAlbumType().toString());
   }
 
   private boolean didContextChange(Context context) {
@@ -304,8 +302,8 @@ public class ContextProvider {
   }
 
   private boolean didContextChange(String contextString) {
-    if (!contextString.equals(previousContextString)) {
-      this.previousContextString = contextString;
+    if (!contextString.equals(previousSpotifyContext)) {
+      this.previousSpotifyContext = contextString;
       return true;
     }
     return false;
