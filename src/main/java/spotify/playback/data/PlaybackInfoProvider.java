@@ -292,6 +292,20 @@ public class PlaybackInfoProvider {
       }
     }
 
+    // If next song in queue during an album doesn't match next song in track list, we know a song has been manually queued
+    if (!playbackContext.getShuffle() && ModelObjectType.ALBUM.equals(type)) {
+      Optional<TrackElement> nextTrackInQueue = queue.stream().findFirst();
+      if (nextTrackInQueue.isPresent()) {
+        Integer nextAlbumTrackIndex = contextProvider.getCurrentlyPlayingAlbumTrackNumber();
+        if (contextProvider.getListTracks().size() < nextAlbumTrackIndex) {
+          TrackElement nextTrackInAlbum = contextProvider.getListTracks().get(nextAlbumTrackIndex);
+          if (!nextTrackInQueue.get().getId().equals(nextTrackInAlbum.getId())) {
+            playbackContext.getContext().setContextType(PlaybackContext.Context.ContextType.QUEUE_IN_ALBUM);
+          }
+        }
+      }
+    }
+
     trackData.setQueue(queue);
 
     if (playbackQueueQueue.size() > 1) {

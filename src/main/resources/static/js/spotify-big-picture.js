@@ -1,3 +1,5 @@
+const VERSION = '0.7';
+
 let currentData = {
   type: "",
   deployTime: 0,
@@ -228,6 +230,7 @@ function processJson(json) {
           .then(() => changeImage(json))
           .then(() => prerenderNextImage(json))
           .then(() => setTextData(json))
+          .then(() => setCorrectTracklistView(json))
           .then(() => refreshTimers())
           .finally(() => {
             // Update properties in local storage
@@ -332,7 +335,7 @@ function setTextData(changes) {
     let contextExtra = getById("context-extra");
 
     // Context name
-    let contextTypePrefix = contextType.value !== "PLAYLIST" ? (contextType.value !== "QUEUE_IN_ALBUM" ? contextType.value + ": " : "QUEUE >> ") : "";
+    let contextTypePrefix = contextType.value !== "PLAYLIST" ? (contextType.value !== "QUEUE_IN_ALBUM" ? contextType.value + ": " : "QUEUE &#x00BB; ") : "";
     contextMain.innerHTML = `${contextTypePrefix}${convertToTextEmoji(contextName.value)}`;
 
     // Track count / total duration
@@ -432,9 +435,6 @@ function setTextData(changes) {
   if (textColor.wasChanged) {
     setTextColor(textColor.value);
   }
-
-  // Playlist View
-  setCorrectTracklistView(changes);
 }
 
 function refreshTrackList() {
@@ -539,7 +539,7 @@ function isExpectedNextSongInQueue(newSongId, previousQueue) {
     let expectedNextSong = previousQueue[0];
     return newSongId === expectedNextSong.id;
   }
-  return false
+  return false;
 }
 
 function trackListEquals(trackList1, trackList2) {
@@ -990,8 +990,8 @@ let refreshBackgroundRenderInProgress = false;
 function refreshBackgroundRender() {
   if (!refreshBackgroundRenderInProgress) {
     refreshBackgroundRenderInProgress = true;
-    unsetNextImagePrerender();
-    refreshDefaultPrerender()
+    unsetNextImagePrerender()
+        .then(() => refreshDefaultPrerender())
         .then(() => {
           let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
           if (imageUrl === BLANK) {
@@ -1011,10 +1011,13 @@ function refreshBackgroundRender() {
 }
 
 function unsetNextImagePrerender() {
-  nextImagePrerenderPngData = {
-    imageUrl: null,
-    pngData: null
-  };
+  return new Promise((resolve) => {
+    nextImagePrerenderPngData = {
+      imageUrl: null,
+      pngData: null
+    };
+    resolve();
+  });
 }
 
 function refreshDefaultPrerender() {
@@ -2035,52 +2038,68 @@ function initVisualPreferences() {
     settingsPresetsWrapper.append(presetElem);
   }
 
-  let visualPreferencesFromLocalStorage = getVisualPreferencesFromLocalStorage();
-  if (visualPreferencesFromLocalStorage) {
-    // Init setting states from local storage
-    for (let pref of PREFERENCES) {
-      refreshPreference(pref, visualPreferencesFromLocalStorage.includes(pref.id));
+  if (isLocalStorageAvailable()) {
+    let visualPreferencesFromLocalStorage = getVisualPreferencesFromLocalStorage();
+    let version = getVersionFromLocalStorage();
+    if (visualPreferencesFromLocalStorage && (!version || version !== VERSION)) {
+      alert(`New version detected (v${VERSION})! To avoid conflicts, all visual preferences have been reset to their default settings.`)
+      visualPreferencesFromLocalStorage = null;
     }
-  } else {
-    // On first load, apply first preset of the list
-    applyPreset(PREFERENCES_PRESETS[0]);
-    requestAnimationFrame(() => {
-      setSettingsMenuState(true);
-    });
+    if (visualPreferencesFromLocalStorage) {
+      // Init setting states from local storage
+      for (let pref of PREFERENCES) {
+        refreshPreference(pref, visualPreferencesFromLocalStorage.includes(pref.id));
+      }
+    } else {
+      // On first load, apply first preset of the list
+      applyPreset(PREFERENCES_PRESETS[0]);
+      requestAnimationFrame(() => {
+        setSettingsMenuState(true);
+      });
+    }
+    setVersionToLocalStorage(VERSION);
   }
 }
 
-const LOCAL_STORAGE_KEY = "visual_preferences";
-const LOCAL_STORAGE_SPLIT_CHAR = "+";
+const LOCAL_STORAGE_KEY_SETTINGS = "visual_preferences";
+const LOCAL_STORAGE_SETTINGS_SPLIT_CHAR = "+";
 function getVisualPreferencesFromLocalStorage() {
-  if (isLocalStorageAvailable()) {
-    let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedVisualPreferences) {
-      return storedVisualPreferences.split(LOCAL_STORAGE_SPLIT_CHAR);
-    }
-  }
-  return "";
+  let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS);
+  return storedVisualPreferences?.split(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
+}
+
+const LOCAL_STORAGE_KEY_VERSION = "big_picture_version";
+function getVersionFromLocalStorage() {
+  return localStorage.getItem(LOCAL_STORAGE_KEY_VERSION);
+}
+
+function setVersionToLocalStorage(version) {
+  return localStorage.setItem(LOCAL_STORAGE_KEY_VERSION, version);
 }
 
 function refreshPrefsLocalStorage() {
   if (isLocalStorageAvailable()) {
     let enabledPreferences = PREFERENCES
-        .filter(pref => pref.state)
-        .map(pref => pref.id)
-        .join(LOCAL_STORAGE_SPLIT_CHAR);
-    localStorage.setItem(LOCAL_STORAGE_KEY, enabledPreferences);
+      .filter(pref => pref.state)
+      .map(pref => pref.id)
+      .join(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
+    localStorage.setItem(LOCAL_STORAGE_KEY_SETTINGS, enabledPreferences);
   }
 }
 
+let localStorageAvailable = null;
 function isLocalStorageAvailable() {
-  let test = "localStorageAvailabilityTest";
-  try {
-    localStorage.setItem(test, test);
-    localStorage.removeItem(test);
-    return true;
-  } catch (e) {
-    return false;
+  if (localStorageAvailable === null) {
+    let test = "localStorageAvailabilityTest";
+    try {
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      localStorageAvailable = true;
+    } catch (e) {
+      localStorageAvailable = false;
+    }
   }
+  return localStorageAvailable;
 }
 
 function toggleVisualPreference(pref) {

@@ -840,7 +840,7 @@ div#description {
     --volume: 0%;
     font-size: 3vh;
     font-feature-settings: "tnum";
-    opacity: 0.2;
+    opacity: 0.25;
 }
 #volume:empty, #volume.hide {
     display: none;
@@ -879,7 +879,7 @@ div#description {
 
 div#device {
     --max-lines: 1;
-    opacity: 0.2;
+    opacity: 0.25;
     font-size: 2vh;
 }
 #device:empty, #device.hide {

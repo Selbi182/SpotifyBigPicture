@@ -38,8 +38,6 @@ import spotify.util.data.AlbumTrackPair;
 
 @Component
 public class ContextProvider {
-  public static final String QUEUE_PREFIX = "Queue >> ";
-
   private final SpotifyApi spotifyApi;
 
   private String previousSpotifyContext;
@@ -98,7 +96,7 @@ public class ContextProvider {
     if (contextDto != null) {
       return contextDto;
     } else {
-      return previous != null && previous.getPlaybackContext().getContext() != null
+      return previous != null && previous.getPlaybackContext() != null && previous.getPlaybackContext().getContext() != null
           ? previous.getPlaybackContext().getContext()
           : PlaybackContext.Context.of(info.getCurrentlyPlayingType().toString(), PlaybackContext.Context.ContextType.FALLBACK);
     }
