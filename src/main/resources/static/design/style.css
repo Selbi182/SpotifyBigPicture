@@ -180,6 +180,10 @@ img:not([src]) {
     filter: brightness(35%);
 }
 
+#background-canvas.hide {
+    display: none;
+}
+
 #background-canvas-overlay {
     --background-color: black;
     background: var(--background-gradients), var(--background-color);
@@ -1103,8 +1107,9 @@ div#device {
     overflow-x: scroll;
     overflow-y: hidden;
     scrollbar-width: thin;
-    mask-image: linear-gradient(to right, transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
+    mask-image: linear-gradient(var(--mask-direction), transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
     padding: var(--mask-padding);
+    --mask-direction: to right;
     --mask-padding: 3vh;
 }
 
@@ -1334,7 +1339,7 @@ div#device {
     #track-list {
         overflow-y: auto;
         padding-right: 2vh;
-        mask-image: unset !important;
+        mask-image: unset;
     }
 
     #track-list .track-elem div.track-name {
@@ -1353,7 +1358,7 @@ div#device {
         flex-direction: column;
         overflow-y: auto;
         width: 100%;
-        mask-image: unset;
+        --mask-direction: to bottom;
     }
 
     #settings-categories .setting-category {

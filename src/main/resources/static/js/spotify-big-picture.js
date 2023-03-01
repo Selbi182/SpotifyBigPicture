@@ -905,32 +905,44 @@ function calculateAndRefreshArtworkSize() {
   getById("artwork").style.removeProperty("margin-top");
   getById("artwork").style.removeProperty("--margin-multiplier");
 
-  let topRect = getById("content-top").getBoundingClientRect();
   let centerRect = getById("content-center").getBoundingClientRect();
-  let bottomRect = getById("content-bottom").getBoundingClientRect();
-
-  let contentTop = isPrefEnabled("enable-top-content") ? topRect.top : centerRect.top;
-  let contentBottom = isPrefEnabled("enable-bottom-content") ? bottomRect.bottom : centerRect.bottom;
   let centerTop = centerRect.top;
   let centerBottom = centerRect.bottom;
+
+  let topRect = getById("content-top").getBoundingClientRect();
+  let bottomRect = getById("content-bottom").getBoundingClientRect();
+  let topEnabled = isPrefEnabled("enable-top-content");
+  let contentTop = topEnabled ? topRect.top : centerRect.top;
+  let bottomEnabled = isPrefEnabled("enable-bottom-content");
+  let contentBottom = bottomEnabled ? bottomRect.bottom : centerRect.bottom;
+
+  let swapTopBottom = isPrefEnabled("swap-top-bottom");
+  if (swapTopBottom) {
+    contentTop = bottomEnabled ? bottomRect.top : centerRect.top;
+    contentBottom = topEnabled ? topRect.bottom : centerRect.bottom;
+  }
 
   let artworkSize = centerBottom - centerTop;
   if (isPrefEnabled("vertical-mode")) {
     let centerInfoMainTop = getById("center-info-main").getBoundingClientRect().top;
     artworkSize = centerInfoMainTop - contentTop;
   } else {
-    let expandTop = isPrefEnabled("artwork-expand-top");
-    let expandBottom = isPrefEnabled("artwork-expand-bottom");
+    let expandTop = !topEnabled || isPrefEnabled("artwork-expand-top");
+    let expandBottom = !bottomEnabled || isPrefEnabled("artwork-expand-bottom");
+    if (swapTopBottom) {
+      [expandTop, expandBottom] = [expandBottom, expandTop];
+    }
     if (expandTop && expandBottom) {
       artworkSize = contentBottom - contentTop;
     } else if (expandTop) {
       artworkSize = centerBottom - contentTop;
-    } else {
-      if (expandBottom) {
-        artworkSize = contentBottom - centerTop;
-      }
-      getById("artwork").style.marginTop = centerTop + "px";
+    } else if (expandBottom) {
+      artworkSize = contentBottom - centerTop;
     }
+
+    let topMargin = expandTop ? contentTop : centerTop;
+    getById("artwork").style.marginTop = topMargin + "px";
+
     setClass(getById("artwork"), "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
   }
   getById("main").style.setProperty("--artwork-size", artworkSize + "px");
@@ -1223,21 +1235,17 @@ document.addEventListener("visibilitychange", () => {
 
 const PREFERENCES = [
   {
-    id: "fake-song-transition",
-    name: "Simulate Song Transition (Beta)",
-    description: "If enabled, simulate the transition to the expected next song in the queue. Otherwise, wait for the actual data to arrive. " +
-        "Enabling this will make the transitions feel much smoother, but it may be inconsistent at times",
+    id: "colored-text",
+    name: "Colored Text",
+    description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     category: "General",
-    callback: (state) => {
-      if (!state) {
-        clearTimeout(fakeSongTransition);
-      }
-    }
+    requiredFor: ["colored-symbol-context", "colored-symbol-spotify"],
+    css: {"main": "!no-colored-text"}
   },
   {
     id: "show-queue",
     name: "Enable",
-    description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
+    description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Track List",
     requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
     css: {
@@ -1246,9 +1254,16 @@ const PREFERENCES = [
     }
   },
   {
+    id: "show-timestamps-track-list",
+    name: "Show Time Stamps",
+    description: "Show the timestamps for each track in the track list. If disabled, the track names are right-aligned",
+    category: "Track List",
+    css: {"track-list": "show-timestamps"}
+  },
+  {
     id: "scrolling-track-list",
     name: "Enable Album View",
-    description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding songs in an automatically scrolling list. " +
+    description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. " +
         "(Only works for 200 tracks or less,for performance reasons)",
     category: "Track List",
     requiredFor: ["enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "xl-main-info-scrolling"]
@@ -1256,14 +1271,14 @@ const PREFERENCES = [
   {
     id: "enlarge-scrolling-track-list",
     name: "Album View: Enlarge Current",
-    description: "If Scrolling Track List is enabled, the font size of the current song in the track list is slightly increased",
+    description: "If Scrolling Track List is enabled, the font size of the current track in the track list is slightly increased",
     category: "Track List",
     css: {"track-list": "enlarge-current"}
   },
   {
     id: "hide-title-scrolling-track-list",
-    name: "Album View: Hide Duplicate Current Song Name",
-    description: "If Album View is enabled, the current song's name will not be displayed in the main content container " +
+    name: "Album View: Hide Duplicate Current Track Name",
+    description: "If 'Album View' is enabled, the current track's name will not be displayed in the main content container " +
         "(since it's already visible in the track list)",
     category: "Track List",
     requiredFor: ["xl-main-info-scrolling"],
@@ -1272,22 +1287,23 @@ const PREFERENCES = [
   {
     id: "xl-main-info-scrolling",
     name: "Album View: XL Main Content",
-    description: "If 'Hide Duplicate Current Song Name' is enabled and in effect, the font size of the main content will automatically be doubled",
+    description: "If 'Hide Duplicate Current Track Name' is enabled and in effect, the font size of the main content will automatically be doubled",
     category: "Track List",
     css: {"center-info-main": "big-text-scrolling"}
   },
   {
-    id: "show-timestamps-track-list",
-    name: "Show Time Stamps",
-    description: "Show the timestamps for each song in the track list. If disabled, the track names are right-aligned",
+    id: "xl-tracklist",
+    name: "XL Track List",
+    description: "If enabled, the font size for the track list is doubled. " +
+        "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Track List",
-    css: {"track-list": "show-timestamps"}
+    css: {"track-list": "big-text"}
   },
   {
     id: "display-artwork",
-    name: "Enable",
+    name: "Enable Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
-    category: "Artwork",
+    category: "Main Content",
     requiredFor: ["artwork-expand-top", "artwork-expand-bottom", "artwork-right"],
     css: {
       "artwork": "!hide",
@@ -1295,18 +1311,12 @@ const PREFERENCES = [
     }
   },
   {
-    id: "artwork-expand-top",
-    name: "Expand to Top Content",
-    description: "If enabled, expand the artwork to the top content and push that content to the side",
-    category: "Artwork",
-    css: {"main": "artwork-expand-top"}
-  },
-  {
-    id: "artwork-expand-bottom",
-    name: "Expand to Bottom Content",
-    description: "If enabled, expand the artwork to the bottom content and push that content to the side",
-    category: "Artwork",
-    css: {"main": "artwork-expand-bottom"}
+    id: "bg-enable",
+    name: "Enable",
+    description: "Enable the background. Otherwise, plain black will be displayed at all times",
+    category: "Background",
+    requiredFor: ["bg-artwork", "bg-tint", "bg-gradient", "bg-grain"],
+    css: {"background-canvas": "!hide"}
   },
   {
     id: "bg-artwork",
@@ -1339,7 +1349,7 @@ const PREFERENCES = [
   {
     id: "enable-center-content",
     name: "Enable",
-    description: "Enable the main content, the container for the current song data and the track list",
+    description: "Enable the main content, the container for the current track data and the track list",
     category: "Main Content",
     requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
       "main-content-centered", "main-content-bottom", "split-main-panels", "reduced-center-margins", "vertical-mode"],
@@ -1366,7 +1376,7 @@ const PREFERENCES = [
   {
     id: "show-titles",
     name: "Show Titles",
-    description: "Show the title of the currently playing song",
+    description: "Show the title of the currently playing track",
     category: "Main Content",
     requiredFor: ["hide-title-scrolling-track-list"],
     css: {"title": "!hide"}
@@ -1374,7 +1384,7 @@ const PREFERENCES = [
   {
     id: "strip-titles",
     name: "Strip Titles",
-    description: "Hides any kind of potentially unnecessary extra information from song tiles and release names " +
+    description: "Hides any kind of potentially unnecessary extra information from track tiles and release names " +
         `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
     category: "General",
     css: {
@@ -1384,35 +1394,11 @@ const PREFERENCES = [
     }
   },
   {
-    id: "xl-text",
-    name: "XL Main Text",
-    description: "If enabled, the font size for the current song's title, artist, and release is doubled. " +
-        "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
-    category: "Main Content",
-    css: {"center-info-main": "big-text"}
-  },
-  {
-    id: "xl-tracklist",
-    name: "XL Track List",
-    description: "If enabled, the font size for the track list is doubled. " +
-        "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
-    category: "Track List",
-    css: {"track-list": "big-text"}
-  },
-  {
-    id: "colored-text",
-    name: "Colored Text",
-    description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
-    category: "General",
-    requiredFor: ["colored-symbol-context", "colored-symbol-spotify"],
-    css: {"main": "!no-colored-text"}
-  },
-  {
     id: "show-release",
     name: "Show Release Name/Date",
-    description: "Displays the release name with its release date (usually the year of the currently playing song's album)",
+    description: "Displays the release name with its release date (usually the year of the currently playing track's album)",
     category: "Main Content",
-    requiredFor: ["separate-release-line"],
+    requiredFor: ["separate-release-line", "full-release-date"],
     css: {"album": "!hide"}
   },
   {
@@ -1437,6 +1423,14 @@ const PREFERENCES = [
     css: {"description": "!hide"}
   },
   {
+    id: "xl-text",
+    name: "XL Main Text",
+    description: "If enabled, the font size for the current track's title, artist, and release is doubled. " +
+        "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    category: "Main Content",
+    css: {"center-info-main": "big-text"}
+  },
+  {
     id: "enable-top-content",
     name: "Enable",
     description: "Enable the top content, the container for the context and Spotify logo. " +
@@ -1449,19 +1443,11 @@ const PREFERENCES = [
     }
   },
   {
-    id: "swap-top",
-    name: "Swap Top Content",
-    description: "If enabled, the Context and Spotify Logo swap positions",
-    category: "Top Content",
-    css: {"content-top": "swap"}
-  },
-  {
     id: "show-context",
     name: "Context",
     description: "Displays the playlist/artist/album name along with some additional information at the top of the page. " +
         "Also displays a thumbnail, if available",
     category: "Top Content",
-    requiredFor: ["colored-symbol-context", "swap-top"],
     css: {"meta-left": "!hide"}
   },
   {
@@ -1469,7 +1455,6 @@ const PREFERENCES = [
     name: "Spotify Logo",
     description: "Whether to display the Spotify logo in the top right",
     category: "Top Content",
-    requiredFor: ["colored-symbol-spotify", "swap-top"],
     css: {"meta-right": "!hide"}
   },
   {
@@ -1489,7 +1474,7 @@ const PREFERENCES = [
   {
     id: "transitions",
     name: "Smooth Transitions",
-    description: "Smoothly fade from one song to another. Otherwise, song switches will be displayed instantaneously",
+    description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously",
     category: "General",
     css: {
       "main": "!disable-transitions",
@@ -1497,12 +1482,16 @@ const PREFERENCES = [
     }
   },
   {
-    id: "decreased-margins",
-    name: "Decreased Margins",
-    description: "If enabled, all margins are halved. " +
-        "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
-    category: "Layout",
-    css: {"main": "decreased-margins"},
+    id: "fake-song-transition",
+    name: "Guess Next Track (Beta)",
+    description: "If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. " +
+        "Enabling this will make the transitions feel much smoother, but it may be inconsistent at times",
+    category: "General",
+    callback: (state) => {
+      if (!state) {
+        clearTimeout(fakeSongTransition);
+      }
+    }
   },
   {
     id: "enable-bottom-content",
@@ -1573,13 +1562,6 @@ const PREFERENCES = [
     css: {"device": "!hide"}
   },
   {
-    id: "reverse-bottom",
-    name: "Swap Bottom Content",
-    description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
-    category: "Bottom Content",
-    css: {"content-bottom": "reverse"}
-  },
-  {
     id: "show-clock",
     name: "Clock",
     description: "Displays a clock at the bottom center of the page",
@@ -1610,23 +1592,37 @@ const PREFERENCES = [
     }
   },
   {
+    id: "artwork-expand-top",
+    name: "Main Content: Expand Artwork to Top Content",
+    description: "If enabled, expand the artwork to the top content and push that content to the side",
+    category: "Layout",
+    css: {"main": "artwork-expand-top"}
+  },
+  {
+    id: "artwork-expand-bottom",
+    name: "Main Content: Expand Artwork to Bottom Content",
+    description: "If enabled, expand the artwork to the bottom content and push that content to the side",
+    category: "Layout",
+    css: {"main": "artwork-expand-bottom"}
+  },
+  {
     id: "main-content-centered",
-    name: "Center Main Content",
-    description: "Center the main content (current song information and track list). Otherwise, the text will be aligned to the border",
+    name: "Main Content: Center-Align",
+    description: "Center the main content (current track information and track list). Otherwise, the text will be aligned to the border",
     category: "Layout",
     css: {"content-center": "centered"}
   },
   {
     id: "main-content-bottom",
-    name: "Bottom-Align Main Content",
-    description: "Bottom-align the main content (current song information), instead of centering it. "
+    name: "Main Content: Bottom-Align",
+    description: "Bottom-align the main content (current track information), instead of centering it. "
       + "This setting is intended to be used with disabled artwork",
     category: "Layout",
     css: {"content-center": "bottom"}
   },
   {
     id: "split-main-panels",
-    name: "Split Main Content",
+    name: "Main Content: Split Mode",
     description: "Separate the main content from the track list and display both in their own panel. "
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Layout",
@@ -1634,7 +1630,7 @@ const PREFERENCES = [
   },
   {
     id: "center-lr-margins",
-    name: "Left/Right Center Margins",
+    name: "Main Content: Left/Right Margins",
     description: "Adds margins to the left and right of the main content. " +
         "This setting has minimum effect if Split Main Content isn't enabled",
     category: "Layout",
@@ -1642,14 +1638,14 @@ const PREFERENCES = [
   },
   {
     id: "reduced-center-margins",
-    name: "Reduced Top/Bottom Center Margins",
+    name: "Main Content: Reduced Top/Bottom Margins",
     description: "Halves the top/bottom margins of the center container",
     category: "Layout",
     css: {"content": "decreased-margins"}
   },
   {
     id: "artwork-right",
-    name: "Swap Main Content",
+    name: "Swap: Main Content",
     description: "If enabled, the main content swaps positions with the artwork",
     category: "Layout",
     css: {
@@ -1657,8 +1653,22 @@ const PREFERENCES = [
     }
   },
   {
+    id: "swap-top",
+    name: "Swap: Top Content",
+    description: "If enabled, the Context and Spotify Logo swap positions",
+    category: "Layout",
+    css: {"content-top": "swap"}
+  },
+  {
+    id: "reverse-bottom",
+    name: "Swap: Bottom Content",
+    description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
+    category: "Layout",
+    css: {"content-bottom": "reverse"}
+  },
+  {
     id: "swap-top-bottom",
-    name: "Swap Top and Bottom Content",
+    name: "Swap: Top with Bottom Content",
     description: "If enabled, the top content swaps position with the bottom content",
     category: "Layout",
     css: {
@@ -1666,8 +1676,16 @@ const PREFERENCES = [
     }
   },
   {
+    id: "decreased-margins",
+    name: "Decreased Margins",
+    description: "If enabled, all margins are halved. " +
+        "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
+    category: "Layout",
+    css: {"main": "decreased-margins"},
+  },
+  {
     id: "vertical-mode",
-    name: "Vertical Mode",
+    name: "Vertical Mode (Beta)",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
     category: "Layout",
     overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right",
@@ -1687,9 +1705,7 @@ const PREFERENCES = [
   {
     id: "prerender-background",
     name: "Prerender Background",
-    description: "[Keep this option enabled if you're unsure what it does!] " +
-        "Captures screenshots of the background images and displays those instead of the live backgrounds. " +
-        "This will save on resources for low-end PCs due to the nature of complex CSS, but it will increase the delay between song switches",
+    description: "[Keep this option enabled if you're unsure what it does!]",
     category: "Developer Tools",
     css: {
       "background-rendered": "!hidden",
@@ -1701,11 +1717,10 @@ const PREFERENCES = [
 const PREFERENCES_CATEGORY_ORDER = [
   "General",
   "Layout",
-  "Track List",
   "Main Content",
   "Top Content",
   "Bottom Content",
-  "Artwork",
+  "Track List",
   "Background",
   "Developer Tools"
 ];
@@ -1721,6 +1736,7 @@ const PREFERENCES_DEFAULT = {
     "show-podcast-descriptions",
     "display-artwork",
     "artwork-expand-top",
+    "bg-enable",
     "bg-artwork",
     "bg-tint",
     "bg-gradient",
@@ -1779,7 +1795,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-default",
     name: "Default Mode",
     category: "Presets",
-    description: "The default mode. A balanced design that aims to present as much information as possible about the current song (along with its artwork) without compromising on visual appeal",
+    description: "The default mode. A balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal",
     enabled: [],
     disabled: []
   },
@@ -1801,7 +1817,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-xl-artwork",
     name: "XL-Artwork Mode",
     category: "Presets",
-    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current song, the track list, and the progress bar are displayed",
+    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the track list, and the progress bar are displayed",
     enabled: [
       "artwork-expand-bottom",
       "decreased-margins"
@@ -1839,7 +1855,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-split-text",
     name: "Split-Panel Mode",
     category: "Presets",
-    description: "A combination of the default preset and Track-List Mode that puts the current song information on the left and the track list on the right. " +
+    description: "A combination of the default preset and Track-List Mode that puts the current track information on the left and the track list on the right. " +
         "Disables the artwork and instead only dimly displays it in the background",
     enabled: [
       "swap-top",
@@ -1861,9 +1877,9 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-big-current-song",
-    name: "Big Current-Song Mode",
+    name: "Big Current-Track Mode",
     category: "Presets",
-    description: "Only shows the current song's title, artist and release in an extra large manner. Track list is disabled, artwork is moved to the background",
+    description: "Only shows the current track's title, artist and release in an extra large manner. Track list is disabled, artwork is moved to the background",
     enabled: [
       "xl-text",
       "split-main-panels",
@@ -1890,7 +1906,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-minimalistic",
     name: "Minimalistic Mode",
     category: "Presets",
-    description: "A minimalistic design preset only containing the most relevant information about the currently playing song. The background only displays a plain color. Inspired by the original Spotify fullscreen interface for Chromecast",
+    description: "A minimalistic design preset only containing the most relevant information about the currently playing track. The background only displays a plain color. Inspired by the original Spotify fullscreen interface for Chromecast",
     enabled: [
       "vertical-mode",
       "spread-timestamps",
