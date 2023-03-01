@@ -83,7 +83,9 @@ window.addEventListener('load', entryPoint);
 
 function entryPoint() {
   submitVisualPreferencesToBackend();
-  pollingLoop();
+  singleRequest()
+      .then(() => refreshBackgroundRender())
+      .then(() => pollingLoop());
 }
 
 function submitVisualPreferencesToBackend() {
@@ -223,9 +225,9 @@ function processJson(json) {
         window.location.reload(true);
       } else {
         updateExternallyToggledPreferences(json)
-          .then(() => setTextData(json))
           .then(() => changeImage(json))
           .then(() => prerenderNextImage(json))
+          .then(() => setTextData(json))
           .then(() => refreshTimers())
           .finally(() => {
             // Update properties in local storage
@@ -254,7 +256,7 @@ function getChange(changes, path) {
 }
 
 function setTextData(changes) {
-  // Main Info
+  // Main Content
   let titleContainer = getById("title");
 
   let artists = getChange(changes, "currentlyPlaying.artists");
@@ -367,7 +369,7 @@ function setTextData(changes) {
       setClass(thumbnailWrapperContainer, "show", false);
     } else {
       setClass(thumbnailWrapperContainer, "show", true);
-      let circularThumbnail = contextType.value === "ARTIST" || contextType.value === "ALBUM";
+      let circularThumbnail = contextType.value === "ARTIST" || contextType.value === "ALBUM" || contextType.value === "QUEUE_IN_ALBUM";
       setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
       thumbnailContainer.src = thumbnailUrl;
       fadeIn(thumbnailContainer);
@@ -515,6 +517,7 @@ function setCorrectTracklistView(changes) {
     let contentInfoSize = getById("center-info-main").offsetHeight;
     let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
     trackListScaleRatio = Math.max(2, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
+    trackListScaleRatio = Math.floor(trackListScaleRatio * 10) /  10;
   }
   if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
     trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
@@ -889,7 +892,7 @@ function setArtworkAndPrerender(newImageUrl, colors) {
 
 function loadArtwork(newImage) {
   return new Promise((resolve) => {
-    calculateArtworkSize();
+    calculateAndRefreshArtworkSize();
     let artwork = getById("artwork-img");
     artwork.onload = () => {
       resolve();
@@ -898,7 +901,7 @@ function loadArtwork(newImage) {
   });
 }
 
-function calculateArtworkSize() {
+function calculateAndRefreshArtworkSize() {
   getById("artwork").style.removeProperty("margin-top");
   getById("artwork").style.removeProperty("--margin-multiplier");
 
@@ -927,8 +930,8 @@ function calculateArtworkSize() {
         artworkSize = contentBottom - centerTop;
       }
       getById("artwork").style.marginTop = centerTop + "px";
-      setClass(getById("artwork"), "double-margins", !(expandTop && expandTop) && isPrefEnabled("center-lr-margins"));
     }
+    setClass(getById("artwork"), "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
   }
   getById("main").style.setProperty("--artwork-size", artworkSize + "px");
 }
@@ -1230,7 +1233,7 @@ const PREFERENCES = [
   },
   {
     id: "show-queue",
-    name: "Enable Tracklist/Queue",
+    name: "Enable",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current song is displayed",
     category: "Track List",
     requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
@@ -1241,23 +1244,23 @@ const PREFERENCES = [
   },
   {
     id: "scrolling-track-list",
-    name: "Scrolling Track List",
-    description: "If enabled, the track list is replaced by an alternate design that displays the surrounding songs in an automatically scrolling list. " +
-        "Do note that this only works when shuffle is disabled and the playlist has less than 200 songs (for performance reasons)",
+    name: "Enable Album View",
+    description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding songs in an automatically scrolling list. " +
+        "(Only works for 200 tracks or less,for performance reasons)",
     category: "Track List",
     requiredFor: ["enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "xl-main-info-scrolling"]
   },
   {
     id: "enlarge-scrolling-track-list",
-    name: "Enlarge Current (Scrolling)",
+    name: "Album View: Enlarge Current",
     description: "If Scrolling Track List is enabled, the font size of the current song in the track list is slightly increased",
     category: "Track List",
     css: {"track-list": "enlarge-current"}
   },
   {
     id: "hide-title-scrolling-track-list",
-    name: "Hide Current Song Name (Scrolling)",
-    description: "If Scrolling Track List is enabled, the current song's name will not be displayed in the main info container " +
+    name: "Album View: Hide Duplicate Current Song Name",
+    description: "If Album View is enabled, the current song's name will not be displayed in the main content container " +
         "(since it's already visible in the track list)",
     category: "Track List",
     requiredFor: ["xl-main-info-scrolling"],
@@ -1265,21 +1268,21 @@ const PREFERENCES = [
   },
   {
     id: "xl-main-info-scrolling",
-    name: "XL Main Info (Scrolling)",
-    description: "If Hide Current Song Name (Scrolling) is enabled, the font size of the main content will automatically be doubled",
+    name: "Album View: XL Main Content",
+    description: "If 'Hide Duplicate Current Song Name' is enabled and in effect, the font size of the main content will automatically be doubled",
     category: "Track List",
     css: {"center-info-main": "big-text-scrolling"}
   },
   {
     id: "show-timestamps-track-list",
     name: "Show Time Stamps",
-    description: "Show the timestamps for each song in the track list",
+    description: "Show the timestamps for each song in the track list. If disabled, the track names are right-aligned",
     category: "Track List",
     css: {"track-list": "show-timestamps"}
   },
   {
     id: "display-artwork",
-    name: "Show Artwork",
+    name: "Enable",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
     category: "Artwork",
     requiredFor: ["artwork-expand-top", "artwork-expand-bottom", "artwork-right"],
@@ -1290,14 +1293,14 @@ const PREFERENCES = [
   },
   {
     id: "artwork-expand-top",
-    name: "Expand to Top",
+    name: "Expand to Top Content",
     description: "If enabled, expand the artwork to the top content and push that content to the side",
     category: "Artwork",
     css: {"main": "artwork-expand-top"}
   },
   {
     id: "artwork-expand-bottom",
-    name: "Expand to Bottom",
+    name: "Expand to Bottom Content",
     description: "If enabled, expand the artwork to the bottom content and push that content to the side",
     category: "Artwork",
     css: {"main": "artwork-expand-bottom"}
@@ -1332,7 +1335,7 @@ const PREFERENCES = [
   },
   {
     id: "enable-center-content",
-    name: "Enable Main Content",
+    name: "Enable",
     description: "Enable the main content, the container for the current song data and the track list",
     category: "Main Content",
     requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
@@ -1354,7 +1357,7 @@ const PREFERENCES = [
     id: "show-featured-artists",
     name: "Show Featured Artists",
     description: "Display any potential featured artists. Otherwise, only show the main artist",
-    category: "Main Content",
+    category: "General",
     css: {"content-center": "!no-feat"}
   },
   {
@@ -1370,7 +1373,7 @@ const PREFERENCES = [
     name: "Strip Titles",
     description: "Hides any kind of potentially unnecessary extra information from song tiles and release names " +
         `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
-    category: "Main Content",
+    category: "General",
     css: {
       "title-extra": "hide",
       "album-title-extra": "hide",
@@ -1432,11 +1435,11 @@ const PREFERENCES = [
   },
   {
     id: "enable-top-content",
-    name: "Enable Top Context",
+    name: "Enable",
     description: "Enable the top content, the container for the context and Spotify logo. " +
         "Disabling this will increase the available space for the main content",
     category: "Top Content",
-    requiredFor: ["show-context", "show-logo", "swap-top"],
+    requiredFor: ["show-context", "show-logo", "swap-top", "artwork-expand-top"],
     css: {
       "content-top": "!hide",
       "artwork": "!top-disabled"
@@ -1495,16 +1498,16 @@ const PREFERENCES = [
     name: "Decreased Margins",
     description: "If enabled, all margins are halved. " +
         "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
-    category: "General",
+    category: "Layout",
     css: {"main": "decreased-margins"},
   },
   {
     id: "enable-bottom-content",
-    name: "Enable Bottom Context",
+    name: "Enable",
     description: "Enable the bottom content, the container for the progress bar and various meta information. " +
         "Disabling this will increase the available space for the main content",
     category: "Bottom Content",
-    requiredFor: ["show-progress-bar", "show-timestamps", "show-info-icons", "show-volume", "show-device", "reverse-bottom", "show-clock"],
+    requiredFor: ["show-progress-bar", "show-timestamps", "show-info-icons", "show-volume", "show-device", "reverse-bottom", "show-clock", "artwork-expand-bottom"],
     css: {
       "content-bottom": "!hide",
       "artwork": "!bottom-disabled"
@@ -1578,7 +1581,14 @@ const PREFERENCES = [
     name: "Clock",
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
+    requiredFor: ["clock-full"],
     css: {"clock": "!hide"}
+  },
+  {
+    id: "clock-full",
+    name: "Show Full Date in Clock",
+    description: "If enabled, the clock displays the full date, weekday, and current time. Otherwise, only displays the current time",
+    category: "Bottom Content"
   },
   {
     id: "dark-mode",
@@ -1600,23 +1610,23 @@ const PREFERENCES = [
     id: "main-content-centered",
     name: "Center Main Content",
     description: "Center the main content (current song information and track list). Otherwise, the text will be aligned to the border",
-    category: "Main Content Layout",
+    category: "Layout",
     css: {"content-center": "centered"}
   },
   {
     id: "main-content-bottom",
-    name: "Bottom-Align Main Info",
+    name: "Bottom-Align Main Content",
     description: "Bottom-align the main content (current song information), instead of centering it. "
       + "This setting is intended to be used with disabled artwork",
-    category: "Main Content Layout",
-    css: {"center-info-main": "bottom"}
+    category: "Layout",
+    css: {"content-center": "bottom"}
   },
   {
     id: "split-main-panels",
     name: "Split Main Content",
-    description: "Separate the main info from the track list and display both in their own panel. "
+    description: "Separate the main content from the track list and display both in their own panel. "
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
-    category: "Main Content Layout",
+    category: "Layout",
     css: {"content-center": "split-main-panels"}
   },
   {
@@ -1624,30 +1634,39 @@ const PREFERENCES = [
     name: "Left/Right Center Margins",
     description: "Adds margins to the left and right of the main content. " +
         "This setting has minimum effect if Split Main Content isn't enabled",
-    category: "Main Content Layout",
+    category: "Layout",
     css: {"content-center": "extra-margins"}
   },
   {
     id: "reduced-center-margins",
     name: "Reduced Top/Bottom Center Margins",
     description: "Halves the top/bottom margins of the center container",
-    category: "Main Content Layout",
+    category: "Layout",
     css: {"content": "decreased-margins"}
   },
   {
     id: "artwork-right",
     name: "Swap Main Content",
     description: "If enabled, the main content swaps positions with the artwork",
-    category: "Main Content Layout",
+    category: "Layout",
     css: {
       "main": "artwork-right"
+    }
+  },
+  {
+    id: "swap-top-bottom",
+    name: "Swap Top and Bottom Content",
+    description: "If enabled, the top content swaps position with the bottom content",
+    category: "Layout",
+    css: {
+      "content": "swap-top-bottom"
     }
   },
   {
     id: "vertical-mode",
     name: "Vertical Mode",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
-    category: "Main Content Layout",
+    category: "Layout",
     overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right",
       "show-podcast-descriptions", "main-content-bottom", "split-main-panels"],
     css: {"main": "vertical"}
@@ -1678,7 +1697,7 @@ const PREFERENCES = [
 
 const PREFERENCES_CATEGORY_ORDER = [
   "General",
-  "Main Content Layout",
+  "Layout",
   "Track List",
   "Main Content",
   "Top Content",
@@ -1723,9 +1742,11 @@ const PREFERENCES_DEFAULT = {
     "show-device",
     "show-progress-bar",
     "show-clock",
+    "clock-full",
     "prerender-background"
   ],
   disabled: [
+    "swap-top-bottom",
     "decreased-margins",
     "xl-text",
     "separate-release-line",
@@ -1753,9 +1774,9 @@ const PREFERENCES_DEFAULT = {
 const PREFERENCES_PRESETS = [
   {
     id: "preset-default",
-    name: "Default",
+    name: "Default Mode",
     category: "Presets",
-    description: "The default mode. A balanced mode that aims to present as much information as possible about the current song (along with its artwork) without compromising on appeal",
+    description: "The default mode. A balanced design that aims to present as much information as possible about the current song (along with its artwork) without compromising on visual appeal",
     enabled: [],
     disabled: []
   },
@@ -1763,7 +1784,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-compact",
     name: "Compact Mode",
     category: "Presets",
-    description: "Similar to the default mode, but the artwork is on the right and a little bit smaller, giving more room for the main content",
+    description: "Similar to the default mode, but the artwork is on the right and a little bit smaller, opening up slightly more room for the main content",
     enabled: [
         "artwork-right",
         "center-lr-margins"
@@ -1777,7 +1798,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-xl-artwork",
     name: "XL-Artwork Mode",
     category: "Presets",
-    description: "Just the the artwork stretched to the maximum possible size. Apart from that, only the current song, the track list, and the progress bar are displayed",
+    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current song, the track list, and the progress bar are displayed",
     enabled: [
       "artwork-expand-bottom",
       "decreased-margins"
@@ -1898,7 +1919,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-artwork-only",
     name: "Artwork-Only Mode",
     category: "Presets",
-    description: "Only displays the artwork, nothing else",
+    description: "Just displays the artwork on a background, literally nothing else",
     enabled: [
       "decreased-margins",
       "display-artwork",
@@ -1943,6 +1964,10 @@ function findPreference(id) {
   return pref;
 }
 
+function findPreset(id) {
+  return PREFERENCES_PRESETS.find(preset => preset.id === id);
+}
+
 function isPrefEnabled(id) {
   return findPreference(id).state;
 }
@@ -1951,7 +1976,6 @@ window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
   const settingsWrapper = getById("settings-categories");
-  const settingsDescriptionWrapper = getById("settings-description");
 
   // Integrity check
   let allDefaultSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignore].flat();
@@ -1992,20 +2016,6 @@ function initVisualPreferences() {
     // Group to category
     let categoryElem = categories[pref.category];
     categoryElem.appendChild(prefElem);
-
-    // Create description element
-    let descElem = document.createElement("div");
-    descElem.id = pref.id + "-description";
-
-    let descHeader = document.createElement("div");
-    descHeader.innerHTML = pref.name;
-
-    let descContent = document.createElement("div");
-    descContent.innerHTML = pref.description;
-
-    descElem.append(descHeader, descContent);
-    settingsDescriptionWrapper.appendChild(descElem);
-
   }
 
   // Create preset buttons
@@ -2023,19 +2033,6 @@ function initVisualPreferences() {
     };
 
     settingsPresetsWrapper.append(presetElem);
-
-    // Create description element
-    let descElem = document.createElement("div");
-    descElem.id = preset.id + "-description";
-
-    let descHeader = document.createElement("div");
-    descHeader.innerHTML = "Preset: " + preset.name;
-
-    let descContent = document.createElement("div");
-    descContent.innerHTML = preset.description;
-
-    descElem.append(descHeader, descContent);
-    settingsDescriptionWrapper.appendChild(descElem);
   }
 
   let visualPreferencesFromLocalStorage = getVisualPreferencesFromLocalStorage();
@@ -2178,7 +2175,7 @@ function updateExternallyToggledPreferences(changes) {
           if (preference) {
             toggleVisualPreference(preference);
           } else {
-            let preset = PREFERENCES_PRESETS.find(preset => preset.id === setting);
+            let preset = findPreset(setting);
             if (preset) {
               applyPreset(preset);
               requestAnimationFrame(() => {
@@ -2359,28 +2356,45 @@ function initSettingsMouseMove() {
   };
 
   document.body.onclick = (e) => {
-    if (settingsVisible && !isSettingControlElem(e, true)) {
+    if (settingsVisible && !isSettingControlElem(e)) {
       setSettingsMenuState(false);
     }
   }
 
   document.addEventListener("dblclick", (e) => {
-    if (!settingsVisible && !isSettingControlElem(e, true) && !window.getSelection().toString()) {
+    if (!settingsVisible && !isSettingControlElem(e) && !window.getSelection().toString()) {
       toggleFullscreen();
     }
   });
 
   settingsWrapper.onmousemove = (event) => {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
-    getById("settings-description").childNodes
-      .forEach(elem => setClass(elem, "show", false));
+
+    let settingsDescriptionContainer = getById("settings-description");
+    let header = getById("settings-description-header");
+    let description = getById("settings-description-description");
+    let overridden = getById("settings-description-overridden");
+
     let target = event.target;
     if (target.parentNode.classList.contains("preset")) {
       target = target.parentNode;
     }
     if (target.classList.contains("setting") || target.classList.contains("preset")) {
-      let targetLabel = getById(target.id + "-description");
-      setClass(targetLabel, "show", true);
+      let pref = findPreference(target.id) || findPreset(target.id);
+      if (pref) {
+        header.innerHTML = pref.name;
+        description.innerHTML = pref.description;
+
+        overridden.innerHTML = [...target.classList]
+            .filter(className => className.startsWith("overridden-"))
+            .map(className => findPreference(className.replace("overridden-", "")))
+            .map(pref => pref.category + " &#x00BB; " + pref.name)
+            .join(" // ");
+
+        setClass(settingsDescriptionContainer, "show", true);
+      }
+    } else {
+      setClass(settingsDescriptionContainer, "show", false);
     }
   }
 }
@@ -2391,6 +2405,7 @@ function isSettingControlElem(e) {
   return e.target === settingsMenuToggleButton
       || e.target === settingsMenuExpertModeToggleButton
       || e.target.classList.contains("setting")
+      || e.target.classList.contains("setting-category")
       || e.target.classList.contains("preset")
       || e.target.parentNode.classList.contains("preset");
 }
@@ -2469,6 +2484,14 @@ const DATE_OPTIONS = {
   minute: '2-digit',
   hourCycle: 'h23'
 };
+const TIME_OPTIONS = {
+  hour12: false,
+  hour: "numeric",
+  minute: "2-digit"
+}
+const clockLocale = "en-UK";
+const clockFormatPref = findPreference("clock-full");
+
 let prevTime;
 let clockPref;
 setInterval(() => {
@@ -2477,7 +2500,7 @@ setInterval(() => {
   }
   if (clockPref.state) {
     let date = new Date();
-    let time = date.toLocaleDateString('en-UK', DATE_OPTIONS);
+    let time = clockFormatPref.state ? date.toLocaleDateString(clockLocale, DATE_OPTIONS) : date.toLocaleTimeString(clockLocale, TIME_OPTIONS);
     if (time !== prevTime) {
       prevTime = time;
       let clock = getById("clock");

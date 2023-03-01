@@ -243,7 +243,6 @@ img:not([src]) {
     background: url('img/grain.jpg') repeat;
     --intensity: 1;
     transform: translateZ(0);
-    will-change: opacity;
 }
 
 #grain.show {
@@ -265,6 +264,10 @@ img:not([src]) {
 
 #content.decreased-margins {
     gap: calc(var(--margin-main) / 2);
+}
+
+#content.swap-top-bottom {
+    flex-direction: column-reverse;
 }
 
 #content-top {
@@ -328,7 +331,7 @@ img:not([src]) {
     max-height: 100%;
     border: 0.2vh solid transparent;
     transform: scale(1.02) translateZ(0);
-    will-change: opacity;
+    object-fit: contain;
 }
 
 #artwork-img.show {
@@ -450,12 +453,12 @@ div#context-main {
     gap: 4vh;
 }
 
-#main.artwork-right #content:not(.full-content) #content-center:not(.centered) {
+#main.artwork-right #content:not(.full-content) #content-center:not(.centered, .split-main-panels) {
     align-items: start;
     text-align: left;
 }
 
-#content.full-content #content-center, #content-center.centered {
+#content.full-content #content-center, #content-center:is(.centered, .split-main-panels) {
     align-items: center;
 }
 
@@ -508,8 +511,8 @@ div#context-main {
     text-align: center;
 }
 
-#center-info-main.bottom {
-    align-self: end;
+#content-center.bottom {
+    align-items: end;
 }
 
 #main:not(.vertical) #content-center:not(.queue).split-main-panels #center-info-main.hide-title-in-album-view.big-text-scrolling,
@@ -719,6 +722,11 @@ div#description {
     font-feature-settings: "tnum";
     white-space: nowrap;
 }
+
+#track-list:not(.show-timestamps) .track-elem .track-name {
+    text-align: right;
+}
+
 
 #track-list:not(.show-timestamps) .track-elem .track-length {
     display: none !important;
@@ -1183,35 +1191,38 @@ div#device {
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: space-between;
     flex-direction: column;
     font-size: 3vh;
     pointer-events: none;
     position: relative;
     flex: 1;
-}
-
-#settings-description > div {
-    width: 100%;
-    opacity: 0;
-    overflow: visible;
-    position: absolute;
     text-align: center;
+    overflow: visible;
+    opacity: 0;
+    gap: 3vh;
 }
 
-#settings-description > div > div {
-    width: 100%;
+#settings-description.show {
+    opacity: 1;
 }
 
-#settings-description > div > div:first-child {
+#settings-description > #settings-description-header {
     font-weight: bold;
-    margin-bottom: 3vh;
-    font-size: 6vh;
+    font-size: 4vh;
     font-family: var(--font-bold);
 }
 
-#settings-description div.show {
-    opacity: 1;
+#settings-description > #settings-description-overridden {
+    opacity: 0.5;
+    font-size: 2vh;
+}
+
+#settings-description > #settings-description-overridden::before {
+    content: "Overridden by: ";
+}
+
+#settings-description > #settings-description-overridden:empty {
+    visibility: hidden;
 }
 
 #settings-external {
@@ -1312,18 +1323,6 @@ div#device {
 }
 
 @media only screen and (max-aspect-ratio: 3/2) {
-    #artwork {
-        margin-top: 12vh;
-    }
-
-    #content-center {
-        max-height: 100%;
-    }
-
-    #settings-description {
-        display: none;
-    }
-
     #settings-presets {
         flex-direction: column;
     }
@@ -1341,22 +1340,6 @@ div#device {
     #track-list .track-elem div.track-name {
         white-space: unset;
         overflow: unset;
-    }
-
-    #content-bottom {
-        flex-wrap: wrap;
-        flex-direction: row;
-    }
-
-    #bottom-meta-container {
-        gap: initial;
-        flex-wrap: wrap;
-    }
-
-    #bottom-right:not(.stretch) #time-total::before {
-        content: "";
-        opacity: 0;
-        padding: 0;
     }
 
     #settings-external {

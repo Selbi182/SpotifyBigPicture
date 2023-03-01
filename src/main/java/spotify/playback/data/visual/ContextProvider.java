@@ -71,7 +71,7 @@ public class ContextProvider {
       Context context = info.getContext();
       ModelObjectType type = BigPictureUtils.getModelObjectType(info);
       if (context != null || type != null) {
-        boolean force = previous == null || previous.getPlaybackContext().getContext() == null || previous.getPlaybackContext().getContext() != null;
+        boolean force = previous == null || previous.getPlaybackContext() == null || previous.getPlaybackContext().getContext() == null;
         if (type != null) {
           switch (type) {
             case ALBUM:
