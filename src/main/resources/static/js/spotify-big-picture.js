@@ -4,6 +4,7 @@ let currentData = {
   type: "",
   deployTime: 0,
   versionId: 0,
+  customVolumeSettings: [],
   settingsToToggle: [],
   currentlyPlaying: {
     id: "",
@@ -421,8 +422,9 @@ function setTextData(changes) {
 
   let volume = getChange(changes, "playbackContext.volume");
   let device = getChange(changes, "playbackContext.device");
-  if (volume.wasChanged || device.wasChanged) {
-    handleVolumeChange(volume.value, device.value);
+  let customVolumeSettings = getChange(changes, "customVolumeSettings");
+  if (volume.wasChanged || device.wasChanged || customVolumeSettings.wasChanged) {
+    handleVolumeChange(volume.value, device.value, customVolumeSettings.value);
   }
 
   if (device.wasChanged) {
@@ -590,7 +592,7 @@ function showHide(elem, show, useInvisibility) {
   }
 }
 
-const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "edition", "explicit", "extended", "expansion", "expanded", "version", "cover", "original", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
+const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "edition", "explicit", "extended", "expansion", "expanded", "version", "cover", "original", "single", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
 const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live", "classic", "demo"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
@@ -802,7 +804,7 @@ let defaultPrerender = {
 window.addEventListener('load', refreshDefaultPrerender);
 
 let nextImagePrerenderPngData;
-unsetNextImagePrerender();
+unsetNextImagePrerender().then();
 
 function changeImage(changes) {
   return new Promise(resolve => {
@@ -1578,18 +1580,9 @@ const PREFERENCES = [
   {
     id: "dark-mode",
     name: "Dark Mode",
-    description: "Darkens the entire screen. This mode will be automatically disabled after 8 hours",
+    description: "Darkens the entire screen by 50%",
     category: "General",
-    css: {"dark-overlay": "show"},
-    callback: (state) => {
-      const DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT = 8 * 60 * 60 * 1000;
-      clearTimeout(darkModeTimeout);
-      if (state) {
-        darkModeTimeout = setTimeout(() => {
-          toggleDarkMode();
-        }, DARK_MODE_AUTOMATIC_DISABLE_TIMEOUT);
-      }
-    }
+    css: {"dark-overlay": "show"}
   },
   {
     id: "artwork-expand-top",
@@ -1762,7 +1755,8 @@ const PREFERENCES_DEFAULT = {
     "show-progress-bar",
     "show-clock",
     "clock-full",
-    "prerender-background"
+    "prerender-background",
+    "fake-song-transition"
   ],
   disabled: [
     "swap-top-bottom",
@@ -1784,7 +1778,6 @@ const PREFERENCES_DEFAULT = {
     "artwork-right"
   ],
   ignore: [
-    "fake-song-transition",
     "dark-mode",
     "show-fps"
   ]
@@ -2134,8 +2127,6 @@ function setVisualPreference(pref, newState) {
   }
 }
 
-let darkModeTimeout;
-
 let refreshContentTimeout;
 
 function refreshPreference(preference, state) {
@@ -2239,23 +2230,17 @@ function toggleFullscreen() {
   }
 }
 
-function toggleDarkMode() {
-  let darkModePref = findPreference("dark-mode");
-  if (darkModePref) {
-    toggleVisualPreference(darkModePref);
-  }
-}
-
 let volumeTimeout;
-function handleVolumeChange(volume, device) {
+function handleVolumeChange(volume, device, customVolumeSettings) {
   let volumeContainer = getById("volume");
   let volumeTextContainer = getById("volume-text");
 
   let volumeWithPercent = volume + "%";
-  if (device === "Den") {
-    // Display it as dB for my private AVR because I can do what I want lol
-    const BASE_DB = 80;
-    let db = (volume - BASE_DB).toFixed(1).replace("-", "&#x2212;");
+
+  let customVolumeSetting = customVolumeSettings.find(setting => setting.device === device);
+  if (customVolumeSetting) {
+    let baseDb = customVolumeSetting.baseDb;
+    let db = (volume - baseDb).toFixed(1).replace("-", "&#x2212;");
     volumeTextContainer.innerHTML = db + " dB";
   } else {
     volumeTextContainer.innerHTML = volumeWithPercent;

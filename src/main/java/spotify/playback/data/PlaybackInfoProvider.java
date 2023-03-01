@@ -30,6 +30,7 @@ import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
 import spotify.playback.data.dto.sub.TrackElement;
 import spotify.playback.data.help.BigPictureUtils;
+import spotify.playback.data.help.CustomVolumeSettingsProvider;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlCache;
 import spotify.playback.data.visual.color.ColorProviderService;
@@ -54,6 +55,7 @@ public class PlaybackInfoProvider {
   private boolean queueEnabled;
 
   private final Set<String> settingsToToggle;
+  private final List<PlaybackInfo.CustomVolumeSettings> customVolumeSettings;
 
   private final int port;
 
@@ -61,6 +63,7 @@ public class PlaybackInfoProvider {
       ContextProvider contextProvider,
       ArtworkUrlCache artworkUrlCache,
       ColorProviderService colorProvider,
+      CustomVolumeSettingsProvider customVolumeSettingsProvider,
       SpringPortConfig springPortConfig) {
     this.spotifyApi = spotifyApi;
     this.contextProvider = contextProvider;
@@ -69,6 +72,7 @@ public class PlaybackInfoProvider {
     this.ready = false;
     this.queueEnabled = true;
     this.settingsToToggle = new HashSet<>();
+    this.customVolumeSettings = customVolumeSettingsProvider.getCustomVolumeSettings();
     this.port = springPortConfig.getPort();
     refreshDeployTime();
   }
@@ -169,6 +173,7 @@ public class PlaybackInfoProvider {
     // Meta data
     PlaybackInfo playbackInfo = new PlaybackInfo(PlaybackInfo.Type.DATA);
     playbackInfo.setDeployTime(deployTime);
+    playbackInfo.setCustomVolumeSettings(this.customVolumeSettings);
 
     // CurrentlyPlaying
     CurrentlyPlaying currentlyPlaying = playbackInfo.getCurrentlyPlaying();

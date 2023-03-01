@@ -14,6 +14,8 @@
     --font-normal: "Spotify Book", sans-serif;
     --font-bold: "Spotify Bold", sans-serif;
     --margin-main: 8vh;
+    --margin-half: calc(var(--margin-main) / 2);
+    --margin-double: calc(var(--margin-main) * 2);
     --default-shadow: 0.5vh 0.5vh 0.5vh #00000044;
     --blur: 1vh;
 }
@@ -267,7 +269,7 @@ img:not([src]) {
 }
 
 #content.decreased-margins {
-    gap: calc(var(--margin-main) / 2);
+    gap: var(--margin-half);
 }
 
 #content.swap-top-bottom {
@@ -319,8 +321,8 @@ img:not([src]) {
 }
 
 #artwork.double-margins {
-    margin-left: calc(var(--margin-main) * 2);
-    margin-right: calc(var(--margin-main) * 2);
+    margin-left: var(--margin-double);
+    margin-right: var(--margin-double);
 }
 
 #artwork.hide {
@@ -454,7 +456,7 @@ div#context-main {
     flex: 1;
     width: 100%;
     min-height: 0;
-    gap: 4vh;
+    gap: var(--margin-half) var(--margin-main);
 }
 
 #main.artwork-right #content:not(.full-content) #content-center:not(.centered, .split-main-panels) {
@@ -1012,7 +1014,7 @@ div#device {
 }
 
 #settings-menu-toggle-button {
-    --offset: calc(var(--margin-main) / 2);
+    --offset: var(--margin-half);
     width: var(--offset);
     height: var(--offset);
     left: calc(var(--offset) / -2);
@@ -1051,13 +1053,14 @@ div#device {
     height: 100%;
     z-index: 2;
     position: absolute;
-    padding: var(--margin-main);
+    padding: var(--margin-settings);
     opacity: 0;
     font-size: 3vh;
     display: none;
     flex-direction: column;
-    gap: var(--margin-main);
+    gap: 8vh;
     pointer-events: none;
+    --margin-settings: 8vh;
 }
 
 #settings-wrapper, #settings-wrapper * {
@@ -1073,7 +1076,7 @@ div#device {
 #settings-wrapper::before {
     content: "Visual Preferences";
     position: absolute;
-    left: calc(var(--margin-main) / 4);
+    left: 2vh;
     top: 0;
     bottom: 0;
     text-orientation: sideways;
@@ -1154,7 +1157,7 @@ div#device {
     flex-direction: column;
     height: 100%;
     width: 100%;
-    gap: var(--margin-main);
+    gap: var(--margin-settings);
     position: relative;
 }
 
@@ -1163,7 +1166,7 @@ div#device {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    gap: var(--margin-main);
+    gap: var(--margin-settings);
     max-height: 100%;
     --image: "";
 }
@@ -1233,7 +1236,7 @@ div#device {
 #settings-external {
     position: absolute;
     top: 2vh;
-    right: var(--margin-main);
+    right: var(--margin-settings);
     opacity: 0.5;
     cursor: pointer;
     font-family: var(--font-bold);
@@ -1248,7 +1251,7 @@ div#device {
 #settings-expert-mode-toggle {
     position: absolute;
     top: 2vh;
-    left: var(--margin-main);
+    left: var(--margin-settings);
     opacity: 0.5;
     cursor: pointer;
     font-family: var(--font-bold);
@@ -1349,7 +1352,7 @@ div#device {
 
     #settings-external {
         bottom: 2vh;
-        left: var(--margin-main);
+        left: var(--margin-settings);
         top: unset;
         right: unset;
     }

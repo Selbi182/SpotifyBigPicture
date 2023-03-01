@@ -30,14 +30,13 @@ public class DictionaryArtworkUrlProvider implements ArtworkUrlProvider {
       File customImagesFiles = new File(CUSTOM_IMAGES_FILE);
       if (customImagesFiles.canRead()) {
         Files.lines(Path.of(CUSTOM_IMAGES_FILE))
-          .filter(line -> !line.startsWith(COMMENT_CHAR))
+          .filter(line -> !line.startsWith(COMMENT_CHAR) && !line.isBlank())
           .map(line -> line.split(SPLIT_CHAR))
           .forEach(entry -> dictionaryImgMap.put(entry[0].trim(), entry[1].trim()));
       }
     } catch (IOException e) {
       System.out.println("Failed to read " + CUSTOM_IMAGES_FILE);
     }
-
   }
 
   @Override

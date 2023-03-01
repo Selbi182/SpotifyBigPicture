@@ -41,6 +41,7 @@ templates/READY
 /spring.log
 spotifybot.properties
 custom_images.txt
+custom_volume_settings.txt
 log.txt
 deploy.sh
 /spotifybot_*.properties

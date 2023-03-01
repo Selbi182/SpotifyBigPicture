@@ -28,6 +28,7 @@ public class PlaybackInfo {
   private TrackData trackData;
 
   private List<String> settingsToToggle;
+  private List<CustomVolumeSettings> customVolumeSettings;
 
   public PlaybackInfo(Type type) {
     this(type, true);
@@ -100,6 +101,14 @@ public class PlaybackInfo {
     this.settingsToToggle = settingsToToggle;
   }
 
+  public List<CustomVolumeSettings> getCustomVolumeSettings() {
+    return customVolumeSettings;
+  }
+
+  public void setCustomVolumeSettings(List<CustomVolumeSettings> customVolumeSettings) {
+    this.customVolumeSettings = customVolumeSettings;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o)
@@ -108,11 +117,52 @@ public class PlaybackInfo {
       return false;
     PlaybackInfo that = (PlaybackInfo) o;
     return type == that.type && Objects.equals(deployTime, that.deployTime) && Objects.equals(currentlyPlaying, that.currentlyPlaying) && Objects.equals(playbackContext, that.playbackContext) && Objects.equals(trackData,
-        that.trackData) && Objects.equals(settingsToToggle, that.settingsToToggle);
+        that.trackData) && Objects.equals(settingsToToggle, that.settingsToToggle) && Objects.equals(customVolumeSettings, that.customVolumeSettings);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(type, deployTime, currentlyPlaying, playbackContext, trackData, settingsToToggle);
+    return Objects.hash(type, deployTime, currentlyPlaying, playbackContext, trackData, settingsToToggle, customVolumeSettings);
+  }
+
+  public static class CustomVolumeSettings {
+    private String device;
+    private int baseDb;
+
+    public CustomVolumeSettings(String device, int baseDb) {
+      this.device = device;
+      this.baseDb = baseDb;
+    }
+
+    public String getDevice() {
+      return device;
+    }
+
+    public void setDevice(String device) {
+      this.device = device;
+    }
+
+    public int getBaseDb() {
+      return baseDb;
+    }
+
+    public void setBaseDb(int baseDb) {
+      this.baseDb = baseDb;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      if (!(o instanceof CustomVolumeSettings))
+        return false;
+      CustomVolumeSettings that = (CustomVolumeSettings) o;
+      return baseDb == that.baseDb && Objects.equals(device, that.device);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(device, baseDb);
+    }
   }
 }
