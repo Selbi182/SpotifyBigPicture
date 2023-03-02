@@ -2,6 +2,7 @@ package spotify.playback.data;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -119,6 +120,9 @@ public class PlaybackInfoProvider {
         if (playbackQueue != null && playbackQueue.getCurrentlyPlaying() != null && currentlyPlayingContext != null && currentlyPlayingContext.getItem() != null) {
           PlaybackInfo currentPlaybackInfo;
           ModelObjectType type = playbackQueue.getCurrentlyPlaying().getType();
+          if (currentlyPlayingContext.getItem() != null && !Objects.equals(playbackQueue.getCurrentlyPlaying().getId(), currentlyPlayingContext.getItem().getId())) {
+            type = ModelObjectType.TRACK;
+          }
           switch (type) {
             case TRACK:
               currentPlaybackInfo = buildInfoTrack(playbackQueue, currentlyPlayingContext);
@@ -169,6 +173,9 @@ public class PlaybackInfoProvider {
 
   private PlaybackInfo buildBaseInfo(PlaybackQueue playbackQueue, CurrentlyPlayingContext context) {
     IPlaylistItem currentTrack = playbackQueue.getCurrentlyPlaying();
+    if (context.getItem() != null && !Objects.equals(currentTrack.getId(), context.getItem().getId())) {
+      currentTrack = context.getItem();
+    }
 
     // Meta data
     PlaybackInfo playbackInfo = new PlaybackInfo(PlaybackInfo.Type.DATA);
@@ -335,7 +342,13 @@ public class PlaybackInfoProvider {
   private PlaybackInfo buildInfoTrack(PlaybackQueue playbackQueue, CurrentlyPlayingContext context) {
     PlaybackInfo pInfo = buildBaseInfo(playbackQueue, context);
 
-    Track track = (Track) playbackQueue.getCurrentlyPlaying();
+    IPlaylistItem item = playbackQueue.getCurrentlyPlaying();
+    if (context.getItem() != null && !Objects.equals(item.getId(), context.getItem().getId())) {
+      item = context.getItem();
+    }
+
+    Track track = (Track) item;
+
     AlbumSimplified album = track.getAlbum();
     CurrentlyPlaying currentlyPlaying = pInfo.getCurrentlyPlaying();
 
