@@ -57,10 +57,20 @@ a:hover {
     opacity: 1 !important;
 }
 
-#main:not(.disable-transitions) * {
+#main:not(.disable-transitions) :is(
+    #background-rendered *,
+    #context-main, #context-extra, #thumbnail-wrapper, #logo,
+    #artists, #title, #description, #album,
+    #track-list, #content-center.queue #track-list .track-elem.shrink div,
+    #progress-current, #progress-background,
+    #play-pause, #shuffle, #repeat, #volume-text, #volume-current, #volume-background, #device,
+    #clock, #time-current, #time-total
+) {
     transition: opacity var(--transition),
         color var(--transition),
         background-color var(--transition),
+        letter-spacing var(--transition),
+        font-size var(--transition),
         filter var(--transition);
 }
 
@@ -99,7 +109,6 @@ img:not([src]) {
 #main {
     height: 100%;
     color: var(--color);
-    transition: filter var(--transition);
     --artwork-size: 0;
 }
 
@@ -634,8 +643,23 @@ div#description {
     --gradient-height: 6vh;
     --gradient-top: white;
     --gradient-bottom: white;
-    mask-image: linear-gradient(to bottom, var(--gradient-top) 0%, white var(--gradient-height),
+    --track-list-gradient: linear-gradient(to bottom, var(--gradient-top) 0%, white var(--gradient-height),
         white calc(100% - var(--gradient-height)), var(--gradient-bottom)  100%);
+    -webkit-mask-image: var(--track-list-gradient);
+    mask-image: var(--track-list-gradient);
+}
+
+::-webkit-scrollbar {
+    width: 1vh;
+    height: 1vh;
+}
+::-webkit-scrollbar-track {
+    background: #222;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 1vh;
+    border: transparent;
 }
 
 #track-list.hide {
@@ -651,7 +675,7 @@ div#description {
 }
 
 #content-center.queue #track-list {
-    mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
+    --track-list-gradient: linear-gradient(to bottom, black 20%, transparent 100%);
 }
 
 #track-list.show-timestamps {
@@ -688,14 +712,6 @@ div#description {
 
 #content-center:not(.queue) #track-list .track-elem.current div {
     opacity: 1;
-}
-
-#content-center.queue #track-list .track-elem:first-child div {
-    will-change: opacity, font-size;
-}
-
-#main:not(.disable-transitions)  #track-list .track-elem div {
-    transition: font-size var(--transition), opacity var(--transition);
 }
 
 #main #content-center.queue #track-list .track-elem.shrink:first-child div,
@@ -765,11 +781,6 @@ div#description {
 
 #track-list.strip .track-elem div.track-name span.extra {
     display: none;
-}
-
-#main:not(.disable-transitions) :is(#artists, #title, #description, #album, #context) {
-    transition: opacity var(--transition), letter-spacing var(--transition);
-    will-change: opacity, letter-spacing;
 }
 
 #artists, #title, #description, #album-title, .track-name  {
@@ -1097,7 +1108,9 @@ div#device {
     overflow-y: hidden;
     scrollbar-width: thin;
     flex: 1;
-    mask-image: linear-gradient(var(--mask-direction), transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
+    --scroller-gradient: linear-gradient(var(--mask-direction), transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
+    -webkit-mask-image: var(--scroller-gradient);
+    mask-image: var(--scroller-gradient);
     padding: var(--mask-padding);
     --mask-direction: to right;
     --mask-padding: 3vh;
@@ -1377,12 +1390,20 @@ div#device {
         overflow-y: auto;
     }
 
-    #settings-categories {
+    #settings-scroller > div {
         flex-direction: column;
         width: 100%;
     }
 
     #settings-categories .setting-category {
         width: 100%;
+    }
+
+    #settings-description-header {
+        display: none;
+    }
+
+    #settings-description-description {
+        font-size: 2vh;
     }
 }

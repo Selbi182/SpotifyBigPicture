@@ -49,8 +49,8 @@ Here's a basic guide on how to set this app up, as a few people have been reques
   * [Download here](https://adoptium.net/de/temurin/releases/?version=11) 
 * **Monitor should have 16:9 aspect ratio:**
   * While most features should work in any aspect ratio, this app has been optimized primarily for 16:9 (landscape mode). For anything else (namely portrait mode, such as on your phone), expect some limitations
-* **Mozilla Firefox:**
-  * While this app may work to some degree on Chrome and other browsers, I won't guarantee full stability over there. This app has been solely optimized for Firefox
+* **A modern browser:**
+  * There are a lot of fancy bells and whistles attached to this app that simply won't work on older browsers. I primarily developed and optimized it for Mozilla Firefox, but it also works on Google Chrome. Not tested on any other browsers, so I won't guarantee full stability over there
 * **Spotify Premium:**
   * You can still use this app as a free user, but you won't get the full functionality. For example, getting your current queue is **only** available for Spotify premium users. For free users, only the current song can be displayed. For albums, more than a good guess whichever song comes next is unfortunately not possible
 

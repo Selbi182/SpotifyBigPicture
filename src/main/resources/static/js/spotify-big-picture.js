@@ -557,14 +557,19 @@ function trackListEquals(trackList1, trackList2) {
 }
 
 function balanceTextClamp(elem) {
-  // balanceText doesn't take line-clamping into account, unfortunately.
-  // So we gotta temporarily remove it, balance the text, then add it again.
-  elem.style.setProperty("-webkit-line-clamp", "initial", "important");
-  balanceText(elem);
-  elem.style.removeProperty("-webkit-line-clamp");
+  // balanceText is too stupid to stop itself when in portrait mode.
+  // To prevent freezes, disallow balancing in those cases.
+  if (!isPortraitMode()) {
+    // balanceText doesn't take line-clamping into account, unfortunately.
+    // So we gotta temporarily remove it, balance the text, then add it again.
+    elem.style.setProperty("-webkit-line-clamp", "initial", "important");
+    balanceText(elem);
+    elem.style.removeProperty("-webkit-line-clamp");
+  }
 }
 
 function refreshTextBalance() {
+  isPortraitMode(true);
   for (let id of ["artists", "title", "album-title", "description"]) {
     balanceTextClamp(getById(id));
   }
@@ -847,10 +852,15 @@ function setRenderedBackground(canvas) {
   return new Promise((resolve) => {
     // Set old background to fade out and then delete it
     // (In theory, should only ever be one, but just in case, do it for all children)
+    let transitionsEnabled = isPrefEnabled("transitions");
     let backgroundRenderedWrapper = getById("background-rendered");
     backgroundRenderedWrapper.childNodes.forEach(child => {
-      child.ontransitionend = () => child.remove();
-      child.classList.add("crossfade");
+      if (transitionsEnabled) {
+        child.ontransitionend = () => child.remove();
+        child.classList.add("crossfade");
+      } else {
+        child.remove();
+      }
     });
 
     // Add the new canvas
@@ -2332,12 +2342,16 @@ function handleMouseEvent() {
   }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
 }
 
-function isMobileView() {
-  return window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
+let mobileView = null;
+function isPortraitMode(force = false) {
+  if (force || mobileView === null) {
+    mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
+  }
+  return mobileView;
 }
 
 function handleWheelEvent(e) {
-  if (!isMobileView()) {
+  if (!isPortraitMode()) {
     if (e.passive) {
       e.preventDefault();
     }
