@@ -61,7 +61,7 @@ a:hover {
     #background-rendered *,
     #context-main, #context-extra, #thumbnail-wrapper, #logo,
     #artists, #title, #description, #album,
-    #track-list, #content-center.queue #track-list .track-elem.shrink div,
+    #track-list, #track-list .track-elem div,
     #progress-current, #progress-background,
     #play-pause, #shuffle, #repeat, #volume-text, #volume-current, #volume-background, #device,
     #clock, #time-current, #time-total
@@ -110,6 +110,8 @@ img:not([src]) {
     height: 100%;
     color: var(--color);
     --artwork-size: 0;
+    transform-origin: bottom right;
+    transition: transform var(--transition);
 }
 
 #main.hide {
@@ -126,7 +128,6 @@ img:not([src]) {
 
 #main.scale-down {
     transform: scale(0.5);
-    transform-origin: bottom right;
 }
 
 #main:not(.vertical) #content:not(.full-content) #content-center,
@@ -532,8 +533,8 @@ div#context-main {
     align-items: end;
 }
 
-#main:not(.vertical) #content-center:not(.queue).split-main-panels #center-info-main.hide-title-in-album-view.big-text-scrolling,
-#main:not(.vertical) #center-info-main.big-text {
+#main:not(.vertical) #content-center:not(.queue).title-duplicate #center-info-main.hide-title-in-album-view.big-text.big-text-scrolling,
+#main:not(.vertical) #center-info-main.big-text:not(.big-text-scrolling.hide-title-in-album-view) {
     --font-scale: 2vh;
 }
 
@@ -543,7 +544,7 @@ div#context-main {
 }
 
 #content-center:not(.queue) #center-info-main.hide-title-in-album-view #title,
-#center-info-main.hide-title #title {
+#center-info-main.title-duplicate #title {
     display: none;
 }
 
@@ -601,8 +602,16 @@ div#context-main {
     display: initial;
 }
 
-#album-release #release-rest.hide {
+#album-release.full #release-year {
     display: none;
+}
+
+#album-release #release-full {
+    display: none;
+}
+
+#album-release.full #release-full {
+    display: initial;
 }
 
 #album:not(.separate-date) #album-release::before {
@@ -1081,7 +1090,7 @@ div#device {
 }
 
 #settings-wrapper, #settings-wrapper * {
-    transition: opacity var(--transition), margin-left var(--transition), transform var(--transition);
+    transition: opacity var(--transition);
 }
 
 #settings-wrapper.show {
@@ -1113,7 +1122,7 @@ div#device {
     mask-image: var(--scroller-gradient);
     padding: var(--mask-padding);
     --mask-direction: to right;
-    --mask-padding: 3vh;
+    --mask-padding: 2vh;
 }
 
 #settings-scroller > div::after {
@@ -1339,7 +1348,7 @@ div#device {
 }
 
 #main.preset-thumbnail-generator :is(#background-rendered,
-        #title *, #description, #release-year, #release-rest,
+        #title *, #description, #release-year, #release-full,
         #thumbnail, #progress > div, #bottom-left > div > div) {
     visibility: hidden;
 }

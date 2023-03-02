@@ -312,13 +312,13 @@ function setTextData(changes) {
 
     let release = releaseDate.value;
     if (release !== BLANK) {
-      let [releaseYear, ...releaseRest] = release.split("-");
-      getById("release-year").innerHTML = releaseYear;
-      getById("release-rest").innerHTML = "-" + releaseRest.join("-");
+      let year = release.slice(0, 4);
+      getById("release-year").innerHTML = year;
+      getById("release-full").innerHTML = release.length > year.length ? formatReleaseDate(release) : year;
       setClass(getById("album-release"), "show", true);
     } else {
       getById("release-year").innerHTML = "";
-      getById("release-rest").innerHTML = "";
+      getById("release-full").innerHTML = "";
       setClass(getById("album-release"), "show", false);
     }
 
@@ -462,7 +462,7 @@ function setCorrectTracklistView(changes) {
   let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !isPrefEnabled("scrolling-track-list")) && isPrefEnabled("show-queue");
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
-  setClass(mainContainer, "hide-title", !titleDisplayed);
+  setClass(mainContainer, "title-duplicate", !titleDisplayed);
   setClass(mainContainer, "queue", queueMode);
 
   let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
@@ -584,7 +584,7 @@ function setClass(elem, className, state) {
   return elem;
 }
 
-const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "edition", "explicit", "extended", "expansion", "expanded", "version", "cover", "original", "single", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
+const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "edition", "explicit", "extended", "expansion", "expanded", "version", "cover", "original", "single", "ep", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
 const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live", "classic", "demo"];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
@@ -629,6 +629,17 @@ function buildFeaturedArtistsSpan(artists) {
 
 function removeFeaturedArtists(title) {
   return title.replace(/[(|\[](f(ea)?t|with).+?[)|\]]/ig, "").trim();
+}
+
+const RELEASE_FULL_FORMAT = {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+};
+const RELEASE_FULL_LOCALE = "en-US";
+
+function formatReleaseDate(release) {
+  return new Date(Date.parse(release)).toLocaleDateString(RELEASE_FULL_LOCALE, RELEASE_FULL_FORMAT);
 }
 
 function finishAnimations(elem) {
@@ -896,12 +907,16 @@ function loadArtwork(newImage) {
 }
 
 function calculateAndRefreshArtworkSize() {
-  getById("artwork").style.removeProperty("margin-top");
-  getById("artwork").style.removeProperty("--margin-multiplier");
+  let main = getById("main");
+  let artwork = getById("artwork");
+
+  artwork.style.removeProperty("margin-top");
+  artwork.style.removeProperty("--margin-multiplier");
 
   let settingsEnabled = settingsVisible;
   if (settingsEnabled) {
-    getById("main").classList.remove("scale-down");
+    main.style.transform = "unset";
+    main.style.transition = "unset";
   }
 
   let artworkSize = 0;
@@ -943,16 +958,18 @@ function calculateAndRefreshArtworkSize() {
       }
 
       let topMargin = expandTop ? contentTop : centerTop;
-      getById("artwork").style.marginTop = topMargin + "px";
+      artwork.style.marginTop = topMargin + "px";
 
-      setClass(getById("artwork"), "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
+      setClass(artwork, "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
     }
   }
 
-  getById("main").style.setProperty("--artwork-size", artworkSize + "px");
+  main.style.setProperty("--artwork-size", artworkSize + "px");
 
   if (settingsEnabled) {
-    getById("main").classList.add("scale-down");
+    main.style.removeProperty("transform");
+    main.style.removeProperty("transition");
+    finishAnimations(main);
   }
 }
 
@@ -1268,19 +1285,12 @@ const PREFERENCES = [
   },
   {
     id: "hide-title-scrolling-track-list",
-    name: "Album View: Hide Duplicate Current Track Name",
+    name: "Album View: Hide Duplicate Track Name",
     description: "If 'Album View' is enabled, the current track's name will not be displayed in the main content container " +
         "(since it's already visible in the track list)",
     category: "Track List",
     requiredFor: ["xl-main-info-scrolling"],
     css: {"center-info-main": "hide-title-in-album-view"}
-  },
-  {
-    id: "xl-main-info-scrolling",
-    name: "Album View: XL Main Content",
-    description: "If 'Hide Duplicate Current Track Name' is enabled and in effect, the font size of the main content will automatically be doubled",
-    category: "Track List",
-    css: {"center-info-main": "big-text-scrolling"}
   },
   {
     id: "xl-tracklist",
@@ -1402,9 +1412,10 @@ const PREFERENCES = [
   {
     id: "full-release-date",
     name: "Full Release Date",
-    description: "If enabled, the whole release date is shown (including month and day). Otherwise, only the year is shown",
+    description: "If enabled, the whole release date is shown (including month and day). Otherwise, only the year is shown. " +
+        "Note that some releases on Spotify only have the year (usually older releases)",
     category: "Main Content",
-    css: {"release-rest": "!hide"}
+    css: {"album-release": "full"}
   },
   {
     id: "show-podcast-descriptions",
@@ -1415,11 +1426,19 @@ const PREFERENCES = [
   },
   {
     id: "xl-text",
-    name: "XL Main Text",
+    name: "XL Main Content",
     description: "If enabled, the font size for the current track's title, artist, and release is doubled. " +
         "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
+    requiredFor: ["xl-main-info-scrolling"],
     css: {"center-info-main": "big-text"}
+  },
+  {
+    id: "xl-main-info-scrolling",
+    name: "Conditional XL Main Content",
+    description: "Limit 'XL Main Content' to only kick into effect when the title is hidden by 'Album View: Hide Duplicate Track Name'",
+    category: "Main Content",
+    css: {"center-info-main": "big-text-scrolling"}
   },
   {
     id: "enable-top-content",
@@ -1854,12 +1873,14 @@ const PREFERENCES_PRESETS = [
         "Disables the artwork and instead only dimly displays it in the background",
     enabled: [
       "swap-top",
+      "xl-text",
       "xl-main-info-scrolling",
       "center-lr-margins",
       "reduced-center-margins",
       "reverse-bottom",
       "split-main-panels",
-      "separate-release-line"
+      "separate-release-line",
+      "full-release-date"
     ],
     disabled: [
       "colored-symbol-context",
@@ -2531,7 +2552,7 @@ const TIME_OPTIONS = {
   hour: "numeric",
   minute: "2-digit"
 }
-const clockLocale = "en-UK";
+const clockLocale = "en-US";
 const clockFormatPref = findPreference("clock-full");
 
 let prevTime;
