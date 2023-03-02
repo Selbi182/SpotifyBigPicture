@@ -17,7 +17,6 @@
     --margin-half: calc(var(--margin-main) / 2);
     --margin-double: calc(var(--margin-main) * 2);
     --default-shadow: 0.5vh 0.5vh 0.5vh #00000044;
-    --blur: 1vh;
 }
 
 html, body {
@@ -116,8 +115,9 @@ img:not([src]) {
     --margin-main: 4vh;
 }
 
-#main.blur {
-    filter: blur(var(--blur)) brightness(0.5);
+#main.scale-down {
+    transform: scale(0.5);
+    transform-origin: bottom right;
 }
 
 #main:not(.vertical) #content:not(.full-content) #content-center,
@@ -230,7 +230,7 @@ img:not([src]) {
 }
 
 #background-canvas-img {
-    filter: blur(var(--blur)) grayscale(25%);
+    filter: blur(1vh) grayscale(25%);
 }
 
 #background-canvas.color-only #background-canvas-img {
@@ -636,6 +636,10 @@ div#description {
     --gradient-bottom: white;
     mask-image: linear-gradient(to bottom, var(--gradient-top) 0%, white var(--gradient-height),
         white calc(100% - var(--gradient-height)), var(--gradient-bottom)  100%);
+}
+
+#track-list.hide {
+    display: none;
 }
 
 #content-center.split-main-panels #track-list {
@@ -1078,12 +1082,10 @@ div#device {
 #settings-wrapper::before {
     content: "Visual Preferences";
     position: absolute;
-    left: 2vh;
+    left: 0;
+    right: 0;
     top: 0;
-    bottom: 0;
-    text-orientation: sideways;
-    writing-mode: sideways-lr;
-    margin: auto 0;
+    margin: 2vh;
     text-align: center;
     letter-spacing: 2vh;
     opacity: 0.25;
@@ -1094,11 +1096,19 @@ div#device {
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
-    flex: 2;
+    flex: 1;
     mask-image: linear-gradient(var(--mask-direction), transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
     padding: var(--mask-padding);
     --mask-direction: to right;
     --mask-padding: 3vh;
+}
+
+#settings-scroller > div > div:last-child {
+    padding-right: var(--margin-settings);
+}
+
+#settings-scroller > #settings-scroller-content {
+    padding: var(--margin-settings);
 }
 
 #settings-wrapper.expert #settings-categories {
@@ -1151,7 +1161,7 @@ div#device {
 }
 
 #settings-categories .setting-category {
-    background: #000000c0;
+    background: #ffffff20;
     border-radius: 2vh;
     padding: 2vh;
 }
@@ -1172,11 +1182,9 @@ div#device {
 #settings-presets {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
     align-items: center;
     gap: var(--margin-settings);
-    --image: "";
+    height: 100%;
 }
 
 #settings-presets.hide {
@@ -1189,15 +1197,15 @@ div#device {
     cursor: pointer;
     width: min-content;
     height: min-content;
-    background: #ffffff40;
-    background-size: contain;
-    border-radius: 1vh;
-    border: 0.3vh solid white;
 }
 
 #settings-presets > .preset > img {
     width: auto;
-    height: 15vh;
+    height: 20vh;
+    background: #ffffff40;
+    background-size: contain;
+    border-radius: 1vh;
+    border: 0.3vh solid white;
 }
 
 #settings-presets > .preset:hover {
@@ -1205,7 +1213,7 @@ div#device {
 }
 
 #settings-description {
-    width: 100%;
+    width: 50%;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -1217,6 +1225,7 @@ div#device {
     overflow: visible;
     opacity: 0;
     gap: 3vh;
+    padding: 2vh;
 }
 
 #settings-description.show {
@@ -1239,7 +1248,7 @@ div#device {
 }
 
 #settings-description > #settings-description-overridden:empty {
-    visibility: hidden;
+    display: none;
 }
 
 #settings-external {

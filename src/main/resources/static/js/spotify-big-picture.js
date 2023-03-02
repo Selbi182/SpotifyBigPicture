@@ -888,6 +888,11 @@ function calculateAndRefreshArtworkSize() {
   getById("artwork").style.removeProperty("margin-top");
   getById("artwork").style.removeProperty("--margin-multiplier");
 
+  let settingsEnabled = settingsVisible;
+  if (settingsEnabled) {
+    getById("main").classList.remove("scale-down");
+  }
+
   let artworkSize = 0;
 
   if (isPrefEnabled("display-artwork")) {
@@ -934,6 +939,10 @@ function calculateAndRefreshArtworkSize() {
   }
 
   getById("main").style.setProperty("--artwork-size", artworkSize + "px");
+
+  if (settingsEnabled) {
+    getById("main").classList.add("scale-down");
+  }
 }
 
 function loadBackground(newImage, colors) {
@@ -1221,7 +1230,7 @@ const PREFERENCES = [
     requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
     css: {
       "title": "!force-display",
-      "track-list": "!hidden"
+      "track-list": "!hide"
     }
   },
   {
@@ -1307,18 +1316,6 @@ const PREFERENCES = [
     css: {"grain": "show"}
   },
   {
-    id: "enable-center-content",
-    name: "Enable",
-    description: "Enable the main content, the container for the current track data and the track list",
-    category: "Main Content",
-    requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
-      "main-content-centered", "main-content-bottom", "split-main-panels", "reduced-center-margins", "vertical-mode"],
-    css: {
-      "content-center": "!hide",
-      "artwork": "!center-disabled"
-    }
-  },
-  {
     id: "display-artwork",
     name: "Enable Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
@@ -1327,6 +1324,18 @@ const PREFERENCES = [
     css: {
       "artwork": "!hide",
       "content": "!full-content"
+    }
+  },
+  {
+    id: "enable-center-content",
+    name: "Enable Main Content",
+    description: "Enable the main content, the container for the current track data and the track list",
+    category: "Main Content",
+    requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
+      "main-content-centered", "main-content-bottom", "split-main-panels", "reduced-center-margins", "vertical-mode"],
+    css: {
+      "content-center": "!hide",
+      "artwork": "!center-disabled"
     }
   },
   {
@@ -1679,7 +1688,7 @@ const PREFERENCES = [
     description: "[Keep this option enabled if you're unsure what it does!]",
     category: "Developer Tools",
     css: {
-      "background-rendered": "!hidden",
+      "background-rendered": "!hide",
       "prerender-canvas": "!no-prerender"
     }
   }
@@ -2135,8 +2144,8 @@ function refreshPreference(preference, state) {
 
   // Refresh Background and Tracklist, but only do it once per preset application
   clearTimeout(refreshContentTimeout);
+  unsetBackgroundPrerender();
   refreshContentTimeout = setTimeout(() => {
-    unsetBackgroundPrerender();
     refreshBackgroundRender(true);
     refreshTrackList();
     updateProgress(currentData, true);
@@ -2434,7 +2443,7 @@ function setSettingsMenuState(state) {
   let settingsWrapper = getById("settings-wrapper");
   let mainBody = getById("main");
   setClass(settingsWrapper, "show", settingsVisible);
-  setClass(mainBody, "blur", settingsVisible);
+  setClass(mainBody, "scale-down", settingsVisible);
 }
 
 function toggleSettingsExpertMode() {
