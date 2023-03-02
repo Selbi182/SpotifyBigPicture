@@ -95,9 +95,7 @@ window.addEventListener('load', entryPoint);
 
 function entryPoint() {
   submitVisualPreferencesToBackend();
-  singleRequest()
-      .then(() => refreshBackgroundRender())
-      .then(() => pollingLoop());
+  pollingLoop();
 }
 
 function submitVisualPreferencesToBackend() {
@@ -785,12 +783,6 @@ const DEFAULT_IMAGE_COLORS = {
   averageBrightness: 1.0
 }
 
-let defaultPrerender = {
-  imageUrl: DEFAULT_IMAGE,
-  pngData: null
-};
-window.addEventListener('load', refreshDefaultPrerender);
-
 let nextImagePrerenderPngData;
 unsetNextImagePrerender().then();
 
@@ -799,24 +791,23 @@ function changeImage(changes) {
     let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
     if (imageUrl.wasChanged) {
       if (imageUrl.value === BLANK) {
-        setRenderedBackground(defaultPrerender.pngData)
-          .then(() => resolve());
-      } else {
-        let oldImageUrl = currentData.currentlyPlaying.imageData.imageUrl;
-        let newImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
-        let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
-        if (!oldImageUrl.includes(newImageUrl)) {
-          if (nextImagePrerenderPngData.imageUrl === newImageUrl) {
-            setRenderedBackground(nextImagePrerenderPngData.pngData)
-              .then(() => resolve());
-          } else {
-            setArtworkAndPrerender(newImageUrl, colors)
-              .then(pngData => setRenderedBackground(pngData))
-              .then(() => resolve());
-          }
+        imageUrl.value = DEFAULT_IMAGE;
+      }
+      let oldImageUrl = currentData.currentlyPlaying.imageData.imageUrl;
+      let newImageUrl = imageUrl.value;
+      let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
+      if (!oldImageUrl.includes(newImageUrl)) {
+        if (nextImagePrerenderPngData.imageUrl === newImageUrl) {
+          setRenderedBackground(nextImagePrerenderPngData.pngData)
+            .then(() => resolve());
         } else {
-          resolve();
+          console.log("changeImge")
+          setArtworkAndPrerender(newImageUrl, colors)
+            .then(pngData => setRenderedBackground(pngData))
+            .then(() => resolve());
         }
+      } else {
+        resolve();
       }
     } else {
       resolve();
@@ -824,24 +815,28 @@ function changeImage(changes) {
   });
 }
 
-const PRERENDER_DELAY_MS = 1000;
-function prerenderNextImage(changes, delay = PRERENDER_DELAY_MS) {
+let nextPrerenderInProgress = false;
+function prerenderNextImage(changes) {
   return new Promise(resolve => {
-    let prerenderEnabled = isPrefEnabled("prerender-background");
-    if (prerenderEnabled) {
-      let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
-      let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
-      if (currentImageUrl !== nextImageUrl && nextImagePrerenderPngData.imageUrl !== nextImageUrl) {
-        setTimeout(() => {
-          let nextImageColors = getChange(changes, "trackData.nextImageData.imageColors").value;
-          setArtworkAndPrerender(nextImageUrl, nextImageColors)
+    if (!nextPrerenderInProgress) {
+      nextPrerenderInProgress = true;
+      let prerenderEnabled = isPrefEnabled("prerender-background");
+      if (prerenderEnabled) {
+        let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
+        let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
+        if (currentImageUrl !== nextImageUrl && nextImagePrerenderPngData.imageUrl !== nextImageUrl) {
+          setTimeout(() => {
+            let nextImageColors = getChange(changes, "trackData.nextImageData.imageColors").value;
+            setArtworkAndPrerender(nextImageUrl, nextImageColors)
               .then(pngData => {
                 nextImagePrerenderPngData = {
                   imageUrl: nextImageUrl,
                   pngData: pngData
                 };
+                nextPrerenderInProgress = false;
               });
-        }, delay)
+          }, transitionFromCss)
+        }
       }
     }
     resolve();
@@ -861,7 +856,7 @@ function setRenderedBackground(pngData) {
       };
       backgroundImg.src = pngData;
     };
-    backgroundCrossfade.src = backgroundImg.src || defaultPrerender.pngData;
+    backgroundCrossfade.src = backgroundImg.src;
   });
 }
 
@@ -895,46 +890,51 @@ function calculateAndRefreshArtworkSize() {
   getById("artwork").style.removeProperty("margin-top");
   getById("artwork").style.removeProperty("--margin-multiplier");
 
-  let centerRect = getById("content-center").getBoundingClientRect();
-  let centerTop = centerRect.top;
-  let centerBottom = centerRect.bottom;
+  let artworkSize = 0;
 
-  let topRect = getById("content-top").getBoundingClientRect();
-  let bottomRect = getById("content-bottom").getBoundingClientRect();
-  let topEnabled = isPrefEnabled("enable-top-content");
-  let contentTop = topEnabled ? topRect.top : centerRect.top;
-  let bottomEnabled = isPrefEnabled("enable-bottom-content");
-  let contentBottom = bottomEnabled ? bottomRect.bottom : centerRect.bottom;
+  if (isPrefEnabled("display-artwork")) {
+    let centerRect = getById("content-center").getBoundingClientRect();
+    let centerTop = centerRect.top;
+    let centerBottom = centerRect.bottom;
 
-  let swapTopBottom = isPrefEnabled("swap-top-bottom");
-  if (swapTopBottom) {
-    contentTop = bottomEnabled ? bottomRect.top : centerRect.top;
-    contentBottom = topEnabled ? topRect.bottom : centerRect.bottom;
-  }
+    let topRect = getById("content-top").getBoundingClientRect();
+    let bottomRect = getById("content-bottom").getBoundingClientRect();
+    let topEnabled = isPrefEnabled("enable-top-content");
+    let contentTop = topEnabled ? topRect.top : centerRect.top;
+    let bottomEnabled = isPrefEnabled("enable-bottom-content");
+    let contentBottom = bottomEnabled ? bottomRect.bottom : centerRect.bottom;
 
-  let artworkSize = centerBottom - centerTop;
-  if (isPrefEnabled("vertical-mode")) {
-    let centerInfoMainTop = getById("center-info-main").getBoundingClientRect().top;
-    artworkSize = centerInfoMainTop - contentTop;
-  } else {
-    let expandTop = !topEnabled || isPrefEnabled("artwork-expand-top");
-    let expandBottom = !bottomEnabled || isPrefEnabled("artwork-expand-bottom");
+    let swapTopBottom = isPrefEnabled("swap-top-bottom");
     if (swapTopBottom) {
-      [expandTop, expandBottom] = [expandBottom, expandTop];
-    }
-    if (expandTop && expandBottom) {
-      artworkSize = contentBottom - contentTop;
-    } else if (expandTop) {
-      artworkSize = centerBottom - contentTop;
-    } else if (expandBottom) {
-      artworkSize = contentBottom - centerTop;
+      contentTop = bottomEnabled ? bottomRect.top : centerRect.top;
+      contentBottom = topEnabled ? topRect.bottom : centerRect.bottom;
     }
 
-    let topMargin = expandTop ? contentTop : centerTop;
-    getById("artwork").style.marginTop = topMargin + "px";
+    artworkSize = centerBottom - centerTop;
+    if (isPrefEnabled("vertical-mode")) {
+      let centerInfoMainTop = getById("center-info-main").getBoundingClientRect().top;
+      artworkSize = centerInfoMainTop - contentTop;
+    } else {
+      let expandTop = !topEnabled || isPrefEnabled("artwork-expand-top");
+      let expandBottom = !bottomEnabled || isPrefEnabled("artwork-expand-bottom");
+      if (swapTopBottom) {
+        [expandTop, expandBottom] = [expandBottom, expandTop];
+      }
+      if (expandTop && expandBottom) {
+        artworkSize = contentBottom - contentTop;
+      } else if (expandTop) {
+        artworkSize = centerBottom - contentTop;
+      } else if (expandBottom) {
+        artworkSize = contentBottom - centerTop;
+      }
 
-    setClass(getById("artwork"), "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
+      let topMargin = expandTop ? contentTop : centerTop;
+      getById("artwork").style.marginTop = topMargin + "px";
+
+      setClass(getById("artwork"), "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
+    }
   }
+
   getById("main").style.setProperty("--artwork-size", artworkSize + "px");
 }
 
@@ -993,17 +993,16 @@ function refreshBackgroundRender() {
   if (!refreshBackgroundRenderInProgress) {
     refreshBackgroundRenderInProgress = true;
     unsetNextImagePrerender()
-      .then(() => refreshDefaultPrerender())
       .then(() => {
         let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
+        let imageColors = currentData.currentlyPlaying.imageData.imageColors;
         if (imageUrl === BLANK) {
-          setRenderedBackground(defaultPrerender.pngData).then();
-        } else {
-          let imageColors = currentData.currentlyPlaying.imageData.imageColors;
-          if (imageUrl && imageColors) {
-            setArtworkAndPrerender(imageUrl, imageColors)
-                .then(pngData => setRenderedBackground(pngData));
-          }
+          imageUrl = DEFAULT_IMAGE;
+          imageColors = DEFAULT_IMAGE_COLORS;
+        }
+        if (imageUrl && imageColors) {
+          setArtworkAndPrerender(imageUrl, imageColors)
+            .then(pngData => setRenderedBackground(pngData));
         }
       })
       .finally(() => {
@@ -1026,14 +1025,6 @@ function unsetNextImagePrerender() {
       pngData: null
     };
     resolve();
-  });
-}
-
-function refreshDefaultPrerender() {
-  return new Promise((resolve) => {
-    setArtworkAndPrerender(DEFAULT_IMAGE, DEFAULT_IMAGE_COLORS)
-      .then(pngData => defaultPrerender.pngData = pngData)
-      .then(resolve);
   });
 }
 
@@ -2160,9 +2151,10 @@ function refreshPreference(preference, state) {
   }
 
   // Refresh Background and Tracklist, but only do it once per preset application
-  unsetBackgroundPrerender();
   clearTimeout(refreshContentTimeout);
   refreshContentTimeout = setTimeout(() => {
+    console.log("pref unset")
+    unsetBackgroundPrerender();
     refreshBackgroundRender(true);
     refreshTrackList();
     updateProgress(currentData, true);
@@ -2290,6 +2282,7 @@ let refreshBackgroundEvent;
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   unsetBackgroundPrerender();
+  console.log("resize unset")
   refreshBackgroundEvent = setTimeout(() => {
     refreshTextBalance();
     refreshBackgroundRender(true);
