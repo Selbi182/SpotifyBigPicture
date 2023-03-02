@@ -16,7 +16,17 @@ fetch("/settings/list")
         let settingContainer = document.createElement("div");
         settingContainer.id = setting.id;
         settingContainer.classList.add("setting");
-        settingContainer.innerHTML = setting.name;
+
+        // Preset Thumbnail
+        if (setting.id.startsWith("preset-")) {
+          settingContainer.innerHTML = `<div class="image-wrapper"><img src="/design/img/presets/${setting.id}.png"></div>`;
+        }
+
+
+        // Setting Name
+        settingContainer.innerHTML += setting.name;
+
+        // Setting Description
         if (setting.description) {
           settingContainer.innerHTML += `<div class="setting-description">${setting.description}</div>`;
         }

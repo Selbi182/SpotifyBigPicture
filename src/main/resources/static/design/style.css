@@ -34,14 +34,6 @@ html, body {
     word-break: break-word;
 }
 
-.hidden {
-    display: none !important;
-}
-
-.invisible {
-    visibility: hidden !important;
-}
-
 .hide-cursor {
     cursor: none !important;
 }
@@ -84,11 +76,12 @@ img:not([src]) {
     height: 100%;
     z-index: 2;
     pointer-events: none;
-    opacity: 0;
+    opacity: 0.5;
+    display: none;
 }
 
 #dark-overlay.show {
-    opacity: 0.65;
+    display: initial;
 }
 
 #fps-counter {
@@ -108,6 +101,11 @@ img:not([src]) {
     height: 100%;
     color: var(--color);
     transition: filter var(--transition);
+    --artwork-size: 0;
+}
+
+#main.hide {
+    display: none;
 }
 
 #main.no-colored-text {
@@ -120,10 +118,6 @@ img:not([src]) {
 
 #main.blur {
     filter: blur(var(--blur)) brightness(0.5);
-}
-
-#main {
-    --artwork-size: 0;
 }
 
 #main:not(.vertical) #content:not(.full-content) #content-center,
@@ -141,6 +135,10 @@ img:not([src]) {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+#background-rendered.hide {
+    display: none;
 }
 
 #background-img-crossfade {
@@ -372,11 +370,10 @@ img:not([src]) {
     min-height: 6vh;
     min-width: 6vh;
     box-shadow: 0.2vh 0.2vh 0.5vh #0004;
-    display: none;
 }
 
-#thumbnail-wrapper.show {
-    display: inherit;
+#thumbnail-wrapper.hide {
+    display: none;
 }
 
 #thumbnail-wrapper.circular {
@@ -391,6 +388,10 @@ img:not([src]) {
 #thumbnail {
     width: inherit;
     height: inherit;
+}
+
+#thumbnail[src=""] {
+    display: none;
 }
 
 #thumbnail-wrapper.colored #thumbnail {
@@ -1088,6 +1089,16 @@ div#device {
     font-family: var(--font-bold);
 }
 
+#settings-scroller {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    flex: 2;
+    mask-image: linear-gradient(var(--mask-direction), transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
+    padding: var(--mask-padding);
+    --mask-direction: to right;
+    --mask-padding: 3vh;
+}
 
 #settings-wrapper.expert #settings-categories {
     display: flex;
@@ -1098,7 +1109,6 @@ div#device {
 }
 
 #settings-categories {
-    flex: 2;
     width: 100%;
     height: 100%;
     justify-content: space-between;
@@ -1107,13 +1117,6 @@ div#device {
     font-size: 2vh;
     display: none;
     gap: 4vh;
-    overflow-x: scroll;
-    overflow-y: hidden;
-    scrollbar-width: thin;
-    mask-image: linear-gradient(var(--mask-direction), transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
-    padding: var(--mask-padding);
-    --mask-direction: to right;
-    --mask-padding: 3vh;
 }
 
 #settings-categories .setting {
@@ -1152,6 +1155,10 @@ div#device {
     padding: 2vh;
 }
 
+#settings-categories .setting-category.hide {
+    visibility: hidden;
+}
+
 #settings-right {
     display: flex;
     flex-direction: column;
@@ -1166,8 +1173,8 @@ div#device {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
     gap: var(--margin-settings);
-    max-height: 100%;
     --image: "";
 }
 
@@ -1176,10 +1183,11 @@ div#device {
 }
 
 #settings-presets > .preset {
+    display: flex;
     opacity: 0.5;
     cursor: pointer;
-    width: 20%;
-    height: auto;
+    width: min-content;
+    height: min-content;
     background: #ffffff40;
     background-size: contain;
     border-radius: 1vh;
@@ -1187,8 +1195,8 @@ div#device {
 }
 
 #settings-presets > .preset > img {
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: 15vh;
 }
 
 #settings-presets > .preset:hover {
@@ -1331,10 +1339,6 @@ div#device {
 }
 
 @media only screen and (max-aspect-ratio: 3/2) {
-    #settings-presets {
-        flex-direction: column;
-    }
-
     #content-center:not(.queue) #track-list {
         overflow-y: auto;
     }
@@ -1357,11 +1361,15 @@ div#device {
         right: unset;
     }
 
+    #settings-scroller {
+        --mask-direction: to bottom;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
     #settings-categories {
         flex-direction: column;
-        overflow-y: auto;
         width: 100%;
-        --mask-direction: to bottom;
     }
 
     #settings-categories .setting-category {

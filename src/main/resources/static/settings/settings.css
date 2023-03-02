@@ -6,7 +6,7 @@ html, body {
     background: black;
     margin: 0;
     padding: 0;
-    color: #ddd;
+    color: #eee;
     font-family: 'Consolas', 'Lucida Console', 'Courier New', monospace;
     font-size: 3vh;
     width: 100%;
@@ -18,7 +18,7 @@ html, body {
 body {
     padding: 2vh;
 }
-
+*
 header {
     text-align: center;
     margin-bottom: 2vh;
@@ -91,7 +91,7 @@ header > div {
 
 #settings .setting {
     cursor: pointer;
-    opacity: 0.5;
+    opacity: 0.65;
     margin: 1vh;
 }
 
@@ -102,6 +102,21 @@ header > div {
 #settings .setting.disabled {
     cursor: wait;
     opacity: 0.1;
+}
+
+#settings .setting .image-wrapper {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+}
+
+#settings .setting .image-wrapper img {
+    display: block;
+    width: auto;
+    height: 10vh;
+    border-radius: 1vh;
+    border: 0.2vh solid white;
+    background: #ffffff10;
 }
 
 #settings .setting-category .setting-category-header {
@@ -117,7 +132,7 @@ header > div {
 
 #settings .setting-category .setting-description {
     display: none;
-    font-size: 1.25vh;
+    font-size: 1.5vh;
     opacity: 0.65;
     text-align: justify;
     text-align-last: center;

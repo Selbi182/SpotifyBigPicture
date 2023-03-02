@@ -1,10 +1,19 @@
 const VERSION = '0.7';
+const DEV_MODE = new URLSearchParams(document.location.search).has("dev");
+if (DEV_MODE) {
+  console.info("Developer Mode enabled!");
+}
 
 let currentData = {
   type: "",
   deployTime: 0,
   versionId: 0,
-  customVolumeSettings: [],
+  customVolumeSettings: [
+    {
+      device: "",
+      baseDb: 0
+    }
+  ],
   settingsToToggle: [],
   currentlyPlaying: {
     id: "",
@@ -219,6 +228,7 @@ function getById(id) {
 }
 
 const BLANK = "BLANK";
+const transitionFromCss = parseFloat(getComputedStyle(document.body).getPropertyValue("--transition").slice(0, -1)) * 1000;
 
 function processJson(json) {
   if (json && json.type !== "EMPTY") {
@@ -368,19 +378,13 @@ function setTextData(changes) {
     let thumbnailWrapperContainer = getById("thumbnail-wrapper");
     let thumbnailContainer = getById("thumbnail");
     let thumbnailUrl = getChange(changes, "playbackContext.thumbnailUrl").value;
-    if (thumbnailUrl === BLANK) {
-      thumbnailContainer.src = "";
-      setClass(thumbnailWrapperContainer, "show", false);
-    } else {
-      setClass(thumbnailWrapperContainer, "show", true);
-      let circularThumbnail = contextType.value === "ARTIST" || contextType.value === "ALBUM" || contextType.value === "QUEUE_IN_ALBUM";
-      setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
-      thumbnailContainer.src = thumbnailUrl;
-      fadeIn(thumbnailContainer);
-    }
+    let circularThumbnail = contextType.value === "ARTIST" || contextType.value === "ALBUM" || contextType.value === "QUEUE_IN_ALBUM";
+    setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
 
-    let contextContainer = getById("context");
-    fadeIn(contextContainer);
+    thumbnailContainer.src = thumbnailUrl !== BLANK ? thumbnailUrl : "";
+    fadeIn(thumbnailContainer);
+
+    fadeIn(getById("context"));
   }
 
   // Time
@@ -526,11 +530,10 @@ function setCorrectTracklistView(changes) {
 
     // Make sure the tracklist is at the correct position after the scaling transition.
     // This is a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid.
-    let transitionFromCss = getComputedStyle(document.body).getPropertyValue("--transition");
     setTimeout(() => {
       refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
       refreshTextBalance();
-    }, parseFloat(transitionFromCss.slice(0, -1)) * 1000);
+    }, transitionFromCss);
   } else if (refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
     refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
   }
@@ -575,21 +578,6 @@ function setClass(elem, className, state) {
     elem.classList.remove(className);
   }
   return elem;
-}
-
-function showHide(elem, show, useInvisibility) {
-  if (show) {
-    elem.classList.remove("invisible");
-    elem.classList.remove("hidden");
-  } else {
-    if (useInvisibility) {
-      elem.classList.add("invisible");
-      elem.classList.remove("hidden");
-    } else {
-      elem.classList.add("hidden");
-      elem.classList.remove("invisible");
-    }
-  }
 }
 
 const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "edition", "explicit", "extended", "expansion", "expanded", "version", "cover", "original", "single", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
@@ -1005,23 +993,30 @@ function refreshBackgroundRender() {
   if (!refreshBackgroundRenderInProgress) {
     refreshBackgroundRenderInProgress = true;
     unsetNextImagePrerender()
-        .then(() => refreshDefaultPrerender())
-        .then(() => {
-          let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
-          if (imageUrl === BLANK) {
-            setRenderedBackground(defaultPrerender.pngData).then();
-          } else {
-            let imageColors = currentData.currentlyPlaying.imageData.imageColors;
-            if (imageUrl && imageColors) {
-              setArtworkAndPrerender(imageUrl, imageColors)
-                  .then(pngData => setRenderedBackground(pngData));
-            }
+      .then(() => refreshDefaultPrerender())
+      .then(() => {
+        let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
+        if (imageUrl === BLANK) {
+          setRenderedBackground(defaultPrerender.pngData).then();
+        } else {
+          let imageColors = currentData.currentlyPlaying.imageData.imageColors;
+          if (imageUrl && imageColors) {
+            setArtworkAndPrerender(imageUrl, imageColors)
+                .then(pngData => setRenderedBackground(pngData));
           }
-        })
-        .finally(() => {
-          refreshBackgroundRenderInProgress = false;
-        });
+        }
+      })
+      .finally(() => {
+        refreshBackgroundRenderInProgress = false;
+      });
   }
+}
+
+// It's more robust to use actual image data, even if it's just a single black pixel
+const BLACK_PIXEL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+function unsetBackgroundPrerender() {
+  let backgroundImg = getById("background-img");
+  backgroundImg.src = BLACK_PIXEL;
 }
 
 function unsetNextImagePrerender() {
@@ -1168,7 +1163,7 @@ function numberWithCommas(number) {
 // TIMERS
 ///////////////////////////////
 
-const ADVANCE_CURRENT_TIME_MS = 100;
+const ADVANCE_CURRENT_TIME_MS = 500;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 
 let autoTimer;
@@ -1205,21 +1200,21 @@ function advanceCurrentTime(updateProgressBar) {
 }
 
 function setIdleModeState(state) {
-  let content = getById("main");
   let settingsMenuToggleButton = getById("settings-menu-toggle-button"); // just to avoid a COMPLETELY black screen
+  let main = getById("main");
   if (state) {
     if (!idle) {
       console.info("No music was played in 2 hours. Enabling idle mode...");
       settingsMenuToggleButton.classList.add("show");
       idle = true;
       clearTimers();
-      showHide(content, false);
+      setClass(main, "hide", true);
     }
   } else {
     if (idle) {
       idle = false;
       settingsMenuToggleButton.classList.remove("show");
-      showHide(content, true);
+      setClass(main, "hide", false);
     }
   }
 }
@@ -1241,7 +1236,6 @@ const PREFERENCES = [
     name: "Colored Text",
     description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
     category: "General",
-    requiredFor: ["colored-symbol-context", "colored-symbol-spotify"],
     css: {"main": "!no-colored-text"}
   },
   {
@@ -1302,17 +1296,6 @@ const PREFERENCES = [
     css: {"track-list": "big-text"}
   },
   {
-    id: "display-artwork",
-    name: "Enable Artwork",
-    description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
-    category: "Main Content",
-    requiredFor: ["artwork-expand-top", "artwork-expand-bottom", "artwork-right"],
-    css: {
-      "artwork": "!hide",
-      "content": "!full-content"
-    }
-  },
-  {
     id: "bg-enable",
     name: "Enable",
     description: "Enable the background. Otherwise, plain black will be displayed at all times",
@@ -1358,6 +1341,17 @@ const PREFERENCES = [
     css: {
       "content-center": "!hide",
       "artwork": "!center-disabled"
+    }
+  },
+  {
+    id: "display-artwork",
+    name: "Enable Artwork",
+    description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
+    category: "Main Content",
+    requiredFor: ["artwork-expand-top", "artwork-expand-bottom", "artwork-right"],
+    css: {
+      "artwork": "!hide",
+      "content": "!full-content"
     }
   },
   {
@@ -1446,25 +1440,35 @@ const PREFERENCES = [
   },
   {
     id: "show-context",
-    name: "Context",
-    description: "Displays the playlist/artist/album name along with some additional information at the top of the page. " +
-        "Also displays a thumbnail, if available",
+    name: "Show Context",
+    description: "Displays the playlist/artist/album name along with some additional information at the top of the page",
     category: "Top Content",
+    requiredFor: ["show-context-thumbnail"],
     css: {"meta-left": "!hide"}
+  },
+  {
+    id: "show-context-thumbnail",
+    name: "Context Image",
+    description: "Display a small image (thumbnail) of the current context. " +
+        "For playlists, it's the playlist image and for anything else it's the first artist",
+    category: "Top Content",
+    requiredFor: ["colored-symbol-context"],
+    css: {"thumbnail-wrapper": "!hide"}
+  },
+  {
+    id: "colored-symbol-context",
+    name: "Colored Context Image",
+    description: "If enabled, the dominant color of the current artwork will be used as color for the context image",
+    category: "Top Content",
+    css: {"thumbnail-wrapper": "colored"}
   },
   {
     id: "show-logo",
     name: "Spotify Logo",
     description: "Whether to display the Spotify logo in the top right",
     category: "Top Content",
+    requiredFor: ["colored-symbol-spotify"],
     css: {"meta-right": "!hide"}
-  },
-  {
-    id: "colored-symbol-context",
-    name: "Colored Context Thumbnail",
-    description: "If enabled, the dominant color of the current artwork will be used as color for the context thumbnail",
-    category: "Top Content",
-    css: {"thumbnail-wrapper": "colored"}
   },
   {
     id: "colored-symbol-spotify",
@@ -1586,84 +1590,84 @@ const PREFERENCES = [
   },
   {
     id: "artwork-expand-top",
-    name: "Main Content: Expand Artwork to Top Content",
+    name: "Expand Artwork to Top",
     description: "If enabled, expand the artwork to the top content and push that content to the side",
-    category: "Layout",
+    category: "Layout: Main Content",
     css: {"main": "artwork-expand-top"}
   },
   {
     id: "artwork-expand-bottom",
-    name: "Main Content: Expand Artwork to Bottom Content",
+    name: "Expand Artwork to Bottom",
     description: "If enabled, expand the artwork to the bottom content and push that content to the side",
-    category: "Layout",
+    category: "Layout: Main Content",
     css: {"main": "artwork-expand-bottom"}
   },
   {
     id: "main-content-centered",
-    name: "Main Content: Center-Align",
+    name: "Center-Align",
     description: "Center the main content (current track information and track list). Otherwise, the text will be aligned to the border",
-    category: "Layout",
+    category: "Layout: Main Content",
     css: {"content-center": "centered"}
   },
   {
     id: "main-content-bottom",
-    name: "Main Content: Bottom-Align",
+    name: "Bottom-Align",
     description: "Bottom-align the main content (current track information), instead of centering it. "
       + "This setting is intended to be used with disabled artwork",
-    category: "Layout",
+    category: "Layout: Main Content",
     css: {"content-center": "bottom"}
   },
   {
     id: "split-main-panels",
-    name: "Main Content: Split Mode",
+    name: "Split Mode",
     description: "Separate the main content from the track list and display both in their own panel. "
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
-    category: "Layout",
+    category: "Layout: Main Content",
     css: {"content-center": "split-main-panels"}
   },
   {
     id: "center-lr-margins",
-    name: "Main Content: Left/Right Margins",
+    name: "Left/Right Margins",
     description: "Adds margins to the left and right of the main content. " +
         "This setting has minimum effect if Split Main Content isn't enabled",
-    category: "Layout",
+    category: "Layout: Main Content",
     css: {"content-center": "extra-margins"}
   },
   {
     id: "reduced-center-margins",
-    name: "Main Content: Reduced Top/Bottom Margins",
+    name: "Reduced Top/Bottom Margins",
     description: "Halves the top/bottom margins of the center container",
-    category: "Layout",
+    category: "Layout: Main Content",
     css: {"content": "decreased-margins"}
   },
   {
     id: "artwork-right",
-    name: "Swap: Main Content",
+    name: "Swap Main Content",
     description: "If enabled, the main content swaps positions with the artwork",
-    category: "Layout",
+    category: "Layout: Swap",
     css: {
       "main": "artwork-right"
     }
   },
   {
     id: "swap-top",
-    name: "Swap: Top Content",
+    name: "Swap Top Content",
     description: "If enabled, the Context and Spotify Logo swap positions",
-    category: "Layout",
+    category: "Layout: Swap",
     css: {"content-top": "swap"}
   },
   {
     id: "reverse-bottom",
-    name: "Swap: Bottom Content",
+    name: "Swap Bottom Content",
     description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
-    category: "Layout",
+    category: "Layout: Swap",
     css: {"content-bottom": "reverse"}
   },
   {
     id: "swap-top-bottom",
-    name: "Swap: Top with Bottom Content",
+    name: "Swap Top with Bottom Content",
     description: "If enabled, the top content swaps position with the bottom content",
-    category: "Layout",
+    category: "Layout: Swap",
     css: {
       "content": "swap-top-bottom"
     }
@@ -1673,14 +1677,14 @@ const PREFERENCES = [
     name: "Decreased Margins",
     description: "If enabled, all margins are halved. " +
         "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
-    category: "Layout",
+    category: "Layout: Misc",
     css: {"main": "decreased-margins"},
   },
   {
     id: "vertical-mode",
     name: "Vertical Mode (Beta)",
     description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
-    category: "Layout",
+    category: "Layout: Misc",
     overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right",
       "show-podcast-descriptions", "main-content-bottom", "split-main-panels"],
     css: {"main": "vertical"}
@@ -1709,11 +1713,13 @@ const PREFERENCES = [
 
 const PREFERENCES_CATEGORY_ORDER = [
   "General",
-  "Layout",
   "Main Content",
   "Top Content",
   "Bottom Content",
   "Track List",
+  "Layout: Main Content",
+  "Layout: Swap",
+  "Layout: Misc",
   "Background",
   "Developer Tools"
 ];
@@ -1745,6 +1751,7 @@ const PREFERENCES_DEFAULT = {
     "enable-bottom-content",
     "main-content-centered",
     "show-context",
+    "show-context-thumbnail",
     "show-logo",
     "transitions",
     "strip-titles",
@@ -1786,9 +1793,10 @@ const PREFERENCES_DEFAULT = {
 const PREFERENCES_PRESETS = [
   {
     id: "preset-default",
-    name: "Default Mode",
+    name: "Default Mode (Reset)",
     category: "Presets",
-    description: "The default mode. A balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal",
+    description: "The default mode. A balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal. " +
+        "Clicking this behaves likes a reset button for all settings",
     enabled: [],
     disabled: []
   },
@@ -1990,15 +1998,17 @@ function initVisualPreferences() {
   const settingsWrapper = getById("settings-categories");
 
   // Integrity check
-  let allDefaultSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignore].flat();
-  if (allDefaultSettings.length > [...new Set(allDefaultSettings)].length) {
-    console.warn("Default settings contain duplicates!");
-  }
-  let unclassifiedSettings = PREFERENCES
-    .map(pref => pref.id)
-    .filter(prefId => !allDefaultSettings.includes(prefId));
-  if (unclassifiedSettings.length > 0) {
-    console.warn("The following settings don't have any defaults specified: " + unclassifiedSettings);
+  if (DEV_MODE) {
+    let allDefaultSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignore].flat();
+    if (allDefaultSettings.length > [...new Set(allDefaultSettings)].length) {
+      console.warn("Default settings contain duplicates!");
+    }
+    let unclassifiedSettings = PREFERENCES
+        .map(pref => pref.id)
+        .filter(prefId => !allDefaultSettings.includes(prefId));
+    if (unclassifiedSettings.length > 0) {
+      console.warn("The following settings don't have any defaults specified: " + unclassifiedSettings);
+    }
   }
 
   // Create categories
@@ -2028,6 +2038,11 @@ function initVisualPreferences() {
     // Group to category
     let categoryElem = categories[pref.category];
     categoryElem.appendChild(prefElem);
+  }
+
+  // Hide developer tools when not in dev mode
+  if (!DEV_MODE) {
+    settingsWrapper.lastElementChild.classList.add("hide");
   }
 
   // Create preset buttons
@@ -2145,12 +2160,13 @@ function refreshPreference(preference, state) {
   }
 
   // Refresh Background and Tracklist, but only do it once per preset application
+  unsetBackgroundPrerender();
   clearTimeout(refreshContentTimeout);
   refreshContentTimeout = setTimeout(() => {
-    refreshBackgroundRender();
+    refreshBackgroundRender(true);
     refreshTrackList();
     updateProgress(currentData, true);
-  }, 250);
+  }, transitionFromCss);
 
   // Update the settings that are invalidated
   updateOverridden(preference);
@@ -2270,15 +2286,15 @@ function handleDeviceChange(device) {
 // REFRESH IMAGE ON RESIZE
 ///////////////////////////////
 
-const REFRESH_BACKGROUND_ON_RESIZE_DELAY = 250;
 let refreshBackgroundEvent;
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
+  unsetBackgroundPrerender();
   refreshBackgroundEvent = setTimeout(() => {
     refreshTextBalance();
-    refreshBackgroundRender();
+    refreshBackgroundRender(true);
     updateScrollGradients();
-  }, REFRESH_BACKGROUND_ON_RESIZE_DELAY);
+  }, transitionFromCss);
 };
 
 
@@ -2338,10 +2354,10 @@ function handleWheelEvent(e) {
     }
     let delta = e.deltaY;
     if (settingsVisible) {
-      let settingsCategories = getById("settings-categories");
-      settingsCategories.scroll({
+      let settingsScroller = getById("settings-scroller");
+      settingsScroller.scroll({
         top: 0,
-        left: (delta * 6) + settingsCategories.scrollLeft,
+        left: (delta * 12) + settingsScroller.scrollLeft,
         behavior: 'smooth'
       });
     } else {
@@ -2363,7 +2379,7 @@ function initSettingsMouseMove() {
 
   let settingsMenuToggleButton = getById("settings-menu-toggle-button");
   settingsMenuToggleButton.onclick = (e) => {
-    if (e.shiftKey) {
+    if (DEV_MODE && e.shiftKey) {
       generatePresetThumbnail();
     } else {
       requestAnimationFrame(() => toggleSettingsMenu());
@@ -2402,14 +2418,14 @@ function initSettingsMouseMove() {
     if (target.classList.contains("setting") || target.classList.contains("preset")) {
       let pref = findPreference(target.id) || findPreset(target.id);
       if (pref) {
-        header.innerHTML = pref.name;
+        header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
         description.innerHTML = pref.description;
 
         overridden.innerHTML = [...target.classList]
-            .filter(className => className.startsWith("overridden-"))
-            .map(className => findPreference(className.replace("overridden-", "")))
-            .map(pref => pref.category + " &#x00BB; " + pref.name)
-            .join(" // ");
+          .filter(className => className.startsWith("overridden-"))
+          .map(className => findPreference(className.replace("overridden-", "")))
+          .map(pref => pref.category + " &#x00BB; " + pref.name)
+          .join(" // ");
 
         setClass(settingsDescriptionContainer, "show", true);
       }
@@ -2472,7 +2488,10 @@ function generatePresetThumbnail() {
 
     let content = getById("content");
     let presetThumbnailGeneratorCanvas = getById("preset-thumbnail-generator-canvas");
-    domtoimage.toPng(content)
+    domtoimage.toPng(content, {
+      width: window.innerWidth,
+      height: window.innerHeight
+    })
       .then(imgDataBase64 => {
         setClass(presetThumbnailGeneratorCanvas, "show", true);
         let downloadLink = document.createElement('a');
