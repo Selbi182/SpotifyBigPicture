@@ -1103,8 +1103,9 @@ div#device {
     --mask-padding: 3vh;
 }
 
-#settings-scroller > div > div:last-child {
-    padding-right: var(--margin-settings);
+#settings-scroller > div::after {
+    content: "";
+    padding: 1px;
 }
 
 #settings-scroller > #settings-scroller-content {
@@ -1304,7 +1305,6 @@ div#device {
     display: none;
 }
 
-/* Experimental CSS for preset thumbnail generation */
 #main.preset-thumbnail-generator :is(
         #thumbnail-wrapper, #context-main, #context-extra, #logo,
         #artists, #title, #album-title, #album-release, #album-title-main, .track-elem *,

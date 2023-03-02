@@ -101,6 +101,7 @@ function entryPoint() {
 function submitVisualPreferencesToBackend() {
   let simplifiedPrefs = [...PREFERENCES_PRESETS, ...PREFERENCES]
     .sort((a, b) => PREFERENCES_CATEGORY_ORDER.indexOf(a.category) - PREFERENCES_CATEGORY_ORDER.indexOf(b.category))
+    .filter(pref => DEV_MODE || pref.category !== "Developer Tools")
     .map(pref => {
         return {
           id: pref.id,
@@ -2025,7 +2026,7 @@ function initVisualPreferences() {
 
   // Hide developer tools when not in dev mode
   if (!DEV_MODE) {
-    settingsWrapper.lastElementChild.classList.add("hide");
+    settingsWrapper.lastElementChild.remove();
   }
 
   // Create preset buttons
@@ -2155,23 +2156,28 @@ function refreshPreference(preference, state) {
   updateOverridden(preference);
 
   // Toggle Checkmark
-  setClass(getById(preference.id), "on", state);
+  let prefElem = getById(preference.id);
+  if (prefElem) {
+    setClass(prefElem, "on", state);
+  }
 }
 
 function updateOverridden(preference) {
-  let byId = getById(preference.id);
-  let state = preference.state && !byId.classList.toString().includes("overridden-");
-  if ('requiredFor' in preference) {
-    preference.requiredFor.forEach(override => {
-      setClass(getById(override), `overridden-${preference.id}`, !state);
-      updateOverridden(findPreference(override));
-    });
-  }
-  if ('overrides' in preference) {
-    preference.overrides.forEach(override => {
-      setClass(getById(override), `overridden-${preference.id}`, state);
-      updateOverridden(findPreference(override));
-    });
+  let prefElem = getById(preference.id);
+  if (prefElem) {
+    let state = preference.state && !prefElem.classList.toString().includes("overridden-");
+    if ('requiredFor' in preference) {
+      preference.requiredFor.forEach(override => {
+        setClass(getById(override), `overridden-${preference.id}`, !state);
+        updateOverridden(findPreference(override));
+      });
+    }
+    if ('overrides' in preference) {
+      preference.overrides.forEach(override => {
+        setClass(getById(override), `overridden-${preference.id}`, state);
+        updateOverridden(findPreference(override));
+      });
+    }
   }
 }
 
