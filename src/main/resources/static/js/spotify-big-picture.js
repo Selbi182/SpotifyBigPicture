@@ -783,7 +783,7 @@ const DEFAULT_IMAGE_COLORS = {
   averageBrightness: 1.0
 }
 
-let nextImagePrerenderPngData;
+let nextImagePrerenderCanvasData;
 unsetNextImagePrerender().then();
 
 function changeImage(changes) {
@@ -797,11 +797,10 @@ function changeImage(changes) {
       let newImageUrl = imageUrl.value;
       let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
       if (!oldImageUrl.includes(newImageUrl)) {
-        if (nextImagePrerenderPngData.imageUrl === newImageUrl) {
-          setRenderedBackground(nextImagePrerenderPngData.pngData)
+        if (nextImagePrerenderCanvasData.imageUrl === newImageUrl) {
+          setRenderedBackground(nextImagePrerenderCanvasData.canvasData)
             .then(() => resolve());
         } else {
-          console.log("changeImge")
           setArtworkAndPrerender(newImageUrl, colors)
             .then(pngData => setRenderedBackground(pngData))
             .then(() => resolve());
@@ -824,14 +823,14 @@ function prerenderNextImage(changes) {
       if (prerenderEnabled) {
         let currentImageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl").value;
         let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
-        if (currentImageUrl !== nextImageUrl && nextImagePrerenderPngData.imageUrl !== nextImageUrl) {
+        if (currentImageUrl !== nextImageUrl && nextImagePrerenderCanvasData.imageUrl !== nextImageUrl) {
           setTimeout(() => {
             let nextImageColors = getChange(changes, "trackData.nextImageData.imageColors").value;
             setArtworkAndPrerender(nextImageUrl, nextImageColors)
-              .then(pngData => {
-                nextImagePrerenderPngData = {
+              .then(canvasData => {
+                nextImagePrerenderCanvasData = {
                   imageUrl: nextImageUrl,
-                  pngData: pngData
+                  canvasData: canvasData
                 };
                 nextPrerenderInProgress = false;
               });
@@ -843,20 +842,19 @@ function prerenderNextImage(changes) {
   });
 }
 
-function setRenderedBackground(pngData) {
+function setRenderedBackground(canvas) {
   return new Promise((resolve) => {
-    let backgroundImg = getById("background-img");
-    let backgroundCrossfade = getById("background-img-crossfade");
-    setClass(backgroundCrossfade, "show", true);
-    backgroundCrossfade.onload = () => {
-      finishAnimations(backgroundCrossfade);
-      backgroundImg.onload = () => {
-        setClass(backgroundCrossfade, "show", false);
-        resolve();
-      };
-      backgroundImg.src = pngData;
-    };
-    backgroundCrossfade.src = backgroundImg.src;
+    // Set old background to fade out and then delete it
+    // (In theory, should only ever be one, but just in case, do it for all children)
+    let backgroundRenderedWrapper = getById("background-rendered");
+    backgroundRenderedWrapper.childNodes.forEach(child => {
+      child.ontransitionend = () => child.remove();
+      child.classList.add("crossfade");
+    });
+
+    // Add the new canvas
+    backgroundRenderedWrapper.append(canvas);
+    resolve();
   });
 }
 
@@ -871,7 +869,7 @@ function setArtworkAndPrerender(newImageUrl, colors) {
       loadBackground(newImageUrl, colors)
     ])
     .then(() => prerenderBackground())
-    .then(pngData => resolve(pngData));
+    .then(canvasData => resolve(canvasData));
   });
 }
 
@@ -964,27 +962,15 @@ function prerenderBackground() {
     let prerenderCanvas = getById("prerender-canvas");
     setClass(prerenderCanvas, "show", true);
 
-    // While PNG produces the by far largest Base64 image data, the actual conversion process
-    // is significantly faster than with JPEG or SVG for some reason (still not perfect though)
-    let pngData;
     domtoimage
-      .toPng(prerenderCanvas, {
+      .toCanvas(prerenderCanvas, {
         width: window.innerWidth,
         height: window.innerHeight
       })
-      .then((imgDataBase64) => {
-        if (imgDataBase64.length < 10) {
-          throw 'Rendered image data is invalid';
-        }
-        pngData = imgDataBase64;
-      })
-      .catch((error) => {
-        console.warn("Failed to render background", error);
-      })
-      .finally(() => {
+      .then(canvas => {
         setClass(prerenderCanvas, "show", false);
-        resolve(pngData);
-      });
+        resolve(canvas);
+      })
   });
 }
 
@@ -1011,16 +997,14 @@ function refreshBackgroundRender() {
   }
 }
 
-// It's more robust to use actual image data, even if it's just a single black pixel
-const BLACK_PIXEL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
 function unsetBackgroundPrerender() {
-  let backgroundImg = getById("background-img");
-  backgroundImg.src = BLACK_PIXEL;
+  let backgroundRenderedWrapper = getById("background-rendered");
+  backgroundRenderedWrapper.childNodes.forEach(child => child.remove());
 }
 
 function unsetNextImagePrerender() {
   return new Promise((resolve) => {
-    nextImagePrerenderPngData = {
+    nextImagePrerenderCanvasData = {
       imageUrl: null,
       pngData: null
     };
@@ -1474,8 +1458,7 @@ const PREFERENCES = [
     description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously",
     category: "General",
     css: {
-      "main": "!disable-transitions",
-      "background-img-crossfade": "!hidden"
+      "main": "!disable-transitions"
     }
   },
   {
@@ -2153,7 +2136,6 @@ function refreshPreference(preference, state) {
   // Refresh Background and Tracklist, but only do it once per preset application
   clearTimeout(refreshContentTimeout);
   refreshContentTimeout = setTimeout(() => {
-    console.log("pref unset")
     unsetBackgroundPrerender();
     refreshBackgroundRender(true);
     refreshTrackList();
@@ -2282,7 +2264,6 @@ let refreshBackgroundEvent;
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   unsetBackgroundPrerender();
-  console.log("resize unset")
   refreshBackgroundEvent = setTimeout(() => {
     refreshTextBalance();
     refreshBackgroundRender(true);

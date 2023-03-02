@@ -130,7 +130,7 @@ img:not([src]) {
     align-items: start;
 }
 
-#background-rendered, #prerender-canvas, #background-img, #background-img-crossfade, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain {
+#background-rendered, #prerender-canvas, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -141,10 +141,15 @@ img:not([src]) {
     display: none;
 }
 
-#background-img-crossfade {
+#background-rendered canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+#background-rendered canvas.crossfade {
     opacity: 0;
-    transform: translateZ(0);
-    will-change: opacity;
+    z-index: 1;
 }
 
 #prerender-canvas {
@@ -158,7 +163,7 @@ img:not([src]) {
 }
 
 #prerender-canvas * {
-    transition: unset;
+    transition: unset !important;
 }
 
 #prerender-canvas.show, #prerender-canvas.no-prerender {
@@ -226,10 +231,6 @@ img:not([src]) {
 
 #background-canvas-img {
     filter: blur(var(--blur)) grayscale(25%);
-}
-
-#background-img-crossfade.show {
-    opacity: 1;
 }
 
 #background-canvas.color-only #background-canvas-img {
