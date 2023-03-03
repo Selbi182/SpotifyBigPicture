@@ -314,12 +314,12 @@ function setTextData(changes) {
     if (release !== BLANK) {
       let year = release.slice(0, 4);
       getById("release-year").innerHTML = year;
-      getById("release-full").innerHTML = release.length > year.length ? formatReleaseDate(release) : year;
-      setClass(getById("album-release"), "show", true);
+      getById("release-full").innerHTML = release.length > year.length && !release.endsWith("-01-01") ? formatReleaseDate(release) : year;
+      setClass(getById("album-release"), "hide", false);
     } else {
       getById("release-year").innerHTML = "";
       getById("release-full").innerHTML = "";
-      setClass(getById("album-release"), "show", false);
+      setClass(getById("album-release"), "hide", true);
     }
 
     let albumMainContainer = getById("album-title");
@@ -331,8 +331,8 @@ function setTextData(changes) {
   let description = getChange(changes, "currentlyPlaying.description");
   if (description.wasChanged) {
     let descriptionContainer = getById("description");
-    let isPodcast = description.value !== BLANK;
-    descriptionContainer.innerHTML = isPodcast ? description.value : "";
+    setClass(getById("content-center"), "podcast", description.value !== BLANK);
+    descriptionContainer.innerHTML = description.value;
     balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
   }
@@ -1075,7 +1075,9 @@ function updateProgress(changes, updateProgressBar) {
   let formattedTotalTime = formattedTimes.total;
 
   let elemTimeCurrent = getById("time-current");
-  elemTimeCurrent.innerHTML = formattedCurrentTime;
+  if (formattedCurrentTime !== elemTimeCurrent.innerHTML) {
+    elemTimeCurrent.innerHTML = formattedCurrentTime;
+  }
 
   let elemTimeTotal = getById("time-total");
   if (formattedTotalTime !== elemTimeTotal.innerHTML) {
@@ -1150,7 +1152,10 @@ function formatTimeVerbose(timeInMs) {
   if (hours > 0) {
     return `${numberWithCommas(hours)} hr ${minutes} min`;
   } else {
-    return `${minutes} min ${seconds} sec`;
+    if (seconds > 0) {
+      return `${minutes} min ${seconds} sec`;
+    }
+    return `${minutes} min`;
   }
 }
 
@@ -1414,7 +1419,15 @@ const PREFERENCES = [
     description: "If enabled, the whole release date is shown (including month and day). Otherwise, only the year is shown. " +
         "Note that some releases on Spotify only have the year (usually older releases)",
     category: "Main Content",
+    requiredFor: ["full-release-date-podcasts"],
     css: {"album-release": "full"}
+  },
+  {
+    id: "full-release-date-podcasts",
+    name: "Full Release Date only for Podcasts",
+    description: "Limit full release dates only for podcasts. Normal songs will continue to only display the year",
+    category: "Main Content",
+    css: {"album-release": "podcasts-only"}
   },
   {
     id: "show-podcast-descriptions",
@@ -1456,8 +1469,16 @@ const PREFERENCES = [
     name: "Show Context",
     description: "Displays the playlist/artist/album name along with some additional information at the top of the page",
     category: "Top Content",
-    requiredFor: ["show-context-thumbnail"],
+    requiredFor: ["show-context-thumbnail", "show-context-summary"],
     css: {"meta-left": "!hide"}
+  },
+  {
+    id: "show-context-summary",
+    name: "Context Summary",
+    description: "Show a small summary of the current context (total track count and total time). " +
+        "Do note that total time cannot be displayed for playlists above 200 tracks for performance reasons",
+    category: "Top Content",
+    css: {"context-extra": "!hide"}
   },
   {
     id: "show-context-thumbnail",
@@ -1496,7 +1517,7 @@ const PREFERENCES = [
     description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously",
     category: "General",
     css: {
-      "main": "!disable-transitions"
+      "main": "transitions"
     }
   },
   {
@@ -1560,28 +1581,36 @@ const PREFERENCES = [
   },
   {
     id: "show-info-icons",
-    name: "Play/Pause/Shuffle/Repeat",
+    name: "Show Play/Pause/Shuffle/Repeat Icons",
     description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left",
     category: "Bottom Content",
     css: {"info-symbols": "!hide"}
   },
   {
     id: "show-volume",
-    name: "Volume",
+    name: "Show Volume",
     description: "Display the current volume in the bottom left",
     category: "Bottom Content",
+    requiredFor: ["show-volume-bar"],
     css: {"volume": "!hide"}
   },
   {
+    id: "show-volume-bar",
+    name: "Show Volume Bar",
+    description: "Show an additional bar underneath the volume",
+    category: "Bottom Content",
+    css: {"volume-bar": "!hide"}
+  },
+  {
     id: "show-device",
-    name: "Device",
+    name: "Show Device Name",
     description: "Display the name of the current playback device in the bottom left",
     category: "Bottom Content",
     css: {"device": "!hide"}
   },
   {
     id: "show-clock",
-    name: "Clock",
+    name: "Show Clock",
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
     requiredFor: ["clock-full"],
@@ -1762,6 +1791,7 @@ const PREFERENCES_DEFAULT = {
     "enable-bottom-content",
     "main-content-centered",
     "show-context",
+    "show-context-summary",
     "show-context-thumbnail",
     "show-logo",
     "transitions",
@@ -1769,6 +1799,7 @@ const PREFERENCES_DEFAULT = {
     "show-timestamps",
     "show-info-icons",
     "show-volume",
+    "show-volume-bar",
     "show-device",
     "show-progress-bar",
     "show-clock",
@@ -1782,6 +1813,7 @@ const PREFERENCES_DEFAULT = {
     "xl-text",
     "separate-release-line",
     "full-release-date",
+    "full-release-date-podcasts",
     "main-content-bottom",
     "split-main-panels",
     "center-lr-margins",
@@ -1839,6 +1871,7 @@ const PREFERENCES_PRESETS = [
       "show-timestamps",
       "show-info-icons",
       "show-volume",
+      "show-volume-bar",
       "show-device",
       "show-clock"
     ]
@@ -1858,6 +1891,7 @@ const PREFERENCES_PRESETS = [
       "show-clock",
       "show-device",
       "show-volume",
+      "show-volume-bar",
       "show-info-icons",
       "display-artwork",
       "bg-tint"
@@ -1878,7 +1912,8 @@ const PREFERENCES_PRESETS = [
       "reverse-bottom",
       "split-main-panels",
       "separate-release-line",
-      "full-release-date"
+      "full-release-date",
+      "full-release-date-podcasts"
     ],
     disabled: [
       "colored-symbol-context",
@@ -1906,6 +1941,7 @@ const PREFERENCES_PRESETS = [
       "scrolling-track-list",
       "show-device",
       "show-volume",
+      "show-volume-bar",
       "show-podcast-descriptions",
       "show-info-icons",
       "hide-title-scrolling-track-list",
@@ -1933,6 +1969,7 @@ const PREFERENCES_PRESETS = [
       "bg-gradient",
       "show-device",
       "show-volume",
+      "show-volume-bar",
       "show-podcast-descriptions",
       "show-release",
       "show-info-icons",
@@ -1972,11 +2009,14 @@ const PREFERENCES_PRESETS = [
       "enable-top-content",
       "enable-bottom-content",
       "show-context",
+      "show-context-summary",
+      "show-context-thumbnail",
       "show-logo",
       "strip-titles",
       "show-timestamps",
       "show-info-icons",
       "show-volume",
+      "show-volume-bar",
       "show-device",
       "show-progress-bar",
       "show-clock"
@@ -2317,12 +2357,18 @@ window.onresize = () => {
 ///////////////////////////////
 
 document.onkeydown = (e) => {
-  // Toggle settings menu with space bar
-  // Toggle expert settings mode with Ctrl
-  if (e.key === ' ') {
-    toggleSettingsMenu();
-  } else if (e.key === 'Control') {
-    toggleSettingsExpertMode();
+  switch (e.key) {
+    case ' ':
+      toggleSettingsMenu();
+      break;
+    case 'Control':
+      if (settingsVisible) {
+        toggleSettingsExpertMode();
+      }
+      break;
+    case 'f':
+      toggleFullscreen();
+      break;
   }
 };
 

@@ -57,13 +57,13 @@ a:hover {
     opacity: 1 !important;
 }
 
-#main:not(.disable-transitions) :is(
+#main.transitions :is(
     #background-rendered *,
     #context-main, #context-extra, #thumbnail-wrapper, #logo,
     #artists, #title, #description, #album,
     #track-list, #track-list .track-elem div,
     #progress-current, #progress-background,
-    #play-pause, #shuffle, #repeat, #volume, #volume-text, #volume-current, #volume-background, #device,
+    #play-pause, #shuffle, #repeat, #volume, #volume-text, #device,
     #clock, #time-current, #time-total
 ) {
     transition: opacity var(--transition),
@@ -427,6 +427,10 @@ div#context-main {
     width: fit-content;
 }
 
+#context-extra.hide {
+    display: none;
+}
+
 #content-top.swap #context-extra {
     align-self: end;
 }
@@ -596,22 +600,29 @@ div#context-main {
 #album-release {
     opacity: 0.65;
     word-break: normal;
+}
+
+#album-release.hide {
     display: none;
 }
 
-#album-release.show {
+#album-release:not(.full) #release-year,
+#content-center:not(.podcast) #album-release.full.podcasts-only #release-year {
     display: initial;
 }
 
-#album-release.full #release-year {
+#album-release:not(.full) #release-full,
+#content-center:not(.podcast) #album-release.full.podcasts-only #release-full {
     display: none;
 }
 
-#album-release #release-full {
+#content-center.podcast #album-release.full #release-year,
+#content-center:not(.podcast) #album-release.full:not(.podcasts-only) #release-year {
     display: none;
 }
 
-#album-release.full #release-full {
+#content-center.podcast #album-release.full #release-full,
+#content-center:not(.podcast) #album-release.full:not(.podcasts-only) #release-full {
     display: initial;
 }
 
@@ -633,7 +644,7 @@ div#description {
     --max-lines: 10;
 }
 
-#description:empty, #description.hide, #main.vertical #description {
+#description:empty, #description.hide, #content-center:not(.podcast) #description, #main.vertical #description {
     display: none;
 }
 
@@ -914,6 +925,11 @@ div#description {
     width: 100%;
     height: 0.3vh;
 }
+
+#volume-bar.hide {
+    display: none;
+}
+
 #volume-current, #volume-background {
     width: 100%;
     height: 100%;
@@ -924,8 +940,8 @@ div#description {
 #volume-current {
     width: var(--volume);
 }
-#main:not(.disable-transitions) #volume-current {
-    transition: width var(--transition);
+#main.transitions #volume-current {
+    transition: background-color var(--transition), width var(--transition);
 }
 #volume-background {
     opacity: 0.25;
@@ -1019,6 +1035,7 @@ div#device {
     flex-direction: row;
     justify-content: flex-end;
     height: 100%;
+    gap: 2vh;
 }
 
 #time {
@@ -1055,10 +1072,12 @@ div#device {
     opacity: 0;
 }
 
-#bottom-meta-container:not(.spread-timestamps) #bottom-right #time-total::before {
-    content: "/";
+#bottom-meta-container:not(.spread-timestamps) #bottom-right #time-slash {
+    background: var(--color);
+    width: 0.5vh;
     opacity: 0.25;
-    padding: 1.5vh;
+    transform: rotate(25deg);
+    border-radius: 2vh;
 }
 
 #settings-menu-toggle-button {
