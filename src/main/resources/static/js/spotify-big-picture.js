@@ -511,8 +511,7 @@ function setCorrectTracklistView(changes) {
   let contentCenterContainer = trackListContainer.parentElement;
   let contentCenterHeight = contentCenterContainer.offsetHeight;
   let trackListContainerHeight = trackListContainer.scrollHeight;
-  let accountForEnlargeCurrent = trackListContainer.firstElementChild?.scrollHeight * 1.25 ?? 0;
-  let trackListSize = (trackListContainerHeight + accountForEnlargeCurrent) / previousFontSizeScale;
+  let trackListSize = trackListContainerHeight / previousFontSizeScale;
   let splitMode = isPrefEnabled("split-main-panels");
 
   let trackListScaleRatio;
@@ -529,6 +528,7 @@ function setCorrectTracklistView(changes) {
 
     // Make sure the tracklist is at the correct position after the scaling transition.
     // This is a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid.
+    refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
     setTimeout(() => {
       refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
       refreshTextBalance();
@@ -639,7 +639,14 @@ const RELEASE_FULL_FORMAT = {
 const RELEASE_FULL_LOCALE = "en-US";
 
 function formatReleaseDate(release) {
-  return new Date(Date.parse(release)).toLocaleDateString(RELEASE_FULL_LOCALE, RELEASE_FULL_FORMAT);
+  let formattedDateBase = new Date(Date.parse(release)).toLocaleDateString(RELEASE_FULL_LOCALE, RELEASE_FULL_FORMAT);
+  let match = formattedDateBase.match(/\d+/);
+  if (match) {
+    let day = match[0];
+    let dayOfMonthTh = day + (day > 0 ? ['th', 'st', 'nd', 'rd'][(day > 3 && day < 21) || day % 10 > 3 ? 0 : day % 10] : '');
+    return formattedDateBase.replace(day, dayOfMonthTh);
+  }
+  return formattedDateBase;
 }
 
 function finishAnimations(elem) {
@@ -680,7 +687,6 @@ function createDiscElement(discNumber) {
   discTrackElem.className = "track-elem disc";
   let discSymbolContainer = document.createElement("div");
   discSymbolContainer.className = "disc-symbol";
-  discSymbolContainer.innerHTML = "&#x1F4BF;&#xFE0E;";
   let discNumberContainer = document.createElement("div");
   discNumberContainer.className = "disc-number";
   discNumberContainer.innerHTML = "Disc " + discNumber;
@@ -1255,7 +1261,7 @@ const PREFERENCES = [
     name: "Enable",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Track List",
-    requiredFor: ["scrolling-track-list", "enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
+    requiredFor: ["scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
     css: {
       "title": "!force-display",
       "track-list": "!hide"
@@ -1274,14 +1280,7 @@ const PREFERENCES = [
     description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. " +
         "(Only works for 200 tracks or less,for performance reasons)",
     category: "Track List",
-    requiredFor: ["enlarge-scrolling-track-list", "hide-title-scrolling-track-list", "xl-main-info-scrolling"]
-  },
-  {
-    id: "enlarge-scrolling-track-list",
-    name: "Album View: Enlarge Current",
-    description: "If Scrolling Track List is enabled, the font size of the current track in the track list is slightly increased",
-    category: "Track List",
-    css: {"track-list": "enlarge-current"}
+    requiredFor: ["hide-title-scrolling-track-list", "xl-main-info-scrolling"]
   },
   {
     id: "hide-title-scrolling-track-list",
@@ -1742,7 +1741,6 @@ const PREFERENCES_DEFAULT = {
     "enable-center-content",
     "show-queue",
     "scrolling-track-list",
-    "enlarge-scrolling-track-list",
     "hide-title-scrolling-track-list",
     "show-timestamps-track-list",
     "show-podcast-descriptions",
@@ -1887,7 +1885,6 @@ const PREFERENCES_PRESETS = [
       "show-featured-artists",
       "main-content-centered",
       "bg-tint",
-      "enlarge-scrolling-track-list",
       "display-artwork"
     ]
   },
@@ -1907,7 +1904,6 @@ const PREFERENCES_PRESETS = [
       "show-clock",
       "show-featured-artists",
       "scrolling-track-list",
-      "enlarge-scrolling-track-list",
       "show-device",
       "show-volume",
       "show-podcast-descriptions",
@@ -1933,7 +1929,6 @@ const PREFERENCES_PRESETS = [
       "show-clock",
       "show-featured-artists",
       "scrolling-track-list",
-      "enlarge-scrolling-track-list",
       "bg-artwork",
       "bg-gradient",
       "show-device",
@@ -1964,7 +1959,6 @@ const PREFERENCES_PRESETS = [
       "enable-center-content",
       "show-queue",
       "scrolling-track-list",
-      "enlarge-scrolling-track-list",
       "hide-title-scrolling-track-list",
       "show-timestamps-track-list",
       "show-podcast-descriptions",
@@ -2377,14 +2371,7 @@ function handleWheelEvent(e) {
       e.preventDefault();
     }
     let delta = e.deltaY;
-    if (settingsVisible) {
-      let settingsScroller = getById("settings-scroller");
-      settingsScroller.scroll({
-        top: 0,
-        left: (delta * 12) + settingsScroller.scrollLeft,
-        behavior: 'smooth'
-      });
-    } else {
+    if (!settingsVisible) {
       let trackList = getById("track-list");
       trackList.scroll({
         top: delta + trackList.scrollTop,

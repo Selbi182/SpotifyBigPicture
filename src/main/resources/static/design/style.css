@@ -22,7 +22,7 @@
 html, body {
     margin: 0;
     overflow: hidden;
-    background: black;
+    background-color: #111;
     color: white;
     font-family: var(--font-normal);
     width: 100%;
@@ -63,7 +63,7 @@ a:hover {
     #artists, #title, #description, #album,
     #track-list, #track-list .track-elem div,
     #progress-current, #progress-background,
-    #play-pause, #shuffle, #repeat, #volume-text, #volume-current, #volume-background, #device,
+    #play-pause, #shuffle, #repeat, #volume, #volume-text, #volume-current, #volume-background, #device,
     #clock, #time-current, #time-total
 ) {
     transition: opacity var(--transition),
@@ -110,8 +110,9 @@ img:not([src]) {
     height: 100%;
     color: var(--color);
     --artwork-size: 0;
-    transform-origin: bottom right;
+    transform-origin: top right;
     transition: transform var(--transition);
+    background-color: black;
 }
 
 #main.hide {
@@ -646,9 +647,11 @@ div#description {
     scrollbar-width: thin;
     overflow-y: hidden;
     mask-repeat: no-repeat;
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-scaled);
     --font-size-base: calc(1vh * clamp(1, var(--font-size-scale), 3));
     --font-size-scale: 1;
+    --font-size-extra-scale: 1;
+    --font-size-scaled: calc(var(--font-size-base) * var(--font-size-extra-scale));
     --gradient-height: 6vh;
     --gradient-top: white;
     --gradient-bottom: white;
@@ -692,7 +695,7 @@ div#description {
 }
 
 #track-list.big-text {
-    font-size: calc(var(--font-size-base) * 2);
+    --font-size-extra-scale: 2;
 }
 
 #track-list.gradient-top {
@@ -709,14 +712,6 @@ div#description {
 
 #content-center:not(.queue) #track-list .track-elem:not(.disc) div {
     opacity: 0.5;
-}
-
-#content-center:not(.queue) #track-list.enlarge-current .track-elem.current div {
-    font-size: calc(var(--font-size-base) * 1.25);
-}
-
-#content-center:not(.queue) #track-list.enlarge-current.big-text .track-elem.current div {
-    font-size: calc(var(--font-size-base) * 1.25 * 2);
 }
 
 #content-center:not(.queue) #track-list .track-elem.current div {
@@ -743,6 +738,20 @@ div#description {
     grid-column: 2;
 }
 
+#track-list .track-elem.disc .disc-symbol {
+    -webkit-mask-image: url("img/symbols/disc.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: url("img/symbols/disc.png");
+    mask-size: contain;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    height: var(--font-size-scaled);
+    width: var(--font-size-scaled);
+    background-color: var(--color);
+    transition: background-color var(--transition), width var(--transition), height var(--transition) !important;
+}
 
 #track-list.show-tracklist-numbers div:is(.track-number, .disc-symbol) {
     text-align: center;
@@ -882,11 +891,24 @@ div#description {
 }
 #volume-text {
     white-space: nowrap;
+    display: flex;
+    gap: 1vh;
 }
 #volume-text::before {
-    content: "\1F50A\FE0E";
-    padding-right: 1vh;
+    content: "";
+    -webkit-mask-image: url("img/symbols/volume.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: url("img/symbols/volume.png");
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
+    height: 3vh;
+    width: 3vh;
+    background-color: var(--color);
 }
+
 #volume-bar {
     position: relative;
     width: 100%;
@@ -1083,7 +1105,7 @@ div#device {
     opacity: 0;
     font-size: 3vh;
     display: none;
-    flex-direction: column;
+    flex-direction: row;
     gap: 8vh;
     pointer-events: none;
     --margin-settings: 8vh;
@@ -1102,26 +1124,27 @@ div#device {
 #settings-wrapper::before {
     content: "Visual Preferences";
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 2vh;
     top: 0;
-    margin: 2vh;
+    bottom: 0;
     text-align: center;
-    letter-spacing: 2vh;
     opacity: 0.25;
     font-family: var(--font-bold);
+    text-orientation: upright;
+    -webkit-writing-mode: vertical-lr;
+    writing-mode: vertical-lr;
+    margin: auto 0;
 }
 
 #settings-scroller {
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     scrollbar-width: thin;
     flex: 1;
-    --scroller-gradient: linear-gradient(var(--mask-direction), transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
+    --scroller-gradient: linear-gradient(to bottom, transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
     -webkit-mask-image: var(--scroller-gradient);
     mask-image: var(--scroller-gradient);
     padding: var(--mask-padding);
-    --mask-direction: to right;
     --mask-padding: 2vh;
 }
 
@@ -1147,7 +1170,7 @@ div#device {
     height: 100%;
     justify-content: space-between;
     font-family: var(--font-bold);
-    flex-direction: row;
+    flex-direction: column;
     font-size: 2vh;
     display: none;
     gap: 4vh;
@@ -1204,7 +1227,7 @@ div#device {
 
 #settings-presets {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     gap: var(--margin-settings);
     height: 100%;
@@ -1224,7 +1247,7 @@ div#device {
 
 #settings-presets > .preset > img {
     width: auto;
-    height: 20vh;
+    height: 25vh;
     background: #ffffff40;
     background-size: contain;
     border-radius: 1vh;
@@ -1237,9 +1260,11 @@ div#device {
 
 #settings-description {
     width: 50%;
-    height: 100%;
+    height: 50%;
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-self: end;
     font-size: 3vh;
     pointer-events: none;
     position: relative;
@@ -1274,28 +1299,25 @@ div#device {
     display: none;
 }
 
-#settings-external {
+#settings-top-buttons {
+    display: flex;
+    width: fit-content;
+    gap: var(--margin-settings);
     position: absolute;
     top: 2vh;
-    right: var(--margin-settings);
+    left: var(--margin-settings);
+    font-family: var(--font-bold);
+}
+
+#settings-external, #settings-expert-mode-toggle {
     opacity: 0.5;
     cursor: pointer;
-    font-family: var(--font-bold);
     text-decoration: none;
 }
 
 #settings-external::before {
     content: "\21AA\FE0E\FE0F\FE0E";
     padding-right: 1vh;
-}
-
-#settings-expert-mode-toggle {
-    position: absolute;
-    top: 2vh;
-    left: var(--margin-settings);
-    opacity: 0.5;
-    cursor: pointer;
-    font-family: var(--font-bold);
 }
 
 #settings-expert-mode-toggle:hover {
@@ -1391,12 +1413,6 @@ div#device {
         left: var(--margin-settings);
         top: unset;
         right: unset;
-    }
-
-    #settings-scroller {
-        --mask-direction: to bottom;
-        overflow-x: hidden;
-        overflow-y: auto;
     }
 
     #settings-scroller > div {
