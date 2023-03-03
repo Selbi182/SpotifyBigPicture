@@ -282,7 +282,7 @@ img:not([src]) {
     gap: var(--margin-half);
 }
 
-#content.swap-top-bottom {
+#main:not(.vertical) #content.swap-top-bottom {
     flex-direction: column-reverse;
 }
 
@@ -315,9 +315,13 @@ img:not([src]) {
 #artwork {
     width: var(--artwork-size);
     height: var(--artwork-size);
-    filter: drop-shadow(var(--default-shadow));
     overflow: hidden;
+    position: relative;
     margin: var(--margin-main);
+}
+
+#artwork.shadow {
+    filter: drop-shadow(var(--default-shadow));
 }
 
 #artwork.top-disabled.center-disabled.bottom-disabled {
@@ -529,6 +533,7 @@ div#context-main {
     text-align: left;
 }
 
+#main.vertical #center-info-main,
 #content-center.centered #center-info-main {
     align-items: center;
     text-align: center;
@@ -555,6 +560,10 @@ div#context-main {
 
 #main.vertical #title {
     margin: 0;
+}
+
+:is(#artists, #title-main, #album-title-main):empty::before {
+    content: "\200B";
 }
 
 #title.force-display, #main.vertical #title {
@@ -626,12 +635,16 @@ div#context-main {
     display: initial;
 }
 
-#album:not(.separate-date) #album-release::before {
+#album:not(.separate-date) :is(#release-year, #release-full)::before {
     content: "(";
 }
 
-#album:not(.separate-date) #album-release:after {
+#album:not(.separate-date) :is(#release-year, #release-full):after {
     content: ")";
+}
+
+#album :is(#release-year, #release-full):empty {
+    display: none;
 }
 
 #album-title-extra.hide {
@@ -1436,6 +1449,7 @@ div#device {
     #settings-wrapper {
         padding-left: 0;
         padding-right: 0;
+        gap: 0;
     }
 
     #settings-wrapper::before {
@@ -1458,11 +1472,11 @@ div#device {
         width: 100%;
     }
 
-    #settings-description-header {
-        display: none;
+    #settings-description > #settings-description-header {
+        font-size: 3vh;
     }
 
-    #settings-description-description {
+    #settings-description > #settings-description-description {
         font-size: 2vh;
     }
 }

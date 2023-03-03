@@ -939,14 +939,15 @@ function calculateAndRefreshArtworkSize() {
     let bottomEnabled = isPrefEnabled("enable-bottom-content");
     let contentBottom = bottomEnabled ? bottomRect.bottom : centerRect.bottom;
 
+    let verticalMode = isPrefEnabled("vertical-mode");
     let swapTopBottom = isPrefEnabled("swap-top-bottom");
-    if (swapTopBottom) {
+    if (!verticalMode && swapTopBottom) {
       contentTop = bottomEnabled ? bottomRect.top : centerRect.top;
       contentBottom = topEnabled ? topRect.bottom : centerRect.bottom;
     }
 
     artworkSize = centerBottom - centerTop;
-    if (isPrefEnabled("vertical-mode")) {
+    if (verticalMode) {
       let centerInfoMainTop = getById("center-info-main").getBoundingClientRect().top;
       artworkSize = centerInfoMainTop - contentTop;
     } else {
@@ -1038,11 +1039,6 @@ function refreshBackgroundRender() {
         refreshBackgroundRenderInProgress = false;
       });
   }
-}
-
-function unsetBackgroundPrerender() {
-  let backgroundRenderedWrapper = getById("background-rendered");
-  backgroundRenderedWrapper.childNodes.forEach(child => child.remove());
 }
 
 function unsetNextImagePrerender() {
@@ -1263,7 +1259,7 @@ const PREFERENCES = [
   },
   {
     id: "show-queue",
-    name: "Enable",
+    name: "Enable Track List",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Track List",
     requiredFor: ["scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
@@ -1306,7 +1302,7 @@ const PREFERENCES = [
   },
   {
     id: "bg-enable",
-    name: "Enable",
+    name: "Enable Background",
     description: "Enable the background. Otherwise, plain black will be displayed at all times",
     category: "Background",
     requiredFor: ["bg-artwork", "bg-tint", "bg-gradient", "bg-grain"],
@@ -1345,11 +1341,18 @@ const PREFERENCES = [
     name: "Enable Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
     category: "Main Content",
-    requiredFor: ["artwork-expand-top", "artwork-expand-bottom", "artwork-right"],
+    requiredFor: ["artwork-shadow", "artwork-expand-top", "artwork-expand-bottom", "artwork-right"],
     css: {
       "artwork": "!hide",
       "content": "!full-content"
     }
+  },
+  {
+    id: "artwork-shadow",
+    name: "Artwork Shadow",
+    description: "Show a subtle shadow underneath the artwork",
+    category: "Main Content",
+    css: {"artwork": "shadow"}
   },
   {
     id: "enable-center-content",
@@ -1454,7 +1457,7 @@ const PREFERENCES = [
   },
   {
     id: "enable-top-content",
-    name: "Enable",
+    name: "Enable Top Content",
     description: "Enable the top content, the container for the context and Spotify logo. " +
         "Disabling this will increase the available space for the main content",
     category: "Top Content",
@@ -1534,7 +1537,7 @@ const PREFERENCES = [
   },
   {
     id: "enable-bottom-content",
-    name: "Enable",
+    name: "Enable Bottom Content",
     description: "Enable the bottom content, the container for the progress bar and various meta information. " +
         "Disabling this will increase the available space for the main content",
     category: "Bottom Content",
@@ -1709,9 +1712,7 @@ const PREFERENCES = [
     name: "Swap Top with Bottom Content",
     description: "If enabled, the top content swaps position with the bottom content",
     category: "Layout: Swap",
-    css: {
-      "content": "swap-top-bottom"
-    }
+    css: {"content": "swap-top-bottom"}
   },
   {
     id: "decreased-margins",
@@ -1723,11 +1724,13 @@ const PREFERENCES = [
   },
   {
     id: "vertical-mode",
-    name: "Vertical Mode (Beta)",
-    description: "Convert the two-panel layout into a vertical, centered layout. This will disable the track list, but it results in a more minimalistic appearance",
+    name: "Vertical Mode",
+    description: "Convert the two-panel layout into a vertical, centered layout (artwork above track name). " +
+        "Do note that this setting overrides many other settings, namely the track list",
     category: "Layout: Misc",
-    overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right",
-      "show-podcast-descriptions", "main-content-bottom", "split-main-panels"],
+    overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right", "main-content-centered",
+      "show-podcast-descriptions", "main-content-bottom", "split-main-panels", "artwork-expand-top", "artwork-expand-bottom",
+      "swap-top-bottom"],
     css: {"main": "vertical"}
   },
   {
@@ -1774,6 +1777,7 @@ const PREFERENCES_DEFAULT = {
     "show-timestamps-track-list",
     "show-podcast-descriptions",
     "display-artwork",
+    "artwork-shadow",
     "artwork-expand-top",
     "bg-enable",
     "bg-artwork",
@@ -1962,11 +1966,15 @@ const PREFERENCES_PRESETS = [
       "reduced-center-margins"
     ],
     disabled: [
+      "artwork-expand-top",
+      "main-content-centered",
       "show-clock",
+      "clock-full",
       "show-featured-artists",
       "scrolling-track-list",
       "bg-artwork",
       "bg-gradient",
+      "bg-grain",
       "show-device",
       "show-volume",
       "show-volume-bar",
@@ -2210,7 +2218,6 @@ function refreshPreference(preference, state) {
 
   // Refresh Background and Tracklist, but only do it once per preset application
   clearTimeout(refreshContentTimeout);
-  unsetBackgroundPrerender();
   refreshContentTimeout = setTimeout(() => {
     refreshBackgroundRender(true);
     refreshTrackList();
@@ -2343,7 +2350,6 @@ function handleDeviceChange(device) {
 let refreshBackgroundEvent;
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
-  unsetBackgroundPrerender();
   refreshBackgroundEvent = setTimeout(() => {
     refreshTextBalance();
     refreshBackgroundRender(true);
