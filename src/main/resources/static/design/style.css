@@ -1121,7 +1121,6 @@ div#device {
     z-index: 2;
     position: absolute;
     padding: var(--margin-settings);
-    opacity: 0;
     font-size: 3vh;
     display: none;
     flex-direction: row;
@@ -1136,7 +1135,6 @@ div#device {
 
 #settings-wrapper.show {
     display: flex;
-    opacity: 1;
     pointer-events: auto;
 }
 
@@ -1200,6 +1198,8 @@ div#device {
     opacity: 0.65;
     cursor: pointer;
     white-space: pre;
+    overflow: hidden;
+    max-width: 100%;
 }
 
 #settings-categories .setting[class*='overridden-'] {
@@ -1260,13 +1260,14 @@ div#device {
     display: flex;
     opacity: 0.5;
     cursor: pointer;
-    width: min-content;
-    height: min-content;
+    width: fit-content;
+    height: fit-content;
 }
 
 #settings-presets > .preset > img {
     width: auto;
-    height: 25vh;
+    height: auto;
+    max-width: 100%;
     background: #ffffff40;
     background-size: contain;
     border-radius: 1vh;
@@ -1321,11 +1322,12 @@ div#device {
 #settings-top-buttons {
     display: flex;
     width: fit-content;
-    gap: var(--margin-settings);
+    gap: 0 var(--margin-settings);
     position: absolute;
     top: 2vh;
     left: var(--margin-settings);
     font-family: var(--font-bold);
+    z-index: 1;
 }
 
 #settings-external, #settings-expert-mode-toggle {
@@ -1425,6 +1427,19 @@ div#device {
     #track-list .track-elem div.track-name {
         white-space: unset;
         overflow: unset;
+    }
+
+    #settings-top-buttons {
+        flex-direction: column;
+    }
+
+    #settings-wrapper {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #settings-wrapper::before {
+        content: none;
     }
 
     #settings-external {
