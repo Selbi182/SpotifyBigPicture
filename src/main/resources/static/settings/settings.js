@@ -13,14 +13,19 @@ fetch("/settings/list")
       let settingsListContainer = document.getElementById("settings");
       let categories = {};
       for (let setting of [...loadedSettings, reloadSetting]) {
-        if (setting.id === "fullscreen") {
-          continue; // Fullscreen cannot be controlled externally
-        }
-
         let settingContainer = document.createElement("div");
         settingContainer.id = setting.id;
         settingContainer.classList.add("setting");
-        settingContainer.innerHTML = setting.name;
+
+        // Preset Thumbnail
+        if (setting.id.startsWith("preset-")) {
+          settingContainer.innerHTML = `<div class="image-wrapper"><img src="/design/img/presets/${setting.id}.png"></div>`;
+        }
+
+        // Setting Name
+        settingContainer.innerHTML += setting.name;
+
+        // Setting Description
         if (setting.description) {
           settingContainer.innerHTML += `<div class="setting-description">${setting.description}</div>`;
         }
@@ -51,12 +56,24 @@ fetch("/settings/list")
         }
         let categoryElem = categories[setting.category];
         categoryElem.appendChild(settingContainer);
+      }
 
-        // Setup show descriptions toggle button
-        let descriptionToggle = document.getElementById("description-toggle");
-        descriptionToggle.onclick = () => {
-          settingsListContainer.classList.toggle("show-descriptions");
-          descriptionToggle.classList.toggle("on");
+      // Setup show descriptions toggle button
+      let descriptionToggle = document.getElementById("description-toggle");
+      descriptionToggle.onclick = () => {
+        settingsListContainer.classList.toggle("show-descriptions");
+        descriptionToggle.classList.toggle("on");
+      }
+
+      // Setup expand/collapse all toggle button
+      let expandExpandAll = document.getElementById("expand-collapse-all");
+      expandExpandAll.onclick = () => {
+        if (expandExpandAll.innerHTML.startsWith("Expand")) {
+          expandExpandAll.innerHTML = "Collapse All Categories"
+          settingsListContainer.childNodes.forEach(child => child.classList.add("expand"));
+        } else {
+          expandExpandAll.innerHTML = "Expand All Categories"
+          settingsListContainer.childNodes.forEach(child => child.classList.remove("expand"));
         }
       }
     });

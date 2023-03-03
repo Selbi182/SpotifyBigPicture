@@ -2,6 +2,7 @@ package spotify.playback.data;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -17,6 +18,7 @@ import se.michaelthelin.spotify.exceptions.detailed.ForbiddenException;
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import se.michaelthelin.spotify.model_objects.special.PlaybackQueue;
+import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import spotify.api.SpotifyApiException;
@@ -29,6 +31,7 @@ import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
 import spotify.playback.data.dto.sub.TrackElement;
 import spotify.playback.data.help.BigPictureUtils;
+import spotify.playback.data.help.CustomVolumeSettingsProvider;
 import spotify.playback.data.visual.ContextProvider;
 import spotify.playback.data.visual.artwork.ArtworkUrlCache;
 import spotify.playback.data.visual.color.ColorProviderService;
@@ -53,6 +56,7 @@ public class PlaybackInfoProvider {
   private boolean queueEnabled;
 
   private final Set<String> settingsToToggle;
+  private final List<PlaybackInfo.CustomVolumeSettings> customVolumeSettings;
 
   private final int port;
 
@@ -60,6 +64,7 @@ public class PlaybackInfoProvider {
       ContextProvider contextProvider,
       ArtworkUrlCache artworkUrlCache,
       ColorProviderService colorProvider,
+      CustomVolumeSettingsProvider customVolumeSettingsProvider,
       SpringPortConfig springPortConfig) {
     this.spotifyApi = spotifyApi;
     this.contextProvider = contextProvider;
@@ -68,6 +73,7 @@ public class PlaybackInfoProvider {
     this.ready = false;
     this.queueEnabled = true;
     this.settingsToToggle = new HashSet<>();
+    this.customVolumeSettings = customVolumeSettingsProvider.getCustomVolumeSettings();
     this.port = springPortConfig.getPort();
     refreshDeployTime();
   }
@@ -114,6 +120,9 @@ public class PlaybackInfoProvider {
         if (playbackQueue != null && playbackQueue.getCurrentlyPlaying() != null && currentlyPlayingContext != null && currentlyPlayingContext.getItem() != null) {
           PlaybackInfo currentPlaybackInfo;
           ModelObjectType type = playbackQueue.getCurrentlyPlaying().getType();
+          if (currentlyPlayingContext.getItem() != null && !Objects.equals(playbackQueue.getCurrentlyPlaying().getId(), currentlyPlayingContext.getItem().getId())) {
+            type = ModelObjectType.TRACK;
+          }
           switch (type) {
             case TRACK:
               currentPlaybackInfo = buildInfoTrack(playbackQueue, currentlyPlayingContext);
@@ -164,10 +173,14 @@ public class PlaybackInfoProvider {
 
   private PlaybackInfo buildBaseInfo(PlaybackQueue playbackQueue, CurrentlyPlayingContext context) {
     IPlaylistItem currentTrack = playbackQueue.getCurrentlyPlaying();
+    if (context.getItem() != null && !Objects.equals(currentTrack.getId(), context.getItem().getId())) {
+      currentTrack = context.getItem();
+    }
 
     // Meta data
     PlaybackInfo playbackInfo = new PlaybackInfo(PlaybackInfo.Type.DATA);
     playbackInfo.setDeployTime(deployTime);
+    playbackInfo.setCustomVolumeSettings(this.customVolumeSettings);
 
     // CurrentlyPlaying
     CurrentlyPlaying currentlyPlaying = playbackInfo.getCurrentlyPlaying();
@@ -220,7 +233,7 @@ public class PlaybackInfoProvider {
           trackData.setDiscNumber(contextProvider.getCurrentlyPlayingAlbumTrackDiscNumber());
           trackData.setTotalDiscCount(contextProvider.getTotalDiscCount());
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
-          if (!playbackContext.getContext().startsWith(ContextProvider.QUEUE_PREFIX)) {
+          if (!playbackContext.getContext().getContextType().equals(PlaybackContext.Context.ContextType.QUEUE_IN_ALBUM)) {
             trackData.setTrackListView(TrackData.ListViewType.ALBUM);
           }
           currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingAlbumTrackNumber());
@@ -291,6 +304,20 @@ public class PlaybackInfoProvider {
       }
     }
 
+    // If next song in queue during an album doesn't match next song in track list, we know a song has been manually queued
+    if (!playbackContext.getShuffle() && ModelObjectType.ALBUM.equals(type)) {
+      Optional<TrackElement> nextTrackInQueue = queue.stream().findFirst();
+      if (nextTrackInQueue.isPresent()) {
+        Integer nextAlbumTrackIndex = contextProvider.getCurrentlyPlayingAlbumTrackNumber();
+        if (contextProvider.getListTracks().size() < nextAlbumTrackIndex) {
+          TrackElement nextTrackInAlbum = contextProvider.getListTracks().get(nextAlbumTrackIndex);
+          if (!nextTrackInQueue.get().getId().equals(nextTrackInAlbum.getId())) {
+            playbackContext.getContext().setContextType(PlaybackContext.Context.ContextType.QUEUE_IN_ALBUM);
+          }
+        }
+      }
+    }
+
     trackData.setQueue(queue);
 
     if (playbackQueueQueue.size() > 1) {
@@ -315,13 +342,20 @@ public class PlaybackInfoProvider {
   private PlaybackInfo buildInfoTrack(PlaybackQueue playbackQueue, CurrentlyPlayingContext context) {
     PlaybackInfo pInfo = buildBaseInfo(playbackQueue, context);
 
-    Track track = (Track) playbackQueue.getCurrentlyPlaying();
+    IPlaylistItem item = playbackQueue.getCurrentlyPlaying();
+    if (context.getItem() != null && !Objects.equals(item.getId(), context.getItem().getId())) {
+      item = context.getItem();
+    }
+
+    Track track = (Track) item;
+
+    AlbumSimplified album = track.getAlbum();
     CurrentlyPlaying currentlyPlaying = pInfo.getCurrentlyPlaying();
 
     currentlyPlaying.setArtists(SpotifyUtils.toArtistNamesList(track.getArtists()));
     currentlyPlaying.setTitle(track.getName());
-    currentlyPlaying.setAlbum(track.getAlbum().getName());
-    currentlyPlaying.setReleaseDate(BigPictureUtils.findReleaseYear(track));
+    currentlyPlaying.setAlbum(album.getName());
+    currentlyPlaying.setReleaseDate(album.getReleaseDate() != null ? album.getReleaseDate() : BigPictureUtils.BLANK);
     currentlyPlaying.setDescription(BigPictureUtils.BLANK);
 
     return pInfo;

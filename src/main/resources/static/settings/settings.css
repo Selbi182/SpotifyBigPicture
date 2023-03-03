@@ -6,9 +6,9 @@ html, body {
     background: black;
     margin: 0;
     padding: 0;
-    color: #ddd;
+    color: #eee;
     font-family: 'Consolas', 'Lucida Console', 'Courier New', monospace;
-    font-size: 3vmax;
+    font-size: 3vh;
     width: 100%;
     height: 100%;
     user-select: none;
@@ -16,12 +16,12 @@ html, body {
 }
 
 body {
-    padding: 2vmax;
+    padding: 2vh;
 }
-
+*
 header {
     text-align: center;
-    margin-bottom: 2vmax;
+    margin-bottom: 2vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -29,42 +29,42 @@ header {
 }
 
 header > div {
-    margin: 1vmax 0;
+    margin: 1vh 0;
 }
 
 #headline {
     font-weight: bold;
-    font-size: 4vmax;
+    font-size: 4vh;
 }
 
 #subtitle {
-    font-size: 3vmax;
+    font-size: 3vh;
     opacity: 0.5;
 }
 
-#description-toggle {
-    font-size: 2vmax;
+#description-toggle, #expand-collapse-all {
+    font-size: 2vh;
     opacity: 0.5;
     cursor: pointer;
     text-decoration: line-through;
     background-color: #222;
-    padding: 1vmax;
-    border-radius: 1vmax;
+    padding: 1vh;
+    border-radius: 1vh;
     width: fit-content;
 }
 
-#description-toggle:hover {
+#description-toggle:hover, #expand-collapse-all:hover {
     opacity: 1;
 }
 
-#description-toggle.on {
+#description-toggle.on, #expand-collapse-all {
     text-decoration: unset;
 }
 
 #settings {
     display: flex;
     flex-direction: column;
-    gap: 1vmax;
+    gap: 1vh;
     max-width: 100%;
 }
 
@@ -74,8 +74,8 @@ header > div {
 
 #settings .setting-category {
     background-color: #222;
-    padding: 1vmax;
-    border-radius: 1vmax;
+    padding: 1vh;
+    border-radius: 1vh;
     text-align: center;
     transition: opacity 0.1s;
     justify-content: center;
@@ -91,8 +91,8 @@ header > div {
 
 #settings .setting {
     cursor: pointer;
-    opacity: 0.5;
-    margin: 1vmax;
+    opacity: 0.65;
+    margin: 1vh;
 }
 
 #settings .setting:hover {
@@ -104,9 +104,24 @@ header > div {
     opacity: 0.1;
 }
 
+#settings .setting .image-wrapper {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+}
+
+#settings .setting .image-wrapper img {
+    display: block;
+    width: auto;
+    height: 10vh;
+    border-radius: 1vh;
+    border: 0.2vh solid white;
+    background: #ffffff10;
+}
+
 #settings .setting-category .setting-category-header {
     cursor: pointer;
-    font-size: 4vmax;
+    font-size: 4vh;
     font-weight: bold;
     opacity: 0.5;
 }
@@ -117,7 +132,7 @@ header > div {
 
 #settings .setting-category .setting-description {
     display: none;
-    font-size: 1vmax;
+    font-size: 1.5vh;
     opacity: 0.65;
     text-align: justify;
     text-align-last: center;

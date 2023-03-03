@@ -44,14 +44,14 @@ public class TrackElement implements Comparable<TrackElement> {
   }
 
   public static TrackElement fromTrackSimplified(TrackSimplified track, Album album) {
-    return new TrackElement(track.getId(), track.getTrackNumber(), track.getDiscNumber(), SpotifyUtils.toArtistNamesList(track), track.getName(), album.getName(), SpotifyUtils.findReleaseYear(album), "", track.getDurationMs());
+    return new TrackElement(track.getId(), track.getTrackNumber(), track.getDiscNumber(), SpotifyUtils.toArtistNamesList(track), track.getName(), album.getName(), album.getReleaseDate(), "", track.getDurationMs());
   }
 
   public static TrackElement fromPlaylistItem(IPlaylistItem item) {
     if (ModelObjectType.TRACK.equals(item.getType())) {
       if (item instanceof Track) {
         Track track = (Track) item;
-        return new TrackElement(track.getId(), track.getTrackNumber(), track.getDiscNumber(), SpotifyUtils.toArtistNamesList(track), track.getName(), track.getAlbum().getName(), SpotifyUtils.findReleaseYear(track), "", track.getDurationMs());
+        return new TrackElement(track.getId(), track.getTrackNumber(), track.getDiscNumber(), SpotifyUtils.toArtistNamesList(track), track.getName(), track.getAlbum().getName(), track.getAlbum().getReleaseDate(), "", track.getDurationMs());
       }
     } else if (ModelObjectType.EPISODE.equals(item.getType())) {
       if (item instanceof Episode) {
