@@ -42,7 +42,7 @@ header > div {
     opacity: 0.5;
 }
 
-#description-toggle {
+#description-toggle, #expand-collapse-all {
     font-size: 2vh;
     opacity: 0.5;
     cursor: pointer;
@@ -53,11 +53,11 @@ header > div {
     width: fit-content;
 }
 
-#description-toggle:hover {
+#description-toggle:hover, #expand-collapse-all:hover {
     opacity: 1;
 }
 
-#description-toggle.on {
+#description-toggle.on, #expand-collapse-all {
     text-decoration: unset;
 }
 
