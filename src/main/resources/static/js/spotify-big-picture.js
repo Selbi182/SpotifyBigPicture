@@ -1254,7 +1254,7 @@ const PREFERENCES = [
   {
     id: "colored-text",
     name: "Colored Text",
-    description: "If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used",
+    description: "If enabled, the dominant color of the current artwork will be used as the color for all texts and some symbols. Otherwise, plain white will be used",
     category: "General",
     css: {"main": "!no-colored-text"}
   },
@@ -1459,7 +1459,7 @@ const PREFERENCES = [
   {
     id: "enable-top-content",
     name: "Enable Top Content",
-    description: "Enable the top content, the container for the context and Spotify logo. " +
+    description: "Enable the top content, the container for the context and the Spotify logo. " +
         "Disabling this will increase the available space for the main content",
     category: "Top Content",
     requiredFor: ["show-context", "show-logo", "swap-top", "artwork-expand-top"],
@@ -1496,7 +1496,7 @@ const PREFERENCES = [
   {
     id: "colored-symbol-context",
     name: "Colored Context Image",
-    description: "If enabled, the dominant color of the current artwork will be used as color for the context image",
+    description: "If enabled, the dominant color of the current artwork will be used as the color for the context image",
     category: "Top Content",
     css: {"thumbnail-wrapper": "colored"}
   },
@@ -1511,7 +1511,7 @@ const PREFERENCES = [
   {
     id: "colored-symbol-spotify",
     name: "Colored Spotify Logo",
-    description: "If enabled, the dominant color of the current artwork will be used as color for the Spotify logo",
+    description: "If enabled, the dominant color of the current artwork will be used as the color for the Spotify logo",
     category: "Top Content",
     css: {"logo": "colored"}
   },
@@ -1835,7 +1835,7 @@ const PREFERENCES_PRESETS = [
     name: "Default Mode (Reset)",
     category: "Presets",
     description: "The default mode. A balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal. " +
-        "Clicking this behaves likes a reset button for all settings",
+        "Clicking this behaves like a reset button for all settings",
     enabled: [],
     disabled: []
   },
@@ -1923,7 +1923,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-big-current-song",
     name: "Big Current-Track Mode",
     category: "Presets",
-    description: "Only shows the current track's title, artist and release in an extra large manner. Track list is disabled, artwork is moved to the background",
+    description: "Only shows the current track's title, artist, and release in an extra large manner. The track list is disabled, the artwork is moved to the background",
     enabled: [
       "xl-text",
       "split-main-panels",

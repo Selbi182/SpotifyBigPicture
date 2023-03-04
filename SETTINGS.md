@@ -1,5 +1,5 @@
 # SpotifyBigPicture - Customization
-There are two main methods of customizing this app: Pick a preset or create your own configuration. You can do both by accessing the settings menu. Click the cog symbol in the top right to open it.
+There are two main methods for customizing this app: pick a preset or create your own configuration. You can do both by accessing the settings menu. Click the cog symbol in the top right to open it.
 
 # Presets
 ![Preset Selection](https://i.imgur.com/CQivw21.png)
@@ -11,7 +11,7 @@ There's no harm done in just switching between presets at any time, so feel free
 ### Default Mode (Reset)
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-default.png)
 
-The default mode. A balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal. Clicking this behaves likes a reset button for all settings
+The default mode: a balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal. Clicking this behaves like a reset button for all settings
 
 ### Compact Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-compact.png)
@@ -35,7 +35,7 @@ A combination of the default preset and Track-List Mode that puts the current tr
 ### Big Current-Track Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-big-current-song.png)
 
-Only shows the current track's title, artist and release in an extra large manner. Track list is disabled, artwork is moved to the background
+Only shows the current track's title, artist and release in an extra large manner. The track list is disabled, the artwork is moved to the background
 
 ### Minimalistic Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-minimalistic.png)
@@ -56,7 +56,7 @@ Do note that, under the hood, presets are just preconfigured selections of these
 
 ## General
 ### Colored Text
-If enabled, the dominant color of the current artwork will be used as color for all texts and some symbols. Otherwise, plain white will be used
+If enabled, the dominant color of the current artwork will be used as the color for all texts and some symbols. Otherwise, plain white will be used
 ### Show Featured Artists
 Display any potential featured artists. Otherwise, only show the main artist
 ### Strip Titles
@@ -96,7 +96,7 @@ Limit 'XL Main Content' to only kick into effect when the title is hidden by 'Al
 
 ## Top Content
 ### Enable Top Content
-Enable the top content, the container for the context and Spotify logo. Disabling this will increase the available space for the main content
+Enable the top content, the container for the context and the Spotify logo. Disabling this will increase the available space for the main content
 ### Show Context
 Displays the playlist/artist/album name along with some additional information at the top of the page
 ### Context Summary
@@ -104,11 +104,11 @@ Show a small summary of the current context (total track count and total time). 
 ### Context Image
 Display a small image (thumbnail) of the current context. For playlists, it's the playlist image and for anything else it's the first artist
 ### Colored Context Image
-If enabled, the dominant color of the current artwork will be used as color for the context image
+If enabled, the dominant color of the current artwork will be used as the color for the context image
 ### Spotify Logo
 Whether to display the Spotify logo in the top right
 ### Colored Spotify Logo
-If enabled, the dominant color of the current artwork will be used as color for the Spotify logo
+If enabled, the dominant color of the current artwork will be used as the color for the Spotify logo
 
 ## Bottom Content
 ### Enable Bottom Content
