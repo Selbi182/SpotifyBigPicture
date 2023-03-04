@@ -56,7 +56,6 @@ public class TrackElement implements Comparable<TrackElement> {
     } else if (ModelObjectType.EPISODE.equals(item.getType())) {
       if (item instanceof Episode) {
         Episode episode = (Episode) item;
-
         if (episode.getShow() != null) {
           return new TrackElement(episode.getId(), 0, 0, List.of(episode.getShow().getName()), episode.getName(), episode.getShow().getName(), episode.getReleaseDate(), episode.getDescription(), episode.getDurationMs());
         } else {

@@ -152,6 +152,13 @@ public class ContextProvider {
         .filter(i -> id.equals(listTracks.get(i).getId()))
         .findFirst()
         .orElse(-1);
+      if (trackIndex < 0 && context.getItem() != null && context.getItem() instanceof Episode) {
+        Episode episode = (Episode) context.getItem();
+        trackIndex = IntStream.range(0, listTracks.size())
+          .filter(i -> listTracks.get(i).getTitle().contains(episode.getName()))
+          .findFirst()
+          .orElse(-1);
+      }
     }
     return trackIndex + 1;
   }
