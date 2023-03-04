@@ -2,10 +2,7 @@ name: Build image and publish to ghcr.io
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version number"
-
+  
 permissions:
   packages: write
 
@@ -28,4 +25,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/selbi182/spotifybigpicture:${{ github.event.inputs.version }}"
+          tags: ghcr.io/selbi182/spotifybigpicture:latest
