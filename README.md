@@ -4,7 +4,7 @@ A highly customizable interface that displays your current playback status on Sp
 
 You might want to use this over [Spotify's own (in my opinion, rather underwhelming) full-screen mode](https://i.imgur.com/dvreOAX.jpg), or you can use it for your TV to give [that outdated, low-resolution OSD](https://i.imgur.com/lNfCcrW.jpg) a fresh paint job!
 
-This interface is entirely read-only. Specifically, this means that you **cannot actually control your music**. Instead, the idea is to set this app up once, and then it permanently runs as a pure information display. An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
+This interface is primarily read-only. Specifically, this means that you **cannot actually control your music**, beyond a few basic commands like play, pause, and skip (needs to be enabled first in the settings). This is both because of limitations to the Spotify API and because the idea is to set this app up once, and then it permanently runs as a pure information display. An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
 
 ## Screenshots
 *Note: Due to the progressive development nature of this app, the screenshots may be slightly out of date at any time. The general layout is pretty much written in stone though.*
