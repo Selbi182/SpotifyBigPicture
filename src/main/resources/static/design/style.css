@@ -536,8 +536,8 @@ div#context-main {
     text-align: center;
 }
 
-#main:not(.vertical) #content-center:not(.queue).title-duplicate #center-info-main.hide-title-in-album-view.big-text.big-text-scrolling,
-#main:not(.vertical) #center-info-main.big-text:not(.big-text-scrolling.hide-title-in-album-view) {
+#main:not(.vertical) #content-center:not(.queue):not(.podcast).title-duplicate #center-info-main.hide-title-in-album-view.big-text.big-text-scrolling,
+#main:not(.vertical) #content-center:not(.podcast) #center-info-main.big-text:not(.big-text-scrolling.hide-title-in-album-view) {
     --font-scale: 2vh;
 }
 

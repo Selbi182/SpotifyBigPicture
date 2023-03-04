@@ -60,8 +60,7 @@ public class TrackElement implements Comparable<TrackElement> {
         if (episode.getShow() != null) {
           return new TrackElement(episode.getId(), 0, 0, List.of(episode.getShow().getName()), episode.getName(), episode.getShow().getName(), episode.getReleaseDate(), episode.getDescription(), episode.getDurationMs());
         } else {
-          return new TrackElement(episode.getId(), 0, 0, List.of(), episode.getName(), "", "", "", episode.getDurationMs());
-
+          return new TrackElement(episode.getId(), 0, 0, List.of("PODCAST"), episode.getName(), "", "", "", episode.getDurationMs());
         }
       }
     }
