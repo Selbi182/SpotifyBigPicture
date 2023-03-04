@@ -23,15 +23,26 @@ Your settings are automatically stored locally, so you won't need to worry about
 A full list of every preset setting can be found [here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md)!
 
 ## Installation
-Here's a basic guide on how to set this app up, as a few people have been requesting it. As such, it isn't quite as simple to set up yet, but it isn't terribly difficult either:
+### Step 1: Create Spotify App
+1. Create an app on the [Spotify Developers dashboard](https://developer.spotify.com/dashboard) (you might need to create an account first)
+2. Copy the *Client ID* and *Client Secret* and save them for later
 
-1. Download the [current release](https://github.com/Selbi182/SpotifyBigPicture/releases)
-2. Create an app on the [Spotify Developers dashboard](https://developer.spotify.com/dashboard) (you might need to create an account first)
-3. As redirect URI for the app, use `http://localhost:8183/login-callback` (make sure you click the little green "Add" button before saving!)
-4. Copy the *Client ID* and *Client Secret* and insert them into the respective fields in the `spotifybot.properties` file
-5. Start the app with `Start_SpotifyBigPicture.sh` (or open a terminal and just write `java -jar SpotifyBigPicture.jar`)
-6. Once prompted to log in, copy-paste the displayed URL into your preferred browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`) and log in
-7. If everything worked out, the app will be available under http://localhost:8183/
+From here on you can choose between one of two ways to continue with the installation.
+
+### Step 2 - Variant A: Manual Java installation
+1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app: `http://localhost:8183/login-callback` (make sure you click the little green "Add" button before saving!)
+2. Download the [current release](https://github.com/Selbi182/SpotifyBigPicture/releases)
+3. Paste the *Client ID* and *Client Secret* you've saved earlier into the respective fields in the `spotifybot.properties` file
+4. Start the app with `Start_SpotifyBigPicture.sh` (or open a terminal and just write `java -jar SpotifyBigPicture.jar`)
+
+### Step 2 - Variant B: Pull Docker Image
+1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app. Depending on where you plan to run the app, you must provide a URI that's reachable from the outside. For example `http://ip-of-docker-machine:8183/login-callback`. The login callback *must* end with `/login-callback`! Also make sure you click the little green "Add" button before saving
+2. Pull the Docker image: `docker pull ghcr.io/selbi182/spotifybigpicture`
+3. Run the Docker image. Insert the *Client ID*, *Client Secret*, and *Redirect URI* you have specified earlier into the respective fields, to pass them as environment variables: `docker run -p 8183:8183 -e client_id=CLIENTID -e client_secret=CLIENTSECRET -e redirect_uri=REDIRECTURI ghcr.io/selbi182/spotifybigpicture`
+
+### Step 3: Login
+1. You will be prompted to log in. Copy-paste the displayed URL into your preferred browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`) and log in
+2. If everything worked out, you're done! If you've chosen variant A, the app will be available under http://localhost:8183/ and if you chose variant B, it's going to be whatever server you've provided
 
 ## Requirements
 * **Java 11 or newer:**
