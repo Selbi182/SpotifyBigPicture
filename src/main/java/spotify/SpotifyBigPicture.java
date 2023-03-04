@@ -27,7 +27,8 @@ public class SpotifyBigPicture {
           "user-read-playback-position",
           "user-read-playback-state",
           "user-read-currently-playing",
-          "user-read-private"
+          "user-read-private",
+          "user-modify-playback-state"
       );
     }
 

@@ -247,8 +247,12 @@ public class PlaybackInfoProvider {
           trackData.setTrackCount(contextProvider.getTrackCount());
           trackData.setCombinedTime(playlistTotalTime);
           trackData.setTrackListView(TrackData.ListViewType.PLAYLIST);
+          playbackContext.getContext().setContextType(PlaybackContext.Context.ContextType.PLAYLIST);
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
+          if (trackData.getListTracks().size() < QUEUE_FALLBACK_THRESHOLD && !playbackContext.getShuffle()) {
+            trackData.setTrackListView(TrackData.ListViewType.PLAYLIST_ALBUM);
+          }
           break;
         case ARTIST:
           // Artist top tracks context
@@ -305,15 +309,18 @@ public class PlaybackInfoProvider {
     }
 
     // If next song in queue during an album doesn't match next song in track list, we know a song has been manually queued
-    if (!playbackContext.getShuffle() && ModelObjectType.ALBUM.equals(type)) {
+    boolean inAlbumView = Objects.equals(trackData.getTrackListView(), TrackData.ListViewType.ALBUM);
+    boolean inPlaylistAlbumView = Objects.equals(trackData.getTrackListView(), TrackData.ListViewType.PLAYLIST_ALBUM);
+    if (!playbackContext.getShuffle() && (inAlbumView || inPlaylistAlbumView)) {
       Optional<TrackElement> nextTrackInQueue = queue.stream().findFirst();
       if (nextTrackInQueue.isPresent()) {
-        Integer nextAlbumTrackIndex = contextProvider.getCurrentlyPlayingAlbumTrackNumber();
-        if (contextProvider.getListTracks().size() < nextAlbumTrackIndex) {
-          TrackElement nextTrackInAlbum = contextProvider.getListTracks().get(nextAlbumTrackIndex);
-          if (!nextTrackInQueue.get().getId().equals(nextTrackInAlbum.getId())) {
-            playbackContext.getContext().setContextType(PlaybackContext.Context.ContextType.QUEUE_IN_ALBUM);
-          }
+        int nextAlbumTrackIndex = inAlbumView ? contextProvider.getCurrentlyPlayingAlbumTrackNumber() : contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context);
+        if (nextAlbumTrackIndex >= contextProvider.getListTracks().size()) {
+          nextAlbumTrackIndex = 0;
+        }
+        TrackElement nextTrackInAlbum = contextProvider.getListTracks().get(nextAlbumTrackIndex);
+        if (!nextTrackInQueue.get().getId().equals(nextTrackInAlbum.getId())) {
+          playbackContext.getContext().setContextType(PlaybackContext.Context.ContextType.QUEUE_IN_ALBUM);
         }
       }
     }

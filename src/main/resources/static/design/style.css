@@ -63,7 +63,7 @@ a:hover {
     #artists, #title, #description, #album,
     #track-list, #track-list .track-elem div,
     #progress-current, #progress-background,
-    #play-pause, #shuffle, #repeat, #volume, #volume-text, #device,
+    #info-symbols > div, #volume, #volume-text, #device,
     #clock, #time-current, #time-total
 ) {
     transition: opacity var(--transition),
@@ -857,41 +857,77 @@ div#description {
     display: none;
     -webkit-mask-size: contain;
     -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
     mask-size: contain;
     mask-repeat: no-repeat;
+    mask-position: center;
     background-color: var(--color);
 }
 
-#info-symbols > div.show {
+#main.playback-control #info-symbols > div,
+#info-symbols > div.show:not(#prev, #next) {
     display: initial;
     opacity: 0.65;
+}
+
+#info-symbols > div.show:not(#prev, #next),
+#main.playback-control #info-symbols > #play-pause {
     width: 3vh;
 }
 
+#main.playback-control #info-symbols > div {
+    width: 2vh;
+}
+
 #info-symbols > #shuffle {
+    -webkit-mask-image: url("img/symbols/shuffle-off.png");
+    mask-image: url("img/symbols/shuffle-off.png");
+}
+
+#info-symbols > #shuffle.on {
     -webkit-mask-image: url("img/symbols/shuffle.png");
     mask-image: url("img/symbols/shuffle.png");
 }
 
-#info-symbols > #play-pause {
+#main.playback-control #info-symbols > #play-pause.paused,
+#main:not(.playback-control) #info-symbols > #play-pause {
     -webkit-mask-image: url("img/symbols/play.png");
     mask-image: url("img/symbols/play.png");
 }
 
-#info-symbols > #play-pause.paused {
+#main.playback-control #info-symbols > #play-pause,
+#main:not(.playback-control) #info-symbols > #play-pause.paused {
     -webkit-mask-image: url("img/symbols/pause.png");
     mask-image: url("img/symbols/pause.png");
+}
+
+#main:not(.playback-control) #info-symbols > #play-pause.paused {
     opacity: 1;
 }
 
 #info-symbols > #repeat {
+    -webkit-mask-image: url("img/symbols/repeat-off.png");
+    mask-image: url("img/symbols/repeat-off.png");
+}
+
+#info-symbols > #repeat.context {
     -webkit-mask-image: url("img/symbols/repeat.png");
     mask-image: url("img/symbols/repeat.png");
 }
 
-#info-symbols > #repeat.once {
+#info-symbols > #repeat.track {
     -webkit-mask-image: url("img/symbols/repeat-once.png");
     mask-image: url("img/symbols/repeat-once.png");
+}
+
+#info-symbols > #prev {
+    -webkit-mask-image: url("img/symbols/prev.png");
+    mask-image: url("img/symbols/prev.png");
+}
+
+#info-symbols > #next {
+    -webkit-mask-image: url("img/symbols/next.png");
+    mask-image: url("img/symbols/next.png");
 }
 
 #volume {
@@ -1376,6 +1412,20 @@ div#device {
 #clock.hide, #clock:empty {
     display: none;
 }
+
+
+#main.playback-control #info-symbols > div {
+    cursor: pointer;
+}
+
+#main.playback-control.waiting-for-control #info-symbols > div {
+    cursor: wait;
+}
+
+#main.playback-control #info-symbols > div:hover {
+    opacity: 1;
+}
+
 
 #main.preset-thumbnail-generator :is(
         #thumbnail-wrapper, #context-main, #context-extra, #logo,

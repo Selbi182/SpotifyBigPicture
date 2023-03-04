@@ -13,6 +13,7 @@ public class TrackData {
     PODCAST,
     PLAYLIST,
     QUEUE,
+    PLAYLIST_ALBUM
   }
 
   private Integer trackNumber;

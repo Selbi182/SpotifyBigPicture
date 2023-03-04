@@ -14,19 +14,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import spotify.playback.control.PlaybackControl;
 import spotify.playback.data.PlaybackInfoProvider;
-import spotify.playback.data.dto.misc.BigPictureSetting;
 import spotify.playback.data.dto.PlaybackInfo;
+import spotify.playback.data.dto.misc.BigPictureSetting;
 
 @EnableScheduling
 @RestController
 public class PlaybackController {
   private final PlaybackInfoProvider playbackInfoProvider;
+  private final PlaybackControl playbackControl;
 
   private List<BigPictureSetting> bigPictureSettings;
 
-  PlaybackController(PlaybackInfoProvider playbackInfoProvider) {
+  PlaybackController(PlaybackInfoProvider playbackInfoProvider, PlaybackControl playbackControl) {
     this.playbackInfoProvider = playbackInfoProvider;
+    this.playbackControl = playbackControl;
   }
 
   /**
@@ -41,6 +44,15 @@ public class PlaybackController {
   public ResponseEntity<PlaybackInfo> getCurrentPlaybackInfo(@RequestParam int v) {
     PlaybackInfo currentPlaybackInfo = playbackInfoProvider.getCurrentPlaybackInfo(v);
     return ResponseEntity.ok(currentPlaybackInfo);
+  }
+
+  ///////////////
+
+  @CrossOrigin
+  @PostMapping("/modify-playback/{control}")
+  public ResponseEntity<Void> modifyPlaybackState(@PathVariable String control) {
+    playbackControl.modifyPlaybackState(control);
+    return ResponseEntity.ok().build();
   }
 
   ///////////////

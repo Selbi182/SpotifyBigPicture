@@ -173,7 +173,7 @@ function calculateNextPollingTimeout(success) {
         let timeCurrent = currentData.currentlyPlaying.timeCurrent;
         let timeTotal = currentData.currentlyPlaying.timeTotal;
         let remainingTime = timeTotal - timeCurrent;
-        if (timeCurrent && timeTotal && remainingTime > 0 && remainingTime < POLLING_INTERVAL_MS) {
+        if (timeCurrent && timeTotal && remainingTime > 0 && remainingTime < POLLING_INTERVAL_MS * 2) {
           clearTimeout(fakeSongTransition);
           if (isPrefEnabled("fake-song-transition")) {
             fakeSongTransition = setTimeout(() => simulateNextSongTransition(), remainingTime);
@@ -248,6 +248,7 @@ function processJson(json) {
             for (let prop in json) {
               currentData[prop] = json[prop];
             }
+            unlockPlaybackControls();
           });
       }
     }
@@ -409,6 +410,7 @@ function setTextData(changes) {
   if (shuffle.wasChanged) {
     let shuffleElem = getById("shuffle");
     setClass(shuffleElem, "show", shuffle.value);
+    setClass(shuffleElem, "on", shuffle.value);
     fadeIn(shuffleElem);
   }
 
@@ -416,11 +418,10 @@ function setTextData(changes) {
   if (repeat.wasChanged) {
     let repeatElem = getById("repeat");
     setClass(repeatElem, "show", repeat.value !== "off");
-    if (repeat.value === "track") {
-      repeatElem.classList.add("once");
-    } else {
-      repeatElem.classList.remove("once");
-    }
+
+    setClass(repeatElem, "context", repeat.value === "context");
+    setClass(repeatElem, "track", repeat.value === "track");
+
     fadeIn(repeatElem);
   }
 
@@ -459,11 +460,11 @@ function setCorrectTracklistView(changes) {
   let shuffle = getChange(changes, "playbackContext.shuffle").value;
 
   let specialQueue = getChange(changes, "playbackContext.context").value.contextType === "QUEUE_IN_ALBUM";
-  let titleDisplayed = specialQueue || listViewType !== "ALBUM";
+  let titleDisplayed = specialQueue || (listViewType !== "ALBUM" && listViewType !== "PLAYLIST_ALBUM");
   let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !isPrefEnabled("scrolling-track-list")) && isPrefEnabled("show-queue");
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
-  setClass(mainContainer, "title-duplicate", !titleDisplayed);
+  setClass(mainContainer, "title-duplicate", !titleDisplayed && !queueMode);
   setClass(mainContainer, "queue", queueMode);
 
   let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
@@ -1252,6 +1253,24 @@ document.addEventListener("visibilitychange", () => {
 
 const PREFERENCES = [
   {
+    id: "playback-control",
+    name: "Enable Playback Controls",
+    description: "If enabled, the interface can be used to directly control some basic playback functions of Spotify: " +
+        "play, pause, next track, previous track, shuffle, repeat",
+    category: "General",
+    css: {"main": "playback-control"},
+    callback: (state) => {
+      let infoSymbolsContainer = getById("info-symbols");
+      let shuffleButton = getById("shuffle");
+      let repeatButton = getById("repeat");
+      if (state) {
+        infoSymbolsContainer.insertBefore(shuffleButton, infoSymbolsContainer.firstChild);
+      } else {
+        infoSymbolsContainer.insertBefore(shuffleButton, repeatButton);
+      }
+    }
+  },
+  {
     id: "colored-text",
     name: "Colored Text",
     description: "If enabled, the dominant color of the current artwork will be used as the color for all texts and some symbols. Otherwise, plain white will be used",
@@ -1824,6 +1843,7 @@ const PREFERENCES_DEFAULT = {
     "artwork-right"
   ],
   ignore: [
+    "playback-control",
     "dark-mode",
     "show-fps"
   ]
@@ -2349,6 +2369,47 @@ window.onresize = () => {
   }, transitionFromCss);
 };
 
+///////////////////////////////
+// PLAYBACK CONTROLS
+///////////////////////////////
+
+window.addEventListener('load', initPlaybackControls);
+function initPlaybackControls() {
+  getById("play-pause").onclick = () => fireControl("PLAY_PAUSE");
+  getById("shuffle").onclick = () => fireControl("SHUFFLE");
+  getById("repeat").onclick = () => fireControl("REPEAT");
+  getById("prev").onclick = () => fireControl("PREV");
+  getById("next").onclick = () => fireControl("NEXT");
+}
+
+let playbackControlPref = findPreference("playback-control");
+let waitingForResponse = false;
+function fireControl(control) {
+  if (!waitingForResponse && playbackControlPref.state) {
+    waitingForResponse = true;
+    setClass(getById("main"), "waiting-for-control", true);
+    fetch(`/modify-playback/${control}`, {method: 'POST'})
+      .then(response => {
+        if (response.status >= 200 && response.status < 300) {
+          setTimeout(() => {
+            singleRequest().then();
+          }, 100);
+        }
+        if (response.status >= 400) {
+          console.warn("Failed to transmit control");
+          unlockPlaybackControls();
+        }
+      });
+  }
+}
+
+function unlockPlaybackControls() {
+  if (waitingForResponse) {
+    waitingForResponse = false;
+    setClass(getById("main"), "waiting-for-control", false);
+  }
+}
+
 
 ///////////////////////////////
 // HOTKEYS
@@ -2377,9 +2438,9 @@ document.onkeydown = (e) => {
 
 let settingsVisible = false;
 let settingsExpertMode = false;
-document.addEventListener("mousemove", handleMouseEvent);
-document.addEventListener("click", handleMouseEvent);
-document.addEventListener("wheel", handleWheelEvent);
+document.addEventListener("mousemove", (e) => handleMouseEvent(e));
+document.addEventListener("click", (e) => handleMouseEvent(e));
+document.addEventListener("wheel", (e) => handleMouseEvent(e));
 let cursorTimeout;
 const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 
@@ -2387,18 +2448,19 @@ function setMouseVisibility(state) {
   setClass(document.documentElement, "hide-cursor", !state);
 }
 
-function handleMouseEvent() {
+function handleMouseEvent(e) {
   clearTimeout(cursorTimeout);
   setMouseVisibility(true)
 
   let settingsMenuToggleButton = getById("settings-menu-toggle-button");
   setClass(settingsMenuToggleButton, "show", true);
-  cursorTimeout = setTimeout(() => {
-    setMouseVisibility(false);
-    if (!settingsVisible) {
+
+  if (!isHoveringControlElem(e.target)) {
+    cursorTimeout = setTimeout(() => {
+      setMouseVisibility(false);
       setClass(settingsMenuToggleButton, "show", false);
-    }
-  }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
+    }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
+  }
 }
 
 let mobileView = null;
@@ -2407,24 +2469,6 @@ function isPortraitMode(force = false) {
     mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
   }
   return mobileView;
-}
-
-function handleWheelEvent(e) {
-  if (!isPortraitMode()) {
-    if (e.passive) {
-      e.preventDefault();
-    }
-    let delta = e.deltaY;
-    if (!settingsVisible) {
-      let trackList = getById("track-list");
-      trackList.scroll({
-        top: delta + trackList.scrollTop,
-        left: 0,
-        behavior: 'smooth'
-      });
-      updateScrollPositions();
-    }
-  }
 }
 
 window.addEventListener('load', initSettingsMouseMove);
@@ -2453,7 +2497,7 @@ function initSettingsMouseMove() {
   }
 
   document.addEventListener("dblclick", (e) => {
-    if (!settingsVisible && !isSettingControlElem(e) && !window.getSelection().toString()) {
+    if (!settingsVisible && !isSettingControlElem(e) && !window.getSelection().toString() && !isHoveringControlElem(e.target)) {
       toggleFullscreen();
     }
   });
@@ -2499,6 +2543,12 @@ function isSettingControlElem(e) {
       || e.target.classList.contains("setting-category")
       || e.target.classList.contains("preset")
       || e.target.parentNode.classList.contains("preset");
+}
+
+const CONTROL_PREF = findPreference("playback-control");
+const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat"];
+function isHoveringControlElem(target) {
+  return target && CONTROL_PREF.state && CONTROL_ELEM_IDS.includes(target.id);
 }
 
 function toggleSettingsMenu() {
