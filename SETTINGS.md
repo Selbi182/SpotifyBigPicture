@@ -55,6 +55,10 @@ If you wish for a more nuanced way to control the appearance, click "Show All Se
 Do note that, under the hood, presets are just preconfigured selections of these individual settings; they each form a unique purpose and identity. While you're free to change individual settings as you like (and are encouraged to!), there are combinations that simply won't make sense together. Stick to the presets if you're unsure about anything.
 
 ## General
+### Enable Playback Controls
+![Playback Controls](https://i.imgur.com/RBgj1Us.png)
+
+If enabled, the interface can be used to directly control some basic playback functions of Spotify: play, pause, next track, previous track, shuffle, repeat
 ### Colored Text
 If enabled, the dominant color of the current artwork will be used as the color for all texts and some symbols. Otherwise, plain white will be used
 ### Show Featured Artists
