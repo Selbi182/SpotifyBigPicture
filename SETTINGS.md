@@ -15,7 +15,7 @@ The default mode. A balanced design that aims to present as much information as 
 
 ### Compact Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-compact.png)
-Similar to the default mode, but the artwork is on the right and a little bit smaller, opening up slightly more room for the main content
+Similar to the default mode, but the artwork is on the right and a little smaller, opening up slightly more room for the main content
 
 ### XL-Artwork Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-xl-artwork.png)
@@ -25,7 +25,7 @@ The artwork is stretched to its maximum possible size. Apart from that, only the
 ### Track-List Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-tracklist.png)
 
-Disables the artwork and instead only dimly displays it in the background. This opens up more room for the track list, which becomes centered. Also disables some lesser useful information
+Disables the artwork and instead only dimly displays it in the background. Doing this opens up more room for the track list, which becomes centered. Also disables some lesser useful information
 
 ### Split-Panel Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-split-text.png)
@@ -63,7 +63,7 @@ Display any potential featured artists. Otherwise, only show the main artist
 Hides any kind of potentially unnecessary extra information from track tiles and release names (such as 'Remastered Version', 'Anniversary Edition', '2023 Re-Issue', etc.)
 ### Smooth Transitions
 Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously
-### Guess Next Track (Beta)
+### Guess Next Track
 If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. Enabling this will make the transitions feel much smoother, but it may be inconsistent at times
 ### Dark Mode
 Darkens the entire screen by 50%
@@ -138,7 +138,7 @@ If enabled, show the queue/tracklist for playlists and albums. Otherwise, only t
 ### Show Time Stamps
 Show the timestamps for each track in the track list. If disabled, the track names are right-aligned
 ### Enable Album View
-If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. (Only works for 200 tracks or less,for performance reasons)
+If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. (Only works for 200 tracks or fewer, for performance reasons)
 ### Album View: Hide Duplicate Track Name
 If 'Album View' is enabled, the current track's name will not be displayed in the main content container (since it's already visible in the track list)
 ### XL Track List
@@ -151,12 +151,10 @@ If enabled, expand the artwork to the top content and push that content to the s
 If enabled, expand the artwork to the bottom content and push that content to the side
 ### Center-Align
 Center the main content (current track information and track list). Otherwise, the text will be aligned to the border
-### Bottom-Align
-Bottom-align the main content (current track information), instead of centering it. This setting is intended to be used with disabled artwork
 ### Split Mode
 Separate the main content from the track list and display both in their own panel. This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise
 ### Left/Right Margins
-Adds margins to the left and right of the main content. This setting has minimum effect if Split Main Content isn't enabled
+This adds margins to the left and right of the main content. This setting has minimum effect if Split Main Content isn't enabled
 ### Reduced Top/Bottom Margins
 Halves the top/bottom margins of the center container
 
@@ -182,11 +180,11 @@ Enable the background. Otherwise, plain black will be displayed at all times
 ### Background Artwork
 If enabled, uses the release artwork for the background as a blurry, darkened version
 ### Background Overlay Color
-Add a subtle layer of one of the artwork's most dominant colors to the background. This helps increasing the contrast for very dark artworks
+Add a subtle layer of one of the artwork's most dominant colors to the background. This helps to increase the contrast for very dark artworks
 ### Background Gradient
 Add a subtle gradient to the background that gets steadily darker towards the bottom
-### Background Film Grain
-Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images
+### Background Dithering
+Adds a subtle layer of film grain to the background to increase contrast and prevent color banding for dark images
 
 # Remote Control
 ![Remote Control](https://i.imgur.com/YFVF90k.png)

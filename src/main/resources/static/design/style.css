@@ -293,7 +293,7 @@ img:not([src]) {
     display: flex;
     justify-content: space-between;
     position: relative;
-    max-height: var(--artwork-size);
+    max-height: 6vh;
 }
 
 #content-top.hide {
@@ -306,10 +306,6 @@ img:not([src]) {
 
 #main.vertical #content-top {
     max-height: initial;
-}
-
-#content.full-content #content-top {
-    max-height: calc(var(--artwork-size) + var(--margin-main));
 }
 
 #artwork {
@@ -528,7 +524,8 @@ div#context-main {
     max-height: 100%;
 }
 
-:is(#main.artwork-right, #content.full-content) #content-center:not(.centered) #center-info-main {
+#main:not(.vertical).artwork-right #content-center:not(.centered) #center-info-main,
+#main:not(.vertical) #content.full-content #content-center:not(.centered) #center-info-main {
     align-items: start;
     text-align: left;
 }
@@ -537,10 +534,6 @@ div#context-main {
 #content-center.centered #center-info-main {
     align-items: center;
     text-align: center;
-}
-
-#content-center.bottom {
-    align-items: end;
 }
 
 #main:not(.vertical) #content-center:not(.queue).title-duplicate #center-info-main.hide-title-in-album-view.big-text.big-text-scrolling,
@@ -1065,6 +1058,7 @@ div#device {
     flex-direction: column;
     justify-content: end;
     width: 100%;
+    max-height: 6vh;
 }
 
 #content-bottom.hide {

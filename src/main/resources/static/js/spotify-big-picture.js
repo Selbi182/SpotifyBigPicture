@@ -1,4 +1,5 @@
-const VERSION = '0.7';
+const VERSION = '1.0';
+
 const DEV_MODE = new URLSearchParams(document.location.search).has("dev");
 if (DEV_MODE) {
   console.info("Developer Mode enabled!");
@@ -331,7 +332,7 @@ function setTextData(changes) {
   let description = getChange(changes, "currentlyPlaying.description");
   if (description.wasChanged) {
     let descriptionContainer = getById("description");
-    setClass(getById("content-center"), "podcast", description.value !== BLANK);
+    setClass(getById("content-center"), "podcast", description.value && description.value !== BLANK);
     descriptionContainer.innerHTML = description.value;
     balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
@@ -377,7 +378,7 @@ function setTextData(changes) {
     let thumbnailWrapperContainer = getById("thumbnail-wrapper");
     let thumbnailContainer = getById("thumbnail");
     let thumbnailUrl = getChange(changes, "playbackContext.thumbnailUrl").value;
-    let circularThumbnail = contextType.value === "ARTIST" || contextType.value === "ALBUM" || contextType.value === "QUEUE_IN_ALBUM";
+    let circularThumbnail = ["ALBUM", "EP", "SINGLE", "COMPILATION", "ARTIST", "SEARCH"].includes(contextType.value);
     setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
 
     thumbnailContainer.src = thumbnailUrl !== BLANK ? thumbnailUrl : "";
@@ -1279,7 +1280,7 @@ const PREFERENCES = [
     id: "scrolling-track-list",
     name: "Enable Album View",
     description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. " +
-        "(Only works for 200 tracks or less,for performance reasons)",
+        "(Only works for 200 tracks or fewer, for performance reasons)",
     category: "Track List",
     requiredFor: ["hide-title-scrolling-track-list", "xl-main-info-scrolling"]
   },
@@ -1318,7 +1319,7 @@ const PREFERENCES = [
   {
     id: "bg-tint",
     name: "Background Overlay Color",
-    description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps increasing the contrast for very dark artworks",
+    description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps to increase the contrast for very dark artworks",
     category: "Background",
     css: {"background-canvas-overlay": "!no-tint"}
   },
@@ -1331,8 +1332,8 @@ const PREFERENCES = [
   },
   {
     id: "bg-grain",
-    name: "Background Film Grain",
-    description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images",
+    name: "Background Dithering",
+    description: "Adds a subtle layer of film grain to the background to increase contrast and prevent color banding for dark images",
     category: "Background",
     css: {"grain": "show"}
   },
@@ -1360,7 +1361,7 @@ const PREFERENCES = [
     description: "Enable the main content, the container for the current track data and the track list",
     category: "Main Content",
     requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
-      "main-content-centered", "main-content-bottom", "split-main-panels", "reduced-center-margins", "vertical-mode"],
+      "main-content-centered", "split-main-panels", "reduced-center-margins", "vertical-mode"],
     css: {
       "content-center": "!hide",
       "artwork": "!center-disabled"
@@ -1525,7 +1526,7 @@ const PREFERENCES = [
   },
   {
     id: "fake-song-transition",
-    name: "Guess Next Track (Beta)",
+    name: "Guess Next Track",
     description: "If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. " +
         "Enabling this will make the transitions feel much smoother, but it may be inconsistent at times",
     category: "General",
@@ -1654,14 +1655,6 @@ const PREFERENCES = [
     css: {"content-center": "centered"}
   },
   {
-    id: "main-content-bottom",
-    name: "Bottom-Align",
-    description: "Bottom-align the main content (current track information), instead of centering it. "
-      + "This setting is intended to be used with disabled artwork",
-    category: "Layout: Main Content",
-    css: {"content-center": "bottom"}
-  },
-  {
     id: "split-main-panels",
     name: "Split Mode",
     description: "Separate the main content from the track list and display both in their own panel. "
@@ -1672,7 +1665,7 @@ const PREFERENCES = [
   {
     id: "center-lr-margins",
     name: "Left/Right Margins",
-    description: "Adds margins to the left and right of the main content. " +
+    description: "This adds margins to the left and right of the main content. " +
         "This setting has minimum effect if Split Main Content isn't enabled",
     category: "Layout: Main Content",
     css: {"content-center": "extra-margins"}
@@ -1729,7 +1722,7 @@ const PREFERENCES = [
         "Do note that this setting overrides many other settings, namely the track list",
     category: "Layout: Misc",
     overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right", "main-content-centered",
-      "show-podcast-descriptions", "main-content-bottom", "split-main-panels", "artwork-expand-top", "artwork-expand-bottom",
+      "show-podcast-descriptions", "split-main-panels", "artwork-expand-top", "artwork-expand-bottom",
       "swap-top-bottom"],
     css: {"main": "vertical"}
   },
@@ -1818,7 +1811,6 @@ const PREFERENCES_DEFAULT = {
     "separate-release-line",
     "full-release-date",
     "full-release-date-podcasts",
-    "main-content-bottom",
     "split-main-panels",
     "center-lr-margins",
     "reduced-center-margins",
@@ -1851,7 +1843,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-compact",
     name: "Compact Mode",
     category: "Presets",
-    description: "Similar to the default mode, but the artwork is on the right and a little bit smaller, opening up slightly more room for the main content",
+    description: "Similar to the default mode, but the artwork is on the right and a little smaller, opening up slightly more room for the main content",
     enabled: [
         "artwork-right",
         "center-lr-margins"
@@ -1885,7 +1877,7 @@ const PREFERENCES_PRESETS = [
     name: "Track-List Mode",
     category: "Presets",
     description: "Disables the artwork and instead only dimly displays it in the background. " +
-        "This opens up more room for the track list, which becomes centered. Also disables some lesser useful information",
+        "Doing this opens up more room for the track list, which becomes centered. Also disables some lesser useful information",
     enabled: [
       "xl-main-info-scrolling",
       "spread-timestamps",
