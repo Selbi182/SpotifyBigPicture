@@ -107,6 +107,7 @@ public class PlaybackContext {
       PODCAST,
       SEARCH,
       QUEUE_IN_ALBUM,
+      FAVORITE_TRACKS,
       FALLBACK
     }
     private String contextName;

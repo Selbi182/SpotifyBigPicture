@@ -255,7 +255,8 @@ public class PlaybackInfoProvider {
           }
           break;
         case ARTIST:
-          // Artist top tracks context
+        case USER:
+        // User favorite tracks or Artist top tracks context
           trackData.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
           trackData.setTrackCount(contextProvider.getTrackCount());
           trackData.setCombinedTime(contextProvider.getTotalTime());

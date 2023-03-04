@@ -20,12 +20,15 @@ import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Context;
 import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Image;
+import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
+import se.michaelthelin.spotify.model_objects.specification.SavedTrack;
 import se.michaelthelin.spotify.model_objects.specification.Show;
 import se.michaelthelin.spotify.model_objects.specification.ShowSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
+import se.michaelthelin.spotify.model_objects.specification.User;
 import spotify.api.SpotifyApiException;
 import spotify.api.SpotifyCall;
 import spotify.playback.data.dto.PlaybackInfo;
@@ -84,6 +87,9 @@ public class ContextProvider {
             case SHOW:
             case EPISODE:
               contextDto = getPodcastContext(info, force);
+              break;
+            case USER:
+              contextDto = getUserFavoriteTracksContext(context, force);
               break;
           }
         }
@@ -265,6 +271,26 @@ public class ContextProvider {
 
         return PlaybackContext.Context.of(show.getName(), PlaybackContext.Context.ContextType.PODCAST);
       }
+    }
+    return null;
+  }
+
+  private PlaybackContext.Context getUserFavoriteTracksContext(Context context, boolean force) {
+    if (force || didContextChange(context)) {
+      Paging<SavedTrack> usersSavedTracks = SpotifyCall.execute(spotifyApi.getUsersSavedTracks());
+
+      User user = SpotifyCall.execute(spotifyApi.getCurrentUsersProfile());
+
+      Image[] artistImages = user.getImages();
+      String largestImage = SpotifyUtils.findLargestImage(artistImages);
+      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
+
+      this.listTracks = List.of();
+
+      setTrackCount(usersSavedTracks.getTotal());
+      setTotalTrackDuration(List.of());
+
+      return PlaybackContext.Context.of(user.getDisplayName(), PlaybackContext.Context.ContextType.FAVORITE_TRACKS);
     }
     return null;
   }

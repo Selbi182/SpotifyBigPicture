@@ -12,6 +12,8 @@ public class BigPictureUtils {
    */
   public static final String BLANK = "BLANK";
 
+  private static final String FAVORITE_SONGS_HREF = "https://api.spotify.com/v1/me/tracks";
+
   /**
    * Guess the elapsed progress of the current song. Return true if it's still
    * within tolerance.
@@ -33,10 +35,15 @@ public class BigPictureUtils {
    * @return the ModelObjectType, null on no result
    */
   public static ModelObjectType getModelObjectType(CurrentlyPlayingContext context) {
-    return context.getContext() != null
-        ? context.getContext().getType()
-        : context.getCurrentlyPlayingType().equals(CurrentlyPlayingType.EPISODE)
-        ? ModelObjectType.EPISODE
-        : null;
+    if (context.getContext() != null) {
+      if (context.getContext().getType() != null) {
+        return context.getContext().getType();
+      } else if (FAVORITE_SONGS_HREF.equals(context.getContext().getHref())) {
+        return ModelObjectType.USER;
+      }
+    } else if (CurrentlyPlayingType.EPISODE.equals(context.getCurrentlyPlayingType())) {
+      return ModelObjectType.EPISODE;
+    }
+    return null;
   }
 }

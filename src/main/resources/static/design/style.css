@@ -431,8 +431,8 @@ div#context-main {
     display: none;
 }
 
-#content-top.swap #context-extra {
-    align-self: end;
+#content-top.swap #context {
+    align-items: end;
 }
 
 #meta-right {

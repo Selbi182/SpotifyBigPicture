@@ -347,7 +347,16 @@ function setTextData(changes) {
     let contextExtra = getById("context-extra");
 
     // Context name
-    let contextTypePrefix = contextType.value !== "PLAYLIST" ? (contextType.value !== "QUEUE_IN_ALBUM" ? contextType.value + ": " : "QUEUE &#x00BB; ") : "";
+    let contextTypePrefix = "";
+    if (contextType.value !== "PLAYLIST") {
+      if (contextType.value === "QUEUE_IN_ALBUM") {
+        contextTypePrefix = "QUEUE &#x00BB; "
+      } else if (contextType.value === "FAVORITE_TRACKS") {
+        contextTypePrefix = "LIKED SONGS: ";
+      } else {
+        contextTypePrefix = contextType.value + ": ";
+      }
+    }
     contextMain.innerHTML = `${contextTypePrefix}${convertToTextEmoji(contextName.value)}`;
 
     // Track count / total duration
@@ -379,7 +388,7 @@ function setTextData(changes) {
     let thumbnailWrapperContainer = getById("thumbnail-wrapper");
     let thumbnailContainer = getById("thumbnail");
     let thumbnailUrl = getChange(changes, "playbackContext.thumbnailUrl").value;
-    let circularThumbnail = ["ALBUM", "EP", "SINGLE", "COMPILATION", "ARTIST", "SEARCH"].includes(contextType.value);
+    let circularThumbnail = ["ALBUM", "EP", "SINGLE", "COMPILATION", "ARTIST", "SEARCH", "FAVORITE_TRACKS"].includes(contextType.value);
     setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
 
     thumbnailContainer.src = thumbnailUrl !== BLANK ? thumbnailUrl : "";
