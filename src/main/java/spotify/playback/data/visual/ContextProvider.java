@@ -3,6 +3,7 @@ package spotify.playback.data.visual;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -43,6 +44,7 @@ import spotify.util.data.AlbumTrackPair;
 public class ContextProvider {
   private final SpotifyApi spotifyApi;
 
+  private ModelObjectType previousType;
   private String previousSpotifyContext;
   private Album currentContextAlbum;
   private List<TrackSimplified> currentContextAlbumTracks;
@@ -72,7 +74,7 @@ public class ContextProvider {
       Context context = info.getContext();
       ModelObjectType type = BigPictureUtils.getModelObjectType(info);
       if (context != null || type != null) {
-        boolean force = previous == null || previous.getPlaybackContext() == null || previous.getPlaybackContext().getContext() == null;
+        boolean force = previous == null || previous.getPlaybackContext() == null || previous.getPlaybackContext().getContext() == null || !Objects.equals(type, previousType);
         if (type != null) {
           switch (type) {
             case ALBUM:
@@ -96,6 +98,7 @@ public class ContextProvider {
       } else {
         contextDto = getFallbackContext(info);
       }
+      previousType = type;
     } catch (SpotifyApiException e) {
       e.printStackTrace();
     }
