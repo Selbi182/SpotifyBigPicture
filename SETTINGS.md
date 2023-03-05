@@ -3,7 +3,7 @@
 
 If you wish for a more nuanced way to control the appearance, click "Show All Settings" to switch show *all* settings. In here, you will be able to customize every single option individually. A detailed explanation for each option appears when you hover over the respective settings.
 
-Do note that, under the hood, presets are just preconfigured selections of these individual settings; they each form a unique purpose and identity. While you're free to change individual settings as you like (and are encouraged to!), there are combinations that simply won't make sense together. Stick to the presets if you're unsure about anything.
+Do note that, under the hood, [presets](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md) are just preconfigured selections of these individual settings; they each form a unique purpose and identity. While you're free to change individual settings as you like (and are encouraged to!), there are combinations that simply won't make sense together. Stick to the presets if you're unsure about anything.
 
 ## General
 ### Enable Playback Controls
