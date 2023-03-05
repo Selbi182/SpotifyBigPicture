@@ -7,20 +7,20 @@ You might want to use this over [Spotify's own (in my opinion, rather underwhelm
 This interface is primarily read-only. Specifically, this means that you **cannot actually control your music**, beyond a few basic commands like play, pause, and skip (needs to be enabled first in the settings). This is both because of limitations to the Spotify API and because the idea is to set this app up once, and then it permanently runs as a pure information display. An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
 
 ## Screenshots
-*Note: Due to the progressive development nature of this app, the screenshots may be slightly out of date at any time. The general layout is pretty much written in stone though.*
+Examples of the default mode in album mode. For more screenshots, [click here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
 
 ### Album View
-![Deafheaven - Dream House](https://i.imgur.com/7qlGlf1.png)
+![Deafheaven - Dream House](https://i.imgur.com/Z2Ymz6g.png)
 
 ### Playlist View
-![Playlist View](https://i.imgur.com/HsrgpeQ.png)
+![Playlist View](https://i.imgur.com/ZTtEpGC.png)
 
 ### Customization
 Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can customize the styling of the interface from a number of options with just a few clicks!
 
 Your settings are automatically stored locally, so you won't need to worry about reconfiguring everything each time you reopen the website.
 
-A full list of every preset setting can be found [here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md)!
+A full list of every preset can be found [here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md). A full list of every setting can be found [here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md).
 
 ## Installation
 ### Step 1: Create Spotify App
