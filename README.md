@@ -1,10 +1,11 @@
 # Spotify Big Picture
-
 A highly customizable interface that displays your current playback status on Spotify in a beautiful little browser page!
 
 You might want to use this over [Spotify's own (in my opinion, rather underwhelming) full-screen mode](https://i.imgur.com/dvreOAX.jpg), or you can use it for your TV to give [that outdated, low-resolution OSD](https://i.imgur.com/lNfCcrW.jpg) a fresh paint job!
 
-This interface is primarily read-only. Specifically, this means that you **cannot actually control your music**, beyond a few basic commands like play, pause, and skip (needs to be enabled first in the settings). This is both because of limitations to the Spotify API and because the idea is to set this app up once, and then it permanently runs as a pure information display. An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
+This interface is primarily read-only. Specifically, this means that you **cannot actually control your music**, beyond a few basic commands like play, pause, and skip (needs to be enabled first in the settings). This is both because of limitations to the Spotify API and because the idea is to set this app up once, and then it permanently runs as a pure information display.
+
+An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
 
 ## Screenshots
 Examples of the default mode in album mode. For more screenshots, [click here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
@@ -20,7 +21,8 @@ Click the cog symbol in the top left of the interface to open the settings for V
 
 Your settings are automatically stored locally, so you won't need to worry about reconfiguring everything each time you reopen the website.
 
-A full list of every preset can be found [here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md). A full list of every setting can be found [here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md).
+* A full list of every preset can be found here: [PRESETS.md](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)
+* A full list of every setting can be found here: [SETTINGS.md](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md)
 
 ## Installation
 ### Step 1: Create Spotify App
@@ -46,7 +48,7 @@ From here on you can choose between one of two ways to continue with the install
 
 ## Requirements
 * **Java 11 or newer:**
-  * [Download here](https://adoptium.net/de/temurin/releases/?version=11) 
+  * [Download here](https://adoptium.net/de/temurin/releases/?version=11) (obviously only required if you're doing the manual java installation) 
 * **Monitor should have 16:9 aspect ratio:**
   * While most features should work in any aspect ratio, this app has been optimized primarily for 16:9 (landscape mode). For anything else (namely portrait mode, such as on your phone), expect some limitations
 * **A modern browser:**
