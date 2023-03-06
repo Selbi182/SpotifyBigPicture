@@ -19,7 +19,7 @@ public class SpotifyBigPicture {
   }
 
   @Component
-  public static class SpotifyBigPictureScopes implements SpotifyDependenciesSettings {
+  public static class SpotifyBigPictureSettings implements SpotifyDependenciesSettings {
 
     @Override
     public List<String> requiredScopes() {

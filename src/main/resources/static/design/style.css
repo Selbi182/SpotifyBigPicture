@@ -1384,6 +1384,14 @@ div#device {
     padding-right: 1vh;
 }
 
+#settings-external {
+    display: none;
+}
+
+#settings-wrapper.expert #settings-external {
+    display: initial;
+}
+
 #settings-expert-mode-toggle:hover {
     opacity: 1;
 }

@@ -28,6 +28,7 @@ Your settings are automatically stored locally, so you won't need to worry about
 ### Step 1: Create Spotify App
 1. Create an app on the [Spotify Developers dashboard](https://developer.spotify.com/dashboard) (you might need to create an account first)
 2. Copy the *Client ID* and *Client Secret* and save them for later
+3. Go to "Users and Access" and add your account there (name and email address)
 
 From here on you can choose between one of two ways to continue with the installation.
 
