@@ -8,7 +8,7 @@ This interface is primarily read-only. Specifically, this means that you **canno
 An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
 
 ## Screenshots
-Examples of the default preset. For more screenshots, [click here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
+Examples of the default preset. For more screenshots, [see the presets](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
 
 ### Album View
 ![Deafheaven - Dream House](https://i.imgur.com/Z2Ymz6g.png)

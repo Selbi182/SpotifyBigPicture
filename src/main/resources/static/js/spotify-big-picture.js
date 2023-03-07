@@ -1,5 +1,3 @@
-const VERSION = '1.0';
-
 const DEV_MODE = new URLSearchParams(document.location.search).has("dev");
 if (DEV_MODE) {
   console.info("Developer Mode enabled!");
@@ -95,35 +93,7 @@ const INFO_URL = "/playback-info";
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
-  submitVisualPreferencesToBackend();
   pollingLoop();
-}
-
-function submitVisualPreferencesToBackend() {
-  let simplifiedPrefs = [...PREFERENCES_PRESETS, ...PREFERENCES]
-    .sort((a, b) => PREFERENCES_CATEGORY_ORDER.indexOf(a.category) - PREFERENCES_CATEGORY_ORDER.indexOf(b.category))
-    .filter(pref => DEV_MODE || pref.category !== "Developer Tools")
-    .map(pref => {
-        return {
-          id: pref.id,
-          name: pref.name,
-          category: pref.category,
-          description: pref.description
-        }
-      });
-
-  fetch("/settings/list", {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(simplifiedPrefs)
-  })
-    .then(response => {
-      if (response.status >= 400) {
-        console.warn("Failed to transmit settings to backend");
-      }
-    })
 }
 
 function singleRequest() {
@@ -173,11 +143,11 @@ function calculateNextPollingTimeout(success) {
         let timeCurrent = currentData.currentlyPlaying.timeCurrent;
         let timeTotal = currentData.currentlyPlaying.timeTotal;
         let remainingTime = timeTotal - timeCurrent;
-        if (timeCurrent && timeTotal && remainingTime > 0 && remainingTime < POLLING_INTERVAL_MS * 2) {
+        if (remainingTime < POLLING_INTERVAL_MS * 2) {
           clearTimeout(fakeSongTransition);
           if (isPrefEnabled("fake-song-transition")) {
             fakeSongTransition = setTimeout(() => simulateNextSongTransition(), remainingTime);
-            return POLLING_INTERVAL_MS * 2;
+            return remainingTime + POLLING_INTERVAL_MS;
           } else {
             return remainingTime;
           }
@@ -595,8 +565,37 @@ function setClass(elem, className, state) {
   return elem;
 }
 
-const USELESS_WORDS = ["radio", "anniversary", "bonus", "deluxe", "special", "remaster", "edition", "explicit", "extended", "expansion", "expanded", "version", "cover", "original", "single", "ep", "motion\\spicture", "re.?issue", "re.?record", "re.?imagine", "\\d{4}"];
-const WHITELISTED_WORDS = ["instrumental", "orchestral", "symphonic", "live", "classic", "demo"];
+const USELESS_WORDS = [
+  "radio",
+  "anniversary",
+  "bonus",
+  "deluxe",
+  "special",
+  "remaster",
+  "edition",
+  "explicit",
+  "extended",
+  "expansion",
+  "expanded",
+  "version",
+  "cover",
+  "original",
+  "single",
+  "ep",
+  "motion\\spicture",
+  "re.?issue",
+  "re.?record",
+  "re.?imagine",
+  "\\d{4}"
+];
+const WHITELISTED_WORDS = [
+  "instrumental",
+  "orchestral",
+  "symphonic",
+  "live",
+  "classic",
+  "demo"
+];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
 const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[)[^-]*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
@@ -1265,7 +1264,7 @@ const PREFERENCES = [
     id: "playback-control",
     name: "Enable Playback Controls",
     description: "If enabled, the interface can be used to directly control some basic playback functions of Spotify: " +
-        "play, pause, next track, previous track, shuffle, repeat",
+        "play, pause, next track, previous track, shuffle, repeat. Otherwise, the icons are purely cosmetic",
     category: "General",
     css: {"main": "playback-control"},
     callback: (state) => {
@@ -1277,6 +1276,16 @@ const PREFERENCES = [
       } else {
         infoSymbolsContainer.insertBefore(shuffleButton, repeatButton);
       }
+    }
+  },
+  {
+    id: "transitions",
+    name: "Smooth Transitions",
+    description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. " +
+        "Disabling this will save on a lot of CPU resources",
+    category: "General",
+    css: {
+      "main": "transitions"
     }
   },
   {
@@ -1544,15 +1553,6 @@ const PREFERENCES = [
     css: {"logo": "colored"}
   },
   {
-    id: "transitions",
-    name: "Smooth Transitions",
-    description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously",
-    category: "General",
-    css: {
-      "main": "transitions"
-    }
-  },
-  {
     id: "fake-song-transition",
     name: "Guess Next Track",
     description: "If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. " +
@@ -1614,8 +1614,10 @@ const PREFERENCES = [
   {
     id: "show-info-icons",
     name: "Show Play/Pause/Shuffle/Repeat Icons",
-    description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left",
+    description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left. " +
+        "This setting is required for the playback controls to work",
     category: "Bottom Content",
+    requiredFor: ["playback-control"],
     css: {"info-symbols": "!hide"}
   },
   {
@@ -2142,11 +2144,6 @@ function initVisualPreferences() {
 
   if (isLocalStorageAvailable()) {
     let visualPreferencesFromLocalStorage = getVisualPreferencesFromLocalStorage();
-    let version = getVersionFromLocalStorage();
-    if (visualPreferencesFromLocalStorage && (!version || version !== VERSION)) {
-      alert(`New version detected (v${VERSION})! To avoid conflicts, all visual preferences have been reset to their default settings.`)
-      visualPreferencesFromLocalStorage = null;
-    }
     if (visualPreferencesFromLocalStorage) {
       // Init setting states from local storage
       for (let pref of PREFERENCES) {
@@ -2159,8 +2156,38 @@ function initVisualPreferences() {
         setSettingsMenuState(true);
       });
     }
-    setVersionToLocalStorage(VERSION);
   }
+
+  submitVisualPreferencesToBackend();
+}
+
+const FILTERED_AND_ORDERED_PREFS = [...PREFERENCES_PRESETS, ...PREFERENCES]
+  .sort((a, b) => PREFERENCES_CATEGORY_ORDER.indexOf(a.category) - PREFERENCES_CATEGORY_ORDER.indexOf(b.category))
+  .filter(pref => DEV_MODE || pref.category !== "Developer Tools");
+
+function submitVisualPreferencesToBackend() {
+  let simplifiedPrefs = FILTERED_AND_ORDERED_PREFS.map(pref => {
+    return {
+      id: pref.id,
+      name: pref.name,
+      category: pref.category,
+      description: pref.description,
+      state: pref.state
+    }
+  });
+
+  fetch("/settings/list", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(simplifiedPrefs)
+  })
+  .then(response => {
+    if (response.status >= 400) {
+      console.warn("Failed to transmit settings to backend");
+    }
+  })
 }
 
 const LOCAL_STORAGE_KEY_SETTINGS = "visual_preferences";
@@ -2168,15 +2195,6 @@ const LOCAL_STORAGE_SETTINGS_SPLIT_CHAR = "+";
 function getVisualPreferencesFromLocalStorage() {
   let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS);
   return storedVisualPreferences?.split(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
-}
-
-const LOCAL_STORAGE_KEY_VERSION = "big_picture_version";
-function getVersionFromLocalStorage() {
-  return localStorage.getItem(LOCAL_STORAGE_KEY_VERSION);
-}
-
-function setVersionToLocalStorage(version) {
-  return localStorage.setItem(LOCAL_STORAGE_KEY_VERSION, version);
 }
 
 function refreshPrefsLocalStorage() {
@@ -2243,6 +2261,7 @@ function refreshPreference(preference, state) {
     refreshBackgroundRender(true);
     refreshTrackList();
     updateProgress(currentData, true);
+    submitVisualPreferencesToBackend();
   }, transitionFromCss);
 
   // Update the settings that are invalidated
@@ -2328,6 +2347,7 @@ function toggleFullscreen() {
   }
 }
 
+const OPACITY_TIMEOUT = 2 * 1000;
 let volumeTimeout;
 function handleVolumeChange(volume, device, customVolumeSettings) {
   let volumeContainer = getById("volume");
@@ -2349,7 +2369,7 @@ function handleVolumeChange(volume, device, customVolumeSettings) {
   clearTimeout(volumeTimeout);
   volumeTimeout = setTimeout(() => {
     volumeContainer.classList.remove("active");
-  }, 2000);
+  }, OPACITY_TIMEOUT);
 }
 
 let deviceTimeout;
@@ -2361,7 +2381,7 @@ function handleDeviceChange(device) {
   clearTimeout(deviceTimeout);
   deviceTimeout = setTimeout(() => {
     deviceContainer.classList.remove("active");
-  }, 2000);
+  }, OPACITY_TIMEOUT);
 }
 
 ///////////////////////////////
@@ -2389,20 +2409,31 @@ function initPlaybackControls() {
   getById("repeat").onclick = () => fireControl("REPEAT");
   getById("prev").onclick = () => fireControl("PREV");
   getById("next").onclick = () => fireControl("NEXT");
+  getById("volume").onclick = () => {
+    let newVolume = prompt("Enter new volume in % (0-100):");
+    if (newVolume !== null) {
+      if (newVolume >= 0 && newVolume <= 100) {
+        fireControl("VOLUME", newVolume);
+      } else {
+        alert("Invalid volume (must be a number between 0-100)")
+      }
+    }
+  };
 }
 
+const CONTROL_RESPONSE_DELAY = 100;
 let playbackControlPref = findPreference("playback-control");
 let waitingForResponse = false;
-function fireControl(control) {
+function fireControl(control, param) {
   if (!waitingForResponse && playbackControlPref.state) {
     waitingForResponse = true;
     setClass(getById("main"), "waiting-for-control", true);
-    fetch(`/modify-playback/${control}`, {method: 'POST'})
+    fetch(`/modify-playback/${control}${param ? `?param=${param}` : ""}`, {method: 'POST'})
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
           setTimeout(() => {
             singleRequest().then();
-          }, 100);
+          }, CONTROL_RESPONSE_DELAY);
         }
         if (response.status >= 400) {
           console.warn("Failed to transmit control");

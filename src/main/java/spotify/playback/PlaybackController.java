@@ -2,9 +2,7 @@ package spotify.playback;
 
 import java.util.List;
 
-import org.apache.hc.core5.net.URIBuilder;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +17,6 @@ import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.misc.BigPictureSetting;
 
-@EnableScheduling
 @RestController
 public class PlaybackController {
   private final PlaybackInfoProvider playbackInfoProvider;
@@ -30,6 +27,14 @@ public class PlaybackController {
   PlaybackController(PlaybackInfoProvider playbackInfoProvider, PlaybackControl playbackControl) {
     this.playbackInfoProvider = playbackInfoProvider;
     this.playbackControl = playbackControl;
+  }
+
+  /**
+   * Return the layout.html file (root entry endpoint)
+   */
+  @GetMapping("/")
+  public ModelAndView createSpotifyPlaybackInterfaceView() {
+    return new ModelAndView("layout.html");
   }
 
   /**
@@ -48,10 +53,17 @@ public class PlaybackController {
 
   ///////////////
 
+  /**
+   * Used to control some basic playback states of Spotify from the interface,
+   * such as play, pause, toggle shuffle.
+   *
+   * @param control the control to modify
+   * @param param an optional parameter requires for some options (like volume)
+   */
   @CrossOrigin
   @PostMapping("/modify-playback/{control}")
-  public ResponseEntity<Void> modifyPlaybackState(@PathVariable String control) {
-    playbackControl.modifyPlaybackState(control);
+  public ResponseEntity<Void> modifyPlaybackState(@PathVariable String control, @RequestParam(required = false) String param) {
+    playbackControl.modifyPlaybackState(control, param);
     return ResponseEntity.ok().build();
   }
 
@@ -64,11 +76,7 @@ public class PlaybackController {
   @GetMapping("/settings")
   public ModelAndView createSettingsView() {
     checkSettingAreSet();
-    URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setPath("/settings/settings.html");
-    ModelAndView modelAndView = new ModelAndView();
-    modelAndView.setViewName(uriBuilder.toString());
-    return modelAndView;
+    return new ModelAndView("/settings/settings.html");
   }
 
   /**
@@ -79,6 +87,10 @@ public class PlaybackController {
   public ResponseEntity<Void> toggleSetting(@PathVariable String settingId) {
     checkSettingAreSet();
     playbackInfoProvider.addSettingToToggleForNextPoll(settingId);
+    this.bigPictureSettings.stream()
+      .filter(setting -> setting.getId().equals(settingId))
+      .findFirst()
+      .ifPresent(setting -> setting.setState(!setting.getState()));
     return ResponseEntity.ok().build();
   }
 

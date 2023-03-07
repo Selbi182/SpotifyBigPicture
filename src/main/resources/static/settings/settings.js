@@ -1,12 +1,15 @@
-const reloadSetting = {
-  id: "reload",
-  name: "Reload Interface",
-  description: "Trigger a page reload request to the interface. Use this if the app becomes unresponsive"
-}
+(function() {
+  document.getElementById("copyright-current-year").innerHTML = new Date().getFullYear().toString();
 
-let loadedSettings;
+  const reloadSetting = {
+    id: "reload",
+    name: "Reload Interface",
+    description: "Trigger a page reload request to the interface. Use this if the app becomes unresponsive"
+  }
 
-fetch("/settings/list")
+  let loadedSettings;
+
+  fetch("/settings/list")
     .then(response => response.json())
     .then(json => loadedSettings = json)
     .then(() => {
@@ -16,9 +19,13 @@ fetch("/settings/list")
         let settingContainer = document.createElement("div");
         settingContainer.id = setting.id;
         settingContainer.classList.add("setting");
+        if (setting.state) {
+          settingContainer.classList.add("on");
+        }
 
         // Preset Thumbnail
         if (setting.id.startsWith("preset-")) {
+          settingContainer.classList.add("preset");
           settingContainer.innerHTML = `<div class="image-wrapper"><img src="/design/img/presets/${setting.id}.png"></div>`;
         }
 
@@ -78,16 +85,16 @@ fetch("/settings/list")
       }
     });
 
-function toggleSetting(settingContainer, settingId) {
-  if (!settingContainer.classList.contains("disabled")) {
-    settingContainer.classList.add("disabled");
-    fetch("/settings/toggle/" + settingId, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: settingId
-    })
+  function toggleSetting(settingContainer, settingId) {
+    if (!settingContainer.classList.contains("disabled")) {
+      settingContainer.classList.add("disabled");
+      fetch("/settings/toggle/" + settingId, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: settingId
+      })
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
         } else if (response.status >= 400) {
@@ -96,7 +103,12 @@ function toggleSetting(settingContainer, settingId) {
       }).finally(() => {
         setTimeout(() => {
           settingContainer.classList.remove("disabled")
-        }, 1000);
+          settingContainer.classList.toggle("on")
+          if (settingId === "reload") {
+            window.location.reload();
+          }
+        }, 2000);
       })
+    }
   }
-}
+})();

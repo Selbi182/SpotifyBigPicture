@@ -13,7 +13,8 @@ public class PlaybackControl {
     SHUFFLE,
     REPEAT,
     NEXT,
-    PREV
+    PREV,
+    VOLUME
   }
 
   private final SpotifyApi spotifyApi;
@@ -22,7 +23,7 @@ public class PlaybackControl {
     this.spotifyApi = spotifyApi;
   }
 
-  public void modifyPlaybackState(String controlName) {
+  public void modifyPlaybackState(String controlName, String optionalParam) {
     ControlOption controlOption = ControlOption.valueOf(controlName);
     CurrentlyPlayingContext context = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
 
@@ -54,6 +55,9 @@ public class PlaybackControl {
       break;
     case PREV:
       SpotifyCall.execute(spotifyApi.skipUsersPlaybackToPreviousTrack());
+      break;
+    case VOLUME:
+      SpotifyCall.execute(spotifyApi.setVolumeForUsersPlayback(Integer.parseInt(optionalParam)));
       break;
     }
   }

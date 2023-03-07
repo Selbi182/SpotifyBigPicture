@@ -5,15 +5,17 @@ public class BigPictureSetting {
   private String name;
   private String category;
   private String description;
+  private Boolean state;
 
   public BigPictureSetting() {
   }
 
-  public BigPictureSetting(String id, String name, String category, String description) {
+  public BigPictureSetting(String id, String name, String category, String description, Boolean state) {
     this.id = id;
     this.name = name;
     this.category = category;
     this.description = description;
+    this.state = state;
   }
 
   public String getId() {
@@ -46,5 +48,13 @@ public class BigPictureSetting {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public Boolean getState() {
+    return state;
+  }
+
+  public void setState(Boolean state) {
+    this.state = state;
   }
 }

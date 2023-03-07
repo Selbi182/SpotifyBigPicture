@@ -1,4 +1,4 @@
-# SpotifyBigPicture - All Settings
+# Spotify Big Picture - All Settings
 ![Settings Menu](https://i.imgur.com/XBuLv1z.png)
 
 If you wish for a more nuanced way to control the appearance, click the "Show All Settings" checkbox. In here, you will be able to customize everything individually. A detailed explanation for each setting appears when you hover over the respective settings.
@@ -17,7 +17,7 @@ Display any potential featured artists. Otherwise, only show the main artist
 ### Strip Titles
 Hides any kind of potentially unnecessary extra information from track tiles and release names (such as 'Remastered Version', 'Anniversary Edition', '2023 Re-Issue', etc.)
 ### Smooth Transitions
-Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously
+Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. Disabling this will save on a lot of CPU resources
 ### Guess Next Track
 If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. Enabling this will make the transitions feel much smoother, but it may be inconsistent at times
 ### Dark Mode
