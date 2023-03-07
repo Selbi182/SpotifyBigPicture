@@ -1,6 +1,7 @@
 package spotify.playback;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -84,14 +85,18 @@ public class PlaybackController {
    */
   @CrossOrigin
   @PostMapping("/settings/toggle/{settingId}")
-  public ResponseEntity<Void> toggleSetting(@PathVariable String settingId) {
+  public ResponseEntity<BigPictureSetting> toggleSetting(@PathVariable String settingId) {
     checkSettingAreSet();
     playbackInfoProvider.addSettingToToggleForNextPoll(settingId);
-    this.bigPictureSettings.stream()
-      .filter(setting -> setting.getId().equals(settingId))
-      .findFirst()
-      .ifPresent(setting -> setting.setState(!setting.getState()));
-    return ResponseEntity.ok().build();
+    Optional<BigPictureSetting> settingToToggle = this.bigPictureSettings.stream()
+        .filter(setting -> setting.getId().equals(settingId))
+        .findFirst();
+    if (settingToToggle.isPresent()) {
+      BigPictureSetting bigPictureSetting = settingToToggle.get();
+      bigPictureSetting.setState(!bigPictureSetting.getState());
+      return ResponseEntity.ok(bigPictureSetting);
+    }
+    return ResponseEntity.notFound().build();
   }
 
 

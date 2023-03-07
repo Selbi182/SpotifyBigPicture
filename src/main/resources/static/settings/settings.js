@@ -85,9 +85,9 @@
       }
     });
 
-  function toggleSetting(settingContainer, settingId) {
-    if (!settingContainer.classList.contains("disabled")) {
-      settingContainer.classList.add("disabled");
+  function toggleSetting(settingElement, settingId) {
+    if (!settingElement.classList.contains("loading")) {
+      settingElement.classList.add("loading");
       fetch("/settings/toggle/" + settingId, {
         method: 'POST',
         headers: {
@@ -97,18 +97,26 @@
       })
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
+          return response.json();
         } else if (response.status >= 400) {
-          console.warn("Failed to transmit setting to backend");
+          throw "Failed to transmit setting to backend";
+        }
+      })
+      .then(json => {
+        if (json.state) {
+          settingElement.classList.add("on");
+        } else {
+          settingElement.classList.remove("on");
         }
       }).finally(() => {
         setTimeout(() => {
-          settingContainer.classList.remove("disabled")
-          settingContainer.classList.toggle("on")
+          settingElement.classList.remove("loading")
           if (settingId === "reload") {
             window.location.reload();
           }
         }, 2000);
       })
+      .catch(ex => alert(ex));
     }
   }
 })();
