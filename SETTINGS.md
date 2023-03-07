@@ -153,5 +153,3 @@ Of course, this will require the PC to be reachable from an outside source. Most
 ### Warning
 
 It is expected that only one browser tab is open for the interface at any time. With multiple ones, whatever interface polls for an update first will get the changes. I don't know why you would have two instances open at the same time and use the remote control, but it's worth pointing out.
-
-Also, the remote control won't keep track of what options are enabled or disabled, it just sends a toggle command to the server. Just something to keep in mind; this tool really is meant for experts only.
