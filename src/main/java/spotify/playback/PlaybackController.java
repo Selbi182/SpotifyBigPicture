@@ -87,16 +87,21 @@ public class PlaybackController {
   @PostMapping("/settings/toggle/{settingId}")
   public ResponseEntity<BigPictureSetting> toggleSetting(@PathVariable String settingId) {
     checkSettingAreSet();
-    playbackInfoProvider.addSettingToToggleForNextPoll(settingId);
-    Optional<BigPictureSetting> settingToToggle = this.bigPictureSettings.stream()
+    if (settingId.startsWith("preset-") || settingId.equals("reload")) {
+      playbackInfoProvider.addSettingToToggleForNextPoll(settingId);
+      return ResponseEntity.ok(null);
+    } else {
+      Optional<BigPictureSetting> settingToToggle = this.bigPictureSettings.stream()
         .filter(setting -> setting.getId().equals(settingId))
         .findFirst();
-    if (settingToToggle.isPresent()) {
-      BigPictureSetting bigPictureSetting = settingToToggle.get();
-      bigPictureSetting.setState(!bigPictureSetting.getState());
-      return ResponseEntity.ok(bigPictureSetting);
+      if (settingToToggle.isPresent()) {
+        BigPictureSetting bigPictureSetting = settingToToggle.get();
+        bigPictureSetting.setState(!bigPictureSetting.getState());
+        playbackInfoProvider.addSettingToToggleForNextPoll(settingId);
+        return ResponseEntity.ok(bigPictureSetting);
+      }
+      return ResponseEntity.notFound().build();
     }
-    return ResponseEntity.notFound().build();
   }
 
 

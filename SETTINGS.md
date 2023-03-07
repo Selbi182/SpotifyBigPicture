@@ -142,14 +142,12 @@ Add a subtle gradient to the background that gets steadily darker towards the bo
 Adds a subtle layer of film grain to the background to increase contrast and prevent color banding for dark images
 
 # Remote Control
-![Remote Control](https://i.imgur.com/YFVF90k.png)
+![Remote Control](https://i.imgur.com/Es48dMs.png)
 
 By clicking the "Remote Control" button located next to the "Show All Settings" button, you will be redirected to a new tab. From here, all settings can be controlled remotely.
 
-This is especially useful if you plan on using the interface on an external device such as a Raspberry Pi, but don't want to plug in a keyboard every time you want to change the settings. As a result, the design has been specifically created with mobile phones in mind.
+This is especially useful if you plan on using the interface on an external device such as a Raspberry Pi, but don't want to plug in a keyboard every time you want to change the settings. As a result, the design has been specifically created with mobile phones in mind. Of course, this will require the server hosting the app to be reachable from an outside source.
 
-Of course, this will require the PC to be reachable from an outside source. Most people won't need this thing, but I found it very handy, because I change the settings quite frequently to whatever mood I'm in at the time.
+Most people won't need this feature, but I found it very handy, because I change the settings quite frequently to whatever mood I'm in at the time.
 
-### Warning
-
-It is expected that only one browser tab is open for the interface at any time. With multiple ones, whatever interface polls for an update first will get the changes. I don't know why you would have two instances open at the same time and use the remote control, but it's worth pointing out.
+**Warning:** It is expected that only one browser tab is open for the interface at any time. With multiple ones, whatever interface polls for an update first will get the changes. I don't know why you would have two instances open at the same time and use the remote control, but it's worth pointing out.

@@ -95,7 +95,6 @@ header > div {
     cursor: pointer;
     opacity: 0.25;
     margin: 1vh;
-    position: relative;
 }
 
 #settings .setting:is(.on, .preset) {
@@ -104,15 +103,26 @@ header > div {
     margin: 1vh;
 }
 
-#settings .setting::before {
+#settings .setting .setting-header {
+    display: flex;
+    flex-direction: row;
+    gap: 1vh;
+    justify-content: center;
+    align-items: center;
+}
+
+#settings .setting.preset .setting-header::before {
+    display: none;
+}
+
+#settings .setting .setting-header::before {
     content: "\2717";
-    display: inline-block;
     width: 3vh;
     height: 3vh;
-    position: absolute;
-    left: -4vh;
+    line-height: 3vh;
 }
-#settings .setting.on::before {
+
+#settings .setting.on .setting-header::before {
     content: "\2713";
 }
 
@@ -121,16 +131,15 @@ header > div {
     opacity: 0.1;
 }
 
-#settings .setting.loading::before {
+#settings .setting.loading .setting-header::before {
     content: "";
     border: 0.3vh solid var(--color);
     border-top-color: transparent;
     border-radius: 50%;
     animation: rotating 1s linear infinite;
-    left: -5vh;
 }
 
-#settings .setting:hover {
+#settings .setting:not(.loading):hover {
     opacity: 1;
 }
 

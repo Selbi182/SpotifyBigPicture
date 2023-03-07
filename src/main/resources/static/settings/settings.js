@@ -30,7 +30,7 @@
         }
 
         // Setting Name
-        settingContainer.innerHTML += setting.name;
+        settingContainer.innerHTML += `<div class="setting-header">${setting.name}</div>`;
 
         // Setting Description
         if (setting.description) {
@@ -76,10 +76,10 @@
       let expandExpandAll = document.getElementById("expand-collapse-all");
       expandExpandAll.onclick = () => {
         if (expandExpandAll.innerHTML.startsWith("Expand")) {
-          expandExpandAll.innerHTML = "Collapse All Categories"
+          expandExpandAll.innerHTML = "Collapse All Categories";
           settingsListContainer.childNodes.forEach(child => child.classList.add("expand"));
         } else {
-          expandExpandAll.innerHTML = "Expand All Categories"
+          expandExpandAll.innerHTML = "Expand All Categories";
           settingsListContainer.childNodes.forEach(child => child.classList.remove("expand"));
         }
       }
@@ -97,16 +97,21 @@
       })
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
-          return response.json();
+          if (!settingId.startsWith("preset-") && settingId !== "reload") {
+            return response.json();
+          }
+          return null;
         } else if (response.status >= 400) {
           throw "Failed to transmit setting to backend";
         }
       })
       .then(json => {
-        if (json.state) {
-          settingElement.classList.add("on");
-        } else {
-          settingElement.classList.remove("on");
+        if (json) {
+          if (json.state) {
+            settingElement.classList.add("on");
+          } else {
+            settingElement.classList.remove("on");
+          }
         }
       }).finally(() => {
         setTimeout(() => {
