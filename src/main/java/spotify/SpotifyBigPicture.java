@@ -1,9 +1,10 @@
 package spotify;
 
+import java.awt.GraphicsEnvironment;
 import java.util.List;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.stereotype.Component;
 
 import spotify.api.SpotifyDependenciesSettings;
@@ -15,7 +16,7 @@ public class SpotifyBigPicture {
    * Main entry point of the bot
    */
   public static void main(String[] args) {
-    SpringApplication.run(SpotifyBigPicture.class, args);
+    new SpringApplicationBuilder(SpotifyBigPicture.class).headless(GraphicsEnvironment.isHeadless()).run(args);
   }
 
   @Component
