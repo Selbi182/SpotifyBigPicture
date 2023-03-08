@@ -41,10 +41,11 @@ From here on you can choose between one of two ways to continue with the install
 ### Step 2 - Variant B: Pull Docker Image
 1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app. Depending on where you plan to run the app, you must provide a URI that's reachable from the outside. For example `http://ip-of-docker-machine:8183/login-callback`. The login callback *must* end with `/login-callback`! Also make sure you click the little green "Add" button before saving
 2. Pull the Docker image: `docker pull ghcr.io/selbi182/spotifybigpicture`
-3. Run the Docker image. Insert the *Client ID*, *Client Secret*, and *Redirect URI* you have specified earlier into the respective fields, to pass them as environment variables: `docker run -p 8183:8183 -e client_id=CLIENTID -e client_secret=CLIENTSECRET -e redirect_uri=REDIRECTURI ghcr.io/selbi182/spotifybigpicture`
+3. Run the Docker image. Insert the *Client ID*, *Client Secret*, and *Redirect URI* you have specified earlier into the respective fields, to pass them as environment variables: `docker run --name spotifybigpicture -d -p 8183:8183 -e client_id=CLIENTID -e client_secret=CLIENTSECRET -e redirect_uri=REDIRECTURI ghcr.io/selbi182/spotifybigpicture`
+4. Then run `docker logs -f spotifybigpicture` so you can see the URL required for the next step
 
 ### Step 3: Login
-1. You will be prompted to log in. Copy-paste the displayed URL into your preferred browser (should look like this `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`) and log in
+1. You will be prompted to log in. The app will attempt to open the browser by itself, but if it fails, take a look at the console output and copy-paste the displayed URL into your browser manually. It should like this: `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`
 2. If everything worked out, you're done! If you've chosen variant A, the app will be available under http://localhost:8183/ and if you chose variant B, it's going to be whatever server you've provided
 
 ## Requirements
