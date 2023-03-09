@@ -1006,8 +1006,16 @@ div#device {
     opacity: 0.65;
 }
 #device::before {
-    content: "\21AA\FE0E\FE0F\FE0E";
-    padding-right: 1vh;
+    content: "";
+    background-image: url("img/symbols/curved-arrow.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 1vh;
+    opacity: 0.5;
+    width: 2vh;
+    height: 2vh;
+    display: inline-block;
 }
 
 #progress {
@@ -1385,7 +1393,16 @@ div#device {
 }
 
 #settings-external::before {
-    content: "\21AA\FE0E\FE0F\FE0E";
+    content: "";
+    background-image: url("img/symbols/curved-arrow.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 1vh;
+    opacity: 0.5;
+    width: 2vh;
+    height: 2vh;
+    display: inline-block;
     padding-right: 1vh;
 }
 
@@ -1402,13 +1419,20 @@ div#device {
 }
 
 #settings-expert-mode-toggle::before {
-    content: "\2610";
+    content: "";
+    background-image: url("img/symbols/checkbox-off.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     margin-right: 1vh;
     opacity: 0.5;
+    width: 2vh;
+    height: 2vh;
+    display: inline-block;
 }
 
 #settings-wrapper.expert #settings-expert-mode-toggle::before {
-    content: "\2611";
+    background-image: url("img/symbols/checkbox-on.png");
 }
 
 #clock-wrapper {
