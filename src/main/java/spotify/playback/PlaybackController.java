@@ -60,12 +60,17 @@ public class PlaybackController {
    *
    * @param control the control to modify
    * @param param an optional parameter requires for some options (like volume)
+   * @return 200 on success, 400 on bad request
+   *         (unknown parameter name or controls have been disabled using the
+   *         <code>--disable-playback-controls</code> launch argument)
    */
   @CrossOrigin
   @PostMapping("/modify-playback/{control}")
   public ResponseEntity<Void> modifyPlaybackState(@PathVariable String control, @RequestParam(required = false) String param) {
-    playbackControl.modifyPlaybackState(control, param);
-    return ResponseEntity.ok().build();
+    if (playbackControl.modifyPlaybackState(control, param)) {
+      return ResponseEntity.ok().build();
+    }
+    return ResponseEntity.badRequest().build();
   }
 
   ///////////////

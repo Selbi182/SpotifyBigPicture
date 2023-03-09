@@ -9,7 +9,14 @@ Do note that, under the hood, [presets](https://github.com/Selbi182/SpotifyBigPi
 ### Enable Playback Controls
 ![Playback Controls](https://i.imgur.com/RBgj1Us.png)
 
-If enabled, the interface can be used to directly control some basic playback functions of Spotify: play, pause, next track, previous track, shuffle, repeat
+If enabled, the interface can be used to directly control some basic playback functions of Spotify: play, pause, next track, previous track, shuffle, repeat.
+
+**Security notice about playback controls:** If your interface is publicly accessible from the internet, it is _strongly_ recommended you disable the backend controls for this feature, so that people who randomly got their hands on the URL won't be able to mess with your music. You can do this by passing the following launch argument when starting the service:
+
+```--disable-playback-controls```
+
+This will prevent the buttons from the interface from having any functions. It won't visually disable them, but clicking them will do nothing.
+
 ### Colored Text
 If enabled, the dominant color of the current artwork will be used as the color for all texts and some symbols. Otherwise, plain white will be used
 ### Show Featured Artists

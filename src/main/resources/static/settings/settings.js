@@ -116,7 +116,7 @@
       }).finally(() => {
         setTimeout(() => {
           settingElement.classList.remove("loading")
-          if (settingId === "reload") {
+          if (settingId.startsWith("preset-") || settingId === "reload") {
             window.location.reload();
           }
         }, 2000);

@@ -456,8 +456,7 @@ function setCorrectTracklistView(changes) {
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
   let refreshPrintedList = newQueue.length > 0 &&
-      ((queueMode !== wasPreviouslyInQueueMode)
-    || (oldQueue.length !== newQueue.length || !trackListEquals(oldQueue, newQueue)));
+      ((queueMode !== wasPreviouslyInQueueMode) || !trackListEquals(oldQueue, newQueue));
 
   if (refreshPrintedList) {
     if (queueMode) {
@@ -528,8 +527,10 @@ function isExpectedNextSongInQueue(newSongId, previousQueue) {
 }
 
 function trackListEquals(trackList1, trackList2) {
-  let i = trackList1.length;
-  while (i--) {
+  if (trackList1.length !== trackList2.length) {
+    return false;
+  }
+  for (let i = trackList1.length - 1; i > 0; i--) {
     if (trackList1[i].id !== trackList2[i].id) {
       return false;
     }
@@ -1244,6 +1245,7 @@ function setIdleModeState(state) {
       idle = false;
       settingsMenuToggleButton.classList.remove("show");
       setClass(main, "hide", false);
+      refreshAll();
     }
   }
 }
@@ -2258,10 +2260,7 @@ function refreshPreference(preference, state) {
   // Refresh Background and Tracklist, but only do it once per preset application
   clearTimeout(refreshContentTimeout);
   refreshContentTimeout = setTimeout(() => {
-    refreshBackgroundRender(true);
-    refreshTrackList();
-    updateProgress(currentData, true);
-    submitVisualPreferencesToBackend();
+    refreshAll();
   }, transitionFromCss);
 
   // Update the settings that are invalidated
@@ -2384,6 +2383,14 @@ function handleDeviceChange(device) {
   }, OPACITY_TIMEOUT);
 }
 
+function refreshAll() {
+  refreshTextBalance();
+  refreshBackgroundRender(true);
+  updateProgress(currentData, true);
+  updateScrollGradients();
+  submitVisualPreferencesToBackend();
+}
+
 ///////////////////////////////
 // REFRESH IMAGE ON RESIZE
 ///////////////////////////////
@@ -2392,9 +2399,7 @@ let refreshBackgroundEvent;
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   refreshBackgroundEvent = setTimeout(() => {
-    refreshTextBalance();
-    refreshBackgroundRender(true);
-    updateScrollGradients();
+    refreshAll();
   }, transitionFromCss);
 };
 

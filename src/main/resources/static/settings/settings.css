@@ -98,31 +98,24 @@ header > div {
 }
 
 #settings .setting:is(.on, .preset) {
-    cursor: pointer;
     opacity: 0.65;
-    margin: 1vh;
 }
 
-#settings .setting .setting-header {
-    display: flex;
-    flex-direction: row;
-    gap: 1vh;
-    justify-content: center;
-    align-items: center;
-}
-
-#settings .setting.preset .setting-header::before {
+#settings .setting.preset .setting-header::after {
     display: none;
 }
 
-#settings .setting .setting-header::before {
+#settings .setting .setting-header::after {
+    display: inline-block;
     content: "\2717";
     width: 3vh;
     height: 3vh;
     line-height: 3vh;
+    margin-left: 1vh;
+    border: 0.3vh solid transparent;
 }
 
-#settings .setting.on .setting-header::before {
+#settings .setting.on .setting-header::after {
     content: "\2713";
 }
 
@@ -131,8 +124,8 @@ header > div {
     opacity: 0.1;
 }
 
-#settings .setting.loading .setting-header::before {
-    content: "";
+#settings .setting.loading .setting-header::after {
+    content: "\200B";
     border: 0.3vh solid var(--color);
     border-top-color: transparent;
     border-radius: 50%;
