@@ -62,7 +62,7 @@ public class PlaybackController {
    * @param param an optional parameter requires for some options (like volume)
    * @return 200 on success, 400 on bad request
    *         (unknown parameter name or controls have been disabled using the
-   *         <code>--disable-playback-controls</code> launch argument)
+   *         <code>disable_playback_controls=true</code> environment variable)
    */
   @CrossOrigin
   @PostMapping("/modify-playback/{control}")

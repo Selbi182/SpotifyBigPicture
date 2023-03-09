@@ -11,9 +11,9 @@ Do note that, under the hood, [presets](https://github.com/Selbi182/SpotifyBigPi
 
 If enabled, the interface can be used to directly control some basic playback functions of Spotify: play, pause, next track, previous track, shuffle, repeat.
 
-**Security notice about playback controls:** If your interface is publicly accessible from the internet, it is _strongly_ recommended you disable the backend controls for this feature, so that people who randomly got their hands on the URL won't be able to mess with your music. You can do this by passing the following launch argument when starting the service:
+**Security notice about playback controls:** If your interface is publicly accessible from the internet, it is _strongly_ recommended you disable the backend controls for this feature, so that people who randomly got their hands on the URL won't be able to mess with your music. You can do this by passing the following environment variable to the service:
 
-```--disable-playback-controls```
+```disable_playback_controls=true```
 
 This will prevent the buttons from the interface from having any functions. It won't visually disable them, but clicking them will do nothing.
 

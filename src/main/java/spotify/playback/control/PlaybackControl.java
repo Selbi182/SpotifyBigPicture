@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import se.michaelthelin.spotify.SpotifyApi;
@@ -13,7 +12,7 @@ import spotify.api.SpotifyCall;
 
 @Component
 public class PlaybackControl {
-  private static final String DISABLE_PLAYBACK_CONTROLS_ARG = "disable-playback-controls";
+  private static final String DISABLE_PLAYBACK_CONTROLS_ENV_NAME = "disable_playback_controls";
 
   private enum ControlOption {
     PLAY_PAUSE,
@@ -28,9 +27,10 @@ public class PlaybackControl {
 
   private final boolean disabled;
 
-  PlaybackControl(SpotifyApi spotifyApi, Environment environment) {
+  PlaybackControl(SpotifyApi spotifyApi) {
     this.spotifyApi = spotifyApi;
-    this.disabled = environment.containsProperty(DISABLE_PLAYBACK_CONTROLS_ARG);
+    String env = System.getenv(DISABLE_PLAYBACK_CONTROLS_ENV_NAME);
+    this.disabled = Boolean.parseBoolean(env);
   }
 
   private final Logger logger = Logger.getLogger(PlaybackControl.class.getName());
@@ -38,7 +38,7 @@ public class PlaybackControl {
   @PostConstruct
   void printPlaybackDisabledState() {
     if (this.disabled) {
-      logger.warning("Playback controls have been manually disabled with --" + DISABLE_PLAYBACK_CONTROLS_ARG);
+      logger.warning("Playback controls have been manually disabled with " + DISABLE_PLAYBACK_CONTROLS_ENV_NAME + "=true");
     }
   }
 
@@ -92,7 +92,7 @@ public class PlaybackControl {
         e.printStackTrace();
       }
     } else {
-      logger.warning("Playback controls have been manually disabled with --" + DISABLE_PLAYBACK_CONTROLS_ARG);
+      logger.warning("Playback controls have been manually disabled with " + DISABLE_PLAYBACK_CONTROLS_ENV_NAME + "=true");
     }
     return false;
   }
