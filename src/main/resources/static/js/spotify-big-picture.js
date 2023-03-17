@@ -93,6 +93,7 @@ const INFO_URL = "/playback-info";
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
+  portraitModePresetSwitchPrompt();
   pollingLoop();
 }
 
@@ -440,7 +441,7 @@ function setCorrectTracklistView(changes) {
 
   let specialQueue = getChange(changes, "playbackContext.context").value.contextType === "QUEUE_IN_ALBUM";
   let titleDisplayed = specialQueue || (listViewType !== "ALBUM" && listViewType !== "PLAYLIST_ALBUM");
-  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !isPrefEnabled("scrolling-track-list")) && isPrefEnabled("show-queue");
+  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !isPrefEnabled("album-view")) && isPrefEnabled("show-queue");
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   setClass(mainContainer, "title-duplicate", !titleDisplayed && !queueMode);
@@ -937,7 +938,6 @@ function calculateAndRefreshArtworkSize() {
   }
 
   let artworkSize = 0;
-
   if (isPrefEnabled("display-artwork")) {
     let centerRect = getById("content-center").getBoundingClientRect();
     let centerTop = centerRect.top;
@@ -950,36 +950,33 @@ function calculateAndRefreshArtworkSize() {
     let bottomEnabled = isPrefEnabled("enable-bottom-content");
     let contentBottom = bottomEnabled ? bottomRect.bottom : centerRect.bottom;
 
-    let verticalMode = isPrefEnabled("vertical-mode");
     let swapTopBottom = isPrefEnabled("swap-top-bottom");
-    if (!verticalMode && swapTopBottom) {
+    if (swapTopBottom) {
       contentTop = bottomEnabled ? bottomRect.top : centerRect.top;
       contentBottom = topEnabled ? topRect.bottom : centerRect.bottom;
     }
 
     artworkSize = centerBottom - centerTop;
-    if (verticalMode) {
-      let centerInfoMainTop = getById("center-info-main").getBoundingClientRect().top;
-      artworkSize = centerInfoMainTop - contentTop;
-    } else {
-      let expandTop = !topEnabled || isPrefEnabled("artwork-expand-top");
-      let expandBottom = !bottomEnabled || isPrefEnabled("artwork-expand-bottom");
-      if (swapTopBottom) {
-        [expandTop, expandBottom] = [expandBottom, expandTop];
-      }
-      if (expandTop && expandBottom) {
-        artworkSize = contentBottom - contentTop;
-      } else if (expandTop) {
-        artworkSize = centerBottom - contentTop;
-      } else if (expandBottom) {
-        artworkSize = contentBottom - centerTop;
-      }
 
-      let topMargin = expandTop ? contentTop : centerTop;
-      artwork.style.marginTop = topMargin + "px";
-
-      setClass(artwork, "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
+    let expandTop = !topEnabled || isPrefEnabled("artwork-expand-top");
+    let expandBottom = !bottomEnabled || isPrefEnabled("artwork-expand-bottom");
+    if (swapTopBottom) {
+      [expandTop, expandBottom] = [expandBottom, expandTop];
     }
+    if (expandTop && expandBottom) {
+      artworkSize = contentBottom - contentTop;
+    } else if (expandTop) {
+      artworkSize = centerBottom - contentTop;
+    } else if (expandBottom) {
+      artworkSize = contentBottom - centerTop;
+    }
+
+    artworkSize = Math.min(centerRect.width, artworkSize);
+
+    let topMargin = expandTop ? contentTop : centerTop;
+    artwork.style.marginTop = topMargin + "px";
+
+    setClass(artwork, "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
   }
 
   main.style.setProperty("--artwork-size", artworkSize + "px");
@@ -1302,11 +1299,27 @@ const PREFERENCES = [
     name: "Enable Track List",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Track List",
-    requiredFor: ["scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
+    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
     css: {
       "title": "!force-display",
       "track-list": "!hide"
-    }
+    },
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "scrollable-track-list",
+    name: "Scrollable Track List",
+    description: "If enabled, the track list can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
+    category: "Track List",
+    css: {"track-list": "scrollable"}
+  },
+  {
+    id: "full-track-list",
+    name: "Show Full Titles",
+    description: "If enabled, longer titles will always be displayed fully (line breaks). " +
+        "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
+    category: "Track List",
+    css: {"track-list": "no-clamp"}
   },
   {
     id: "show-timestamps-track-list",
@@ -1316,15 +1329,16 @@ const PREFERENCES = [
     css: {"track-list": "show-timestamps"}
   },
   {
-    id: "scrolling-track-list",
+    id: "album-view",
     name: "Enable Album View",
     description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. " +
         "(Only works for 200 tracks or fewer, for performance reasons)",
     category: "Track List",
-    requiredFor: ["hide-title-scrolling-track-list", "xl-main-info-scrolling"]
+    requiredFor: ["hide-title-album-view", "xl-main-info-scrolling"],
+    callback: () => refreshTrackList()
   },
   {
-    id: "hide-title-scrolling-track-list",
+    id: "hide-title-album-view",
     name: "Album View: Hide Duplicate Track Name",
     description: "If 'Album View' is enabled, the current track's name will not be displayed in the main content container " +
         "(since it's already visible in the track list)",
@@ -1400,7 +1414,7 @@ const PREFERENCES = [
     description: "Enable the main content, the container for the current track data and the track list",
     category: "Main Content",
     requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
-      "main-content-centered", "split-main-panels", "reduced-center-margins", "vertical-mode"],
+      "main-content-centered", "split-main-panels", "reduced-center-margins"],
     css: {
       "content-center": "!hide",
       "artwork": "!center-disabled"
@@ -1426,7 +1440,7 @@ const PREFERENCES = [
     name: "Show Titles",
     description: "Show the title of the currently playing track",
     category: "Main Content",
-    requiredFor: ["hide-title-scrolling-track-list"],
+    requiredFor: ["hide-title-album-view"],
     css: {"title": "!hide"}
   },
   {
@@ -1623,6 +1637,27 @@ const PREFERENCES = [
     css: {"info-symbols": "!hide"}
   },
   {
+    id: "center-info-icons",
+    name: "Center Icons",
+    description: "If enabled, the play/pause/shuffle/repeat icons are centered in the bottom content (like it's the case on the default Spotify player). " +
+        "Enabling this will disable the clock",
+    category: "Bottom Content",
+    overrides: ["show-clock"],
+    css: {"bottom-meta-container": "centered-controls"},
+    callback: (state) => {
+      let infoSymbols = getById("info-symbols");
+      let bottomLeft = getById("bottom-left");
+      let bottomMetaContainer = getById("bottom-meta-container");
+      let clockWrapper = getById("clock-wrapper");
+      let volume = getById("volume");
+      if (state) {
+        bottomMetaContainer.insertBefore(infoSymbols, clockWrapper);
+      } else {
+        bottomLeft.insertBefore(infoSymbols, volume);
+      }
+    }
+  },
+  {
     id: "show-volume",
     name: "Show Volume",
     description: "Display the current volume in the bottom left",
@@ -1650,7 +1685,7 @@ const PREFERENCES = [
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
     requiredFor: ["clock-full"],
-    css: {"clock": "!hide"}
+    css: {"clock-wrapper": "!hide"}
   },
   {
     id: "clock-full",
@@ -1740,23 +1775,20 @@ const PREFERENCES = [
     css: {"content": "swap-top-bottom"}
   },
   {
+    id: "artwork-above-content",
+    name: "Artwork Above Track Info",
+    description: "If enabled, the artwork is played above the track info, rather than next to it. " +
+        "This mode is intended for portrait mode (it will break everything in landscape mode)",
+    category: "Layout: Misc",
+    css: {"main": "artwork-above-content"}
+  },
+  {
     id: "decreased-margins",
     name: "Decreased Margins",
     description: "If enabled, all margins are halved. " +
         "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
     category: "Layout: Misc",
     css: {"main": "decreased-margins"},
-  },
-  {
-    id: "vertical-mode",
-    name: "Vertical Mode",
-    description: "Convert the two-panel layout into a vertical, centered layout (artwork above track name). " +
-        "Do note that this setting overrides many other settings, namely the track list",
-    category: "Layout: Misc",
-    overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right", "main-content-centered",
-      "show-podcast-descriptions", "split-main-panels", "artwork-expand-top", "artwork-expand-bottom",
-      "swap-top-bottom"],
-    css: {"main": "vertical"}
   },
   {
     id: "show-fps",
@@ -1797,8 +1829,8 @@ const PREFERENCES_DEFAULT = {
   enabled: [
     "enable-center-content",
     "show-queue",
-    "scrolling-track-list",
-    "hide-title-scrolling-track-list",
+    "album-view",
+    "hide-title-album-view",
     "show-timestamps-track-list",
     "show-podcast-descriptions",
     "display-artwork",
@@ -1846,14 +1878,17 @@ const PREFERENCES_DEFAULT = {
     "split-main-panels",
     "center-lr-margins",
     "reduced-center-margins",
-    "vertical-mode",
     "xl-main-info-scrolling",
     "xl-tracklist",
     "swap-top",
     "spread-timestamps",
     "reverse-bottom",
     "artwork-expand-bottom",
-    "artwork-right"
+    "artwork-right",
+    "center-info-icons",
+    "artwork-above-content",
+    "scrollable-track-list",
+    "full-track-list"
   ],
   ignore: [
     "playback-control",
@@ -1967,13 +2002,13 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "show-clock",
       "show-featured-artists",
-      "scrolling-track-list",
+      "album-view",
       "show-device",
       "show-volume",
       "show-volume-bar",
       "show-podcast-descriptions",
       "show-info-icons",
-      "hide-title-scrolling-track-list",
+      "hide-title-album-view",
       "show-queue",
       "display-artwork",
       "show-timestamps-track-list"
@@ -1985,7 +2020,6 @@ const PREFERENCES_PRESETS = [
     category: "Presets",
     description: "A minimalistic design preset only containing the most relevant information about the currently playing track. The background only displays a plain color. Inspired by the original Spotify fullscreen interface for Chromecast",
     enabled: [
-      "vertical-mode",
       "spread-timestamps",
       "reverse-bottom",
       "reduced-center-margins"
@@ -1996,7 +2030,7 @@ const PREFERENCES_PRESETS = [
       "show-clock",
       "clock-full",
       "show-featured-artists",
-      "scrolling-track-list",
+      "album-view",
       "bg-artwork",
       "bg-gradient",
       "bg-grain",
@@ -2006,7 +2040,7 @@ const PREFERENCES_PRESETS = [
       "show-podcast-descriptions",
       "show-release",
       "show-info-icons",
-      "hide-title-scrolling-track-list",
+      "hide-title-album-view",
       "show-queue",
       "colored-text",
       "colored-symbol-spotify",
@@ -2028,8 +2062,8 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "enable-center-content",
       "show-queue",
-      "scrolling-track-list",
-      "hide-title-scrolling-track-list",
+      "album-view",
+      "hide-title-album-view",
       "show-timestamps-track-list",
       "show-podcast-descriptions",
       "show-artists",
@@ -2242,6 +2276,10 @@ function setVisualPreference(pref, newState) {
 
 let refreshContentTimeout;
 
+function isRenderingPreferenceChange() {
+  return !!refreshContentTimeout;
+}
+
 function refreshPreference(preference, state) {
   preference.state = state;
 
@@ -2261,6 +2299,7 @@ function refreshPreference(preference, state) {
   clearTimeout(refreshContentTimeout);
   refreshContentTimeout = setTimeout(() => {
     refreshAll();
+    refreshContentTimeout = null;
   }, transitionFromCss);
 
   // Update the settings that are invalidated
@@ -2395,10 +2434,32 @@ function refreshAll() {
 // REFRESH IMAGE ON RESIZE
 ///////////////////////////////
 
+let mobileView = null;
+function isPortraitMode(refresh = false) {
+  if (refresh || mobileView === null) {
+    mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
+  }
+  return mobileView;
+}
+
+let wasPreviouslyInPortraitMode = false;
 let refreshBackgroundEvent;
+
+function portraitModePresetSwitchPrompt() {
+  let portraitMode = isPortraitMode(true);
+  if (!wasPreviouslyInPortraitMode && portraitMode) {
+    if (confirm("It seems like you're using the app in portrait mode. Would you like to switch to the design optimized for vertical aspect ratios?")) {
+      // TODO enable vertical mode and also somehow prevent this message from getting spammed on page refresh
+      alert("enabled")
+    }
+  }
+  wasPreviouslyInPortraitMode = portraitMode;
+}
+
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   refreshBackgroundEvent = setTimeout(() => {
+    portraitModePresetSwitchPrompt();
     refreshAll();
   }, transitionFromCss);
 };
@@ -2508,14 +2569,6 @@ function handleMouseEvent(e) {
   }
 }
 
-let mobileView = null;
-function isPortraitMode(force = false) {
-  if (force || mobileView === null) {
-    mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
-  }
-  return mobileView;
-}
-
 window.addEventListener('load', initSettingsMouseMove);
 function initSettingsMouseMove() {
   setMouseVisibility(false);
@@ -2536,7 +2589,7 @@ function initSettingsMouseMove() {
   };
 
   document.body.onclick = (e) => {
-    if (settingsVisible && !isSettingControlElem(e)) {
+    if (settingsVisible && !isSettingControlElem(e) && !isRenderingPreferenceChange()) {
       setSettingsMenuState(false);
     }
   }
