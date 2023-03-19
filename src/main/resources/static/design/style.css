@@ -502,7 +502,7 @@ div#context-main {
 }
 
 #main.artwork-above-content #content-center {
-    padding-top: min(50vh, calc(var(--artwork-size) + var(--margin-main)));
+    padding-top: calc(var(--artwork-size) + var(--margin-main));
 }
 
 #center-info-main {
@@ -1334,7 +1334,7 @@ div#device {
     text-align: center;
     overflow: visible;
     opacity: 0;
-    gap: 3vmin;
+    gap: 2vmin;
     padding: 2vmin;
 }
 

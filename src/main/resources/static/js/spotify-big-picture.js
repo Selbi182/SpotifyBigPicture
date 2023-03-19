@@ -93,7 +93,6 @@ const INFO_URL = "/playback-info";
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
-  portraitModePresetSwitchPrompt();
   pollingLoop();
 }
 
@@ -1069,8 +1068,6 @@ function setTextColor(rgbText) {
 ///////////////////////////////
 
 let smoothProgressBarPref;
-window.addEventListener('load', () => smoothProgressBarPref = findPreference("smooth-progress-bar"));
-
 function refreshProgress() {
   updateProgress(currentData);
 }
@@ -1109,12 +1106,13 @@ function updateProgress(changes) {
   }
 
   // Update Progress Bar
+  smoothProgressBarPref = smoothProgressBarPref || findPreference("smooth-progress-bar");
   if (smoothProgressBarPref.state || timeCurrentUpdated || timeTotalUpdated) {
     setProgressBarTarget(current, total, paused);
   }
 }
 
-const progressBarElem = getById("progress-current");
+const progressBarElem = "progress-current".select();
 function setProgressBarTarget(current, total) {
   let percent = (current / (total || 1)) * 100;
   progressBarElem.style.setProperty("--progress-percent", percent + "%");
@@ -1307,7 +1305,7 @@ const PREFERENCES = [
   {
     id: "full-track-list",
     name: "Show Full Titles",
-    description: "If enabled, longer titles will always be displayed fully (line breaks). " +
+    description: "If enabled, longer titles will always be fully displayed (with line breaks). " +
         "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
     category: "Track List",
     css: {"track-list": "no-clamp"}
@@ -1840,9 +1838,7 @@ const PREFERENCES_DEFAULT = {
     "bg-gradient",
     "bg-grain",
     "show-artists",
-    "show-featured-artists",
     "show-titles",
-    "colored-text",
     "colored-symbol-spotify",
     "show-release",
     "enable-top-content",
@@ -1852,8 +1848,6 @@ const PREFERENCES_DEFAULT = {
     "show-context-summary",
     "show-context-thumbnail",
     "show-logo",
-    "transitions",
-    "strip-titles",
     "show-timestamps",
     "show-info-icons",
     "show-volume",
@@ -1862,9 +1856,7 @@ const PREFERENCES_DEFAULT = {
     "show-progress-bar",
     "smooth-progress-bar",
     "show-clock",
-    "clock-full",
-    "prerender-background",
-    "fake-song-transition"
+    "clock-full"
   ],
   disabled: [
     "swap-top-bottom",
@@ -1885,11 +1877,19 @@ const PREFERENCES_DEFAULT = {
     "artwork-expand-bottom",
     "artwork-right",
     "artwork-above-content",
-    "full-track-list"
+    "full-track-list",
+    "center-info-icons"
   ],
-  ignore: [
+  ignoreDefaultOn: [
+    "colored-text",
+    "transitions",
+    "strip-titles",
+    "fake-song-transition",
+    "show-featured-artists",
+    "prerender-background"
+  ],
+  ignoreDefaultOff: [
     "playback-control",
-    "center-info-icons",
     "scrollable-track-list",
     "dark-mode",
     "show-fps"
@@ -1905,39 +1905,6 @@ const PREFERENCES_PRESETS = [
         "Clicking this behaves like a reset button for all settings",
     enabled: [],
     disabled: []
-  },
-  {
-    id: "preset-compact",
-    name: "Compact Mode",
-    category: "Presets",
-    description: "Similar to the default mode, but the artwork is on the right and a little smaller, opening up slightly more room for the main content",
-    enabled: [
-      "artwork-right",
-      "center-lr-margins"
-    ],
-    disabled: [
-      "artwork-expand-top",
-      "main-content-centered"
-    ]
-  },
-  {
-    id: "preset-xl-artwork",
-    name: "XL-Artwork Mode",
-    category: "Presets",
-    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the track list, and the progress bar are displayed",
-    enabled: [
-      "artwork-expand-bottom",
-      "decreased-margins"
-    ],
-    disabled: [
-      "enable-top-content",
-      "show-timestamps",
-      "show-info-icons",
-      "show-volume",
-      "show-volume-bar",
-      "show-device",
-      "show-clock"
-    ]
   },
   {
     id: "preset-tracklist",
@@ -1979,10 +1946,42 @@ const PREFERENCES_PRESETS = [
       "full-release-date-podcasts"
     ],
     disabled: [
-      "show-featured-artists",
       "main-content-centered",
       "bg-tint",
       "display-artwork"
+    ]
+  },
+  {
+    id: "preset-compact",
+    name: "Compact Mode",
+    category: "Presets",
+    description: "Similar to the default mode, but the artwork is on the right and a little smaller, opening up slightly more room for the main content",
+    enabled: [
+      "artwork-right",
+      "center-lr-margins"
+    ],
+    disabled: [
+      "artwork-expand-top",
+      "main-content-centered"
+    ]
+  },
+  {
+    id: "preset-xl-artwork",
+    name: "XL-Artwork Mode",
+    category: "Presets",
+    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the track list, and the progress bar are displayed",
+    enabled: [
+      "artwork-expand-bottom",
+      "decreased-margins"
+    ],
+    disabled: [
+      "enable-top-content",
+      "show-timestamps",
+      "show-info-icons",
+      "show-volume",
+      "show-volume-bar",
+      "show-device",
+      "show-clock"
     ]
   },
   {
@@ -1999,7 +1998,6 @@ const PREFERENCES_PRESETS = [
     ],
     disabled: [
       "show-clock",
-      "show-featured-artists",
       "album-view",
       "show-device",
       "show-volume",
@@ -2009,40 +2007,6 @@ const PREFERENCES_PRESETS = [
       "hide-title-album-view",
       "show-queue",
       "display-artwork",
-      "show-timestamps-track-list"
-    ]
-  },
-  {
-    id: "preset-minimalistic",
-    name: "Minimalistic Mode",
-    category: "Presets",
-    description: "A minimalistic design preset only containing the most relevant information about the currently playing track. The background only displays a plain color. Inspired by the original Spotify fullscreen interface for Chromecast",
-    enabled: [
-      "spread-timestamps",
-      "reverse-bottom",
-      "reduced-center-margins"
-    ],
-    disabled: [
-      "artwork-expand-top",
-      "main-content-centered",
-      "show-clock",
-      "clock-full",
-      "show-featured-artists",
-      "album-view",
-      "bg-artwork",
-      "bg-gradient",
-      "bg-grain",
-      "show-device",
-      "show-volume",
-      "show-volume-bar",
-      "show-podcast-descriptions",
-      "show-release",
-      "show-info-icons",
-      "hide-title-album-view",
-      "show-queue",
-      "colored-text",
-      "colored-symbol-spotify",
-      "show-timestamps",
       "show-timestamps-track-list"
     ]
   },
@@ -2064,9 +2028,7 @@ const PREFERENCES_PRESETS = [
       "show-timestamps-track-list",
       "show-podcast-descriptions",
       "show-artists",
-      "show-featured-artists",
       "show-titles",
-      "colored-text",
       "colored-symbol-spotify",
       "show-release",
       "enable-top-content",
@@ -2075,7 +2037,6 @@ const PREFERENCES_PRESETS = [
       "show-context-summary",
       "show-context-thumbnail",
       "show-logo",
-      "strip-titles",
       "show-timestamps",
       "show-info-icons",
       "show-volume",
@@ -2084,6 +2045,25 @@ const PREFERENCES_PRESETS = [
       "show-progress-bar",
       "smooth-progress-bar",
       "show-clock"
+    ]
+  },
+  {
+    id: "preset-vertical",
+    name: "Vertical Mode",
+    category: "Presets",
+    description: "A preset optimized (only) for portrait mode. The main content will be displayed below the artwork. " +
+        "Don't use this preset on widescreen monitors, as it will likely break everything",
+    enabled: [
+      "artwork-above-content",
+      "spread-timestamps",
+      "reverse-bottom",
+      "center-info-icons"
+    ],
+    disabled: [
+      "artwork-expand-top",
+      "show-info-icons",
+      "show-device",
+      "show-volume"
     ]
   }
 ];
@@ -2106,17 +2086,26 @@ window.addEventListener('load', initVisualPreferences);
 function initVisualPreferences() {
   const settingsWrapper = "settings-categories".select();
 
-  // Integrity check
+  // Developer integrity check
+  let allSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOn, PREFERENCES_DEFAULT.ignoreDefaultOff].flat();
   if (DEV_MODE) {
-    let allDefaultSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignore].flat();
-    if (allDefaultSettings.length > [...new Set(allDefaultSettings)].length) {
+    if (allSettings.length > [...new Set(allSettings)].length) {
       console.warn("Default settings contain duplicates!");
     }
     let unclassifiedSettings = PREFERENCES
         .map(pref => pref.id)
-        .filter(prefId => !allDefaultSettings.includes(prefId));
+        .filter(prefId => !allSettings.includes(prefId));
     if (unclassifiedSettings.length > 0) {
       console.warn("The following settings don't have any defaults specified: " + unclassifiedSettings);
+    }
+  }
+
+  // User integrity check (reset settings after update)
+  if (isLocalStorageAvailable()) {
+    let prefsFromStorage = getVisualPreferencesFromLocalStorage();
+    if (!prefsFromStorage.every(v => allSettings.includes(v))) {
+      clearVisualPreferencesInLocalStorage();
+      alert("Looks like you've installed a new version of SpotifyBigPicture. To avoid conflicts with version changes, your previous settings have been reset.");
     }
   }
 
@@ -2179,8 +2168,11 @@ function initVisualPreferences() {
         refreshPreference(pref, visualPreferencesFromLocalStorage.includes(pref.id));
       }
     } else {
-      // On first load, apply first preset of the list
-      applyPreset(PREFERENCES_PRESETS[0]);
+      // On first load, apply the default preset and enable the ignoreDefaultOn settings. Then force-open the settings menu
+      applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-default"));
+      PREFERENCES_DEFAULT.ignoreDefaultOn.forEach(prefId => {
+        setVisualPreferenceFromId(prefId, true);
+      });
       requestAnimationFrame(() => {
         setSettingsMenuState(true);
       });
@@ -2219,11 +2211,30 @@ function submitVisualPreferencesToBackend() {
   })
 }
 
+const LOCAL_STORAGE_TEST_KEY = "local_storage_availability_test";
+let localStorageAvailable = null;
+function isLocalStorageAvailable() {
+  if (localStorageAvailable === null) {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_TEST_KEY, LOCAL_STORAGE_TEST_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_TEST_KEY);
+      localStorageAvailable = true;
+    } catch (e) {
+      localStorageAvailable = false;
+    }
+  }
+  return localStorageAvailable;
+}
+
 const LOCAL_STORAGE_KEY_SETTINGS = "visual_preferences";
 const LOCAL_STORAGE_SETTINGS_SPLIT_CHAR = "+";
 function getVisualPreferencesFromLocalStorage() {
   let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS);
   return storedVisualPreferences?.split(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
+}
+
+function clearVisualPreferencesInLocalStorage() {
+  localStorage.removeItem(LOCAL_STORAGE_KEY_SETTINGS);
 }
 
 function refreshPrefsLocalStorage() {
@@ -2234,21 +2245,6 @@ function refreshPrefsLocalStorage() {
       .join(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
     localStorage.setItem(LOCAL_STORAGE_KEY_SETTINGS, enabledPreferences);
   }
-}
-
-let localStorageAvailable = null;
-function isLocalStorageAvailable() {
-  if (localStorageAvailable === null) {
-    let test = "localStorageAvailabilityTest";
-    try {
-      localStorage.setItem(test, test);
-      localStorage.removeItem(test);
-      localStorageAvailable = true;
-    } catch (e) {
-      localStorageAvailable = false;
-    }
-  }
-  return localStorageAvailable;
 }
 
 function toggleVisualPreference(pref) {
@@ -2268,7 +2264,6 @@ function setVisualPreference(pref, newState) {
 }
 
 let refreshContentTimeout;
-
 function isRenderingPreferenceChange() {
   return !!refreshContentTimeout;
 }
@@ -2444,10 +2439,9 @@ let refreshBackgroundEvent;
 
 function portraitModePresetSwitchPrompt() {
   let portraitMode = isPortraitMode(true);
-  if (!wasPreviouslyInPortraitMode && portraitMode) {
+  if (!wasPreviouslyInPortraitMode && portraitMode && !isPrefEnabled("artwork-above-content")) {
     if (confirm("It seems like you're using the app in portrait mode. Would you like to switch to the design optimized for vertical aspect ratios?")) {
-      // TODO enable vertical mode and also somehow prevent this message from getting spammed on page refresh
-      alert("enabled")
+      applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-vertical"));
     }
   }
   wasPreviouslyInPortraitMode = portraitMode;
@@ -2569,11 +2563,11 @@ function handleMouseEvent(e) {
 window.addEventListener('load', initSettingsMouseMove);
 
 function printSettingDescription(event) {
-  let settingsDescriptionContainer = getById("settings-description");
-  let header = getById("settings-description-header");
-  let description = getById("settings-description-description");
-  let unaffected = getById("settings-description-unaffected");
-  let overridden = getById("settings-description-overridden");
+  let settingsDescriptionContainer = "settings-description".select();
+  let header = "settings-description-header".select();
+  let description = "settings-description-description".select();
+  let unaffected = "settings-description-unaffected".select();
+  let overridden = "settings-description-overridden".select();
 
   let target = event.target;
   if (target.parentNode.classList.contains("preset")) {
@@ -2584,6 +2578,8 @@ function printSettingDescription(event) {
     if (pref) {
       header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
       description.innerHTML = pref.description;
+
+      unaffected.innerHTML = [PREFERENCES_DEFAULT.ignoreDefaultOn, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().includes(pref.id) ? "(This setting is unaffected by changing presets)" : "";
 
       overridden.innerHTML = [...target.classList]
         .filter(className => className.startsWith("overridden-"))
@@ -2630,23 +2626,8 @@ function initSettingsMouseMove() {
 
   settingsWrapper.onmousemove = (event) => {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
-
-    let settingsDescriptionContainer = "settings-description".select();
-    let header = "settings-description-header".select();
-    let description = "settings-description-description".select();
-    let overridden = "settings-description-overridden".select();
-
-    let target = event.target;
-    if (target.parentNode.classList.contains("preset")) {
-      target = target.parentNode;
-    }
-    if (target.classList.contains("setting") || target.classList.contains("preset")) {
-      let pref = findPreference(target.id) || findPreset(target.id);
-      if (pref) {
-        header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
-        description.innerHTML = pref.description;
-
-        overridden.innerHTML = [...target.classList]
+    printSettingDescription(event);
+  }
 }
 
 function isSettingControlElem(e) {
