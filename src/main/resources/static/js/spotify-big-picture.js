@@ -193,8 +193,8 @@ function cloneObject(object) {
 // MAIN DISPLAY STUFF
 ///////////////////////////////
 
-function getById(id) {
-  return document.getElementById(id);
+String.prototype.select = function() {
+  return document.getElementById(this);
 }
 
 const BLANK = "BLANK";
@@ -242,13 +242,13 @@ function getChange(changes, path) {
 
 function setTextData(changes) {
   // Main Content
-  let titleContainer = getById("title");
+  let titleContainer = "title".select();
 
   let artists = getChange(changes, "currentlyPlaying.artists");
   if (artists.wasChanged) {
     let artistsNew = artists.value;
     let mainArtist = artistsNew[0];
-    let artistContainer = getById("artists");
+    let artistContainer = "artists".select();
     let artistsString = mainArtist + buildFeaturedArtistsSpan(artistsNew);
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
 
@@ -265,8 +265,8 @@ function setTextData(changes) {
     let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
     let titleMain = splitTitle.main;
     let titleExtra = splitTitle.extra;
-    getById("title-main").innerHTML = titleMain;
-    getById("title-extra").innerHTML = titleExtra;
+    "title-main".select().innerHTML = titleMain;
+    "title-extra".select().innerHTML = titleExtra;
 
     balanceTextClamp(titleContainer);
     fadeIn(titleContainer);
@@ -279,31 +279,31 @@ function setTextData(changes) {
     let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
     let albumTitleMain = splitTitle.main;
     let albumTitleExtra = splitTitle.extra;
-    getById("album-title-main").innerHTML = albumTitleMain;
-    getById("album-title-extra").innerHTML = albumTitleExtra;
+    "album-title-main".select().innerHTML = albumTitleMain;
+    "album-title-extra".select().innerHTML = albumTitleExtra;
 
     let release = releaseDate.value;
     if (release !== BLANK) {
       let year = release.slice(0, 4);
-      getById("release-year").innerHTML = year;
-      getById("release-full").innerHTML = release.length > year.length && !release.endsWith("-01-01") ? formatReleaseDate(release) : year;
-      setClass(getById("album-release"), "hide", false);
+      "release-year".select().innerHTML = year;
+      "release-full".select().innerHTML = release.length > year.length && !release.endsWith("-01-01") ? formatReleaseDate(release) : year;
+      setClass("album-release".select(), "hide", false);
     } else {
-      getById("release-year").innerHTML = "";
-      getById("release-full").innerHTML = "";
-      setClass(getById("album-release"), "hide", true);
+      "release-year".select().innerHTML = "";
+      "release-full".select().innerHTML = "";
+      setClass("album-release".select(), "hide", true);
     }
 
-    let albumMainContainer = getById("album-title");
+    let albumMainContainer = "album-title".select();
     balanceTextClamp(albumMainContainer);
-    let albumContainer = getById("album");
+    let albumContainer = "album".select();
     fadeIn(albumContainer);
   }
 
   let description = getChange(changes, "currentlyPlaying.description");
   if (description.wasChanged) {
-    let descriptionContainer = getById("description");
-    setClass(getById("content-center"), "podcast", description.value && description.value !== BLANK);
+    let descriptionContainer = "description".select();
+    setClass("content-center".select(), "podcast", description.value && description.value !== BLANK);
     descriptionContainer.innerHTML = description.value;
     balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
@@ -313,8 +313,8 @@ function setTextData(changes) {
   let contextName = getChange(changes, "playbackContext.context.contextName");
   let contextType = getChange(changes, "playbackContext.context.contextType");
   if (contextName.wasChanged || contextType.wasChanged) {
-    let contextMain = getById("context-main");
-    let contextExtra = getById("context-extra");
+    let contextMain = "context-main".select();
+    let contextExtra = "context-extra".select();
 
     // Context name
     let contextTypePrefix = "";
@@ -355,8 +355,8 @@ function setTextData(changes) {
     }
 
     // Thumbnail
-    let thumbnailWrapperContainer = getById("thumbnail-wrapper");
-    let thumbnailContainer = getById("thumbnail");
+    let thumbnailWrapperContainer = "thumbnail-wrapper".select();
+    let thumbnailContainer = "thumbnail".select();
     let thumbnailUrl = getChange(changes, "playbackContext.thumbnailUrl").value;
     let circularThumbnail = ["ALBUM", "EP", "SINGLE", "COMPILATION", "ARTIST", "SEARCH", "FAVORITE_TRACKS"].includes(contextType.value);
     setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
@@ -364,30 +364,30 @@ function setTextData(changes) {
     thumbnailContainer.src = thumbnailUrl !== BLANK ? thumbnailUrl : "";
     fadeIn(thumbnailContainer);
 
-    fadeIn(getById("context"));
+    fadeIn("context".select());
   }
 
   // Time
   let timeCurrent = getChange(changes, "currentlyPlaying.timeCurrent");
   let timeTotal = getChange(changes, "currentlyPlaying.timeTotal");
   if (timeCurrent.wasChanged || timeTotal.wasChanged) {
-    updateProgress(changes, true);
+    updateProgress(changes);
     if (getChange(changes, "currentlyPlaying.id").value) {
-      finishAnimations(getById("progress-current"));
+      finishAnimations("progress-current".select());
     }
   }
 
   // States
   let paused = getChange(changes, "playbackContext.paused");
   if (paused.wasChanged) {
-    let pauseElem = getById("play-pause");
+    let pauseElem = "play-pause".select();
     setClass(pauseElem, "paused", paused.value);
     fadeIn(pauseElem);
   }
 
   let shuffle = getChange(changes, "playbackContext.shuffle");
   if (shuffle.wasChanged) {
-    let shuffleElem = getById("shuffle");
+    let shuffleElem = "shuffle".select();
     setClass(shuffleElem, "show", shuffle.value);
     setClass(shuffleElem, "on", shuffle.value);
     fadeIn(shuffleElem);
@@ -395,7 +395,7 @@ function setTextData(changes) {
 
   let repeat = getChange(changes, "playbackContext.repeat");
   if (repeat.wasChanged) {
-    let repeatElem = getById("repeat");
+    let repeatElem = "repeat".select();
     setClass(repeatElem, "show", repeat.value !== "off");
 
     setClass(repeatElem, "context", repeat.value === "context");
@@ -412,7 +412,7 @@ function setTextData(changes) {
   }
 
   if (device.wasChanged) {
-    getById("device").innerHTML = convertToTextEmoji(device.value);
+    "device".select().innerHTML = convertToTextEmoji(device.value);
     handleDeviceChange(device.value);
   }
 
@@ -428,8 +428,8 @@ function refreshTrackList() {
 }
 
 function setCorrectTracklistView(changes) {
-  let mainContainer = getById("content-center");
-  let trackListContainer = getById("track-list");
+  let mainContainer = "content-center".select();
+  let trackListContainer = "track-list".select();
   let listViewType = getChange(changes, "trackData.trackListView").value;
   let listTracks = getChange(changes, "trackData.listTracks").value;
   let currentId = getChange(changes, "currentlyPlaying.id").value;
@@ -440,7 +440,7 @@ function setCorrectTracklistView(changes) {
 
   let specialQueue = getChange(changes, "playbackContext.context").value.contextType === "QUEUE_IN_ALBUM";
   let titleDisplayed = specialQueue || (listViewType !== "ALBUM" && listViewType !== "PLAYLIST_ALBUM");
-  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !isPrefEnabled("scrolling-track-list")) && isPrefEnabled("show-queue");
+  let queueMode = (specialQueue || listViewType === "QUEUE" || listTracks.length === 0 || trackNumber === 0 || !isPrefEnabled("album-view")) && isPrefEnabled("show-queue");
   let wasPreviouslyInQueueMode = mainContainer.classList.contains("queue");
 
   setClass(mainContainer, "title-duplicate", !titleDisplayed && !queueMode);
@@ -498,7 +498,7 @@ function setCorrectTracklistView(changes) {
   if (splitMode) {
     trackListScaleRatio = Math.max(2, contentCenterHeight / trackListSize);
   } else {
-    let contentInfoSize = getById("center-info-main").offsetHeight;
+    let contentInfoSize = "center-info-main".select().offsetHeight;
     let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
     trackListScaleRatio = Math.max(2, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
     trackListScaleRatio = Math.floor(trackListScaleRatio * 10) /  10;
@@ -553,7 +553,7 @@ function balanceTextClamp(elem) {
 function refreshTextBalance() {
   isPortraitMode(true);
   for (let id of ["artists", "title", "album-title", "description"]) {
-    balanceTextClamp(getById(id));
+    balanceTextClamp(id.select());
   }
 }
 
@@ -672,7 +672,7 @@ function fadeIn(elem) {
 }
 
 function printTrackList(trackList, printDiscs) {
-  let trackListContainer = getById("track-list");
+  let trackListContainer = "track-list".select();
   trackListContainer.innerHTML = "";
 
   let previousDiscNumber = 0;
@@ -751,7 +751,7 @@ function createSingleTrackListItem(trackItem, trackNumPadLength) {
 
 window.addEventListener('load', setupScrollGradients);
 function setupScrollGradients() {
-  let trackList = getById("track-list");
+  let trackList = "track-list".select();
   trackList.onscroll = () => updateScrollGradients();
 }
 
@@ -767,7 +767,7 @@ function refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentD
 
 function updateScrollPositions(trackNumber) {
   requestAnimationFrame(() => {
-    let trackListContainer = getById("track-list");
+    let trackListContainer = "track-list".select();
     let previouslyPlayingRow = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
     if (trackNumber) {
       let currentlyPlayingRow = trackListContainer.childNodes[trackNumber - 1];
@@ -791,7 +791,7 @@ function updateScrollPositions(trackNumber) {
 
 const SCROLL_GRADIENTS_TOLERANCE = 10;
 function updateScrollGradients() {
-  let trackList = getById("track-list");
+  let trackList = "track-list".select();
   let topGradient = trackList.scrollTop > SCROLL_GRADIENTS_TOLERANCE;
   let bottomGradient = (trackList.scrollHeight - trackList.clientHeight) > (trackList.scrollTop + SCROLL_GRADIENTS_TOLERANCE);
   setClass(trackList, "gradient-top", topGradient);
@@ -881,7 +881,7 @@ function setRenderedBackground(canvas) {
     // Set old background to fade out and then delete it
     // (In theory, should only ever be one, but just in case, do it for all children)
     let transitionsEnabled = isPrefEnabled("transitions");
-    let backgroundRenderedWrapper = getById("background-rendered");
+    let backgroundRenderedWrapper = "background-rendered".select();
     backgroundRenderedWrapper.childNodes.forEach(child => {
       if (transitionsEnabled) {
         child.ontransitionend = () => child.remove();
@@ -915,7 +915,7 @@ function setArtworkAndPrerender(newImageUrl, colors) {
 function loadArtwork(newImage) {
   return new Promise((resolve) => {
     calculateAndRefreshArtworkSize();
-    let artwork = getById("artwork-img");
+    let artwork = "artwork-img".select();
     artwork.onload = () => {
       resolve();
     }
@@ -924,8 +924,8 @@ function loadArtwork(newImage) {
 }
 
 function calculateAndRefreshArtworkSize() {
-  let main = getById("main");
-  let artwork = getById("artwork");
+  let main = "main".select();
+  let artwork = "artwork".select();
 
   artwork.style.removeProperty("margin-top");
   artwork.style.removeProperty("--margin-multiplier");
@@ -937,49 +937,45 @@ function calculateAndRefreshArtworkSize() {
   }
 
   let artworkSize = 0;
-
   if (isPrefEnabled("display-artwork")) {
-    let centerRect = getById("content-center").getBoundingClientRect();
+    let centerRect = "content-center".select().getBoundingClientRect();
     let centerTop = centerRect.top;
     let centerBottom = centerRect.bottom;
 
-    let topRect = getById("content-top").getBoundingClientRect();
-    let bottomRect = getById("content-bottom").getBoundingClientRect();
+    let topRect = "content-top".select().getBoundingClientRect();
+    let bottomRect = "content-bottom".select().getBoundingClientRect();
     let topEnabled = isPrefEnabled("enable-top-content");
     let contentTop = topEnabled ? topRect.top : centerRect.top;
     let bottomEnabled = isPrefEnabled("enable-bottom-content");
     let contentBottom = bottomEnabled ? bottomRect.bottom : centerRect.bottom;
 
-    let verticalMode = isPrefEnabled("vertical-mode");
     let swapTopBottom = isPrefEnabled("swap-top-bottom");
-    if (!verticalMode && swapTopBottom) {
+    if (swapTopBottom) {
       contentTop = bottomEnabled ? bottomRect.top : centerRect.top;
       contentBottom = topEnabled ? topRect.bottom : centerRect.bottom;
     }
 
     artworkSize = centerBottom - centerTop;
-    if (verticalMode) {
-      let centerInfoMainTop = getById("center-info-main").getBoundingClientRect().top;
-      artworkSize = centerInfoMainTop - contentTop;
-    } else {
-      let expandTop = !topEnabled || isPrefEnabled("artwork-expand-top");
-      let expandBottom = !bottomEnabled || isPrefEnabled("artwork-expand-bottom");
-      if (swapTopBottom) {
-        [expandTop, expandBottom] = [expandBottom, expandTop];
-      }
-      if (expandTop && expandBottom) {
-        artworkSize = contentBottom - contentTop;
-      } else if (expandTop) {
-        artworkSize = centerBottom - contentTop;
-      } else if (expandBottom) {
-        artworkSize = contentBottom - centerTop;
-      }
 
-      let topMargin = expandTop ? contentTop : centerTop;
-      artwork.style.marginTop = topMargin + "px";
-
-      setClass(artwork, "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
+    let expandTop = !topEnabled || isPrefEnabled("artwork-expand-top");
+    let expandBottom = !bottomEnabled || isPrefEnabled("artwork-expand-bottom");
+    if (swapTopBottom) {
+      [expandTop, expandBottom] = [expandBottom, expandTop];
     }
+    if (expandTop && expandBottom) {
+      artworkSize = contentBottom - contentTop;
+    } else if (expandTop) {
+      artworkSize = centerBottom - contentTop;
+    } else if (expandBottom) {
+      artworkSize = contentBottom - centerTop;
+    }
+
+    artworkSize = Math.min(centerRect.width, artworkSize);
+
+    let topMargin = expandTop ? contentTop : centerTop;
+    artwork.style.marginTop = topMargin + "px";
+
+    setClass(artwork, "double-margins", !expandTop && !expandBottom && isPrefEnabled("center-lr-margins"));
   }
 
   main.style.setProperty("--artwork-size", artworkSize + "px");
@@ -993,12 +989,12 @@ function calculateAndRefreshArtworkSize() {
 
 function loadBackground(newImage, colors) {
   return new Promise((resolve) => {
-    let backgroundCanvasImg = getById("background-canvas-img");
+    let backgroundCanvasImg = "background-canvas-img".select();
     backgroundCanvasImg.onload = () => {
       let rgbOverlay = colors.secondary;
       let averageBrightness = colors.averageBrightness;
-      let backgroundCanvasOverlay = getById("background-canvas-overlay");
-      let grainOverlay = getById("grain");
+      let backgroundCanvasOverlay = "background-canvas-overlay".select();
+      let grainOverlay = "grain".select();
 
       let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
       backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
@@ -1014,7 +1010,7 @@ function loadBackground(newImage, colors) {
 
 function prerenderBackground() {
   return new Promise((resolve) => {
-    let prerenderCanvas = getById("prerender-canvas");
+    let prerenderCanvas = "prerender-canvas".select();
     setClass(prerenderCanvas, "show", true);
 
     domtoimage
@@ -1071,7 +1067,12 @@ function setTextColor(rgbText) {
 // PROGRESS
 ///////////////////////////////
 
-function updateProgress(changes, updateProgressBar) {
+let smoothProgressBarPref;
+function refreshProgress() {
+  updateProgress(currentData);
+}
+
+function updateProgress(changes) {
   let current = getChange(changes, "currentlyPlaying.timeCurrent").value;
   let total = getChange(changes, "currentlyPlaying.timeTotal").value;
   let paused = getChange(changes, "playbackContext.paused").value;
@@ -1081,13 +1082,15 @@ function updateProgress(changes, updateProgressBar) {
   let formattedCurrentTime = formattedTimes.current;
   let formattedTotalTime = formattedTimes.total;
 
-  let elemTimeCurrent = getById("time-current");
-  if (formattedCurrentTime !== elemTimeCurrent.innerHTML) {
+  let elemTimeCurrent = "time-current".select();
+  let timeCurrentUpdated = formattedCurrentTime !== elemTimeCurrent.innerHTML;
+  if (timeCurrentUpdated) {
     elemTimeCurrent.innerHTML = formattedCurrentTime;
   }
 
-  let elemTimeTotal = getById("time-total");
-  if (formattedTotalTime !== elemTimeTotal.innerHTML) {
+  let elemTimeTotal = "time-total".select();
+  let timeTotalUpdated = formattedTotalTime !== elemTimeTotal.innerHTML;
+  if (timeTotalUpdated) {
     elemTimeTotal.innerHTML = formattedTotalTime;
   }
 
@@ -1102,29 +1105,17 @@ function updateProgress(changes, updateProgressBar) {
     document.title = newTitle;
   }
 
-  // Progress Bar
-  if (updateProgressBar) {
+  // Update Progress Bar
+  smoothProgressBarPref = smoothProgressBarPref || findPreference("smooth-progress-bar");
+  if (smoothProgressBarPref.state || timeCurrentUpdated || timeTotalUpdated) {
     setProgressBarTarget(current, total, paused);
   }
 }
 
-function setProgressBarTarget(current, total, paused) {
-  let progressBarElem = getById("progress-current");
-
-  let progressPercent = Math.min(1, ((current / total))) * 100;
-  if (isNaN(progressPercent)) {
-    progressPercent = 0;
-  }
-  progressBarElem.style.width = progressPercent + "%";
-
-  finishAnimations(progressBarElem);
-  if (!paused) {
-    let remainingTimeMs = total - current;
-    progressBarElem.style.setProperty("--progress-speed", remainingTimeMs + "ms");
-    requestAnimationFrame(() => {
-      progressBarElem.style.width = "100%";
-    });
-  }
+const progressBarElem = "progress-current".select();
+function setProgressBarTarget(current, total) {
+  let percent = (current / (total || 1)) * 100;
+  progressBarElem.style.setProperty("--progress-percent", percent + "%");
 }
 
 function formatTime(current, total) {
@@ -1193,7 +1184,7 @@ function numberWithCommas(number) {
 // TIMERS
 ///////////////////////////////
 
-const ADVANCE_CURRENT_TIME_MS = 500;
+const ADVANCE_CURRENT_TIME_MS = 1000 / 60;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 
 let autoTimer;
@@ -1203,7 +1194,7 @@ function refreshTimers() {
   clearTimers();
 
   startTime = Date.now();
-  autoTimer = setInterval(() => advanceCurrentTime(false), ADVANCE_CURRENT_TIME_MS);
+  autoTimer = setInterval(() => advanceCurrentTime(), ADVANCE_CURRENT_TIME_MS);
 
   idleTimeout = setTimeout(() => setIdleModeState(true), IDLE_TIMEOUT_MS);
   setIdleModeState(false);
@@ -1216,7 +1207,7 @@ function clearTimers() {
 
 let startTime;
 
-function advanceCurrentTime(updateProgressBar) {
+function advanceCurrentTime() {
   let timeCurrent = currentData.currentlyPlaying.timeCurrent;
   let timeTotal = currentData.currentlyPlaying.timeTotal;
   if (timeCurrent != null && timeTotal != null && !currentData.playbackContext.paused) {
@@ -1225,34 +1216,29 @@ function advanceCurrentTime(updateProgressBar) {
     startTime = now;
     let newTime = timeCurrent + elapsedTime;
     currentData.currentlyPlaying.timeCurrent = Math.min(timeTotal, newTime);
-    updateProgress(currentData, updateProgressBar);
+    refreshProgress();
   }
 }
 
 function setIdleModeState(state) {
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button"); // just to avoid a COMPLETELY black screen
-  let main = getById("main");
   if (state) {
     if (!idle) {
       console.info("No music was played in 2 hours. Enabling idle mode...");
-      settingsMenuToggleButton.classList.add("show");
       idle = true;
       clearTimers();
-      setClass(main, "hide", true);
+      setClass(document.body, "hide", true);
     }
   } else {
     if (idle) {
       idle = false;
-      settingsMenuToggleButton.classList.remove("show");
-      setClass(main, "hide", false);
-      refreshAll();
+      reloadPage();
     }
   }
 }
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    advanceCurrentTime(true);
+    advanceCurrentTime();
   }
 });
 
@@ -1270,9 +1256,9 @@ const PREFERENCES = [
     category: "General",
     css: {"main": "playback-control"},
     callback: (state) => {
-      let infoSymbolsContainer = getById("info-symbols");
-      let shuffleButton = getById("shuffle");
-      let repeatButton = getById("repeat");
+      let infoSymbolsContainer = "info-symbols".select();
+      let shuffleButton = "shuffle".select();
+      let repeatButton = "repeat".select();
       if (state) {
         infoSymbolsContainer.insertBefore(shuffleButton, infoSymbolsContainer.firstChild);
       } else {
@@ -1302,11 +1288,27 @@ const PREFERENCES = [
     name: "Enable Track List",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Track List",
-    requiredFor: ["scrolling-track-list", "hide-title-scrolling-track-list", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
+    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
     css: {
       "title": "!force-display",
       "track-list": "!hide"
-    }
+    },
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "scrollable-track-list",
+    name: "Scrollable Track List",
+    description: "If enabled, the track list can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
+    category: "Track List",
+    css: {"track-list": "scrollable"}
+  },
+  {
+    id: "full-track-list",
+    name: "Show Full Titles",
+    description: "If enabled, longer titles will always be fully displayed (with line breaks). " +
+        "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
+    category: "Track List",
+    css: {"track-list": "no-clamp"}
   },
   {
     id: "show-timestamps-track-list",
@@ -1316,15 +1318,16 @@ const PREFERENCES = [
     css: {"track-list": "show-timestamps"}
   },
   {
-    id: "scrolling-track-list",
+    id: "album-view",
     name: "Enable Album View",
     description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. " +
         "(Only works for 200 tracks or fewer, for performance reasons)",
     category: "Track List",
-    requiredFor: ["hide-title-scrolling-track-list", "xl-main-info-scrolling"]
+    requiredFor: ["hide-title-album-view", "xl-main-info-scrolling"],
+    callback: () => refreshTrackList()
   },
   {
-    id: "hide-title-scrolling-track-list",
+    id: "hide-title-album-view",
     name: "Album View: Hide Duplicate Track Name",
     description: "If 'Album View' is enabled, the current track's name will not be displayed in the main content container " +
         "(since it's already visible in the track list)",
@@ -1400,7 +1403,7 @@ const PREFERENCES = [
     description: "Enable the main content, the container for the current track data and the track list",
     category: "Main Content",
     requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
-      "main-content-centered", "split-main-panels", "reduced-center-margins", "vertical-mode"],
+      "main-content-centered", "split-main-panels", "reduced-center-margins"],
     css: {
       "content-center": "!hide",
       "artwork": "!center-disabled"
@@ -1426,7 +1429,7 @@ const PREFERENCES = [
     name: "Show Titles",
     description: "Show the title of the currently playing track",
     category: "Main Content",
-    requiredFor: ["hide-title-scrolling-track-list"],
+    requiredFor: ["hide-title-album-view"],
     css: {"title": "!hide"}
   },
   {
@@ -1581,9 +1584,18 @@ const PREFERENCES = [
   {
     id: "show-progress-bar",
     name: "Progress Bar",
-    description: "Displays a bar of that spans the entire screen, indicating how far along the currently played track is",
+    description: "Displays a progress bar, indicating how far along the currently played track is",
     category: "Bottom Content",
+    requiredFor: ["smooth-progress-bar"],
     css: {"progress": "!hide"}
+  },
+  {
+    id: "smooth-progress-bar",
+    name: "Smooth Progress Bar",
+    description: "If enabled, the progress bar will get updated at 60 FPS, rather than only once per second. " +
+        "This setting is not recommended for low-power hardware, like a Raspberry Pi",
+    category: "Bottom Content",
+    callback: () => refreshProgress()
   },
   {
     id: "show-timestamps",
@@ -1603,9 +1615,9 @@ const PREFERENCES = [
     category: "Bottom Content",
     css: {"bottom-meta-container": "spread-timestamps"},
     callback: (state) => {
-      let timeCurrent = getById("time-current");
-      let bottomLeft = getById("bottom-left");
-      let bottomRight = getById("bottom-right");
+      let timeCurrent = "time-current".select();
+      let bottomLeft = "bottom-left".select();
+      let bottomRight = "bottom-right".select();
       if (state) {
         bottomLeft.insertBefore(timeCurrent, bottomLeft.firstChild);
       } else {
@@ -1621,6 +1633,27 @@ const PREFERENCES = [
     category: "Bottom Content",
     requiredFor: ["playback-control"],
     css: {"info-symbols": "!hide"}
+  },
+  {
+    id: "center-info-icons",
+    name: "Center Icons",
+    description: "If enabled, the play/pause/shuffle/repeat icons are centered in the bottom content (like it's the case on the default Spotify player). " +
+        "Enabling this will disable the clock",
+    category: "Bottom Content",
+    overrides: ["show-clock"],
+    css: {"bottom-meta-container": "centered-controls"},
+    callback: (state) => {
+      let infoSymbols = "info-symbols".select();
+      let bottomLeft = "bottom-left".select();
+      let bottomMetaContainer = "bottom-meta-container".select();
+      let clockWrapper = "clock-wrapper".select();
+      let volume = "volume".select();
+      if (state) {
+        bottomMetaContainer.insertBefore(infoSymbols, clockWrapper);
+      } else {
+        bottomLeft.insertBefore(infoSymbols, volume);
+      }
+    }
   },
   {
     id: "show-volume",
@@ -1650,7 +1683,7 @@ const PREFERENCES = [
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
     requiredFor: ["clock-full"],
-    css: {"clock": "!hide"}
+    css: {"clock-wrapper": "!hide"}
   },
   {
     id: "clock-full",
@@ -1740,6 +1773,14 @@ const PREFERENCES = [
     css: {"content": "swap-top-bottom"}
   },
   {
+    id: "artwork-above-content",
+    name: "Artwork Above Track Info",
+    description: "If enabled, the artwork is played above the track info, rather than next to it. " +
+        "This mode is intended for portrait mode (it will break everything in landscape mode)",
+    category: "Layout: Misc",
+    css: {"main": "artwork-above-content"}
+  },
+  {
     id: "decreased-margins",
     name: "Decreased Margins",
     description: "If enabled, all margins are halved. " +
@@ -1748,25 +1789,12 @@ const PREFERENCES = [
     css: {"main": "decreased-margins"},
   },
   {
-    id: "vertical-mode",
-    name: "Vertical Mode",
-    description: "Convert the two-panel layout into a vertical, centered layout (artwork above track name). " +
-        "Do note that this setting overrides many other settings, namely the track list",
-    category: "Layout: Misc",
-    overrides: ["show-queue", "xl-text", "artwork-expand-top", "artwork-expand-bottom", "artwork-right", "main-content-centered",
-      "show-podcast-descriptions", "split-main-panels", "artwork-expand-top", "artwork-expand-bottom",
-      "swap-top-bottom"],
-    css: {"main": "vertical"}
-  },
-  {
     id: "show-fps",
     name: "FPS Counter",
     description: "Display the frames-per-second in the top right of the screen (intended for performance debugging)",
     category: "Developer Tools",
     css: {"fps-counter": "show"},
-    callback: () => {
-      fpsTick();
-    }
+    callback: () => fpsTick()
   },
   {
     id: "prerender-background",
@@ -1797,8 +1825,8 @@ const PREFERENCES_DEFAULT = {
   enabled: [
     "enable-center-content",
     "show-queue",
-    "scrolling-track-list",
-    "hide-title-scrolling-track-list",
+    "album-view",
+    "hide-title-album-view",
     "show-timestamps-track-list",
     "show-podcast-descriptions",
     "display-artwork",
@@ -1810,10 +1838,7 @@ const PREFERENCES_DEFAULT = {
     "bg-gradient",
     "bg-grain",
     "show-artists",
-    "show-featured-artists",
     "show-titles",
-    "colored-text",
-    "colored-symbol-context",
     "colored-symbol-spotify",
     "show-release",
     "enable-top-content",
@@ -1823,18 +1848,15 @@ const PREFERENCES_DEFAULT = {
     "show-context-summary",
     "show-context-thumbnail",
     "show-logo",
-    "transitions",
-    "strip-titles",
     "show-timestamps",
     "show-info-icons",
     "show-volume",
     "show-volume-bar",
     "show-device",
     "show-progress-bar",
+    "smooth-progress-bar",
     "show-clock",
-    "clock-full",
-    "prerender-background",
-    "fake-song-transition"
+    "clock-full"
   ],
   disabled: [
     "swap-top-bottom",
@@ -1846,17 +1868,29 @@ const PREFERENCES_DEFAULT = {
     "split-main-panels",
     "center-lr-margins",
     "reduced-center-margins",
-    "vertical-mode",
     "xl-main-info-scrolling",
     "xl-tracklist",
     "swap-top",
+    "colored-symbol-context",
     "spread-timestamps",
     "reverse-bottom",
     "artwork-expand-bottom",
-    "artwork-right"
+    "artwork-right",
+    "artwork-above-content",
+    "full-track-list",
+    "center-info-icons"
   ],
-  ignore: [
+  ignoreDefaultOn: [
+    "colored-text",
+    "transitions",
+    "strip-titles",
+    "fake-song-transition",
+    "show-featured-artists",
+    "prerender-background"
+  ],
+  ignoreDefaultOff: [
     "playback-control",
+    "scrollable-track-list",
     "dark-mode",
     "show-fps"
   ]
@@ -1871,39 +1905,6 @@ const PREFERENCES_PRESETS = [
         "Clicking this behaves like a reset button for all settings",
     enabled: [],
     disabled: []
-  },
-  {
-    id: "preset-compact",
-    name: "Compact Mode",
-    category: "Presets",
-    description: "Similar to the default mode, but the artwork is on the right and a little smaller, opening up slightly more room for the main content",
-    enabled: [
-        "artwork-right",
-        "center-lr-margins"
-    ],
-    disabled: [
-        "artwork-expand-top",
-        "main-content-centered"
-    ]
-  },
-  {
-    id: "preset-xl-artwork",
-    name: "XL-Artwork Mode",
-    category: "Presets",
-    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the track list, and the progress bar are displayed",
-    enabled: [
-      "artwork-expand-bottom",
-      "decreased-margins"
-    ],
-    disabled: [
-      "enable-top-content",
-      "show-timestamps",
-      "show-info-icons",
-      "show-volume",
-      "show-volume-bar",
-      "show-device",
-      "show-clock"
-    ]
   },
   {
     id: "preset-tracklist",
@@ -1945,11 +1946,42 @@ const PREFERENCES_PRESETS = [
       "full-release-date-podcasts"
     ],
     disabled: [
-      "colored-symbol-context",
-      "show-featured-artists",
       "main-content-centered",
       "bg-tint",
       "display-artwork"
+    ]
+  },
+  {
+    id: "preset-compact",
+    name: "Compact Mode",
+    category: "Presets",
+    description: "Similar to the default mode, but the artwork is on the right and a little smaller, opening up slightly more room for the main content",
+    enabled: [
+      "artwork-right",
+      "center-lr-margins"
+    ],
+    disabled: [
+      "artwork-expand-top",
+      "main-content-centered"
+    ]
+  },
+  {
+    id: "preset-xl-artwork",
+    name: "XL-Artwork Mode",
+    category: "Presets",
+    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the track list, and the progress bar are displayed",
+    enabled: [
+      "artwork-expand-bottom",
+      "decreased-margins"
+    ],
+    disabled: [
+      "enable-top-content",
+      "show-timestamps",
+      "show-info-icons",
+      "show-volume",
+      "show-volume-bar",
+      "show-device",
+      "show-clock"
     ]
   },
   {
@@ -1966,53 +1998,16 @@ const PREFERENCES_PRESETS = [
     ],
     disabled: [
       "show-clock",
-      "show-featured-artists",
-      "scrolling-track-list",
+      "album-view",
       "show-device",
       "show-volume",
       "show-volume-bar",
       "show-podcast-descriptions",
       "show-info-icons",
-      "hide-title-scrolling-track-list",
+      "hide-title-album-view",
       "show-queue",
       "display-artwork",
       "show-timestamps-track-list"
-    ]
-  },
-  {
-    id: "preset-minimalistic",
-    name: "Minimalistic Mode",
-    category: "Presets",
-    description: "A minimalistic design preset only containing the most relevant information about the currently playing track. The background only displays a plain color. Inspired by the original Spotify fullscreen interface for Chromecast",
-    enabled: [
-      "vertical-mode",
-      "spread-timestamps",
-      "reverse-bottom",
-      "reduced-center-margins"
-    ],
-    disabled: [
-      "artwork-expand-top",
-      "main-content-centered",
-      "show-clock",
-      "clock-full",
-      "show-featured-artists",
-      "scrolling-track-list",
-      "bg-artwork",
-      "bg-gradient",
-      "bg-grain",
-      "show-device",
-      "show-volume",
-      "show-volume-bar",
-      "show-podcast-descriptions",
-      "show-release",
-      "show-info-icons",
-      "hide-title-scrolling-track-list",
-      "show-queue",
-      "colored-text",
-      "colored-symbol-spotify",
-      "show-timestamps",
-      "show-timestamps-track-list",
-      "colored-symbol-context"
     ]
   },
   {
@@ -2028,15 +2023,12 @@ const PREFERENCES_PRESETS = [
     disabled: [
       "enable-center-content",
       "show-queue",
-      "scrolling-track-list",
-      "hide-title-scrolling-track-list",
+      "album-view",
+      "hide-title-album-view",
       "show-timestamps-track-list",
       "show-podcast-descriptions",
       "show-artists",
-      "show-featured-artists",
       "show-titles",
-      "colored-text",
-      "colored-symbol-context",
       "colored-symbol-spotify",
       "show-release",
       "enable-top-content",
@@ -2045,25 +2037,39 @@ const PREFERENCES_PRESETS = [
       "show-context-summary",
       "show-context-thumbnail",
       "show-logo",
-      "strip-titles",
       "show-timestamps",
       "show-info-icons",
       "show-volume",
       "show-volume-bar",
       "show-device",
       "show-progress-bar",
+      "smooth-progress-bar",
       "show-clock"
+    ]
+  },
+  {
+    id: "preset-vertical",
+    name: "Vertical Mode",
+    category: "Presets",
+    description: "A preset optimized (only) for portrait mode. The main content will be displayed below the artwork. " +
+        "Don't use this preset on widescreen monitors, as it will likely break everything",
+    enabled: [
+      "artwork-above-content",
+      "spread-timestamps",
+      "reverse-bottom",
+      "center-info-icons"
+    ],
+    disabled: [
+      "artwork-expand-top",
+      "show-info-icons",
+      "show-device",
+      "show-volume"
     ]
   }
 ];
 
 function findPreference(id) {
-  let pref = PREFERENCES.find(pref => pref.id === id);
-  if (pref && !pref.hasOwnProperty('state')) {
-    // Just to fix IDE warnings
-    pref.state = false;
-  }
-  return pref;
+  return PREFERENCES.find(pref => pref.id === id);
 }
 
 function findPreset(id) {
@@ -2071,25 +2077,35 @@ function findPreset(id) {
 }
 
 function isPrefEnabled(id) {
-  return findPreference(id).state;
+  let pref = findPreference(id);
+  return pref.state; // needs to be new line so the IDE doesn't complain about "state" not existing for some reason
 }
 
 window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
-  const settingsWrapper = getById("settings-categories");
+  const settingsWrapper = "settings-categories".select();
 
-  // Integrity check
+  // Developer integrity check
+  let allSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOn, PREFERENCES_DEFAULT.ignoreDefaultOff].flat();
   if (DEV_MODE) {
-    let allDefaultSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignore].flat();
-    if (allDefaultSettings.length > [...new Set(allDefaultSettings)].length) {
+    if (allSettings.length > [...new Set(allSettings)].length) {
       console.warn("Default settings contain duplicates!");
     }
     let unclassifiedSettings = PREFERENCES
         .map(pref => pref.id)
-        .filter(prefId => !allDefaultSettings.includes(prefId));
+        .filter(prefId => !allSettings.includes(prefId));
     if (unclassifiedSettings.length > 0) {
       console.warn("The following settings don't have any defaults specified: " + unclassifiedSettings);
+    }
+  }
+
+  // User integrity check (reset settings after update)
+  if (isLocalStorageAvailable()) {
+    let prefsFromStorage = getVisualPreferencesFromLocalStorage();
+    if (!prefsFromStorage.every(v => allSettings.includes(v))) {
+      clearVisualPreferencesInLocalStorage();
+      alert("Looks like you've installed a new version of SpotifyBigPicture. To avoid conflicts with version changes, your previous settings have been reset.");
     }
   }
 
@@ -2128,7 +2144,7 @@ function initVisualPreferences() {
   }
 
   // Create preset buttons
-  const settingsPresetsWrapper = getById("settings-presets");
+  const settingsPresetsWrapper = "settings-presets".select();
   for (let presetIndex in PREFERENCES_PRESETS) {
     let preset = PREFERENCES_PRESETS[presetIndex];
 
@@ -2152,8 +2168,11 @@ function initVisualPreferences() {
         refreshPreference(pref, visualPreferencesFromLocalStorage.includes(pref.id));
       }
     } else {
-      // On first load, apply first preset of the list
-      applyPreset(PREFERENCES_PRESETS[0]);
+      // On first load, apply the default preset and enable the ignoreDefaultOn settings. Then force-open the settings menu
+      applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-default"));
+      PREFERENCES_DEFAULT.ignoreDefaultOn.forEach(prefId => {
+        setVisualPreferenceFromId(prefId, true);
+      });
       requestAnimationFrame(() => {
         setSettingsMenuState(true);
       });
@@ -2192,11 +2211,30 @@ function submitVisualPreferencesToBackend() {
   })
 }
 
+const LOCAL_STORAGE_TEST_KEY = "local_storage_availability_test";
+let localStorageAvailable = null;
+function isLocalStorageAvailable() {
+  if (localStorageAvailable === null) {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_TEST_KEY, LOCAL_STORAGE_TEST_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_TEST_KEY);
+      localStorageAvailable = true;
+    } catch (e) {
+      localStorageAvailable = false;
+    }
+  }
+  return localStorageAvailable;
+}
+
 const LOCAL_STORAGE_KEY_SETTINGS = "visual_preferences";
 const LOCAL_STORAGE_SETTINGS_SPLIT_CHAR = "+";
 function getVisualPreferencesFromLocalStorage() {
   let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS);
   return storedVisualPreferences?.split(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
+}
+
+function clearVisualPreferencesInLocalStorage() {
+  localStorage.removeItem(LOCAL_STORAGE_KEY_SETTINGS);
 }
 
 function refreshPrefsLocalStorage() {
@@ -2207,21 +2245,6 @@ function refreshPrefsLocalStorage() {
       .join(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
     localStorage.setItem(LOCAL_STORAGE_KEY_SETTINGS, enabledPreferences);
   }
-}
-
-let localStorageAvailable = null;
-function isLocalStorageAvailable() {
-  if (localStorageAvailable === null) {
-    let test = "localStorageAvailabilityTest";
-    try {
-      localStorage.setItem(test, test);
-      localStorage.removeItem(test);
-      localStorageAvailable = true;
-    } catch (e) {
-      localStorageAvailable = false;
-    }
-  }
-  return localStorageAvailable;
 }
 
 function toggleVisualPreference(pref) {
@@ -2241,6 +2264,9 @@ function setVisualPreference(pref, newState) {
 }
 
 let refreshContentTimeout;
+function isRenderingPreferenceChange() {
+  return !!refreshContentTimeout;
+}
 
 function refreshPreference(preference, state) {
   preference.state = state;
@@ -2253,7 +2279,7 @@ function refreshPreference(preference, state) {
       let targetClassRaw = preference.css[id].toString();
       let targetClass = targetClassRaw.replace("!", "");
       let targetState = targetClassRaw.startsWith("!") ? !state : state;
-      setClass(getById(id), targetClass, targetState)
+      setClass(id.select(), targetClass, targetState)
     }
   }
 
@@ -2261,31 +2287,32 @@ function refreshPreference(preference, state) {
   clearTimeout(refreshContentTimeout);
   refreshContentTimeout = setTimeout(() => {
     refreshAll();
+    refreshContentTimeout = null;
   }, transitionFromCss);
 
   // Update the settings that are invalidated
   updateOverridden(preference);
 
   // Toggle Checkmark
-  let prefElem = getById(preference.id);
+  let prefElem = preference.id.select();
   if (prefElem) {
     setClass(prefElem, "on", state);
   }
 }
 
 function updateOverridden(preference) {
-  let prefElem = getById(preference.id);
+  let prefElem = preference.id.select();
   if (prefElem) {
     let state = preference.state && !prefElem.classList.toString().includes("overridden-");
     if ('requiredFor' in preference) {
       preference.requiredFor.forEach(override => {
-        setClass(getById(override), `overridden-${preference.id}`, !state);
+        setClass(override.select(), `overridden-${preference.id}`, !state);
         updateOverridden(findPreference(override));
       });
     }
     if ('overrides' in preference) {
       preference.overrides.forEach(override => {
-        setClass(getById(override), `overridden-${preference.id}`, state);
+        setClass(override.select(), `overridden-${preference.id}`, state);
         updateOverridden(findPreference(override));
       });
     }
@@ -2329,11 +2356,15 @@ function updateExternallyToggledPreferences(changes) {
       }
       changes.settingsToToggle = [];
       if (reload) {
-        window.location.reload(true);
+        reloadPage();
       }
     }
     resolve();
   });
+}
+
+function reloadPage() {
+  window.location.reload(true);
 }
 
 function toggleFullscreen() {
@@ -2349,8 +2380,8 @@ function toggleFullscreen() {
 const OPACITY_TIMEOUT = 2 * 1000;
 let volumeTimeout;
 function handleVolumeChange(volume, device, customVolumeSettings) {
-  let volumeContainer = getById("volume");
-  let volumeTextContainer = getById("volume-text");
+  let volumeContainer = "volume".select();
+  let volumeTextContainer = "volume-text".select();
 
   let volumeWithPercent = volume + "%";
 
@@ -2373,7 +2404,7 @@ function handleVolumeChange(volume, device, customVolumeSettings) {
 
 let deviceTimeout;
 function handleDeviceChange(device) {
-  let deviceContainer = getById("device");
+  let deviceContainer = "device".select();
   deviceContainer.innerHTML = device;
 
   deviceContainer.classList.add("active");
@@ -2386,7 +2417,7 @@ function handleDeviceChange(device) {
 function refreshAll() {
   refreshTextBalance();
   refreshBackgroundRender(true);
-  updateProgress(currentData, true);
+  refreshProgress();
   updateScrollGradients();
   submitVisualPreferencesToBackend();
 }
@@ -2395,10 +2426,31 @@ function refreshAll() {
 // REFRESH IMAGE ON RESIZE
 ///////////////////////////////
 
+let mobileView = null;
+function isPortraitMode(refresh = false) {
+  if (refresh || mobileView === null) {
+    mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
+  }
+  return mobileView;
+}
+
+let wasPreviouslyInPortraitMode = false;
 let refreshBackgroundEvent;
+
+function portraitModePresetSwitchPrompt() {
+  let portraitMode = isPortraitMode(true);
+  if (!wasPreviouslyInPortraitMode && portraitMode && !isPrefEnabled("artwork-above-content")) {
+    if (confirm("It seems like you're using the app in portrait mode. Would you like to switch to the design optimized for vertical aspect ratios?")) {
+      applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-vertical"));
+    }
+  }
+  wasPreviouslyInPortraitMode = portraitMode;
+}
+
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   refreshBackgroundEvent = setTimeout(() => {
+    portraitModePresetSwitchPrompt();
     refreshAll();
   }, transitionFromCss);
 };
@@ -2409,12 +2461,12 @@ window.onresize = () => {
 
 window.addEventListener('load', initPlaybackControls);
 function initPlaybackControls() {
-  getById("play-pause").onclick = () => fireControl("PLAY_PAUSE");
-  getById("shuffle").onclick = () => fireControl("SHUFFLE");
-  getById("repeat").onclick = () => fireControl("REPEAT");
-  getById("prev").onclick = () => fireControl("PREV");
-  getById("next").onclick = () => fireControl("NEXT");
-  getById("volume").onclick = () => {
+  "play-pause".select().onclick = () => fireControl("PLAY_PAUSE");
+  "shuffle".select().onclick = () => fireControl("SHUFFLE");
+  "repeat".select().onclick = () => fireControl("REPEAT");
+  "prev".select().onclick = () => fireControl("PREV");
+  "next".select().onclick = () => fireControl("NEXT");
+  "volume".select().onclick = () => {
     let newVolume = prompt("Enter new volume in % (0-100):");
     if (newVolume !== null) {
       if (newVolume >= 0 && newVolume <= 100) {
@@ -2432,7 +2484,7 @@ let waitingForResponse = false;
 function fireControl(control, param) {
   if (!waitingForResponse && playbackControlPref.state) {
     waitingForResponse = true;
-    setClass(getById("main"), "waiting-for-control", true);
+    setClass("main".select(), "waiting-for-control", true);
     fetch(`/modify-playback/${control}${param ? `?param=${param}` : ""}`, {method: 'POST'})
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
@@ -2451,7 +2503,7 @@ function fireControl(control, param) {
 function unlockPlaybackControls() {
   if (waitingForResponse) {
     waitingForResponse = false;
-    setClass(getById("main"), "waiting-for-control", false);
+    setClass("main".select(), "waiting-for-control", false);
   }
 }
 
@@ -2497,7 +2549,7 @@ function handleMouseEvent(e) {
   clearTimeout(cursorTimeout);
   setMouseVisibility(true)
 
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
   setClass(settingsMenuToggleButton, "show", true);
 
   if (!isHoveringControlElem(e.target)) {
@@ -2508,20 +2560,45 @@ function handleMouseEvent(e) {
   }
 }
 
-let mobileView = null;
-function isPortraitMode(force = false) {
-  if (force || mobileView === null) {
-    mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
+window.addEventListener('load', initSettingsMouseMove);
+
+function printSettingDescription(event) {
+  let settingsDescriptionContainer = "settings-description".select();
+  let header = "settings-description-header".select();
+  let description = "settings-description-description".select();
+  let unaffected = "settings-description-unaffected".select();
+  let overridden = "settings-description-overridden".select();
+
+  let target = event.target;
+  if (target.parentNode.classList.contains("preset")) {
+    target = target.parentNode;
   }
-  return mobileView;
+  if (target.classList.contains("setting") || target.classList.contains("preset")) {
+    let pref = findPreference(target.id) || findPreset(target.id);
+    if (pref) {
+      header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
+      description.innerHTML = pref.description;
+
+      unaffected.innerHTML = [PREFERENCES_DEFAULT.ignoreDefaultOn, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().includes(pref.id) ? "(This setting is unaffected by changing presets)" : "";
+
+      overridden.innerHTML = [...target.classList]
+        .filter(className => className.startsWith("overridden-"))
+        .map(className => findPreference(className.replace("overridden-", "")))
+        .map(pref => pref.category + " &#x00BB; " + pref.name)
+        .join(" // ");
+
+      setClass(settingsDescriptionContainer, "show", true);
+    }
+  } else {
+    setClass(settingsDescriptionContainer, "show", false);
+  }
 }
 
-window.addEventListener('load', initSettingsMouseMove);
 function initSettingsMouseMove() {
   setMouseVisibility(false);
-  let settingsWrapper = getById("settings-wrapper");
+  let settingsWrapper = "settings-wrapper".select();
 
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
   settingsMenuToggleButton.onclick = (e) => {
     if (DEV_MODE && e.shiftKey) {
       generatePresetThumbnail();
@@ -2530,13 +2607,13 @@ function initSettingsMouseMove() {
     }
   };
 
-  let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
+  let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
   settingsMenuExpertModeToggleButton.onclick = () => {
     toggleSettingsExpertMode();
   };
 
   document.body.onclick = (e) => {
-    if (settingsVisible && !isSettingControlElem(e)) {
+    if (settingsVisible && !isSettingControlElem(e) && !isRenderingPreferenceChange()) {
       setSettingsMenuState(false);
     }
   }
@@ -2549,39 +2626,13 @@ function initSettingsMouseMove() {
 
   settingsWrapper.onmousemove = (event) => {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
-
-    let settingsDescriptionContainer = getById("settings-description");
-    let header = getById("settings-description-header");
-    let description = getById("settings-description-description");
-    let overridden = getById("settings-description-overridden");
-
-    let target = event.target;
-    if (target.parentNode.classList.contains("preset")) {
-      target = target.parentNode;
-    }
-    if (target.classList.contains("setting") || target.classList.contains("preset")) {
-      let pref = findPreference(target.id) || findPreset(target.id);
-      if (pref) {
-        header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
-        description.innerHTML = pref.description;
-
-        overridden.innerHTML = [...target.classList]
-          .filter(className => className.startsWith("overridden-"))
-          .map(className => findPreference(className.replace("overridden-", "")))
-          .map(pref => pref.category + " &#x00BB; " + pref.name)
-          .join(" // ");
-
-        setClass(settingsDescriptionContainer, "show", true);
-      }
-    } else {
-      setClass(settingsDescriptionContainer, "show", false);
-    }
+    printSettingDescription(event);
   }
 }
 
 function isSettingControlElem(e) {
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
-  let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
+  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
+  let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
   return e.target === settingsMenuToggleButton
       || e.target === settingsMenuExpertModeToggleButton
       || e.target.classList.contains("setting")
@@ -2603,28 +2654,28 @@ function toggleSettingsMenu() {
 function setSettingsMenuState(state) {
   settingsVisible = state;
 
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
   setClass(settingsMenuToggleButton, "show", settingsVisible);
   setMouseVisibility(settingsVisible)
 
-  let settingsWrapper = getById("settings-wrapper");
-  let mainBody = getById("main");
+  let settingsWrapper = "settings-wrapper".select();
+  let mainBody = "main".select();
   setClass(settingsWrapper, "show", settingsVisible);
   setClass(mainBody, "scale-down", settingsVisible);
 }
 
 function toggleSettingsExpertMode() {
   settingsExpertMode = !settingsExpertMode;
-  let settingsWrapper = getById("settings-wrapper");
+  let settingsWrapper = "settings-wrapper".select();
   setClass(settingsWrapper, "expert", settingsExpertMode);
 }
 
 function generatePresetThumbnail() {
-  let thumbnailGenerationEnabled = getById("main").classList.toggle("preset-thumbnail-generator");
+  let thumbnailGenerationEnabled = "main".select().classList.toggle("preset-thumbnail-generator");
   if (thumbnailGenerationEnabled) {
-    let prerenderCanvas = setClass(getById("prerender-canvas"), "show", true); // needed because rect would return all 0px otherwise
+    let prerenderCanvas = setClass("prerender-canvas".select(), "show", true); // needed because rect would return all 0px otherwise
 
-    let artworkBoundingBox = getById("artwork-img").getBoundingClientRect();
+    let artworkBoundingBox = "artwork-img".select().getBoundingClientRect();
 
     let fakeArtwork = document.createElement("div");
     fakeArtwork.id = "fake-artwork";
@@ -2633,11 +2684,11 @@ function generatePresetThumbnail() {
     fakeArtwork.style.width = artworkBoundingBox.width + "px";
     fakeArtwork.style.height = artworkBoundingBox.width + "px";
 
-    let contentMain = getById("content");
+    let contentMain = "content".select();
     contentMain.insertBefore(fakeArtwork, contentMain.firstChild);
 
-    let content = getById("content");
-    let presetThumbnailGeneratorCanvas = getById("preset-thumbnail-generator-canvas");
+    let content = "content".select();
+    let presetThumbnailGeneratorCanvas = "preset-thumbnail-generator-canvas".select();
     domtoimage.toPng(content, {
       width: window.innerWidth,
       height: window.innerHeight
@@ -2652,7 +2703,7 @@ function generatePresetThumbnail() {
         document.body.removeChild(downloadLink);
 
         fakeArtwork.remove();
-        getById("main").classList.remove("preset-thumbnail-generator");
+        "main".select().classList.remove("preset-thumbnail-generator");
         setClass(presetThumbnailGeneratorCanvas, "show", false);
 
         setClass(prerenderCanvas, "show", isPrefEnabled("prerender-background"));
@@ -2692,7 +2743,7 @@ setInterval(() => {
     let time = clockFormatPref.state ? date.toLocaleDateString(clockLocale, DATE_OPTIONS) : date.toLocaleTimeString(clockLocale, TIME_OPTIONS);
     if (time !== prevTime) {
       prevTime = time;
-      let clock = getById("clock");
+      let clock = "clock".select();
       clock.innerHTML = time;
     }
   }
@@ -2703,14 +2754,11 @@ setInterval(() => {
 // FPS Counter
 ///////////////////////////////
 
-let fps = getById("fps-counter");
+let fps = "fps-counter".select();
 let fpsStartTime = Date.now();
 let fpsFrame = 0;
-let fpsPref;
+let fpsPref = findPreference("show-fps");
 function fpsTick() {
-  if (!fpsPref) {
-    fpsPref = findPreference("show-fps");
-  }
   if (fpsPref.state) {
     let time = Date.now();
     fpsFrame++;

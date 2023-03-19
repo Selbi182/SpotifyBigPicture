@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
@@ -23,13 +24,15 @@ public class CustomVolumeSettingsProvider {
     try {
       File customImagesFiles = new File(CUSTOM_VOLUME_SETTINGS_FILE);
       if (customImagesFiles.canRead()) {
-        Files.lines(Path.of(CUSTOM_VOLUME_SETTINGS_FILE))
-          .filter(line -> !line.startsWith(COMMENT_CHAR) && !line.isBlank())
-          .map(line -> line.split(SPLIT_CHAR))
-          .forEach(entry -> {
-            PlaybackInfo.CustomVolumeSettings customVolumeSettings = new PlaybackInfo.CustomVolumeSettings(entry[0].trim(), Integer.parseInt(entry[1].trim()));
-            CustomVolumeSettingsProvider.customVolumeSettings.add(customVolumeSettings);
-          });
+        try (Stream<String> customVolumeSettingLines = Files.lines(Path.of(CUSTOM_VOLUME_SETTINGS_FILE))) {
+          customVolumeSettingLines
+            .filter(line -> !line.startsWith(COMMENT_CHAR) && !line.isBlank())
+            .map(line -> line.split(SPLIT_CHAR))
+            .forEach(entry -> {
+              PlaybackInfo.CustomVolumeSettings customVolumeSettings = new PlaybackInfo.CustomVolumeSettings(entry[0].trim(), Integer.parseInt(entry[1].trim()));
+              CustomVolumeSettingsProvider.customVolumeSettings.add(customVolumeSettings);
+            });
+        }
       }
     } catch (IOException | NumberFormatException e) {
       System.out.println("Failed to read " + CUSTOM_VOLUME_SETTINGS_FILE);

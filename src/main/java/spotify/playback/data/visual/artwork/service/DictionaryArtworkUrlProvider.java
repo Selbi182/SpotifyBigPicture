@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
@@ -29,10 +30,11 @@ public class DictionaryArtworkUrlProvider implements ArtworkUrlProvider {
     try {
       File customImagesFiles = new File(CUSTOM_IMAGES_FILE);
       if (customImagesFiles.canRead()) {
-        Files.lines(Path.of(CUSTOM_IMAGES_FILE))
-          .filter(line -> !line.startsWith(COMMENT_CHAR) && !line.isBlank())
-          .map(line -> line.split(SPLIT_CHAR))
-          .forEach(entry -> dictionaryImgMap.put(entry[0].trim(), entry[1].trim()));
+        try (Stream<String> customImageLines = Files.lines(Path.of(CUSTOM_IMAGES_FILE))) {
+          customImageLines.filter(line -> !line.startsWith(COMMENT_CHAR) && !line.isBlank())
+            .map(line -> line.split(SPLIT_CHAR))
+            .forEach(entry -> dictionaryImgMap.put(entry[0].trim(), entry[1].trim()));
+        }
       }
     } catch (IOException e) {
       System.out.println("Failed to read " + CUSTOM_IMAGES_FILE);

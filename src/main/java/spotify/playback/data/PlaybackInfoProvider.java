@@ -100,11 +100,11 @@ public class PlaybackInfoProvider {
         if (queueEnabled) {
           try {
             playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue());
-            if (currentlyPlayingContext != null && playbackQueue.getCurrentlyPlaying() == null) {
+            if (currentlyPlayingContext != null && (playbackQueue == null || playbackQueue.getCurrentlyPlaying() == null)) {
               // Edge case for local files
               PlaybackQueue.Builder builder = new PlaybackQueue.Builder();
               builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
-              builder.setQueue(playbackQueue.getQueue());
+              builder.setQueue(playbackQueue != null ? playbackQueue.getQueue() : List.of());
               playbackQueue = builder.build();
             }
           } catch (SpotifyApiException e) {
