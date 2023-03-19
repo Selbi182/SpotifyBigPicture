@@ -194,8 +194,8 @@ function cloneObject(object) {
 // MAIN DISPLAY STUFF
 ///////////////////////////////
 
-function getById(id) {
-  return document.getElementById(id);
+String.prototype.select = function() {
+  return document.getElementById(this);
 }
 
 const BLANK = "BLANK";
@@ -243,13 +243,13 @@ function getChange(changes, path) {
 
 function setTextData(changes) {
   // Main Content
-  let titleContainer = getById("title");
+  let titleContainer = "title".select();
 
   let artists = getChange(changes, "currentlyPlaying.artists");
   if (artists.wasChanged) {
     let artistsNew = artists.value;
     let mainArtist = artistsNew[0];
-    let artistContainer = getById("artists");
+    let artistContainer = "artists".select();
     let artistsString = mainArtist + buildFeaturedArtistsSpan(artistsNew);
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
 
@@ -266,8 +266,8 @@ function setTextData(changes) {
     let splitTitle = separateUnimportantTitleInfo(titleNoFeat);
     let titleMain = splitTitle.main;
     let titleExtra = splitTitle.extra;
-    getById("title-main").innerHTML = titleMain;
-    getById("title-extra").innerHTML = titleExtra;
+    "title-main".select().innerHTML = titleMain;
+    "title-extra".select().innerHTML = titleExtra;
 
     balanceTextClamp(titleContainer);
     fadeIn(titleContainer);
@@ -280,31 +280,31 @@ function setTextData(changes) {
     let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
     let albumTitleMain = splitTitle.main;
     let albumTitleExtra = splitTitle.extra;
-    getById("album-title-main").innerHTML = albumTitleMain;
-    getById("album-title-extra").innerHTML = albumTitleExtra;
+    "album-title-main".select().innerHTML = albumTitleMain;
+    "album-title-extra".select().innerHTML = albumTitleExtra;
 
     let release = releaseDate.value;
     if (release !== BLANK) {
       let year = release.slice(0, 4);
-      getById("release-year").innerHTML = year;
-      getById("release-full").innerHTML = release.length > year.length && !release.endsWith("-01-01") ? formatReleaseDate(release) : year;
-      setClass(getById("album-release"), "hide", false);
+      "release-year".select().innerHTML = year;
+      "release-full".select().innerHTML = release.length > year.length && !release.endsWith("-01-01") ? formatReleaseDate(release) : year;
+      setClass("album-release".select(), "hide", false);
     } else {
-      getById("release-year").innerHTML = "";
-      getById("release-full").innerHTML = "";
-      setClass(getById("album-release"), "hide", true);
+      "release-year".select().innerHTML = "";
+      "release-full".select().innerHTML = "";
+      setClass("album-release".select(), "hide", true);
     }
 
-    let albumMainContainer = getById("album-title");
+    let albumMainContainer = "album-title".select();
     balanceTextClamp(albumMainContainer);
-    let albumContainer = getById("album");
+    let albumContainer = "album".select();
     fadeIn(albumContainer);
   }
 
   let description = getChange(changes, "currentlyPlaying.description");
   if (description.wasChanged) {
-    let descriptionContainer = getById("description");
-    setClass(getById("content-center"), "podcast", description.value && description.value !== BLANK);
+    let descriptionContainer = "description".select();
+    setClass("content-center".select(), "podcast", description.value && description.value !== BLANK);
     descriptionContainer.innerHTML = description.value;
     balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
@@ -314,8 +314,8 @@ function setTextData(changes) {
   let contextName = getChange(changes, "playbackContext.context.contextName");
   let contextType = getChange(changes, "playbackContext.context.contextType");
   if (contextName.wasChanged || contextType.wasChanged) {
-    let contextMain = getById("context-main");
-    let contextExtra = getById("context-extra");
+    let contextMain = "context-main".select();
+    let contextExtra = "context-extra".select();
 
     // Context name
     let contextTypePrefix = "";
@@ -356,8 +356,8 @@ function setTextData(changes) {
     }
 
     // Thumbnail
-    let thumbnailWrapperContainer = getById("thumbnail-wrapper");
-    let thumbnailContainer = getById("thumbnail");
+    let thumbnailWrapperContainer = "thumbnail-wrapper".select();
+    let thumbnailContainer = "thumbnail".select();
     let thumbnailUrl = getChange(changes, "playbackContext.thumbnailUrl").value;
     let circularThumbnail = ["ALBUM", "EP", "SINGLE", "COMPILATION", "ARTIST", "SEARCH", "FAVORITE_TRACKS"].includes(contextType.value);
     setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
@@ -365,7 +365,7 @@ function setTextData(changes) {
     thumbnailContainer.src = thumbnailUrl !== BLANK ? thumbnailUrl : "";
     fadeIn(thumbnailContainer);
 
-    fadeIn(getById("context"));
+    fadeIn("context".select());
   }
 
   // Time
@@ -374,21 +374,21 @@ function setTextData(changes) {
   if (timeCurrent.wasChanged || timeTotal.wasChanged) {
     updateProgress(changes);
     if (getChange(changes, "currentlyPlaying.id").value) {
-      finishAnimations(getById("progress-current"));
+      finishAnimations("progress-current".select());
     }
   }
 
   // States
   let paused = getChange(changes, "playbackContext.paused");
   if (paused.wasChanged) {
-    let pauseElem = getById("play-pause");
+    let pauseElem = "play-pause".select();
     setClass(pauseElem, "paused", paused.value);
     fadeIn(pauseElem);
   }
 
   let shuffle = getChange(changes, "playbackContext.shuffle");
   if (shuffle.wasChanged) {
-    let shuffleElem = getById("shuffle");
+    let shuffleElem = "shuffle".select();
     setClass(shuffleElem, "show", shuffle.value);
     setClass(shuffleElem, "on", shuffle.value);
     fadeIn(shuffleElem);
@@ -396,7 +396,7 @@ function setTextData(changes) {
 
   let repeat = getChange(changes, "playbackContext.repeat");
   if (repeat.wasChanged) {
-    let repeatElem = getById("repeat");
+    let repeatElem = "repeat".select();
     setClass(repeatElem, "show", repeat.value !== "off");
 
     setClass(repeatElem, "context", repeat.value === "context");
@@ -413,7 +413,7 @@ function setTextData(changes) {
   }
 
   if (device.wasChanged) {
-    getById("device").innerHTML = convertToTextEmoji(device.value);
+    "device".select().innerHTML = convertToTextEmoji(device.value);
     handleDeviceChange(device.value);
   }
 
@@ -429,8 +429,8 @@ function refreshTrackList() {
 }
 
 function setCorrectTracklistView(changes) {
-  let mainContainer = getById("content-center");
-  let trackListContainer = getById("track-list");
+  let mainContainer = "content-center".select();
+  let trackListContainer = "track-list".select();
   let listViewType = getChange(changes, "trackData.trackListView").value;
   let listTracks = getChange(changes, "trackData.listTracks").value;
   let currentId = getChange(changes, "currentlyPlaying.id").value;
@@ -499,7 +499,7 @@ function setCorrectTracklistView(changes) {
   if (splitMode) {
     trackListScaleRatio = Math.max(2, contentCenterHeight / trackListSize);
   } else {
-    let contentInfoSize = getById("center-info-main").offsetHeight;
+    let contentInfoSize = "center-info-main".select().offsetHeight;
     let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
     trackListScaleRatio = Math.max(2, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
     trackListScaleRatio = Math.floor(trackListScaleRatio * 10) /  10;
@@ -554,7 +554,7 @@ function balanceTextClamp(elem) {
 function refreshTextBalance() {
   isPortraitMode(true);
   for (let id of ["artists", "title", "album-title", "description"]) {
-    balanceTextClamp(getById(id));
+    balanceTextClamp(id.select());
   }
 }
 
@@ -673,7 +673,7 @@ function fadeIn(elem) {
 }
 
 function printTrackList(trackList, printDiscs) {
-  let trackListContainer = getById("track-list");
+  let trackListContainer = "track-list".select();
   trackListContainer.innerHTML = "";
 
   let previousDiscNumber = 0;
@@ -752,7 +752,7 @@ function createSingleTrackListItem(trackItem, trackNumPadLength) {
 
 window.addEventListener('load', setupScrollGradients);
 function setupScrollGradients() {
-  let trackList = getById("track-list");
+  let trackList = "track-list".select();
   trackList.onscroll = () => updateScrollGradients();
 }
 
@@ -768,7 +768,7 @@ function refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentD
 
 function updateScrollPositions(trackNumber) {
   requestAnimationFrame(() => {
-    let trackListContainer = getById("track-list");
+    let trackListContainer = "track-list".select();
     let previouslyPlayingRow = [...trackListContainer.childNodes].find(node => node.classList.contains("current"));
     if (trackNumber) {
       let currentlyPlayingRow = trackListContainer.childNodes[trackNumber - 1];
@@ -792,7 +792,7 @@ function updateScrollPositions(trackNumber) {
 
 const SCROLL_GRADIENTS_TOLERANCE = 10;
 function updateScrollGradients() {
-  let trackList = getById("track-list");
+  let trackList = "track-list".select();
   let topGradient = trackList.scrollTop > SCROLL_GRADIENTS_TOLERANCE;
   let bottomGradient = (trackList.scrollHeight - trackList.clientHeight) > (trackList.scrollTop + SCROLL_GRADIENTS_TOLERANCE);
   setClass(trackList, "gradient-top", topGradient);
@@ -882,7 +882,7 @@ function setRenderedBackground(canvas) {
     // Set old background to fade out and then delete it
     // (In theory, should only ever be one, but just in case, do it for all children)
     let transitionsEnabled = isPrefEnabled("transitions");
-    let backgroundRenderedWrapper = getById("background-rendered");
+    let backgroundRenderedWrapper = "background-rendered".select();
     backgroundRenderedWrapper.childNodes.forEach(child => {
       if (transitionsEnabled) {
         child.ontransitionend = () => child.remove();
@@ -916,7 +916,7 @@ function setArtworkAndPrerender(newImageUrl, colors) {
 function loadArtwork(newImage) {
   return new Promise((resolve) => {
     calculateAndRefreshArtworkSize();
-    let artwork = getById("artwork-img");
+    let artwork = "artwork-img".select();
     artwork.onload = () => {
       resolve();
     }
@@ -925,8 +925,8 @@ function loadArtwork(newImage) {
 }
 
 function calculateAndRefreshArtworkSize() {
-  let main = getById("main");
-  let artwork = getById("artwork");
+  let main = "main".select();
+  let artwork = "artwork".select();
 
   artwork.style.removeProperty("margin-top");
   artwork.style.removeProperty("--margin-multiplier");
@@ -939,12 +939,12 @@ function calculateAndRefreshArtworkSize() {
 
   let artworkSize = 0;
   if (isPrefEnabled("display-artwork")) {
-    let centerRect = getById("content-center").getBoundingClientRect();
+    let centerRect = "content-center".select().getBoundingClientRect();
     let centerTop = centerRect.top;
     let centerBottom = centerRect.bottom;
 
-    let topRect = getById("content-top").getBoundingClientRect();
-    let bottomRect = getById("content-bottom").getBoundingClientRect();
+    let topRect = "content-top".select().getBoundingClientRect();
+    let bottomRect = "content-bottom".select().getBoundingClientRect();
     let topEnabled = isPrefEnabled("enable-top-content");
     let contentTop = topEnabled ? topRect.top : centerRect.top;
     let bottomEnabled = isPrefEnabled("enable-bottom-content");
@@ -990,12 +990,12 @@ function calculateAndRefreshArtworkSize() {
 
 function loadBackground(newImage, colors) {
   return new Promise((resolve) => {
-    let backgroundCanvasImg = getById("background-canvas-img");
+    let backgroundCanvasImg = "background-canvas-img".select();
     backgroundCanvasImg.onload = () => {
       let rgbOverlay = colors.secondary;
       let averageBrightness = colors.averageBrightness;
-      let backgroundCanvasOverlay = getById("background-canvas-overlay");
-      let grainOverlay = getById("grain");
+      let backgroundCanvasOverlay = "background-canvas-overlay".select();
+      let grainOverlay = "grain".select();
 
       let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
       backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
@@ -1011,7 +1011,7 @@ function loadBackground(newImage, colors) {
 
 function prerenderBackground() {
   return new Promise((resolve) => {
-    let prerenderCanvas = getById("prerender-canvas");
+    let prerenderCanvas = "prerender-canvas".select();
     setClass(prerenderCanvas, "show", true);
 
     domtoimage
@@ -1085,13 +1085,13 @@ function updateProgress(changes) {
   let formattedCurrentTime = formattedTimes.current;
   let formattedTotalTime = formattedTimes.total;
 
-  let elemTimeCurrent = getById("time-current");
+  let elemTimeCurrent = "time-current".select();
   let timeCurrentUpdated = formattedCurrentTime !== elemTimeCurrent.innerHTML;
   if (timeCurrentUpdated) {
     elemTimeCurrent.innerHTML = formattedCurrentTime;
   }
 
-  let elemTimeTotal = getById("time-total");
+  let elemTimeTotal = "time-total".select();
   let timeTotalUpdated = formattedTotalTime !== elemTimeTotal.innerHTML;
   if (timeTotalUpdated) {
     elemTimeTotal.innerHTML = formattedTotalTime;
@@ -1258,9 +1258,9 @@ const PREFERENCES = [
     category: "General",
     css: {"main": "playback-control"},
     callback: (state) => {
-      let infoSymbolsContainer = getById("info-symbols");
-      let shuffleButton = getById("shuffle");
-      let repeatButton = getById("repeat");
+      let infoSymbolsContainer = "info-symbols".select();
+      let shuffleButton = "shuffle".select();
+      let repeatButton = "repeat".select();
       if (state) {
         infoSymbolsContainer.insertBefore(shuffleButton, infoSymbolsContainer.firstChild);
       } else {
@@ -1617,9 +1617,9 @@ const PREFERENCES = [
     category: "Bottom Content",
     css: {"bottom-meta-container": "spread-timestamps"},
     callback: (state) => {
-      let timeCurrent = getById("time-current");
-      let bottomLeft = getById("bottom-left");
-      let bottomRight = getById("bottom-right");
+      let timeCurrent = "time-current".select();
+      let bottomLeft = "bottom-left".select();
+      let bottomRight = "bottom-right".select();
       if (state) {
         bottomLeft.insertBefore(timeCurrent, bottomLeft.firstChild);
       } else {
@@ -1645,11 +1645,11 @@ const PREFERENCES = [
     overrides: ["show-clock"],
     css: {"bottom-meta-container": "centered-controls"},
     callback: (state) => {
-      let infoSymbols = getById("info-symbols");
-      let bottomLeft = getById("bottom-left");
-      let bottomMetaContainer = getById("bottom-meta-container");
-      let clockWrapper = getById("clock-wrapper");
-      let volume = getById("volume");
+      let infoSymbols = "info-symbols".select();
+      let bottomLeft = "bottom-left".select();
+      let bottomMetaContainer = "bottom-meta-container".select();
+      let clockWrapper = "clock-wrapper".select();
+      let volume = "volume".select();
       if (state) {
         bottomMetaContainer.insertBefore(infoSymbols, clockWrapper);
       } else {
@@ -2104,7 +2104,7 @@ function isPrefEnabled(id) {
 window.addEventListener('load', initVisualPreferences);
 
 function initVisualPreferences() {
-  const settingsWrapper = getById("settings-categories");
+  const settingsWrapper = "settings-categories".select();
 
   // Integrity check
   if (DEV_MODE) {
@@ -2155,7 +2155,7 @@ function initVisualPreferences() {
   }
 
   // Create preset buttons
-  const settingsPresetsWrapper = getById("settings-presets");
+  const settingsPresetsWrapper = "settings-presets".select();
   for (let presetIndex in PREFERENCES_PRESETS) {
     let preset = PREFERENCES_PRESETS[presetIndex];
 
@@ -2284,7 +2284,7 @@ function refreshPreference(preference, state) {
       let targetClassRaw = preference.css[id].toString();
       let targetClass = targetClassRaw.replace("!", "");
       let targetState = targetClassRaw.startsWith("!") ? !state : state;
-      setClass(getById(id), targetClass, targetState)
+      setClass(id.select(), targetClass, targetState)
     }
   }
 
@@ -2299,25 +2299,25 @@ function refreshPreference(preference, state) {
   updateOverridden(preference);
 
   // Toggle Checkmark
-  let prefElem = getById(preference.id);
+  let prefElem = preference.id.select();
   if (prefElem) {
     setClass(prefElem, "on", state);
   }
 }
 
 function updateOverridden(preference) {
-  let prefElem = getById(preference.id);
+  let prefElem = preference.id.select();
   if (prefElem) {
     let state = preference.state && !prefElem.classList.toString().includes("overridden-");
     if ('requiredFor' in preference) {
       preference.requiredFor.forEach(override => {
-        setClass(getById(override), `overridden-${preference.id}`, !state);
+        setClass(override.select(), `overridden-${preference.id}`, !state);
         updateOverridden(findPreference(override));
       });
     }
     if ('overrides' in preference) {
       preference.overrides.forEach(override => {
-        setClass(getById(override), `overridden-${preference.id}`, state);
+        setClass(override.select(), `overridden-${preference.id}`, state);
         updateOverridden(findPreference(override));
       });
     }
@@ -2385,8 +2385,8 @@ function toggleFullscreen() {
 const OPACITY_TIMEOUT = 2 * 1000;
 let volumeTimeout;
 function handleVolumeChange(volume, device, customVolumeSettings) {
-  let volumeContainer = getById("volume");
-  let volumeTextContainer = getById("volume-text");
+  let volumeContainer = "volume".select();
+  let volumeTextContainer = "volume-text".select();
 
   let volumeWithPercent = volume + "%";
 
@@ -2409,7 +2409,7 @@ function handleVolumeChange(volume, device, customVolumeSettings) {
 
 let deviceTimeout;
 function handleDeviceChange(device) {
-  let deviceContainer = getById("device");
+  let deviceContainer = "device".select();
   deviceContainer.innerHTML = device;
 
   deviceContainer.classList.add("active");
@@ -2467,12 +2467,12 @@ window.onresize = () => {
 
 window.addEventListener('load', initPlaybackControls);
 function initPlaybackControls() {
-  getById("play-pause").onclick = () => fireControl("PLAY_PAUSE");
-  getById("shuffle").onclick = () => fireControl("SHUFFLE");
-  getById("repeat").onclick = () => fireControl("REPEAT");
-  getById("prev").onclick = () => fireControl("PREV");
-  getById("next").onclick = () => fireControl("NEXT");
-  getById("volume").onclick = () => {
+  "play-pause".select().onclick = () => fireControl("PLAY_PAUSE");
+  "shuffle".select().onclick = () => fireControl("SHUFFLE");
+  "repeat".select().onclick = () => fireControl("REPEAT");
+  "prev".select().onclick = () => fireControl("PREV");
+  "next".select().onclick = () => fireControl("NEXT");
+  "volume".select().onclick = () => {
     let newVolume = prompt("Enter new volume in % (0-100):");
     if (newVolume !== null) {
       if (newVolume >= 0 && newVolume <= 100) {
@@ -2490,7 +2490,7 @@ let waitingForResponse = false;
 function fireControl(control, param) {
   if (!waitingForResponse && playbackControlPref.state) {
     waitingForResponse = true;
-    setClass(getById("main"), "waiting-for-control", true);
+    setClass("main".select(), "waiting-for-control", true);
     fetch(`/modify-playback/${control}${param ? `?param=${param}` : ""}`, {method: 'POST'})
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
@@ -2509,7 +2509,7 @@ function fireControl(control, param) {
 function unlockPlaybackControls() {
   if (waitingForResponse) {
     waitingForResponse = false;
-    setClass(getById("main"), "waiting-for-control", false);
+    setClass("main".select(), "waiting-for-control", false);
   }
 }
 
@@ -2555,7 +2555,7 @@ function handleMouseEvent(e) {
   clearTimeout(cursorTimeout);
   setMouseVisibility(true)
 
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
   setClass(settingsMenuToggleButton, "show", true);
 
   if (!isHoveringControlElem(e.target)) {
@@ -2600,9 +2600,9 @@ function printSettingDescription(event) {
 
 function initSettingsMouseMove() {
   setMouseVisibility(false);
-  let settingsWrapper = getById("settings-wrapper");
+  let settingsWrapper = "settings-wrapper".select();
 
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
   settingsMenuToggleButton.onclick = (e) => {
     if (DEV_MODE && e.shiftKey) {
       generatePresetThumbnail();
@@ -2611,7 +2611,7 @@ function initSettingsMouseMove() {
     }
   };
 
-  let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
+  let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
   settingsMenuExpertModeToggleButton.onclick = () => {
     toggleSettingsExpertMode();
   };
@@ -2630,13 +2630,28 @@ function initSettingsMouseMove() {
 
   settingsWrapper.onmousemove = (event) => {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
-    printSettingDescription(event);
-  }
+
+    let settingsDescriptionContainer = "settings-description".select();
+    let header = "settings-description-header".select();
+    let description = "settings-description-description".select();
+    let overridden = "settings-description-overridden".select();
+
+    let target = event.target;
+    if (target.parentNode.classList.contains("preset")) {
+      target = target.parentNode;
+    }
+    if (target.classList.contains("setting") || target.classList.contains("preset")) {
+      let pref = findPreference(target.id) || findPreset(target.id);
+      if (pref) {
+        header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
+        description.innerHTML = pref.description;
+
+        overridden.innerHTML = [...target.classList]
 }
 
 function isSettingControlElem(e) {
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
-  let settingsMenuExpertModeToggleButton = getById("settings-expert-mode-toggle");
+  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
+  let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
   return e.target === settingsMenuToggleButton
       || e.target === settingsMenuExpertModeToggleButton
       || e.target.classList.contains("setting")
@@ -2658,28 +2673,28 @@ function toggleSettingsMenu() {
 function setSettingsMenuState(state) {
   settingsVisible = state;
 
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button");
+  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
   setClass(settingsMenuToggleButton, "show", settingsVisible);
   setMouseVisibility(settingsVisible)
 
-  let settingsWrapper = getById("settings-wrapper");
-  let mainBody = getById("main");
+  let settingsWrapper = "settings-wrapper".select();
+  let mainBody = "main".select();
   setClass(settingsWrapper, "show", settingsVisible);
   setClass(mainBody, "scale-down", settingsVisible);
 }
 
 function toggleSettingsExpertMode() {
   settingsExpertMode = !settingsExpertMode;
-  let settingsWrapper = getById("settings-wrapper");
+  let settingsWrapper = "settings-wrapper".select();
   setClass(settingsWrapper, "expert", settingsExpertMode);
 }
 
 function generatePresetThumbnail() {
-  let thumbnailGenerationEnabled = getById("main").classList.toggle("preset-thumbnail-generator");
+  let thumbnailGenerationEnabled = "main".select().classList.toggle("preset-thumbnail-generator");
   if (thumbnailGenerationEnabled) {
-    let prerenderCanvas = setClass(getById("prerender-canvas"), "show", true); // needed because rect would return all 0px otherwise
+    let prerenderCanvas = setClass("prerender-canvas".select(), "show", true); // needed because rect would return all 0px otherwise
 
-    let artworkBoundingBox = getById("artwork-img").getBoundingClientRect();
+    let artworkBoundingBox = "artwork-img".select().getBoundingClientRect();
 
     let fakeArtwork = document.createElement("div");
     fakeArtwork.id = "fake-artwork";
@@ -2688,11 +2703,11 @@ function generatePresetThumbnail() {
     fakeArtwork.style.width = artworkBoundingBox.width + "px";
     fakeArtwork.style.height = artworkBoundingBox.width + "px";
 
-    let contentMain = getById("content");
+    let contentMain = "content".select();
     contentMain.insertBefore(fakeArtwork, contentMain.firstChild);
 
-    let content = getById("content");
-    let presetThumbnailGeneratorCanvas = getById("preset-thumbnail-generator-canvas");
+    let content = "content".select();
+    let presetThumbnailGeneratorCanvas = "preset-thumbnail-generator-canvas".select();
     domtoimage.toPng(content, {
       width: window.innerWidth,
       height: window.innerHeight
@@ -2707,7 +2722,7 @@ function generatePresetThumbnail() {
         document.body.removeChild(downloadLink);
 
         fakeArtwork.remove();
-        getById("main").classList.remove("preset-thumbnail-generator");
+        "main".select().classList.remove("preset-thumbnail-generator");
         setClass(presetThumbnailGeneratorCanvas, "show", false);
 
         setClass(prerenderCanvas, "show", isPrefEnabled("prerender-background"));
@@ -2747,7 +2762,7 @@ setInterval(() => {
     let time = clockFormatPref.state ? date.toLocaleDateString(clockLocale, DATE_OPTIONS) : date.toLocaleTimeString(clockLocale, TIME_OPTIONS);
     if (time !== prevTime) {
       prevTime = time;
-      let clock = getById("clock");
+      let clock = "clock".select();
       clock.innerHTML = time;
     }
   }
@@ -2758,7 +2773,7 @@ setInterval(() => {
 // FPS Counter
 ///////////////////////////////
 
-let fps = getById("fps-counter");
+let fps = "fps-counter".select();
 let fpsStartTime = Date.now();
 let fpsFrame = 0;
 let fpsPref = findPreference("show-fps");
