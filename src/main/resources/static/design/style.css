@@ -33,6 +33,10 @@ html, body {
     word-break: keep-all;
 }
 
+body.hide {
+    display: none;
+}
+
 .hide-cursor {
     cursor: none !important;
 }
@@ -62,7 +66,7 @@ a:hover {
     #context-main, #context-extra, #thumbnail-wrapper, #logo,
     #artists, #title, #description, #album,
     #track-list, #track-list .track-elem div,
-    #progress-current, #progress-background,
+    #progress-background,
     #info-symbols > div, #volume, #volume-text, #device,
     #clock, #time-current, #time-total
 ) {
@@ -1008,6 +1012,7 @@ div#device {
     min-height: 0.5vmin;
     position: relative;
     flex: 0 0 100%;
+    overflow: hidden;
 }
 
 #progress.hide {
@@ -1018,20 +1023,19 @@ div#device {
     background-color: var(--color);
     width: 100%;
     height: 100%;
-    border-radius: inherit;
     position: absolute;
     opacity: 0.25;
 }
 
 #progress-current {
-    --progress-speed: 250ms;
-    transition: width var(--progress-speed) linear, background-color var(--transition) !important;
+    --progress-percent: 0%;
+    transform: translateX(calc(var(--progress-percent) - 100%));
     background-color: var(--color);
-    width: 0;
+    width: 100%;
     height: 100%;
-    border-radius: inherit;
     position: absolute;
     z-index: 1;
+    border-radius: inherit;
 }
 
 #bottom-meta-container {
@@ -1072,7 +1076,7 @@ div#device {
     flex-direction: row;
     justify-content: flex-end;
     height: 100%;
-    gap: 2vmin;
+    gap: 2.5vmin;
 }
 
 #time {
@@ -1344,17 +1348,17 @@ div#device {
     font-family: var(--font-bold);
 }
 
-#settings-description > #settings-description-overridden {
+#settings-description > :is(#settings-description-overridden, #settings-description-unaffected) {
     opacity: 0.5;
     font-size: 2vmin;
 }
 
-#settings-description > #settings-description-overridden::before {
-    content: "Overridden by: ";
+#settings-description > :is(#settings-description-overridden, #settings-description-unaffected):empty {
+    display: none;
 }
 
-#settings-description > #settings-description-overridden:empty {
-    display: none;
+#settings-description > #settings-description-overridden::before {
+    content: "Overridden by: ";
 }
 
 #settings-top-buttons {

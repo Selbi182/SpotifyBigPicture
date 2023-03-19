@@ -372,7 +372,7 @@ function setTextData(changes) {
   let timeCurrent = getChange(changes, "currentlyPlaying.timeCurrent");
   let timeTotal = getChange(changes, "currentlyPlaying.timeTotal");
   if (timeCurrent.wasChanged || timeTotal.wasChanged) {
-    updateProgress(changes, true);
+    updateProgress(changes);
     if (getChange(changes, "currentlyPlaying.id").value) {
       finishAnimations(getById("progress-current"));
     }
@@ -1068,7 +1068,14 @@ function setTextColor(rgbText) {
 // PROGRESS
 ///////////////////////////////
 
-function updateProgress(changes, updateProgressBar) {
+let smoothProgressBarPref;
+window.addEventListener('load', () => smoothProgressBarPref = findPreference("smooth-progress-bar"));
+
+function refreshProgress() {
+  updateProgress(currentData);
+}
+
+function updateProgress(changes) {
   let current = getChange(changes, "currentlyPlaying.timeCurrent").value;
   let total = getChange(changes, "currentlyPlaying.timeTotal").value;
   let paused = getChange(changes, "playbackContext.paused").value;
@@ -1079,12 +1086,14 @@ function updateProgress(changes, updateProgressBar) {
   let formattedTotalTime = formattedTimes.total;
 
   let elemTimeCurrent = getById("time-current");
-  if (formattedCurrentTime !== elemTimeCurrent.innerHTML) {
+  let timeCurrentUpdated = formattedCurrentTime !== elemTimeCurrent.innerHTML;
+  if (timeCurrentUpdated) {
     elemTimeCurrent.innerHTML = formattedCurrentTime;
   }
 
   let elemTimeTotal = getById("time-total");
-  if (formattedTotalTime !== elemTimeTotal.innerHTML) {
+  let timeTotalUpdated = formattedTotalTime !== elemTimeTotal.innerHTML;
+  if (timeTotalUpdated) {
     elemTimeTotal.innerHTML = formattedTotalTime;
   }
 
@@ -1099,29 +1108,16 @@ function updateProgress(changes, updateProgressBar) {
     document.title = newTitle;
   }
 
-  // Progress Bar
-  if (updateProgressBar) {
+  // Update Progress Bar
+  if (smoothProgressBarPref.state || timeCurrentUpdated || timeTotalUpdated) {
     setProgressBarTarget(current, total, paused);
   }
 }
 
-function setProgressBarTarget(current, total, paused) {
-  let progressBarElem = getById("progress-current");
-
-  let progressPercent = Math.min(1, ((current / total))) * 100;
-  if (isNaN(progressPercent)) {
-    progressPercent = 0;
-  }
-  progressBarElem.style.width = progressPercent + "%";
-
-  finishAnimations(progressBarElem);
-  if (!paused) {
-    let remainingTimeMs = total - current;
-    progressBarElem.style.setProperty("--progress-speed", remainingTimeMs + "ms");
-    requestAnimationFrame(() => {
-      progressBarElem.style.width = "100%";
-    });
-  }
+const progressBarElem = getById("progress-current");
+function setProgressBarTarget(current, total) {
+  let percent = (current / (total || 1)) * 100;
+  progressBarElem.style.setProperty("--progress-percent", percent + "%");
 }
 
 function formatTime(current, total) {
@@ -1190,7 +1186,7 @@ function numberWithCommas(number) {
 // TIMERS
 ///////////////////////////////
 
-const ADVANCE_CURRENT_TIME_MS = 500;
+const ADVANCE_CURRENT_TIME_MS = 1000 / 60;
 const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 
 let autoTimer;
@@ -1200,7 +1196,7 @@ function refreshTimers() {
   clearTimers();
 
   startTime = Date.now();
-  autoTimer = setInterval(() => advanceCurrentTime(false), ADVANCE_CURRENT_TIME_MS);
+  autoTimer = setInterval(() => advanceCurrentTime(), ADVANCE_CURRENT_TIME_MS);
 
   idleTimeout = setTimeout(() => setIdleModeState(true), IDLE_TIMEOUT_MS);
   setIdleModeState(false);
@@ -1213,7 +1209,7 @@ function clearTimers() {
 
 let startTime;
 
-function advanceCurrentTime(updateProgressBar) {
+function advanceCurrentTime() {
   let timeCurrent = currentData.currentlyPlaying.timeCurrent;
   let timeTotal = currentData.currentlyPlaying.timeTotal;
   if (timeCurrent != null && timeTotal != null && !currentData.playbackContext.paused) {
@@ -1222,34 +1218,29 @@ function advanceCurrentTime(updateProgressBar) {
     startTime = now;
     let newTime = timeCurrent + elapsedTime;
     currentData.currentlyPlaying.timeCurrent = Math.min(timeTotal, newTime);
-    updateProgress(currentData, updateProgressBar);
+    refreshProgress();
   }
 }
 
 function setIdleModeState(state) {
-  let settingsMenuToggleButton = getById("settings-menu-toggle-button"); // just to avoid a COMPLETELY black screen
-  let main = getById("main");
   if (state) {
     if (!idle) {
       console.info("No music was played in 2 hours. Enabling idle mode...");
-      settingsMenuToggleButton.classList.add("show");
       idle = true;
       clearTimers();
-      setClass(main, "hide", true);
+      setClass(document.body, "hide", true);
     }
   } else {
     if (idle) {
       idle = false;
-      settingsMenuToggleButton.classList.remove("show");
-      setClass(main, "hide", false);
-      refreshAll();
+      reloadPage();
     }
   }
 }
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    advanceCurrentTime(true);
+    advanceCurrentTime();
   }
 });
 
@@ -1595,9 +1586,18 @@ const PREFERENCES = [
   {
     id: "show-progress-bar",
     name: "Progress Bar",
-    description: "Displays a bar of that spans the entire screen, indicating how far along the currently played track is",
+    description: "Displays a progress bar, indicating how far along the currently played track is",
     category: "Bottom Content",
+    requiredFor: ["smooth-progress-bar"],
     css: {"progress": "!hide"}
+  },
+  {
+    id: "smooth-progress-bar",
+    name: "Smooth Progress Bar",
+    description: "If enabled, the progress bar will get updated at 60 FPS, rather than only once per second. " +
+        "This setting is not recommended for low-power hardware, like a Raspberry Pi",
+    category: "Bottom Content",
+    callback: () => refreshProgress()
   },
   {
     id: "show-timestamps",
@@ -1796,9 +1796,7 @@ const PREFERENCES = [
     description: "Display the frames-per-second in the top right of the screen (intended for performance debugging)",
     category: "Developer Tools",
     css: {"fps-counter": "show"},
-    callback: () => {
-      fpsTick();
-    }
+    callback: () => fpsTick()
   },
   {
     id: "prerender-background",
@@ -1845,7 +1843,6 @@ const PREFERENCES_DEFAULT = {
     "show-featured-artists",
     "show-titles",
     "colored-text",
-    "colored-symbol-context",
     "colored-symbol-spotify",
     "show-release",
     "enable-top-content",
@@ -1863,6 +1860,7 @@ const PREFERENCES_DEFAULT = {
     "show-volume-bar",
     "show-device",
     "show-progress-bar",
+    "smooth-progress-bar",
     "show-clock",
     "clock-full",
     "prerender-background",
@@ -1881,17 +1879,18 @@ const PREFERENCES_DEFAULT = {
     "xl-main-info-scrolling",
     "xl-tracklist",
     "swap-top",
+    "colored-symbol-context",
     "spread-timestamps",
     "reverse-bottom",
     "artwork-expand-bottom",
     "artwork-right",
-    "center-info-icons",
     "artwork-above-content",
-    "scrollable-track-list",
     "full-track-list"
   ],
   ignore: [
     "playback-control",
+    "center-info-icons",
+    "scrollable-track-list",
     "dark-mode",
     "show-fps"
   ]
@@ -1913,12 +1912,12 @@ const PREFERENCES_PRESETS = [
     category: "Presets",
     description: "Similar to the default mode, but the artwork is on the right and a little smaller, opening up slightly more room for the main content",
     enabled: [
-        "artwork-right",
-        "center-lr-margins"
+      "artwork-right",
+      "center-lr-margins"
     ],
     disabled: [
-        "artwork-expand-top",
-        "main-content-centered"
+      "artwork-expand-top",
+      "main-content-centered"
     ]
   },
   {
@@ -1980,7 +1979,6 @@ const PREFERENCES_PRESETS = [
       "full-release-date-podcasts"
     ],
     disabled: [
-      "colored-symbol-context",
       "show-featured-artists",
       "main-content-centered",
       "bg-tint",
@@ -2045,8 +2043,7 @@ const PREFERENCES_PRESETS = [
       "colored-text",
       "colored-symbol-spotify",
       "show-timestamps",
-      "show-timestamps-track-list",
-      "colored-symbol-context"
+      "show-timestamps-track-list"
     ]
   },
   {
@@ -2070,7 +2067,6 @@ const PREFERENCES_PRESETS = [
       "show-featured-artists",
       "show-titles",
       "colored-text",
-      "colored-symbol-context",
       "colored-symbol-spotify",
       "show-release",
       "enable-top-content",
@@ -2086,18 +2082,14 @@ const PREFERENCES_PRESETS = [
       "show-volume-bar",
       "show-device",
       "show-progress-bar",
+      "smooth-progress-bar",
       "show-clock"
     ]
   }
 ];
 
 function findPreference(id) {
-  let pref = PREFERENCES.find(pref => pref.id === id);
-  if (pref && !pref.hasOwnProperty('state')) {
-    // Just to fix IDE warnings
-    pref.state = false;
-  }
-  return pref;
+  return PREFERENCES.find(pref => pref.id === id);
 }
 
 function findPreset(id) {
@@ -2105,7 +2097,8 @@ function findPreset(id) {
 }
 
 function isPrefEnabled(id) {
-  return findPreference(id).state;
+  let pref = findPreference(id);
+  return pref.state; // needs to be new line so the IDE doesn't complain about "state" not existing for some reason
 }
 
 window.addEventListener('load', initVisualPreferences);
@@ -2368,11 +2361,15 @@ function updateExternallyToggledPreferences(changes) {
       }
       changes.settingsToToggle = [];
       if (reload) {
-        window.location.reload(true);
+        reloadPage();
       }
     }
     resolve();
   });
+}
+
+function reloadPage() {
+  window.location.reload(true);
 }
 
 function toggleFullscreen() {
@@ -2425,7 +2422,7 @@ function handleDeviceChange(device) {
 function refreshAll() {
   refreshTextBalance();
   refreshBackgroundRender(true);
-  updateProgress(currentData, true);
+  refreshProgress();
   updateScrollGradients();
   submitVisualPreferencesToBackend();
 }
@@ -2570,6 +2567,37 @@ function handleMouseEvent(e) {
 }
 
 window.addEventListener('load', initSettingsMouseMove);
+
+function printSettingDescription(event) {
+  let settingsDescriptionContainer = getById("settings-description");
+  let header = getById("settings-description-header");
+  let description = getById("settings-description-description");
+  let unaffected = getById("settings-description-unaffected");
+  let overridden = getById("settings-description-overridden");
+
+  let target = event.target;
+  if (target.parentNode.classList.contains("preset")) {
+    target = target.parentNode;
+  }
+  if (target.classList.contains("setting") || target.classList.contains("preset")) {
+    let pref = findPreference(target.id) || findPreset(target.id);
+    if (pref) {
+      header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
+      description.innerHTML = pref.description;
+
+      overridden.innerHTML = [...target.classList]
+        .filter(className => className.startsWith("overridden-"))
+        .map(className => findPreference(className.replace("overridden-", "")))
+        .map(pref => pref.category + " &#x00BB; " + pref.name)
+        .join(" // ");
+
+      setClass(settingsDescriptionContainer, "show", true);
+    }
+  } else {
+    setClass(settingsDescriptionContainer, "show", false);
+  }
+}
+
 function initSettingsMouseMove() {
   setMouseVisibility(false);
   let settingsWrapper = getById("settings-wrapper");
@@ -2602,33 +2630,7 @@ function initSettingsMouseMove() {
 
   settingsWrapper.onmousemove = (event) => {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
-
-    let settingsDescriptionContainer = getById("settings-description");
-    let header = getById("settings-description-header");
-    let description = getById("settings-description-description");
-    let overridden = getById("settings-description-overridden");
-
-    let target = event.target;
-    if (target.parentNode.classList.contains("preset")) {
-      target = target.parentNode;
-    }
-    if (target.classList.contains("setting") || target.classList.contains("preset")) {
-      let pref = findPreference(target.id) || findPreset(target.id);
-      if (pref) {
-        header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
-        description.innerHTML = pref.description;
-
-        overridden.innerHTML = [...target.classList]
-          .filter(className => className.startsWith("overridden-"))
-          .map(className => findPreference(className.replace("overridden-", "")))
-          .map(pref => pref.category + " &#x00BB; " + pref.name)
-          .join(" // ");
-
-        setClass(settingsDescriptionContainer, "show", true);
-      }
-    } else {
-      setClass(settingsDescriptionContainer, "show", false);
-    }
+    printSettingDescription(event);
   }
 }
 
@@ -2759,11 +2761,8 @@ setInterval(() => {
 let fps = getById("fps-counter");
 let fpsStartTime = Date.now();
 let fpsFrame = 0;
-let fpsPref;
+let fpsPref = findPreference("show-fps");
 function fpsTick() {
-  if (!fpsPref) {
-    fpsPref = findPreference("show-fps");
-  }
   if (fpsPref.state) {
     let time = Date.now();
     fpsFrame++;
