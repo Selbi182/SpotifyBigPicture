@@ -41,14 +41,14 @@ A combination of the default preset and Track-List Mode that puts the current tr
 
 Only shows the current track's title, artist and release in an extra large manner. The track list is disabled, the artwork is moved to the background
 
-### Minimalistic Mode
-![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-minimalistic.png)
-![Minimalistic Mode](https://i.imgur.com/gg2kPBT.png)
-
-A minimalistic design preset only containing the most relevant information about the currently playing track. The background only displays a plain color. Inspired by the original Spotify fullscreen interface for Chromecast
-
 ### Artwork-Only Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-artwork-only.png)
 ![Artwork-Only Mode](https://i.imgur.com/yFOlNbz.png)
 
 Just displays the artwork on a background, literally nothing else
+
+### Vertical Mode
+![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-vertical.png)
+![Vertical Mode](https://i.imgur.com/2pQQsfn.png)
+
+A preset optimized (only) for portrait mode. The main content will be displayed below the artwork. Don't use this preset on widescreen monitors, as it will likely break everything

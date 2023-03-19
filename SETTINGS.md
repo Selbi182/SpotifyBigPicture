@@ -77,12 +77,16 @@ If enabled, the dominant color of the current artwork will be used as the color 
 Enable the bottom content, the container for the progress bar and various meta information. Disabling this will increase the available space for the main content
 ### Progress Bar
 Displays a bar of that spans the entire screen, indicating how far along the currently played track is
+### Smooth Progress Bar
+If enabled, the progress bar will get updated at 60 FPS, rather than only once per second. This setting is not recommended for low-power hardware, like a Raspberry Pi
 ### Timestamps
 Displays the current and total timestamps of the currently playing track as numeric values
 ### Spread-out Timestamps
 When enabled, the current timestamp is separated from the total timestamp and displayed on the left
 ### Show Play/Pause/Shuffle/Repeat Icons
 Display the state icons for play/pause as well as shuffle and repeat in the bottom left
+### Center Icons
+If enabled, the play/pause/shuffle/repeat icons are centered in the bottom content (like it's the case on the default Spotify player). Enabling this will disable the clock
 ### Show Volume
 Display the current volume in the bottom left
 ### Show Volume Bar
@@ -97,6 +101,10 @@ If enabled, the clock displays the full date, weekday, and current time. Otherwi
 ## Track List
 ### Enable Track List
 If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed
+### Scrollable Track List
+If enabled, the track list can be scrolled through with the mouse wheel. Otherwise, it can only scroll on its own
+### Show Full Titles
+If enabled, longer titles will always be fully displayed (with line breaks). Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...
 ### Show Time Stamps
 Show the timestamps for each track in the track list. If disabled, the track names are right-aligned
 ### Enable Album View
