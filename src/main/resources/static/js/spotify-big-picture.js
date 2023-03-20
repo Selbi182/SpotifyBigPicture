@@ -2103,7 +2103,7 @@ function initVisualPreferences() {
   // User integrity check (reset settings after update)
   if (isLocalStorageAvailable()) {
     let prefsFromStorage = getVisualPreferencesFromLocalStorage();
-    if (!prefsFromStorage.every(v => allSettings.includes(v))) {
+    if (prefsFromStorage && !prefsFromStorage.every(v => allSettings.includes(v))) {
       clearVisualPreferencesInLocalStorage();
       alert("Looks like you've installed a new version of SpotifyBigPicture. To avoid conflicts with version changes, your previous settings have been reset.");
     }
@@ -2229,8 +2229,11 @@ function isLocalStorageAvailable() {
 const LOCAL_STORAGE_KEY_SETTINGS = "visual_preferences";
 const LOCAL_STORAGE_SETTINGS_SPLIT_CHAR = "+";
 function getVisualPreferencesFromLocalStorage() {
-  let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS);
-  return storedVisualPreferences?.split(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
+  if (localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS)) {
+    let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS);
+    return storedVisualPreferences?.split(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
+  }
+  return null;
 }
 
 function clearVisualPreferencesInLocalStorage() {
