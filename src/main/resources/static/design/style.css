@@ -920,13 +920,13 @@ div#description {
     --volume: 0%;
     font-size: 3vmin;
     font-feature-settings: "tnum";
-    opacity: 0.25;
+    opacity: 0.5;
 }
 #volume:empty, #volume.hide {
     display: none;
 }
 #volume.active {
-    opacity: 0.65;
+    opacity: 1;
 }
 #volume-text {
     white-space: nowrap;
@@ -982,14 +982,14 @@ div#description {
 
 div#device {
     --max-lines: 1;
-    opacity: 0.25;
+    opacity: 0.5;
     font-size: 2vmin;
 }
 #device:empty, #device.hide {
     display: none;
 }
 #device.active {
-    opacity: 0.65;
+    opacity: 1;
 }
 #device::before {
     content: "";
@@ -1117,7 +1117,7 @@ div#device {
 #bottom-meta-container:not(.spread-timestamps) #bottom-right #time-slash {
     background: var(--color);
     width: 0.5vmin;
-    opacity: 0.25;
+    opacity: 0.5;
     transform: rotate(25deg);
     border-radius: 2vmin;
 }
@@ -1242,6 +1242,9 @@ div#device {
     white-space: pre;
     overflow: hidden;
     max-width: 100%;
+    display: flex;
+    align-items: center;
+    line-height: 1;
 }
 
 #settings-categories .setting[class*='overridden-'] {
@@ -1253,13 +1256,32 @@ div#device {
 }
 
 #settings-categories .setting::before {
-    content: "\2713";
+    content: "";
+    background-image: url("img/symbols/checkbox-off.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     margin-right: 1vmin;
-    opacity: 0;
+    opacity: 0.5;
+    width: 2vmin;
+    height: 2vmin;
 }
 
 #settings-categories .setting.on::before {
+    background-image: url("img/symbols/checkbox-on.png");
     opacity: 1;
+}
+
+#settings-categories .setting.unaffected::after {
+    content: "";
+    background-image: url("img/symbols/info.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 1vmin;
+    opacity: 0.5;
+    width: 2vmin;
+    height: 2vmin;
 }
 
 #settings-categories .setting-category-header {
@@ -1271,6 +1293,9 @@ div#device {
     background: #ffffff20;
     border-radius: 2vmin;
     padding: 2vmin;
+    display: flex;
+    flex-direction: column;
+    gap: 1vmin;
 }
 
 #settings-categories .setting-category.hide {
@@ -1351,6 +1376,11 @@ div#device {
 #settings-description > :is(#settings-description-overridden, #settings-description-unaffected) {
     opacity: 0.5;
     font-size: 2vmin;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1vmin;
+    line-height: 1;
 }
 
 #settings-description > :is(#settings-description-overridden, #settings-description-unaffected):empty {
@@ -1358,7 +1388,19 @@ div#device {
 }
 
 #settings-description > #settings-description-overridden::before {
-    content: "Overridden by: ";
+    content: "Overridden by:";
+}
+
+#settings-description > #settings-description-unaffected::before {
+    content: "";
+    background-image: url("img/symbols/info.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.5;
+    width: 2vmin;
+    height: 2vmin;
+    display: inline-block;
 }
 
 #settings-top-buttons {

@@ -12,23 +12,17 @@ import spotify.util.SpotifyUtils;
 
 @Component
 public class SpotifyArtworkUrlProvider implements ArtworkUrlProvider {
+
   @Override
   public Optional<String> getImageUrlFromItem(IPlaylistItem item) {
+    Image[] images;
     if (item instanceof Track) {
-      return getImageFromTrack((Track) item);
+      images = ((Track) item).getAlbum().getImages();;
     } else if (item instanceof Episode) {
-      return getImageFromEpisode((Episode) item);
+      images = ((Episode) item).getImages();
+    } else {
+      return Optional.empty();
     }
-    return Optional.empty();
-  }
-
-  private Optional<String> getImageFromTrack(Track track) {
-    Image[] images = track.getAlbum().getImages();
-    return Optional.ofNullable(SpotifyUtils.findLargestImage(images));
-  }
-
-  private Optional<String> getImageFromEpisode(Episode episode) {
-    Image[] images = episode.getImages();
     return Optional.ofNullable(SpotifyUtils.findLargestImage(images));
   }
 }

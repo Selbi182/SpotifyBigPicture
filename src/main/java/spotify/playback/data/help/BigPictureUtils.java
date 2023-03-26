@@ -5,26 +5,16 @@ import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 
 public class BigPictureUtils {
-
-  /**
-   * Used in cases where the interface should explicitly hide a field due to the absence of data.
-   * This is needed because null fields are removed during a web transfer.
-   */
-  public static final String BLANK = "BLANK";
-
-  private static final String FAVORITE_SONGS_HREF = "https://api.spotify.com/v1/me/tracks";
-
   /**
    * Guess the elapsed progress of the current song. Return true if it's still
    * within tolerance.
    *
-   * @param previous the previous time
-   * @param current  the current time
+   * @param previousMs the previous time
+   * @param currentMs the current time
    * @return true if it's within tolerance
    */
-  public static boolean isWithinEstimatedProgressMs(int previous, int current) {
-    int expectedProgressMs = previous + BigPictureConstants.POLLING_RATE_MS;
-    return Math.abs(expectedProgressMs - current) < BigPictureConstants.ESTIMATED_PROGRESS_TOLERANCE_MS;
+  public static boolean isWithinEstimatedProgressMs(int previousMs, int currentMs) {
+    return Math.abs(currentMs - previousMs) < BigPictureConstants.ESTIMATED_PROGRESS_TOLERANCE_MS;
   }
 
   /**
@@ -38,7 +28,7 @@ public class BigPictureUtils {
     if (context.getContext() != null) {
       if (context.getContext().getType() != null) {
         return context.getContext().getType();
-      } else if (FAVORITE_SONGS_HREF.equals(context.getContext().getHref())) {
+      } else if (BigPictureConstants.FAVORITE_SONGS_HREF.equals(context.getContext().getHref())) {
         return ModelObjectType.USER;
       }
     } else if (CurrentlyPlayingType.EPISODE.equals(context.getCurrentlyPlayingType())) {

@@ -23,17 +23,22 @@ public class DictionaryArtworkUrlProvider implements ArtworkUrlProvider {
   private static final String CUSTOM_IMAGES_FILE = "custom_images.txt";
   private static final String SPLIT_CHAR = " -> ";
   private static final String COMMENT_CHAR = "//";
-  private static Map<String, String> dictionaryImgMap;
+
+  private final Map<String, String> dictionaryImgMap;
 
   DictionaryArtworkUrlProvider() {
-    dictionaryImgMap = new HashMap<>();
+    this.dictionaryImgMap = new HashMap<>();
     try {
       File customImagesFiles = new File(CUSTOM_IMAGES_FILE);
       if (customImagesFiles.canRead()) {
         try (Stream<String> customImageLines = Files.lines(Path.of(CUSTOM_IMAGES_FILE))) {
           customImageLines.filter(line -> !line.startsWith(COMMENT_CHAR) && !line.isBlank())
             .map(line -> line.split(SPLIT_CHAR))
-            .forEach(entry -> dictionaryImgMap.put(entry[0].trim(), entry[1].trim()));
+            .forEach(entry -> {
+              String spotifyUri = entry[0].trim();
+              String customImageUrl = entry[1].trim();
+              this.dictionaryImgMap.put(spotifyUri, customImageUrl);
+            });
         }
       }
     } catch (IOException e) {

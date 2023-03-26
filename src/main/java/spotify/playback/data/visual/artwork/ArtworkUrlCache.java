@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
-import spotify.playback.data.help.BigPictureUtils;
+import spotify.playback.data.help.BigPictureConstants;
 import spotify.playback.data.visual.artwork.service.ArtworkUrlProvider;
 import spotify.playback.data.visual.artwork.service.DictionaryArtworkUrlProvider;
 import spotify.playback.data.visual.artwork.service.LastFmArtworkUrlProvider;
@@ -53,6 +53,6 @@ public class ArtworkUrlCache {
         return imageUrlFromItem.get();
       }
     }
-    return BigPictureUtils.BLANK;
+    return BigPictureConstants.BLANK;
   }
 }

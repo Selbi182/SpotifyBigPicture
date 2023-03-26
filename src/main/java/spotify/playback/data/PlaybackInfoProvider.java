@@ -30,6 +30,7 @@ import spotify.playback.data.dto.sub.ImageData;
 import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
 import spotify.playback.data.dto.sub.TrackElement;
+import spotify.playback.data.help.BigPictureConstants;
 import spotify.playback.data.help.BigPictureUtils;
 import spotify.playback.data.help.CustomVolumeSettingsProvider;
 import spotify.playback.data.visual.ContextProvider;
@@ -210,7 +211,7 @@ public class PlaybackInfoProvider {
     playbackContext.setVolume(context.getDevice().getVolume_percent());
     playbackContext.setContext(contextProvider.findContextName(context, previous));
     playbackContext.setDevice(context.getDevice().getName());
-    playbackContext.setThumbnailUrl(BigPictureUtils.BLANK);
+    playbackContext.setThumbnailUrl(BigPictureConstants.BLANK);
 
     // TrackData
     TrackData trackData = playbackInfo.getTrackData();
@@ -363,8 +364,8 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setArtists(SpotifyUtils.toArtistNamesList(track.getArtists()));
     currentlyPlaying.setTitle(track.getName());
     currentlyPlaying.setAlbum(album.getName());
-    currentlyPlaying.setReleaseDate(album.getReleaseDate() != null ? album.getReleaseDate() : BigPictureUtils.BLANK);
-    currentlyPlaying.setDescription(BigPictureUtils.BLANK);
+    currentlyPlaying.setReleaseDate(album.getReleaseDate() != null ? album.getReleaseDate() : BigPictureConstants.BLANK);
+    currentlyPlaying.setDescription(BigPictureConstants.BLANK);
 
     return pInfo;
   }

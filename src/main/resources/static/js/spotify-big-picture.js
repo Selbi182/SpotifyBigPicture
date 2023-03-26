@@ -1067,7 +1067,6 @@ function setTextColor(rgbText) {
 // PROGRESS
 ///////////////////////////////
 
-let smoothProgressBarPref;
 function refreshProgress() {
   updateProgress(currentData);
 }
@@ -1094,20 +1093,21 @@ function updateProgress(changes) {
     elemTimeTotal.innerHTML = formattedTotalTime;
   }
 
-  // Title
-  let newTitle = "Spotify Big Picture";
-  let artists = getChange(changes, "currentlyPlaying.artists").value;
-  let title = getChange(changes, "currentlyPlaying.title").value;
-  if (!idle && artists && title) {
-    newTitle = `${artists[0]} - ${removeFeaturedArtists(title)} | ${newTitle}`;
+  // Website Title
+  let newTitle = "SpotifyBigPicture";
+  if (isPrefEnabled("current-track-in-website-title")) {
+    let artists = getChange(changes, "currentlyPlaying.artists").value;
+    let title = getChange(changes, "currentlyPlaying.title").value;
+    if (!idle && artists && title) {
+      newTitle = `${artists[0]} - ${removeFeaturedArtists(title)} | ${newTitle}`;
+    }
   }
   if (document.title !== newTitle) {
     document.title = newTitle;
   }
 
   // Update Progress Bar
-  smoothProgressBarPref = smoothProgressBarPref || findPreference("smooth-progress-bar");
-  if (smoothProgressBarPref.state || timeCurrentUpdated || timeTotalUpdated) {
+  if (isPrefEnabled("smooth-progress-bar") || timeCurrentUpdated || timeTotalUpdated) {
     setProgressBarTarget(current, total, paused);
   }
 }
@@ -1570,6 +1570,14 @@ const PREFERENCES = [
     }
   },
   {
+    id: "current-track-in-website-title",
+    name: "Display Current Song in Website Title",
+    description: "If enabled, display the current artist and song name in the website title. " +
+        "Otherwise, only show 'SpotifyBigPicture'",
+    category: "General",
+    callback: () => refreshProgress()
+  },
+  {
     id: "enable-bottom-content",
     name: "Enable Bottom Content",
     description: "Enable the bottom content, the container for the progress bar and various meta information. " +
@@ -1854,7 +1862,6 @@ const PREFERENCES_DEFAULT = {
     "show-volume-bar",
     "show-device",
     "show-progress-bar",
-    "smooth-progress-bar",
     "show-clock",
     "clock-full"
   ],
@@ -1885,6 +1892,8 @@ const PREFERENCES_DEFAULT = {
     "transitions",
     "strip-titles",
     "fake-song-transition",
+    "current-track-in-website-title",
+    "smooth-progress-bar",
     "show-featured-artists",
     "prerender-background"
   ],
@@ -1895,6 +1904,8 @@ const PREFERENCES_DEFAULT = {
     "show-fps"
   ]
 }
+
+const PREFERENCES_IGNORED_SETTINGS = [PREFERENCES_DEFAULT.ignoreDefaultOn, PREFERENCES_DEFAULT.ignoreDefaultOff].flat()
 
 const PREFERENCES_PRESETS = [
   {
@@ -2068,8 +2079,14 @@ const PREFERENCES_PRESETS = [
   }
 ];
 
+let prefSearchCache = {};
 function findPreference(id) {
-  return PREFERENCES.find(pref => pref.id === id);
+  if (id in prefSearchCache) {
+    return prefSearchCache[id];
+  }
+  let pref = PREFERENCES.find(pref => pref.id === id);
+  prefSearchCache[id] = pref;
+  return pref;
 }
 
 function findPreset(id) {
@@ -2122,7 +2139,7 @@ function initVisualPreferences() {
     categories[category] = categoryElem;
   }
 
-  // Create expert settings
+  // Create settings
   for (let prefIndex in PREFERENCES) {
     let pref = PREFERENCES[prefIndex];
 
@@ -2132,6 +2149,11 @@ function initVisualPreferences() {
     prefElem.classList.add("setting");
     prefElem.innerHTML = pref.name;
     prefElem.onclick = () => toggleVisualPreference(pref);
+
+    // Tag as unaffected-by-preset where applicable
+    if (PREFERENCES_IGNORED_SETTINGS.includes(pref.id)) {
+      prefElem.classList.add("unaffected");
+    }
 
     // Group to category
     let categoryElem = categories[pref.category];
@@ -2482,10 +2504,9 @@ function initPlaybackControls() {
 }
 
 const CONTROL_RESPONSE_DELAY = 100;
-let playbackControlPref = findPreference("playback-control");
 let waitingForResponse = false;
 function fireControl(control, param) {
-  if (!waitingForResponse && playbackControlPref.state) {
+  if (!waitingForResponse && isPrefEnabled("playback-control")) {
     waitingForResponse = true;
     setClass("main".select(), "waiting-for-control", true);
     fetch(`/modify-playback/${control}${param ? `?param=${param}` : ""}`, {method: 'POST'})
@@ -2581,8 +2602,7 @@ function printSettingDescription(event) {
     if (pref) {
       header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
       description.innerHTML = pref.description;
-
-      unaffected.innerHTML = [PREFERENCES_DEFAULT.ignoreDefaultOn, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().includes(pref.id) ? "(This setting is unaffected by changing presets)" : "";
+      unaffected.innerHTML = PREFERENCES_IGNORED_SETTINGS.includes(pref.id) ? "This setting is unaffected by changing presets." : "";
 
       overridden.innerHTML = [...target.classList]
         .filter(className => className.startsWith("overridden-"))
@@ -2609,6 +2629,9 @@ function initSettingsMouseMove() {
       requestAnimationFrame(() => toggleSettingsMenu());
     }
   };
+  if (!DEV_MODE) {
+    "preset-thumbnail-generator-canvas".select().remove();
+  }
 
   let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
   settingsMenuExpertModeToggleButton.onclick = () => {
@@ -2644,10 +2667,9 @@ function isSettingControlElem(e) {
       || e.target.parentNode.classList.contains("preset");
 }
 
-const CONTROL_PREF = findPreference("playback-control");
 const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat"];
 function isHoveringControlElem(target) {
-  return target && CONTROL_PREF.state && CONTROL_ELEM_IDS.includes(target.id);
+  return target && isPrefEnabled("playback-control") && CONTROL_ELEM_IDS.includes(target.id);
 }
 
 function toggleSettingsMenu() {
@@ -2733,17 +2755,12 @@ const TIME_OPTIONS = {
   minute: "2-digit"
 }
 const clockLocale = "en-US";
-const clockFormatPref = findPreference("clock-full");
 
 let prevTime;
-let clockPref;
 setInterval(() => {
-  if (!clockPref) {
-    clockPref = findPreference("show-clock");
-  }
-  if (clockPref.state) {
+  if (isPrefEnabled("show-clock")) {
     let date = new Date();
-    let time = clockFormatPref.state ? date.toLocaleDateString(clockLocale, DATE_OPTIONS) : date.toLocaleTimeString(clockLocale, TIME_OPTIONS);
+    let time = isPrefEnabled("clock-full") ? date.toLocaleDateString(clockLocale, DATE_OPTIONS) : date.toLocaleTimeString(clockLocale, TIME_OPTIONS);
     if (time !== prevTime) {
       prevTime = time;
       let clock = "clock".select();
@@ -2760,9 +2777,8 @@ setInterval(() => {
 let fps = "fps-counter".select();
 let fpsStartTime = Date.now();
 let fpsFrame = 0;
-let fpsPref = findPreference("show-fps");
 function fpsTick() {
-  if (fpsPref.state) {
+  if (isPrefEnabled("show-fps")) {
     let time = Date.now();
     fpsFrame++;
     if (time - fpsStartTime > 100) {

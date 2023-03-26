@@ -17,10 +17,11 @@ public class CustomVolumeSettingsProvider {
   private static final String CUSTOM_VOLUME_SETTINGS_FILE = "custom_volume_settings.txt";
   private static final String SPLIT_CHAR = " -> ";
   private static final String COMMENT_CHAR = "//";
-  private static List<PlaybackInfo.CustomVolumeSettings> customVolumeSettings;
+
+  private final List<PlaybackInfo.CustomVolumeSettings> customVolumeSettings;
 
   CustomVolumeSettingsProvider() {
-    customVolumeSettings = new ArrayList<>();
+    this.customVolumeSettings = new ArrayList<>();
     try {
       File customImagesFiles = new File(CUSTOM_VOLUME_SETTINGS_FILE);
       if (customImagesFiles.canRead()) {
@@ -29,8 +30,9 @@ public class CustomVolumeSettingsProvider {
             .filter(line -> !line.startsWith(COMMENT_CHAR) && !line.isBlank())
             .map(line -> line.split(SPLIT_CHAR))
             .forEach(entry -> {
-              PlaybackInfo.CustomVolumeSettings customVolumeSettings = new PlaybackInfo.CustomVolumeSettings(entry[0].trim(), Integer.parseInt(entry[1].trim()));
-              CustomVolumeSettingsProvider.customVolumeSettings.add(customVolumeSettings);
+              String deviceName = entry[0].trim();
+              int baseDb = Integer.parseInt(entry[1].trim());
+              this.customVolumeSettings.add(new PlaybackInfo.CustomVolumeSettings(deviceName, baseDb));
             });
         }
       }

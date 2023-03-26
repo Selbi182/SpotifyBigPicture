@@ -173,7 +173,7 @@ public class ContextProvider {
 
       Image[] artistImages = contextArtist.getImages();
       String largestImage = SpotifyUtils.findLargestImage(artistImages);
-      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
+      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureConstants.BLANK;
 
       this.listTracks = List.of();
 
@@ -192,7 +192,7 @@ public class ContextProvider {
 
       Image[] playlistImages = contextPlaylist.getImages();
       String largestImage = SpotifyUtils.findLargestImage(playlistImages);
-      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
+      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureConstants.BLANK;
 
       // Limit to 200 for performance reasons
       PlaylistTrack[] firstHalf = contextPlaylist.getTracks().getItems();
@@ -235,7 +235,7 @@ public class ContextProvider {
           .map(id -> SpotifyCall.execute(spotifyApi.getArtist(id)))
           .map(Artist::getImages)
           .map(SpotifyUtils::findSmallestImage)
-          .orElse(BigPictureUtils.BLANK);
+          .orElse(BigPictureConstants.BLANK);
 
       this.listTracks = currentContextAlbumTracks.stream()
           .map(trackSimplified -> TrackElement.fromTrackSimplified(trackSimplified, currentContextAlbum))
@@ -273,7 +273,7 @@ public class ContextProvider {
       if (force || didContextChange(episode.toString())) {
         Image[] artistImages = showSimplified.getImages();
         String largestImage = SpotifyUtils.findLargestImage(artistImages);
-        this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
+        this.thumbnailUrl = largestImage != null ? largestImage : BigPictureConstants.BLANK;
 
         Show show = SpotifyCall.execute(spotifyApi.getShow(showSimplified.getId()));
         setTrackCount(show.getEpisodes().getTotal());
@@ -293,7 +293,7 @@ public class ContextProvider {
 
       Image[] artistImages = user.getImages();
       String largestImage = SpotifyUtils.findLargestImage(artistImages);
-      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureUtils.BLANK;
+      this.thumbnailUrl = largestImage != null ? largestImage : BigPictureConstants.BLANK;
 
       this.listTracks = List.of();
 
@@ -310,7 +310,7 @@ public class ContextProvider {
       Track track = (Track) info.getItem();
       Image[] trackImages = track.getAlbum().getImages();
       String smallestImage = SpotifyUtils.findSmallestImage(trackImages);
-      this.thumbnailUrl = smallestImage != null ? smallestImage : BigPictureUtils.BLANK;
+      this.thumbnailUrl = smallestImage != null ? smallestImage : BigPictureConstants.BLANK;
 
       this.listTracks = List.of(TrackElement.fromPlaylistItem(track));
       setTrackCount(this.listTracks.size());

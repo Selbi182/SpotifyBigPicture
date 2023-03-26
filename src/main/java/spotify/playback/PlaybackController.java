@@ -109,7 +109,6 @@ public class PlaybackController {
     }
   }
 
-
   /**
    * Return the currently set list of settings.
    */

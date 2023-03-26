@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import de.selbi.colorfetch.data.ColorFetchResult;
 import spotify.playback.data.dto.sub.ImageData;
-import spotify.playback.data.help.BigPictureUtils;
+import spotify.playback.data.help.BigPictureConstants;
 
 @Service
 public class ColorProviderService {
@@ -33,7 +33,7 @@ public class ColorProviderService {
   }
 
   public ColorFetchResult getDominantColorFromImageUrl(String artworkUrl, ImageData previousImageData) {
-    if (BigPictureUtils.BLANK.equals(artworkUrl)) {
+    if (BigPictureConstants.BLANK.equals(artworkUrl)) {
       return ColorFetchResult.FALLBACK;
     }
 
