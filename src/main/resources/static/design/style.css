@@ -1,11 +1,17 @@
 @font-face {
-    font-family: "Spotify Bold";
-    src: url("fonts/CircularSpotify-UI-Latin-Bold.woff2");
+    font-family: "Spotify Book";
+    src: url("fonts/CircularSpotify-UI-Latin-Book.woff2");
+    font-weight: 400;
+    font-display: swap;
+    font-style: normal;
 }
 
 @font-face {
-    font-family: "Spotify Book";
-    src: url("fonts/CircularSpotify-UI-Latin-Book.woff2");
+    font-family: "Spotify Bold";
+    src: url("fonts/CircularSpotify-UI-Latin-Bold.woff2");
+    font-weight: 700;
+    font-display: swap;
+    font-style: normal;
 }
 
 :root {
@@ -298,6 +304,7 @@ img:not([src]) {
     justify-content: space-between;
     position: relative;
     max-height: 6vmin;
+    gap: var(--margin-half);
 }
 
 #content-top.hide {
@@ -921,6 +928,9 @@ div#description {
     font-size: 3vmin;
     font-feature-settings: "tnum";
     opacity: 0.5;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5vmin;
 }
 #volume:empty, #volume.hide {
     display: none;
@@ -931,6 +941,7 @@ div#description {
 #volume-text {
     white-space: nowrap;
     display: flex;
+    align-items: center;
     gap: 1vmin;
 }
 #volume-text::before {
@@ -945,6 +956,7 @@ div#description {
     mask-repeat: no-repeat;
     height: 3vmin;
     width: 3vmin;
+    opacity: 0.5;
     background-color: var(--color);
 }
 
@@ -984,6 +996,8 @@ div#device {
     --max-lines: 1;
     opacity: 0.5;
     font-size: 2vmin;
+    display: flex;
+    gap: 1vmin;
 }
 #device:empty, #device.hide {
     display: none;
@@ -993,14 +1007,18 @@ div#device {
 }
 #device::before {
     content: "";
-    background-image: url("img/symbols/curved-arrow.png");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    margin-right: 1vmin;
+    -webkit-mask-image: url("img/symbols/curved-arrow.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: url("img/symbols/curved-arrow.png");
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
     opacity: 0.5;
     width: 2vmin;
     height: 2vmin;
+    background-color: var(--color);
     display: inline-block;
 }
 
@@ -1075,6 +1093,7 @@ div#device {
     text-align: right;
     flex-direction: row;
     justify-content: flex-end;
+    align-items: center;
     height: 100%;
     gap: 2.5vmin;
 }
@@ -1117,6 +1136,7 @@ div#device {
 #bottom-meta-container:not(.spread-timestamps) #bottom-right #time-slash {
     background: var(--color);
     width: 0.5vmin;
+    height: 100%;
     opacity: 0.5;
     transform: rotate(25deg);
     border-radius: 2vmin;
@@ -1228,7 +1248,6 @@ div#device {
     width: 100%;
     height: 100%;
     justify-content: space-between;
-    font-family: var(--font-bold);
     flex-direction: column;
     font-size: 2vmin;
     display: none;
@@ -1244,7 +1263,6 @@ div#device {
     max-width: 100%;
     display: flex;
     align-items: center;
-    line-height: 1;
 }
 
 #settings-categories .setting[class*='overridden-'] {
@@ -1284,11 +1302,6 @@ div#device {
     height: 2vmin;
 }
 
-#settings-categories .setting-category-header {
-    font-size: 3vmin;
-    margin-bottom: 1vmin;
-}
-
 #settings-categories .setting-category {
     background: #ffffff20;
     border-radius: 2vmin;
@@ -1296,6 +1309,27 @@ div#device {
     display: flex;
     flex-direction: column;
     gap: 1vmin;
+}
+
+#settings-categories .setting-category-header {
+    font-family: var(--font-bold);
+    font-size: 3vmin;
+    margin-bottom: 1vmin;
+    opacity: 0.65;
+    cursor: pointer;
+}
+
+#settings-categories .setting-category-header:hover {
+    opacity: 1;
+}
+
+#settings-categories .setting-category.collapse .setting-category-header::after {
+    content: "\2026";
+    display: block;
+}
+
+#settings-categories .setting-category.collapse .setting {
+    display: none;
 }
 
 #settings-categories .setting-category.hide {
@@ -1380,7 +1414,6 @@ div#device {
     justify-content: center;
     align-items: center;
     gap: 1vmin;
-    line-height: 1;
 }
 
 #settings-description > :is(#settings-description-overridden, #settings-description-unaffected):empty {
@@ -1403,21 +1436,32 @@ div#device {
     display: inline-block;
 }
 
-#settings-top-buttons {
+#settings-top-buttons, #settings-bottom-buttons {
     display: flex;
     width: fit-content;
     gap: 0 var(--margin-settings);
     position: absolute;
-    top: 2vmin;
     left: var(--margin-settings);
     font-family: var(--font-bold);
     z-index: 1;
 }
 
-#settings-external, #settings-expert-mode-toggle {
+#settings-top-buttons {
+    top: 2vmin;
+}
+
+#settings-bottom-buttons {
+    bottom: 2vmin;
+}
+
+:is(#settings-top-buttons, #settings-bottom-buttons) > * {
     opacity: 0.5;
     cursor: pointer;
     text-decoration: none;
+}
+
+:is(#settings-top-buttons, #settings-bottom-buttons) > *:hover {
+    opacity: 1;
 }
 
 #settings-external::before {
@@ -1442,10 +1486,6 @@ div#device {
     display: initial;
 }
 
-#settings-expert-mode-toggle:hover {
-    opacity: 1;
-}
-
 #settings-expert-mode-toggle::before {
     content: "";
     background-image: url("img/symbols/checkbox-off.png");
@@ -1463,6 +1503,20 @@ div#device {
     background-image: url("img/symbols/checkbox-on.png");
 }
 
+#settings-reset::before {
+    content: "";
+    background-image: url("img/symbols/cog.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 1vmin;
+    opacity: 0.5;
+    width: 2vmin;
+    height: 2vmin;
+    display: inline-block;
+    padding-right: 1vmin;
+}
+
 #clock-wrapper {
     text-align: center;
     font-weight: bold;
@@ -1471,7 +1525,6 @@ div#device {
     font-size: 3vmin;
     width: fit-content;
     height: min-content;
-    line-height: 1;
 }
 
 #clock-wrapper.hide, #clock:empty, #bottom-meta-container.centered-controls #clock-wrapper {

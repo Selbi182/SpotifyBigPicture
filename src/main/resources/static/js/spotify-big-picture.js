@@ -112,7 +112,9 @@ function singleRequest() {
       .then(json => processJson(json))
       .then(() => resolve(true))
       .catch(ex => {
-        console.error(ex);
+        if (!ex.message.startsWith("NetworkError")) {
+          console.error(ex);
+        }
         resolve(false);
       });
   });
@@ -1268,13 +1270,21 @@ const PREFERENCES = [
   },
   {
     id: "transitions",
-    name: "Smooth Transitions",
+    name: "Smooth Transitions (Performance)",
     description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. " +
-        "Disabling this will save on a lot of CPU resources",
+        "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
     category: "General",
     css: {
       "main": "transitions"
     }
+  },
+  {
+    id: "smooth-progress-bar",
+    name: "Smooth Progress Bar (Performance)",
+    description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. " +
+        "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
+    category: "General",
+    callback: () => refreshProgress()
   },
   {
     id: "colored-text",
@@ -1299,7 +1309,7 @@ const PREFERENCES = [
     id: "scrollable-track-list",
     name: "Scrollable Track List",
     description: "If enabled, the track list can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
-    category: "Track List",
+    category: "General",
     css: {"track-list": "scrollable"}
   },
   {
@@ -1596,14 +1606,6 @@ const PREFERENCES = [
     category: "Bottom Content",
     requiredFor: ["smooth-progress-bar"],
     css: {"progress": "!hide"}
-  },
-  {
-    id: "smooth-progress-bar",
-    name: "Smooth Progress Bar",
-    description: "If enabled, the progress bar will get updated at 60 FPS, rather than only once per second. " +
-        "This setting is not recommended for low-power hardware, like a Raspberry Pi",
-    category: "Bottom Content",
-    callback: () => refreshProgress()
   },
   {
     id: "show-timestamps",
@@ -1910,10 +1912,9 @@ const PREFERENCES_IGNORED_SETTINGS = [PREFERENCES_DEFAULT.ignoreDefaultOn, PREFE
 const PREFERENCES_PRESETS = [
   {
     id: "preset-default",
-    name: "Default Mode (Reset)",
+    name: "Default Mode",
     category: "Presets",
-    description: "The default mode. A balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal. " +
-        "Clicking this behaves like a reset button for all settings",
+    description: "The default mode. A balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal",
     enabled: [],
     disabled: []
   },
@@ -2133,7 +2134,11 @@ function initVisualPreferences() {
     categoryElem.classList.add("setting-category");
     let categoryElemHeader = document.createElement("div");
     categoryElemHeader.classList.add("setting-category-header");
+    categoryElemHeader.title = "Expand/collapse category..."
     categoryElemHeader.innerHTML = category;
+    categoryElemHeader.onclick = () => {
+      categoryElem.classList.toggle("collapse");
+    }
     categoryElem.appendChild(categoryElemHeader);
     settingsWrapper.appendChild(categoryElem);
     categories[category] = categoryElem;
@@ -2277,7 +2282,7 @@ function toggleVisualPreference(pref) {
 }
 
 function setVisualPreferenceFromId(prefId, newState) {
-  setVisualPreference(PREFERENCES.find(pref => pref.id === prefId), newState);
+  setVisualPreference(findPreference(prefId), newState);
 }
 
 function setVisualPreference(pref, newState) {
@@ -2344,10 +2349,7 @@ function updateOverridden(preference) {
   }
 }
 
-let activePreset = PREFERENCES_PRESETS[0]; // used for thumbnail generation
 function applyPreset(preset) {
-  activePreset = preset;
-
   [PREFERENCES_DEFAULT.enabled, preset.enabled].flat()
     .filter(prefId => !preset.disabled.includes(prefId))
     .forEach(prefId => setVisualPreferenceFromId(prefId, true));
@@ -2475,7 +2477,9 @@ function portraitModePresetSwitchPrompt() {
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   refreshBackgroundEvent = setTimeout(() => {
-    portraitModePresetSwitchPrompt();
+    if (document.visibilityState === "visible") {
+      portraitModePresetSwitchPrompt();
+    }
     refreshAll();
   }, transitionFromCss);
 };
@@ -2491,16 +2495,7 @@ function initPlaybackControls() {
   "repeat".select().onclick = () => fireControl("REPEAT");
   "prev".select().onclick = () => fireControl("PREV");
   "next".select().onclick = () => fireControl("NEXT");
-  "volume".select().onclick = () => {
-    let newVolume = prompt("Enter new volume in % (0-100):");
-    if (newVolume !== null) {
-      if (newVolume >= 0 && newVolume <= 100) {
-        fireControl("VOLUME", newVolume);
-      } else {
-        alert("Invalid volume (must be a number between 0-100)")
-      }
-    }
-  };
+  "volume".select().onclick = () => changeVolume();
 }
 
 const CONTROL_RESPONSE_DELAY = 100;
@@ -2528,6 +2523,19 @@ function unlockPlaybackControls() {
   if (waitingForResponse) {
     waitingForResponse = false;
     setClass("main".select(), "waiting-for-control", false);
+  }
+}
+
+function changeVolume() {
+  if (isPrefEnabled("playback-control")) {
+    let newVolume = prompt("Enter new volume in % (0-100):");
+    if (newVolume !== null) {
+      if (newVolume >= 0 && newVolume <= 100) {
+        fireControl("VOLUME", newVolume);
+      } else {
+        alert("Invalid volume (must be a number between 0-100)")
+      }
+    }
   }
 }
 
@@ -2587,33 +2595,35 @@ function handleMouseEvent(e) {
 window.addEventListener('load', initSettingsMouseMove);
 
 function printSettingDescription(event) {
-  let settingsDescriptionContainer = "settings-description".select();
-  let header = "settings-description-header".select();
-  let description = "settings-description-description".select();
-  let unaffected = "settings-description-unaffected".select();
-  let overridden = "settings-description-overridden".select();
-
   let target = event.target;
-  if (target.parentNode.classList.contains("preset")) {
-    target = target.parentNode;
-  }
-  if (target.classList.contains("setting") || target.classList.contains("preset")) {
-    let pref = findPreference(target.id) || findPreset(target.id);
-    if (pref) {
-      header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
-      description.innerHTML = pref.description;
-      unaffected.innerHTML = PREFERENCES_IGNORED_SETTINGS.includes(pref.id) ? "This setting is unaffected by changing presets." : "";
+  if (target?.classList) {
+    let settingsDescriptionContainer = "settings-description".select();
+    let header = "settings-description-header".select();
+    let description = "settings-description-description".select();
+    let unaffected = "settings-description-unaffected".select();
+    let overridden = "settings-description-overridden".select();
 
-      overridden.innerHTML = [...target.classList]
-        .filter(className => className.startsWith("overridden-"))
-        .map(className => findPreference(className.replace("overridden-", "")))
-        .map(pref => pref.category + " &#x00BB; " + pref.name)
-        .join(" // ");
-
-      setClass(settingsDescriptionContainer, "show", true);
+    if (target.parentNode.classList.contains("preset")) {
+      target = target.parentNode;
     }
-  } else {
-    setClass(settingsDescriptionContainer, "show", false);
+    if (target.classList.contains("setting") || target.classList.contains("preset")) {
+      let pref = findPreference(target.id) || findPreset(target.id);
+      if (pref) {
+        header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
+        description.innerHTML = pref.description;
+        unaffected.innerHTML = PREFERENCES_IGNORED_SETTINGS.includes(pref.id) ? "This setting is unaffected by changing presets" : "";
+
+        overridden.innerHTML = [...target.classList]
+          .filter(className => className.startsWith("overridden-"))
+          .map(className => findPreference(className.replace("overridden-", "")))
+          .map(pref => pref.category + " &#x00BB; " + pref.name)
+          .join(" // ");
+
+        setClass(settingsDescriptionContainer, "show", true);
+      }
+    } else {
+      setClass(settingsDescriptionContainer, "show", false);
+    }
   }
 }
 
@@ -2633,9 +2643,12 @@ function initSettingsMouseMove() {
     "preset-thumbnail-generator-canvas".select().remove();
   }
 
-  let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
-  settingsMenuExpertModeToggleButton.onclick = () => {
+  "settings-expert-mode-toggle".select().onclick = () => {
     toggleSettingsExpertMode();
+  };
+
+  "settings-reset".select().onclick = () => {
+    resetAllSettings();
   };
 
   document.body.onclick = (e) => {
@@ -2659,15 +2672,18 @@ function initSettingsMouseMove() {
 function isSettingControlElem(e) {
   let settingsMenuToggleButton = "settings-menu-toggle-button".select();
   let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
+  let settingsResetButton = "settings-reset".select();
   return e.target === settingsMenuToggleButton
       || e.target === settingsMenuExpertModeToggleButton
+      || e.target === settingsResetButton
       || e.target.classList.contains("setting")
       || e.target.classList.contains("setting-category")
+      || e.target.classList.contains("setting-category-header")
       || e.target.classList.contains("preset")
       || e.target.parentNode.classList.contains("preset");
 }
 
-const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat"];
+const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat", "Volume"];
 function isHoveringControlElem(target) {
   return target && isPrefEnabled("playback-control") && CONTROL_ELEM_IDS.includes(target.id);
 }
@@ -2693,6 +2709,13 @@ function toggleSettingsExpertMode() {
   settingsExpertMode = !settingsExpertMode;
   let settingsWrapper = "settings-wrapper".select();
   setClass(settingsWrapper, "expert", settingsExpertMode);
+}
+
+function resetAllSettings() {
+  if (confirm("Do you really want to reset all settings to their default state?")) {
+    [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.ignoreDefaultOn].flat().forEach(id => setVisualPreferenceFromId(id, true));
+    [PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().forEach(id => setVisualPreferenceFromId(id, false));
+  }
 }
 
 function generatePresetThumbnail() {
@@ -2722,7 +2745,7 @@ function generatePresetThumbnail() {
         setClass(presetThumbnailGeneratorCanvas, "show", true);
         let downloadLink = document.createElement('a');
         downloadLink.href = `${imgDataBase64}`;
-        downloadLink.download = `${activePreset.id}.png`;
+        downloadLink.download = "preset-thumbnail.png";
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);

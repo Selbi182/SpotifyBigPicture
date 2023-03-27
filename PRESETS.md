@@ -5,11 +5,11 @@ Presets are the recommended way to customize the app. They're combinations of mu
 
 Here's a list of every preset along with an example screenshot (thank you, Rammstein):
 
-### Default Mode (Reset)
+### Default Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-default.png)
 ![Default Mode](https://i.imgur.com/bZfvmqF.png)
 
-The default mode: a balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal. Clicking this behaves like a reset button for all settings
+The default mode: a balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal
 
 ### Compact Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-compact.png)
