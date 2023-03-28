@@ -19,16 +19,26 @@ This will prevent the buttons from the interface from having any functions. It w
 
 ### Colored Text
 If enabled, the dominant color of the current artwork will be used as the color for all texts and some symbols. Otherwise, plain white will be used
+### Scrollable Track List
+If enabled, the track list can be scrolled through with the mouse wheel. Otherwise, it can only scroll on its own
 ### Show Featured Artists
 Display any potential featured artists. Otherwise, only show the main artist
 ### Strip Titles
 Hides any kind of potentially unnecessary extra information from track tiles and release names (such as 'Remastered Version', 'Anniversary Edition', '2023 Re-Issue', etc.)
-### Smooth Transitions
-Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. Disabling this will save on a lot of CPU resources
 ### Guess Next Track
 If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. Enabling this will make the transitions feel much smoother, but it may be inconsistent at times
+### Display Current Song in Website Title
+If enabled, display the current artist and song name in the website title. Otherwise, only show 'SpotifyBigPicture'
 ### Dark Mode
 Darkens the entire screen by 50%
+
+## Performance
+### Smooth Transitions
+Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. Disabling this will save on a lot of CPU resources
+### Smooth Progress Bar
+If enabled, the progress bar will get updated at 60 FPS, rather than only once per second. This setting is not recommended for low-power hardware, like a Raspberry Pi
+### Allow Idle Mode
+If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. Once playback resumes, the page will refresh automatically (may take up to a minute). Recommended for 24/7 hosting of this app
 
 ## Main Content
 ### Enable Artwork
@@ -77,8 +87,6 @@ If enabled, the dominant color of the current artwork will be used as the color 
 Enable the bottom content, the container for the progress bar and various meta information. Disabling this will increase the available space for the main content
 ### Progress Bar
 Displays a bar of that spans the entire screen, indicating how far along the currently played track is
-### Smooth Progress Bar
-If enabled, the progress bar will get updated at 60 FPS, rather than only once per second. This setting is not recommended for low-power hardware, like a Raspberry Pi
 ### Timestamps
 Displays the current and total timestamps of the currently playing track as numeric values
 ### Spread-out Timestamps
@@ -101,8 +109,6 @@ If enabled, the clock displays the full date, weekday, and current time. Otherwi
 ## Track List
 ### Enable Track List
 If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed
-### Scrollable Track List
-If enabled, the track list can be scrolled through with the mouse wheel. Otherwise, it can only scroll on its own
 ### Show Full Titles
 If enabled, longer titles will always be fully displayed (with line breaks). Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...
 ### Show Time Stamps

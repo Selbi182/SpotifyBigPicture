@@ -58,11 +58,6 @@ From here on you can choose between one of two ways to continue with the install
 * **Spotify Premium:**
   * You can still use this app as a free user, but you won't get the full functionality. For example, getting your current queue is **only** available for Spotify premium users. For free users, only the current song can be displayed. For albums, more than a good guess of whichever song comes next is unfortunately not possible
 
-### Idle Mode
-After two hours of playing no music, the interface will turn black and stop rendering anything to save on resources. As soon as music is played again, the interface will automatically return from its idle state as well.
-
-It may take up to a minute during idle mode for the interface to catch up again; alternatively, you can simply refresh the page.
-
 ### Interface doesn't update?
 The information is fetched from Spotify's API by polling it once a second. Unfortunately, there is no "proper" way of doing it, as webhooks for song changes (like Discord uses them, for example) are unavailable for the public API.
 
