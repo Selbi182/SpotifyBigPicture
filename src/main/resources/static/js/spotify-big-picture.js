@@ -214,7 +214,7 @@ function processJson(json) {
           .then(() => prerenderNextImage(json))
           .then(() => setTextData(json))
           .then(() => setCorrectTracklistView(json))
-          .then(() => refreshTimers())
+          .then(() => refreshIdleTimeout(json))
           .finally(() => {
             // Update properties in local storage
             for (let prop in json) {
@@ -1069,10 +1069,6 @@ function setTextColor(rgbText) {
 // PROGRESS
 ///////////////////////////////
 
-function refreshProgress() {
-  updateProgress(currentData);
-}
-
 function updateProgress(changes) {
   let current = getChange(changes, "currentlyPlaying.timeCurrent").value;
   let total = getChange(changes, "currentlyPlaying.timeTotal").value;
@@ -1186,30 +1182,17 @@ function numberWithCommas(number) {
 // TIMERS
 ///////////////////////////////
 
-const ADVANCE_CURRENT_TIME_MS = 1000 / 60;
-const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+window.addEventListener('load', recursiveProgressRefresh);
 
-let autoTimer;
-let idleTimeout;
-
-function refreshTimers() {
-  clearTimers();
-
-  startTime = Date.now();
-  autoTimer = setInterval(() => advanceCurrentTime(), ADVANCE_CURRENT_TIME_MS);
-
-  idleTimeout = setTimeout(() => setIdleModeState(true), IDLE_TIMEOUT_MS);
-  setIdleModeState(false);
+function recursiveProgressRefresh() {
+  refreshProgress();
+  if (!idle) {
+    requestAnimationFrame(() => recursiveProgressRefresh());
+  }
 }
 
-function clearTimers() {
-  clearInterval(autoTimer);
-  clearTimeout(idleTimeout);
-}
-
-let startTime;
-
-function advanceCurrentTime() {
+let startTime = Date.now();
+function refreshProgress() {
   let timeCurrent = currentData.currentlyPlaying.timeCurrent;
   let timeTotal = currentData.currentlyPlaying.timeTotal;
   if (timeCurrent != null && timeTotal != null && !currentData.playbackContext.paused) {
@@ -1218,31 +1201,42 @@ function advanceCurrentTime() {
     startTime = now;
     let newTime = timeCurrent + elapsedTime;
     currentData.currentlyPlaying.timeCurrent = Math.min(timeTotal, newTime);
-    refreshProgress();
+    updateProgress(currentData);
   }
 }
 
-function setIdleModeState(state) {
-  if (state) {
-    if (!idle) {
-      console.info("No music was played in 2 hours. Enabling idle mode...");
-      idle = true;
-      clearTimers();
-      setClass(document.body, "hide", true);
-    }
-  } else {
-    if (idle) {
-      idle = false;
-      reloadPage();
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+let idleTimeout;
+function refreshIdleTimeout(changes, force = false) {
+  let paused = getChange(changes, "playbackContext.paused");
+  if (force || paused.wasChanged) {
+    if (paused.value) {
+      if (isPrefEnabled("allow-idle-mode")) {
+        idleTimeout = setTimeout(() => enableIdleMode(), IDLE_TIMEOUT_MS);
+      }
+    } else {
+      clearTimeout(idleTimeout);
+      if (idle) {
+        disableIdleMode();
+      }
     }
   }
 }
 
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    advanceCurrentTime();
+function enableIdleMode() {
+  if (!idle) {
+    console.info("No music was played in a long while. Enabling idle mode...");
+    idle = true;
+    setClass(document.body, "hide", true);
   }
-});
+}
+
+function disableIdleMode() {
+  if (idle) {
+    idle = false;
+    reloadPage();
+  }
+}
 
 
 ///////////////////////////////
@@ -1270,21 +1264,29 @@ const PREFERENCES = [
   },
   {
     id: "transitions",
-    name: "Smooth Transitions (Performance)",
+    name: "Smooth Transitions",
     description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. " +
         "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
-    category: "General",
+    category: "Performance",
     css: {
       "main": "transitions"
     }
   },
   {
     id: "smooth-progress-bar",
-    name: "Smooth Progress Bar (Performance)",
+    name: "Smooth Progress Bar",
     description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. " +
         "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
-    category: "General",
+    category: "Performance",
     callback: () => refreshProgress()
+  },
+  {
+    id: "allow-idle-mode",
+    name: "Allow Idle Mode",
+    description: "If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. " +
+        "Once playback resumes, the page will refresh automatically. Recommended for 24/7 hosting of this app",
+    category: "Performance",
+    callback: () => refreshIdleTimeout(currentData, true)
   },
   {
     id: "colored-text",
@@ -1820,6 +1822,7 @@ const PREFERENCES = [
 
 const PREFERENCES_CATEGORY_ORDER = [
   "General",
+  "Performance",
   "Main Content",
   "Top Content",
   "Bottom Content",
@@ -1896,6 +1899,7 @@ const PREFERENCES_DEFAULT = {
     "fake-song-transition",
     "current-track-in-website-title",
     "smooth-progress-bar",
+    "allow-idle-mode",
     "show-featured-artists",
     "prerender-background"
   ],
@@ -2758,6 +2762,13 @@ function generatePresetThumbnail() {
       });
   }
 }
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    refreshAll();
+  }
+});
+
 
 ///////////////////////////////
 // CLOCK

@@ -109,11 +109,15 @@ img:not([src]) {
     right: 0;
     top: 0;
     font-size: 3vmin;
-    font-feature-settings: "tnum";
 }
 
 #fps-counter.show {
     display: initial;
+}
+
+:is(#time-current, #time-total, .track-number, .track-length, #volume, #fps-counter) {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2vmin;
 }
 
 #main {
@@ -771,7 +775,6 @@ div#description {
 #track-list.show-tracklist-numbers div:is(.track-number, .disc-symbol) {
     text-align: center;
     min-width: 3vmin;
-    font-feature-settings: "tnum";
 }
 
 #track-list:not(.show-tracklist-numbers) .track-number {
@@ -780,7 +783,6 @@ div#description {
 
 #track-list .track-elem .track-length {
     text-align: right;
-    font-feature-settings: "tnum";
     white-space: nowrap;
 }
 
@@ -926,7 +928,6 @@ div#description {
 #volume {
     --volume: 0%;
     font-size: 3vmin;
-    font-feature-settings: "tnum";
     opacity: 0.5;
     display: flex;
     flex-direction: column;
@@ -1125,7 +1126,6 @@ div#device {
 
 #time-current, #time-total {
     font-size: 4vmin;
-    font-feature-settings: "tnum";
     white-space: nowrap;
 }
 
