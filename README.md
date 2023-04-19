@@ -36,7 +36,7 @@ From here on you can choose between one of two ways to continue with the install
 1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app: `http://localhost:8183/login-callback` (make sure you click the little green "Add" button before saving!)
 2. Download the [current release](https://github.com/Selbi182/SpotifyBigPicture/releases)
 3. Paste the *Client ID* and *Client Secret* you've saved earlier into the respective fields in the `spotifybot.properties` file
-4. Start the app by opening a terminal and typing `java -jar SpotifyBigPicture.jar`
+4. Open a terminal in the same folder as the JAR file (easily done by holding shift and right-clicking, then selecting "Open terminal here"). Then start the app with `java -jar SpotifyBigPicture.jar`
 
 ### Step 2 - Variant B: Pull Docker Image
 1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app. Depending on where you plan to run the app, you must provide a URI that's reachable from the outside. For example `http://ip-of-docker-machine:8183/login-callback`. The login callback *must* end with `/login-callback`! Also make sure you click the little green "Add" button before saving
