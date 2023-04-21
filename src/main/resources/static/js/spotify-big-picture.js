@@ -213,7 +213,10 @@ function processJson(json) {
           .then(() => changeImage(json))
           .then(() => prerenderNextImage(json))
           .then(() => setTextData(json))
-          .then(() => setCorrectTracklistView(json))
+          .then(() => {
+            setCorrectTracklistView(json);
+            setTimeout(() => refreshTrackList(), 2000); // refresh with a little delay to fix occasional scaling issues
+          })
           .then(() => refreshIdleTimeout(json))
           .finally(() => {
             // Update properties in local storage
