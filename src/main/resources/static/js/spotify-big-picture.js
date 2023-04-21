@@ -1694,13 +1694,19 @@ const PREFERENCES = [
     name: "Show Clock",
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
-    requiredFor: ["clock-full"],
+    requiredFor: ["clock-full", "clock-24"],
     css: {"clock-wrapper": "!hide"}
   },
   {
     id: "clock-full",
     name: "Show Full Date in Clock",
     description: "If enabled, the clock displays the full date, weekday, and current time. Otherwise, only displays the current time",
+    category: "Bottom Content"
+  },
+  {
+    id: "clock-24",
+    name: "Use 24-Hour Format for Clock",
+    description: "If enabled, the clock uses the 24-hour format. Otherwise, the 12-hour format",
     category: "Bottom Content"
   },
   {
@@ -1867,8 +1873,7 @@ const PREFERENCES_DEFAULT = {
     "show-volume-bar",
     "show-device",
     "show-progress-bar",
-    "show-clock",
-    "clock-full"
+    "show-clock"
   ],
   disabled: [
     "swap-top-bottom",
@@ -1898,12 +1903,14 @@ const PREFERENCES_DEFAULT = {
     "strip-titles",
     "fake-song-transition",
     "current-track-in-website-title",
-    "smooth-progress-bar",
+    "clock-full",
+    "clock-24",
     "allow-idle-mode",
     "show-featured-artists",
     "prerender-background"
   ],
   ignoreDefaultOff: [
+    "smooth-progress-bar",
     "playback-control",
     "scrollable-track-list",
     "dark-mode",
@@ -2781,7 +2788,7 @@ const DATE_OPTIONS = {
   day: 'numeric',
   hour: 'numeric',
   minute: '2-digit',
-  hourCycle: 'h23'
+  hour12: false
 };
 const TIME_OPTIONS = {
   hour12: false,
@@ -2794,7 +2801,12 @@ let prevTime;
 setInterval(() => {
   if (isPrefEnabled("show-clock")) {
     let date = new Date();
-    let time = isPrefEnabled("clock-full") ? date.toLocaleDateString(clockLocale, DATE_OPTIONS) : date.toLocaleTimeString(clockLocale, TIME_OPTIONS);
+
+    let hour12 = !isPrefEnabled("clock-24");
+    let time = isPrefEnabled("clock-full")
+      ? date.toLocaleDateString(clockLocale, {...DATE_OPTIONS, hour12: hour12})
+      : date.toLocaleTimeString(clockLocale, {...TIME_OPTIONS, hour12: hour12});
+
     if (time !== prevTime) {
       prevTime = time;
       let clock = "clock".select();
