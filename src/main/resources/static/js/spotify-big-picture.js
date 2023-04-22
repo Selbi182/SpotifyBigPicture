@@ -120,6 +120,7 @@ function singleRequest() {
   });
 }
 
+
 ///////////////////////////////
 // WEB STUFF - Polling
 ///////////////////////////////
@@ -137,6 +138,7 @@ function pollingLoop() {
 }
 
 let fakeSongTransition;
+
 function calculateNextPollingTimeout(success) {
   if (success) {
     pollingRetryAttempt = 0;
@@ -191,11 +193,12 @@ function cloneObject(object) {
   return JSON.parse(JSON.stringify(object));
 }
 
+
 ///////////////////////////////
 // MAIN DISPLAY STUFF
 ///////////////////////////////
 
-String.prototype.select = function() {
+String.prototype.select = function () {
   return document.getElementById(this);
 }
 
@@ -213,10 +216,7 @@ function processJson(json) {
           .then(() => changeImage(json))
           .then(() => prerenderNextImage(json))
           .then(() => setTextData(json))
-          .then(() => {
-            setCorrectTracklistView(json);
-            setTimeout(() => refreshTrackList(), 2000); // refresh with a little delay to fix occasional scaling issues
-          })
+          .then(() => setCorrectTracklistView(json))
           .then(() => refreshIdleTimeout(json))
           .finally(() => {
             // Update properties in local storage
@@ -461,7 +461,7 @@ function setCorrectTracklistView(changes) {
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
   let refreshPrintedList = newQueue.length > 0 &&
-      ((queueMode !== wasPreviouslyInQueueMode) || !trackListEquals(oldQueue, newQueue));
+    ((queueMode !== wasPreviouslyInQueueMode) || !trackListEquals(oldQueue, newQueue));
 
   if (refreshPrintedList) {
     if (queueMode) {
@@ -506,7 +506,7 @@ function setCorrectTracklistView(changes) {
     let contentInfoSize = "center-info-main".select().offsetHeight;
     let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
     trackListScaleRatio = Math.max(2, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
-    trackListScaleRatio = Math.floor(trackListScaleRatio * 10) /  10;
+    trackListScaleRatio = Math.floor(trackListScaleRatio * 10) / 10;
   }
   if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
     trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
@@ -755,6 +755,7 @@ function createSingleTrackListItem(trackItem, trackNumPadLength) {
 }
 
 window.addEventListener('load', setupScrollGradients);
+
 function setupScrollGradients() {
   let trackList = "track-list".select();
   trackList.onscroll = () => updateScrollGradients();
@@ -795,6 +796,7 @@ function updateScrollPositions(trackNumber) {
 }
 
 const SCROLL_GRADIENTS_TOLERANCE = 10;
+
 function updateScrollGradients() {
   let trackList = "track-list".select();
   let topGradient = trackList.scrollTop > SCROLL_GRADIENTS_TOLERANCE;
@@ -802,6 +804,7 @@ function updateScrollGradients() {
   setClass(trackList, "gradient-top", topGradient);
   setClass(trackList, "gradient-bottom", bottomGradient);
 }
+
 
 ///////////////////////////////
 // IMAGE
@@ -854,6 +857,7 @@ function changeImage(changes) {
 }
 
 let nextPrerenderInProgress = false;
+
 function prerenderNextImage(changes) {
   return new Promise(resolve => {
     if (!nextPrerenderInProgress) {
@@ -909,11 +913,11 @@ function setArtworkAndPrerender(newImageUrl, colors) {
       colors = DEFAULT_IMAGE_COLORS;
     }
     Promise.all([
-      loadArtwork(newImageUrl),
-      loadBackground(newImageUrl, colors)
-    ])
-    .then(() => prerenderBackground())
-    .then(canvasData => resolve(canvasData));
+        loadArtwork(newImageUrl),
+        loadBackground(newImageUrl, colors)
+      ])
+      .then(() => prerenderBackground())
+      .then(canvasData => resolve(canvasData));
   });
 }
 
@@ -1031,6 +1035,7 @@ function prerenderBackground() {
 }
 
 let refreshBackgroundRenderInProgress = false;
+
 function refreshBackgroundRender() {
   if (!refreshBackgroundRenderInProgress) {
     refreshBackgroundRenderInProgress = true;
@@ -1114,6 +1119,7 @@ function updateProgress(changes) {
 }
 
 const progressBarElem = "progress-current".select();
+
 function setProgressBarTarget(current, total) {
   let percent = (current / (total || 1)) * 100;
   progressBarElem.style.setProperty("--progress-percent", percent + "%");
@@ -1181,6 +1187,7 @@ function numberWithCommas(number) {
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+
 ///////////////////////////////
 // TIMERS
 ///////////////////////////////
@@ -1195,6 +1202,7 @@ function recursiveProgressRefresh() {
 }
 
 let startTime = Date.now();
+
 function refreshProgress() {
   let timeCurrent = currentData.currentlyPlaying.timeCurrent;
   let timeTotal = currentData.currentlyPlaying.timeTotal;
@@ -1210,6 +1218,7 @@ function refreshProgress() {
 
 const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 let idleTimeout;
+
 function refreshIdleTimeout(changes, force = false) {
   let paused = getChange(changes, "playbackContext.paused");
   if (force || paused.wasChanged) {
@@ -1250,8 +1259,8 @@ const PREFERENCES = [
   {
     id: "playback-control",
     name: "Enable Playback Controls",
-    description: "If enabled, the interface can be used to directly control some basic playback functions of Spotify: " +
-        "play, pause, next track, previous track, shuffle, repeat. Otherwise, the icons are purely cosmetic",
+    description: "If enabled, the interface can be used to directly control some basic playback functions of Spotify: "
+      + "play, pause, next track, previous track, shuffle, repeat. Otherwise, the icons are purely cosmetic",
     category: "General",
     css: {"main": "playback-control"},
     callback: (state) => {
@@ -1268,26 +1277,24 @@ const PREFERENCES = [
   {
     id: "transitions",
     name: "Smooth Transitions",
-    description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. " +
-        "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
+    description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. "
+      + "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
     category: "Performance",
-    css: {
-      "main": "transitions"
-    }
+    css: {"main": "transitions"}
   },
   {
     id: "smooth-progress-bar",
     name: "Smooth Progress Bar",
-    description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. " +
-        "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
+    description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. "
+      + "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
     category: "Performance",
     callback: () => refreshProgress()
   },
   {
     id: "allow-idle-mode",
     name: "Allow Idle Mode",
-    description: "If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. " +
-        "Once playback resumes, the page will refresh automatically. Recommended for 24/7 hosting of this app",
+    description: "If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. "
+      + "Once playback resumes, the page will refresh automatically. Recommended for 24/7 hosting of this app",
     category: "Performance",
     callback: () => refreshIdleTimeout(currentData, true)
   },
@@ -1320,8 +1327,8 @@ const PREFERENCES = [
   {
     id: "full-track-list",
     name: "Show Full Titles",
-    description: "If enabled, longer titles will always be fully displayed (with line breaks). " +
-        "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
+    description: "If enabled, longer titles will always be fully displayed (with line breaks). "
+      + "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
     category: "Track List",
     css: {"track-list": "no-clamp"}
   },
@@ -1335,8 +1342,8 @@ const PREFERENCES = [
   {
     id: "album-view",
     name: "Enable Album View",
-    description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. " +
-        "(Only works for 200 tracks or fewer, for performance reasons)",
+    description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
+      + "(Only works for 200 tracks or fewer, for performance reasons)",
     category: "Track List",
     requiredFor: ["hide-title-album-view", "xl-main-info-scrolling"],
     callback: () => refreshTrackList()
@@ -1344,8 +1351,8 @@ const PREFERENCES = [
   {
     id: "hide-title-album-view",
     name: "Album View: Hide Duplicate Track Name",
-    description: "If 'Album View' is enabled, the current track's name will not be displayed in the main content container " +
-        "(since it's already visible in the track list)",
+    description: "If 'Album View' is enabled, the current track's name will not be displayed in the main content container "
+      + "(since it's already visible in the track list)",
     category: "Track List",
     requiredFor: ["xl-main-info-scrolling"],
     css: {"center-info-main": "hide-title-in-album-view"}
@@ -1353,8 +1360,8 @@ const PREFERENCES = [
   {
     id: "xl-tracklist",
     name: "XL Track List",
-    description: "If enabled, the font size for the track list is doubled. " +
-        "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    description: "If enabled, the font size for the track list is doubled. "
+      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Track List",
     css: {"track-list": "big-text"}
   },
@@ -1450,8 +1457,8 @@ const PREFERENCES = [
   {
     id: "strip-titles",
     name: "Strip Titles",
-    description: "Hides any kind of potentially unnecessary extra information from track tiles and release names " +
-        `(such as 'Remastered Version', 'Anniversary Edition', '${new Date().getFullYear()} Re-Issue', etc.)`,
+    description: "Hides any kind of potentially unnecessary extra information from track tiles and release names "
+      + "(such as 'Remastered Version', 'Anniversary Edition', '2023 Re-Release', etc.)",
     category: "General",
     css: {
       "title-extra": "hide",
@@ -1477,8 +1484,8 @@ const PREFERENCES = [
   {
     id: "full-release-date",
     name: "Full Release Date",
-    description: "If enabled, the whole release date is shown (including month and day). Otherwise, only the year is shown. " +
-        "Note that some releases on Spotify only have the year (usually older releases)",
+    description: "If enabled, the whole release date is shown (including month and day). Otherwise, only the year is shown. "
+      + "Note that some releases on Spotify only have the year (usually older releases)",
     category: "Main Content",
     requiredFor: ["full-release-date-podcasts"],
     css: {"album-release": "full"}
@@ -1500,8 +1507,8 @@ const PREFERENCES = [
   {
     id: "xl-text",
     name: "XL Main Content",
-    description: "If enabled, the font size for the current track's title, artist, and release is doubled. " +
-        "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    description: "If enabled, the font size for the current track's title, artist, and release is doubled. "
+      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
     requiredFor: ["xl-main-info-scrolling"],
     css: {"center-info-main": "big-text"}
@@ -1516,8 +1523,8 @@ const PREFERENCES = [
   {
     id: "enable-top-content",
     name: "Enable Top Content",
-    description: "Enable the top content, the container for the context and the Spotify logo. " +
-        "Disabling this will increase the available space for the main content",
+    description: "Enable the top content, the container for the context and the Spotify logo. "
+      + "Disabling this will increase the available space for the main content",
     category: "Top Content",
     requiredFor: ["show-context", "show-logo", "swap-top", "artwork-expand-top"],
     css: {
@@ -1536,16 +1543,16 @@ const PREFERENCES = [
   {
     id: "show-context-summary",
     name: "Context Summary",
-    description: "Show a small summary of the current context (total track count and total time). " +
-        "Do note that total time cannot be displayed for playlists above 200 tracks for performance reasons",
+    description: "Show a small summary of the current context (total track count and total time). "
+      + "Do note that total time cannot be displayed for playlists above 200 tracks for performance reasons",
     category: "Top Content",
     css: {"context-extra": "!hide"}
   },
   {
     id: "show-context-thumbnail",
     name: "Context Image",
-    description: "Display a small image (thumbnail) of the current context. " +
-        "For playlists, it's the playlist image and for anything else it's the first artist",
+    description: "Display a small image (thumbnail) of the current context. "
+      + "For playlists, it's the playlist image and for anything else it's the first artist",
     category: "Top Content",
     requiredFor: ["colored-symbol-context"],
     css: {"thumbnail-wrapper": "!hide"}
@@ -1575,8 +1582,8 @@ const PREFERENCES = [
   {
     id: "fake-song-transition",
     name: "Guess Next Track",
-    description: "If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. " +
-        "Enabling this will make the transitions feel much smoother, but it may be inconsistent at times",
+    description: "If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. "
+      + "Enabling this will make the transitions feel much smoother, but it may be inconsistent at times",
     category: "General",
     callback: (state) => {
       if (!state) {
@@ -1587,16 +1594,16 @@ const PREFERENCES = [
   {
     id: "current-track-in-website-title",
     name: "Display Current Song in Website Title",
-    description: "If enabled, display the current artist and song name in the website title. " +
-        "Otherwise, only show 'SpotifyBigPicture'",
+    description: "If enabled, display the current artist and song name in the website title. "
+      + "Otherwise, only show 'SpotifyBigPicture'",
     category: "General",
     callback: () => refreshProgress()
   },
   {
     id: "enable-bottom-content",
     name: "Enable Bottom Content",
-    description: "Enable the bottom content, the container for the progress bar and various meta information. " +
-        "Disabling this will increase the available space for the main content",
+    description: "Enable the bottom content, the container for the progress bar and various meta information. "
+      + "Disabling this will increase the available space for the main content",
     category: "Bottom Content",
     requiredFor: ["show-progress-bar", "show-timestamps", "show-info-icons", "show-volume", "show-device", "reverse-bottom", "show-clock", "artwork-expand-bottom"],
     css: {
@@ -1643,8 +1650,8 @@ const PREFERENCES = [
   {
     id: "show-info-icons",
     name: "Show Play/Pause/Shuffle/Repeat Icons",
-    description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left. " +
-        "This setting is required for the playback controls to work",
+    description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left. "
+      + "This setting is required for the playback controls to work",
     category: "Bottom Content",
     requiredFor: ["playback-control"],
     css: {"info-symbols": "!hide"}
@@ -1652,8 +1659,8 @@ const PREFERENCES = [
   {
     id: "center-info-icons",
     name: "Center Icons",
-    description: "If enabled, the play/pause/shuffle/repeat icons are centered in the bottom content (like it's the case on the default Spotify player). " +
-        "Enabling this will disable the clock",
+    description: "If enabled, the play/pause/shuffle/repeat icons are centered in the bottom content (like it's the case on the default Spotify player). "
+      + "Enabling this will disable the clock",
     category: "Bottom Content",
     overrides: ["show-clock"],
     css: {"bottom-meta-container": "centered-controls"},
@@ -1751,8 +1758,8 @@ const PREFERENCES = [
   {
     id: "center-lr-margins",
     name: "Left/Right Margins",
-    description: "This adds margins to the left and right of the main content. " +
-        "This setting has minimum effect if Split Main Content isn't enabled",
+    description: "This adds margins to the left and right of the main content. "
+      + "This setting has minimum effect if Split Main Content isn't enabled",
     category: "Layout: Main Content",
     css: {"content-center": "extra-margins"}
   },
@@ -1768,9 +1775,7 @@ const PREFERENCES = [
     name: "Swap Main Content",
     description: "If enabled, the main content swaps positions with the artwork",
     category: "Layout: Swap",
-    css: {
-      "main": "artwork-right"
-    }
+    css: {"main": "artwork-right"}
   },
   {
     id: "swap-top",
@@ -1796,8 +1801,8 @@ const PREFERENCES = [
   {
     id: "artwork-above-content",
     name: "Artwork Above Track Info",
-    description: "If enabled, the artwork is played above the track info, rather than next to it. " +
-        "This mode is intended for portrait mode (it will break everything in landscape mode)",
+    description: "If enabled, the artwork is played above the track info, rather than next to it. "
+      + "This mode is intended for portrait mode (it will break everything in landscape mode)",
     category: "Layout: Misc",
     css: {"main": "artwork-above-content"}
   },
@@ -1805,7 +1810,7 @@ const PREFERENCES = [
     id: "decreased-margins",
     name: "Decreased Margins",
     description: "If enabled, all margins are halved. " +
-        "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
+      "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
     category: "Layout: Misc",
     css: {"main": "decreased-margins"},
   },
@@ -1936,8 +1941,8 @@ const PREFERENCES_PRESETS = [
     id: "preset-tracklist",
     name: "Track-List Mode",
     category: "Presets",
-    description: "Disables the artwork and instead only dimly displays it in the background. " +
-        "Doing this opens up more room for the track list, which becomes centered. Also disables some lesser useful information",
+    description: "Disables the artwork and instead only dimly displays it in the background. "
+      + "Doing this opens up more room for the track list, which becomes centered. Also disables some lesser useful information",
     enabled: [
       "xl-main-info-scrolling",
       "spread-timestamps",
@@ -1957,8 +1962,8 @@ const PREFERENCES_PRESETS = [
     id: "preset-split-text",
     name: "Split-Panel Mode",
     category: "Presets",
-    description: "A combination of the default preset and Track-List Mode that puts the current track information on the left and the track list on the right. " +
-        "Disables the artwork and instead only dimly displays it in the background",
+    description: "A combination of the default preset and Track-List Mode that puts the current track information on the left and the track list on the right. "
+      + "Disables the artwork and instead only dimly displays it in the background",
     enabled: [
       "swap-top",
       "xl-text",
@@ -2077,8 +2082,8 @@ const PREFERENCES_PRESETS = [
     id: "preset-vertical",
     name: "Vertical Mode",
     category: "Presets",
-    description: "A preset optimized (only) for portrait mode. The main content will be displayed below the artwork. " +
-        "Don't use this preset on widescreen monitors, as it will likely break everything",
+    description: "A preset optimized (only) for portrait mode. The main content will be displayed below the artwork. "
+      + "Don't use this preset on widescreen monitors, as it will likely break everything",
     enabled: [
       "artwork-above-content",
       "spread-timestamps",
@@ -2095,6 +2100,7 @@ const PREFERENCES_PRESETS = [
 ];
 
 let prefSearchCache = {};
+
 function findPreference(id) {
   if (id in prefSearchCache) {
     return prefSearchCache[id];
@@ -2125,8 +2131,8 @@ function initVisualPreferences() {
       console.warn("Default settings contain duplicates!");
     }
     let unclassifiedSettings = PREFERENCES
-        .map(pref => pref.id)
-        .filter(prefId => !allSettings.includes(prefId));
+      .map(pref => pref.id)
+      .filter(prefId => !allSettings.includes(prefId));
     if (unclassifiedSettings.length > 0) {
       console.warn("The following settings don't have any defaults specified: " + unclassifiedSettings);
     }
@@ -2245,15 +2251,16 @@ function submitVisualPreferencesToBackend() {
     },
     body: JSON.stringify(simplifiedPrefs)
   })
-  .then(response => {
-    if (response.status >= 400) {
-      console.warn("Failed to transmit settings to backend");
-    }
-  })
+    .then(response => {
+      if (response.status >= 400) {
+        console.warn("Failed to transmit settings to backend");
+      }
+    })
 }
 
 const LOCAL_STORAGE_TEST_KEY = "local_storage_availability_test";
 let localStorageAvailable = null;
+
 function isLocalStorageAvailable() {
   if (localStorageAvailable === null) {
     try {
@@ -2269,6 +2276,7 @@ function isLocalStorageAvailable() {
 
 const LOCAL_STORAGE_KEY_SETTINGS = "visual_preferences";
 const LOCAL_STORAGE_SETTINGS_SPLIT_CHAR = "+";
+
 function getVisualPreferencesFromLocalStorage() {
   if (localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS)) {
     let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS);
@@ -2308,6 +2316,7 @@ function setVisualPreference(pref, newState) {
 }
 
 let refreshContentTimeout;
+
 function isRenderingPreferenceChange() {
   return !!refreshContentTimeout;
 }
@@ -2420,6 +2429,7 @@ function toggleFullscreen() {
 
 const OPACITY_TIMEOUT = 2 * 1000;
 let volumeTimeout;
+
 function handleVolumeChange(volume, device, customVolumeSettings) {
   let volumeContainer = "volume".select();
   let volumeTextContainer = "volume-text".select();
@@ -2444,6 +2454,7 @@ function handleVolumeChange(volume, device, customVolumeSettings) {
 }
 
 let deviceTimeout;
+
 function handleDeviceChange(device) {
   let deviceContainer = "device".select();
   deviceContainer.innerHTML = device;
@@ -2463,11 +2474,13 @@ function refreshAll() {
   submitVisualPreferencesToBackend();
 }
 
+
 ///////////////////////////////
 // REFRESH IMAGE ON RESIZE
 ///////////////////////////////
 
 let mobileView = null;
+
 function isPortraitMode(refresh = false) {
   if (refresh || mobileView === null) {
     mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
@@ -2498,11 +2511,13 @@ window.onresize = () => {
   }, transitionFromCss);
 };
 
+
 ///////////////////////////////
 // PLAYBACK CONTROLS
 ///////////////////////////////
 
 window.addEventListener('load', initPlaybackControls);
+
 function initPlaybackControls() {
   "play-pause".select().onclick = () => fireControl("PLAY_PAUSE");
   "shuffle".select().onclick = () => fireControl("SHUFFLE");
@@ -2514,6 +2529,7 @@ function initPlaybackControls() {
 
 const CONTROL_RESPONSE_DELAY = 100;
 let waitingForResponse = false;
+
 function fireControl(control, param) {
   if (!waitingForResponse && isPrefEnabled("playback-control")) {
     waitingForResponse = true;
@@ -2688,16 +2704,17 @@ function isSettingControlElem(e) {
   let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
   let settingsResetButton = "settings-reset".select();
   return e.target === settingsMenuToggleButton
-      || e.target === settingsMenuExpertModeToggleButton
-      || e.target === settingsResetButton
-      || e.target.classList.contains("setting")
-      || e.target.classList.contains("setting-category")
-      || e.target.classList.contains("setting-category-header")
-      || e.target.classList.contains("preset")
-      || e.target.parentNode.classList.contains("preset");
+    || e.target === settingsMenuExpertModeToggleButton
+    || e.target === settingsResetButton
+    || e.target.classList.contains("setting")
+    || e.target.classList.contains("setting-category")
+    || e.target.classList.contains("setting-category-header")
+    || e.target.classList.contains("preset")
+    || e.target.parentNode.classList.contains("preset");
 }
 
 const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat", "Volume"];
+
 function isHoveringControlElem(target) {
   return target && isPrefEnabled("playback-control") && CONTROL_ELEM_IDS.includes(target.id);
 }
@@ -2752,9 +2769,9 @@ function generatePresetThumbnail() {
     let content = "content".select();
     let presetThumbnailGeneratorCanvas = "preset-thumbnail-generator-canvas".select();
     domtoimage.toPng(content, {
-      width: window.innerWidth,
-      height: window.innerHeight
-    })
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
       .then(imgDataBase64 => {
         setClass(presetThumbnailGeneratorCanvas, "show", true);
         let downloadLink = document.createElement('a');
@@ -2826,6 +2843,7 @@ setInterval(() => {
 let fps = "fps-counter".select();
 let fpsStartTime = Date.now();
 let fpsFrame = 0;
+
 function fpsTick() {
   if (isPrefEnabled("show-fps")) {
     let time = Date.now();
