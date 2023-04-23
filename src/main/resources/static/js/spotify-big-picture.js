@@ -1286,7 +1286,7 @@ const PREFERENCES = [
     id: "smooth-progress-bar",
     name: "Smooth Progress Bar",
     description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. "
-      + "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
+      + "It is STRONGLY recommended keep this setting disabled for low-power hardware to save on resources!",
     category: "Performance",
     callback: () => refreshProgress()
   },
@@ -1584,7 +1584,7 @@ const PREFERENCES = [
     name: "Guess Next Track",
     description: "If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. "
       + "Enabling this will make the transitions feel much smoother, but it may be inconsistent at times",
-    category: "General",
+    category: "Performance",
     callback: (state) => {
       if (!state) {
         clearTimeout(fakeSongTransition);
@@ -1909,7 +1909,6 @@ const PREFERENCES_DEFAULT = {
     "colored-text",
     "transitions",
     "strip-titles",
-    "fake-song-transition",
     "current-track-in-website-title",
     "clock-full",
     "clock-24",
@@ -1918,6 +1917,7 @@ const PREFERENCES_DEFAULT = {
     "prerender-background"
   ],
   ignoreDefaultOff: [
+    "fake-song-transition",
     "smooth-progress-bar",
     "playback-control",
     "scrollable-track-list",
