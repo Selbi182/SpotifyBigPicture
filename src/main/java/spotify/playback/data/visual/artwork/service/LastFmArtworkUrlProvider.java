@@ -1,6 +1,5 @@
 package spotify.playback.data.visual.artwork.service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
@@ -9,7 +8,6 @@ import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -32,12 +30,12 @@ public class LastFmArtworkUrlProvider implements ArtworkUrlProvider {
   private void init() {
     if (lastFmApiToken != null) {
       this.lastFmApiUrl = UriComponentsBuilder.newInstance()
-          .scheme("http")
-          .host("ws.audioscrobbler.com")
-          .path("/2.0")
-          .queryParam("api_key", lastFmApiToken)
-          .queryParam("format", "json")
-          .queryParam("method", "track.getInfo");
+        .scheme("http")
+        .host("ws.audioscrobbler.com")
+        .path("/2.0")
+        .queryParam("api_key", lastFmApiToken)
+        .queryParam("format", "json")
+        .queryParam("method", "album.getInfo");
     }
   }
 
@@ -46,9 +44,9 @@ public class LastFmArtworkUrlProvider implements ArtworkUrlProvider {
     if (lastFmApiUrl != null && item instanceof Track) {
       Track track = (Track) item;
       String url = lastFmApiUrl.cloneBuilder()
-          .queryParam("artist", escape(SpotifyUtils.getFirstArtistName(track)))
-          .queryParam("track", escape(track.getName()))
-          .build().toUriString();
+        .queryParam("artist", SpotifyUtils.getFirstArtistName(track))
+        .queryParam("album", track.getAlbum().getName())
+        .build().toUriString();
       JsonElement json = executeRequest(url);
       if (json != null && json.isJsonArray()) {
         for (JsonElement elem : json.getAsJsonArray()) {
@@ -66,17 +64,13 @@ public class LastFmArtworkUrlProvider implements ArtworkUrlProvider {
     return Optional.empty();
   }
 
-  private String escape(String lfmUserName) {
-    return UriUtils.encode(lfmUserName, StandardCharsets.UTF_8);
-  }
-
   private JsonElement executeRequest(String url) {
     try {
       String rawJson = Jsoup.connect(url).ignoreContentType(true).execute().body();
       JsonObject json = JsonParser.parseString(rawJson).getAsJsonObject();
       if (!json.has("error")) {
         JsonObject currentObjectInJsonTree = json;
-        for (String key : "track.album.image".split("\\.")) {
+        for (String key : "album.image".split("\\.")) {
           if (!currentObjectInJsonTree.has(key)) {
             return null;
           }

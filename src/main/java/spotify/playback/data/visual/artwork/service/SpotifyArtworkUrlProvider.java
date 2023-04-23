@@ -17,7 +17,7 @@ public class SpotifyArtworkUrlProvider implements ArtworkUrlProvider {
   public Optional<String> getImageUrlFromItem(IPlaylistItem item) {
     Image[] images;
     if (item instanceof Track) {
-      images = ((Track) item).getAlbum().getImages();;
+      images = ((Track) item).getAlbum().getImages();
     } else if (item instanceof Episode) {
       images = ((Episode) item).getImages();
     } else {

@@ -56,37 +56,37 @@ public class PlaybackControl {
         CurrentlyPlayingContext context = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
 
         switch (controlOption) {
-        case PLAY_PAUSE:
-          if (context.getIs_playing()) {
-            SpotifyCall.execute(spotifyApi.pauseUsersPlayback());
-          } else {
-            SpotifyCall.execute(spotifyApi.startResumeUsersPlayback());
-          }
-          return true;
-        case SHUFFLE:
-          boolean newShuffleState = !context.getShuffle_state();
-          SpotifyCall.execute(spotifyApi.toggleShuffleForUsersPlayback(newShuffleState));
-          return true;
-        case REPEAT:
-          String repeatState = context.getRepeat_state();
-          if ("off".equals(repeatState)) {
-            repeatState = "context";
-          } else if ("context".equals(repeatState)) {
-            repeatState = "track";
-          } else if ("track".equals(repeatState)) {
-            repeatState = "off";
-          }
-          SpotifyCall.execute(spotifyApi.setRepeatModeOnUsersPlayback(repeatState));
-          return true;
-        case NEXT:
-          SpotifyCall.execute(spotifyApi.skipUsersPlaybackToNextTrack());
-          return true;
-        case PREV:
-          SpotifyCall.execute(spotifyApi.skipUsersPlaybackToPreviousTrack());
-          return true;
-        case VOLUME:
-          SpotifyCall.execute(spotifyApi.setVolumeForUsersPlayback(Integer.parseInt(optionalParam)));
-          return true;
+          case PLAY_PAUSE:
+            if (context.getIs_playing()) {
+              SpotifyCall.execute(spotifyApi.pauseUsersPlayback());
+            } else {
+              SpotifyCall.execute(spotifyApi.startResumeUsersPlayback());
+            }
+            return true;
+          case SHUFFLE:
+            boolean newShuffleState = !context.getShuffle_state();
+            SpotifyCall.execute(spotifyApi.toggleShuffleForUsersPlayback(newShuffleState));
+            return true;
+          case REPEAT:
+            String repeatState = context.getRepeat_state();
+            if ("off".equals(repeatState)) {
+              repeatState = "context";
+            } else if ("context".equals(repeatState)) {
+              repeatState = "track";
+            } else if ("track".equals(repeatState)) {
+              repeatState = "off";
+            }
+            SpotifyCall.execute(spotifyApi.setRepeatModeOnUsersPlayback(repeatState));
+            return true;
+          case NEXT:
+            SpotifyCall.execute(spotifyApi.skipUsersPlaybackToNextTrack());
+            return true;
+          case PREV:
+            SpotifyCall.execute(spotifyApi.skipUsersPlaybackToPreviousTrack());
+            return true;
+          case VOLUME:
+            SpotifyCall.execute(spotifyApi.setVolumeForUsersPlayback(Integer.parseInt(optionalParam)));
+            return true;
         }
       } catch (Exception e) {
         e.printStackTrace();
