@@ -678,6 +678,8 @@ div#description {
 #track-list.scrollable {
     overflow-y: auto;
     scrollbar-width: thin;
+    scrollbar-color: var(--color) transparent;
+    transition: scrollbar-color var(--transition);
     padding-right: 2vmin;
 }
 ::-webkit-scrollbar {
@@ -685,10 +687,11 @@ div#description {
     height: 1vmin;
 }
 ::-webkit-scrollbar-track {
-    background: #222;
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background-color: #888;
+    background-color: var(--color);
+    transition: background-color var(--transition);
     border-radius: 1vmin;
     border: transparent;
 }

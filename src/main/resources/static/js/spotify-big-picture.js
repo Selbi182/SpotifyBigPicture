@@ -2587,6 +2587,9 @@ document.onkeydown = (e) => {
     case 'f':
       toggleFullscreen();
       break;
+    case 'd':
+      toggleVisualPreference(findPreference("dark-mode"));
+      break;
   }
 };
 
