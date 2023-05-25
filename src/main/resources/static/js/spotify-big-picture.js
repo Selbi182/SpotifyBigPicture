@@ -146,7 +146,7 @@ function calculateNextPollingTimeout(success) {
         let timeTotal = currentData.currentlyPlaying.timeTotal;
         let remainingTime = timeTotal - timeCurrent;
         if (remainingTime < POLLING_INTERVAL_MS * 2) {
-          return remainingTime + 250; // plus 250ms to avoid potential race conditions caused by the information and queue endpoints sometimes being out of sync
+          return remainingTime;
         }
       }
       return POLLING_INTERVAL_MS;
@@ -455,14 +455,23 @@ function setCorrectTracklistView(changes) {
     }
   }
 
-  // Scale track list to fit container (after to account for potential race conditions)
-  setTimeout(() => {
-    scaleTrackList(trackListContainer, queueMode, trackNumber, totalDiscCount, currentDiscNumber, refreshPrintedList, changes);
-  }, transitionFromCss);
+  scaleTrackList();
+
+  if (refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
+    // Make sure the tracklist is at the correct position after the scaling transition.
+    // This is a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid.
+    refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
+    setTimeout(() => {
+      refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
+      refreshTextBalance();
+    }, transitionFromCss * 2);
+  }
 }
 
-const MIN_TRACK_LIST_SCALE = 2.5;
-function scaleTrackList(trackListContainer, queueMode, trackNumber, totalDiscCount, currentDiscNumber, refreshPrintedList, changes) {
+const MIN_TRACK_LIST_SCALE = 1;
+const MAX_TRACK_LIST_SCALE = 3;
+function scaleTrackList() {
+  let trackListContainer = "track-list".select();
   let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") || 1;
 
   let contentCenterContainer = trackListContainer.parentElement;
@@ -471,28 +480,17 @@ function scaleTrackList(trackListContainer, queueMode, trackNumber, totalDiscCou
   let trackListSize = trackListContainerHeight / previousFontSizeScale;
   let splitMode = isPrefEnabled("split-main-panels");
 
-  let trackListScaleRatio;
-  if (splitMode) {
-    trackListScaleRatio = Math.max(MIN_TRACK_LIST_SCALE, contentCenterHeight / trackListSize);
-  } else {
+  let marginForOtherVerticalElements = 0;
+  if (!splitMode) {
     let contentInfoSize = "center-info-main".select().offsetHeight;
     let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
-    trackListScaleRatio = Math.max(MIN_TRACK_LIST_SCALE, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
-    trackListScaleRatio = Math.floor(trackListScaleRatio * 10) / 10;
+    marginForOtherVerticalElements = contentInfoSize - contentCenterGap;
   }
-  if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
-    trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
 
-    // Make sure the tracklist is at the correct position after the scaling transition.
-    // This is a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid.
-    refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
-    setTimeout(() => {
-      refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
-      refreshTextBalance();
-    }, transitionFromCss);
-  } else if (refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
-    refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
-  }
+  let baseTrackListScaleRatio = (contentCenterHeight - marginForOtherVerticalElements) / trackListSize;
+  let clampedTrackListScaleRatio = Math.min(MAX_TRACK_LIST_SCALE, Math.max(MIN_TRACK_LIST_SCALE, baseTrackListScaleRatio));
+
+  trackListContainer.style.setProperty("--font-size-scale", clampedTrackListScaleRatio.toString());
 }
 
 function isExpectedNextSongInQueue(newSongId, previousQueue) {
@@ -768,7 +766,7 @@ function updateScrollPositions(trackNumber) {
   });
 }
 
-const SCROLL_GRADIENTS_TOLERANCE = 10;
+const SCROLL_GRADIENTS_TOLERANCE = 8;
 
 function updateScrollGradients() {
   let trackList = "track-list".select();

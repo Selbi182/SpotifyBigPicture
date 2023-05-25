@@ -109,46 +109,53 @@ public class PlaybackInfoProvider {
     if (ready) {
       try {
         CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
-        PlaybackQueue playbackQueue = null;
-        if (queueEnabled) {
-          playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue());
-          if (currentlyPlayingContext != null && (playbackQueue == null || playbackQueue.getCurrentlyPlaying() == null)) {
-            // Edge case for local files
-            PlaybackQueue.Builder builder = new PlaybackQueue.Builder();
-            builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
-            builder.setQueue(playbackQueue != null ? playbackQueue.getQueue() : List.of());
-            playbackQueue = builder.build();
-          }
-        }
-        if (playbackQueue == null && currentlyPlayingContext != null) {
-          playbackQueue = createFakePlaybackQueueForFreeUsers(currentlyPlayingContext);
-        }
-        if (playbackQueue != null && playbackQueue.getCurrentlyPlaying() != null && currentlyPlayingContext != null && currentlyPlayingContext.getItem() != null) {
-          PlaybackInfo currentPlaybackInfo;
-          ModelObjectType type = playbackQueue.getCurrentlyPlaying().getType();
-          if (currentlyPlayingContext.getItem() != null && !Objects.equals(playbackQueue.getCurrentlyPlaying().getId(), currentlyPlayingContext.getItem().getId())) {
-            type = ModelObjectType.TRACK;
-          }
-          switch (type) {
-            case TRACK:
-              currentPlaybackInfo = buildInfoTrack(playbackQueue, currentlyPlayingContext);
-              break;
-            case EPISODE:
-              currentPlaybackInfo = buildInfoEpisode(playbackQueue, currentlyPlayingContext);
-              break;
-            default:
-              throw new IllegalStateException("Unknown ModelObjectType: " + type);
-          }
-          try {
-            if (previous == null || isSeekedSong(currentPlaybackInfo) || currentPlaybackInfo.hashCode() != previousVersionId || !settingsToToggle.isEmpty()) {
-              if (!settingsToToggle.isEmpty()) {
-                currentPlaybackInfo.setSettingsToToggle(List.copyOf(settingsToToggle));
-                settingsToToggle.clear();
-              }
-              return currentPlaybackInfo;
+        if (currentlyPlayingContext != null && currentlyPlayingContext.getItem() != null) {
+          PlaybackQueue playbackQueue = null;
+          if (queueEnabled) {
+            playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue());
+
+            if (playbackQueue == null || playbackQueue.getCurrentlyPlaying() == null) {
+              // Edge case for local files
+              PlaybackQueue.Builder builder = new PlaybackQueue.Builder();
+              builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
+              builder.setQueue(playbackQueue != null ? playbackQueue.getQueue() : List.of());
+              playbackQueue = builder.build();
+            } else if (playbackQueue.getCurrentlyPlaying() != null && !Objects.equals(currentlyPlayingContext.getItem().getId(), playbackQueue.getCurrentlyPlaying().getId())) {
+              // If the currently playing song in the queue doesn't match the currently playing context's song, the endpoints have gotten out of sync
+              // It's a hackish solution, but the only way I can feasibly avoid this problem is to force the user to re-request until a match arrives
+              return getCurrentPlaybackInfo(previousVersionId);
             }
-          } finally {
-            this.previous = currentPlaybackInfo;
+          }
+          if (playbackQueue == null) {
+            playbackQueue = createFakePlaybackQueueForFreeUsers(currentlyPlayingContext);
+          }
+          if (playbackQueue.getCurrentlyPlaying() != null && currentlyPlayingContext.getItem() != null) {
+            PlaybackInfo currentPlaybackInfo;
+            ModelObjectType type = playbackQueue.getCurrentlyPlaying().getType();
+            if (currentlyPlayingContext.getItem() != null && !Objects.equals(playbackQueue.getCurrentlyPlaying().getId(), currentlyPlayingContext.getItem().getId())) {
+              type = ModelObjectType.TRACK;
+            }
+            switch (type) {
+              case TRACK:
+                currentPlaybackInfo = buildInfoTrack(playbackQueue, currentlyPlayingContext);
+                break;
+              case EPISODE:
+                currentPlaybackInfo = buildInfoEpisode(playbackQueue, currentlyPlayingContext);
+                break;
+              default:
+                throw new IllegalStateException("Unknown ModelObjectType: " + type);
+            }
+            try {
+              if (previous == null || isSeekedSong(currentPlaybackInfo) || currentPlaybackInfo.hashCode() != previousVersionId || !settingsToToggle.isEmpty()) {
+                if (!settingsToToggle.isEmpty()) {
+                  currentPlaybackInfo.setSettingsToToggle(List.copyOf(settingsToToggle));
+                  settingsToToggle.clear();
+                }
+                return currentPlaybackInfo;
+              }
+            } finally {
+              this.previous = currentPlaybackInfo;
+            }
           }
         }
       } catch (SpotifyApiException e) {
