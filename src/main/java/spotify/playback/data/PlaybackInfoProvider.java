@@ -82,6 +82,18 @@ public class PlaybackInfoProvider {
   @EventListener(SpotifyApiLoggedInEvent.class)
   public void ready() {
     logger.info("SpotifyBigPicture is ready! URL: http://localhost:" + port);
+
+    // Test if the queue is available (i.e. if the user is a free user or not)
+    try {
+      SpotifyCall.execute(spotifyApi.getTheUsersQueue());
+      queueEnabled = true;
+    } catch (SpotifyApiException e) {
+      if (ForbiddenException.class.equals(e.getNestedException().getClass())) {
+        queueEnabled = false;
+        logger.warning("Queue has been disabled, as this feature is unavailable for free users!");
+      }
+    }
+
     ready = true;
   }
 
@@ -99,20 +111,13 @@ public class PlaybackInfoProvider {
         CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
         PlaybackQueue playbackQueue = null;
         if (queueEnabled) {
-          try {
-            playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue());
-            if (currentlyPlayingContext != null && (playbackQueue == null || playbackQueue.getCurrentlyPlaying() == null)) {
-              // Edge case for local files
-              PlaybackQueue.Builder builder = new PlaybackQueue.Builder();
-              builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
-              builder.setQueue(playbackQueue != null ? playbackQueue.getQueue() : List.of());
-              playbackQueue = builder.build();
-            }
-          } catch (SpotifyApiException e) {
-            if (e.getNestedException().getClass().equals(ForbiddenException.class)) {
-              queueEnabled = false;
-              logger.warning("Queue has been disabled, as this feature is unavailable for free users!");
-            }
+          playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue());
+          if (currentlyPlayingContext != null && (playbackQueue == null || playbackQueue.getCurrentlyPlaying() == null)) {
+            // Edge case for local files
+            PlaybackQueue.Builder builder = new PlaybackQueue.Builder();
+            builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
+            builder.setQueue(playbackQueue != null ? playbackQueue.getQueue() : List.of());
+            playbackQueue = builder.build();
           }
         }
         if (playbackQueue == null && currentlyPlayingContext != null) {

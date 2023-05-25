@@ -1174,6 +1174,10 @@ div#device {
     transition-duration: var(--transition);
 }
 
+#settings-menu-toggle-button.hide {
+    display: none;
+}
+
 #settings-menu-toggle-button:hover {
     opacity: 1;
 }

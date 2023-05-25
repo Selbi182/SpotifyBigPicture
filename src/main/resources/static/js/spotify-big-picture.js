@@ -137,8 +137,6 @@ function pollingLoop() {
     .then(pollingMs => setTimeout(pollingLoop, parseInt(pollingMs.toString())));
 }
 
-let fakeSongTransition;
-
 function calculateNextPollingTimeout(success) {
   if (success) {
     pollingRetryAttempt = 0;
@@ -148,13 +146,7 @@ function calculateNextPollingTimeout(success) {
         let timeTotal = currentData.currentlyPlaying.timeTotal;
         let remainingTime = timeTotal - timeCurrent;
         if (remainingTime < POLLING_INTERVAL_MS * 2) {
-          clearTimeout(fakeSongTransition);
-          if (isPrefEnabled("fake-song-transition")) {
-            fakeSongTransition = setTimeout(() => simulateNextSongTransition(), remainingTime);
-            return remainingTime + POLLING_INTERVAL_MS;
-          } else {
-            return remainingTime;
-          }
+          return remainingTime + 250; // plus 250ms to avoid potential race conditions caused by the information and queue endpoints sometimes being out of sync
         }
       }
       return POLLING_INTERVAL_MS;
@@ -164,33 +156,6 @@ function calculateNextPollingTimeout(success) {
   let retryTimeoutMs = POLLING_INTERVAL_MS * (2 << Math.min(pollingRetryAttempt, MAX_POLLING_RETRY_ATTEMPT));
   pollingRetryAttempt++;
   return retryTimeoutMs;
-}
-
-
-function simulateNextSongTransition() {
-  if (currentData.trackData.queue.length > 0) {
-    let newTrackData = cloneObject(currentData.trackData);
-
-    let expectedSong = newTrackData.queue.shift();
-    expectedSong.timeCurrent = 0;
-    expectedSong.imageData = newTrackData.nextImageData;
-
-    newTrackData.trackNumber = newTrackData.listTracks.findIndex(track => track.id === expectedSong.id) + 1;
-    newTrackData.discNumber = expectedSong.discNumber;
-    delete newTrackData.nextImageData;
-
-    let fakeNextData = {
-      type: "SIMULATED_TRANSITION",
-      currentlyPlaying: expectedSong,
-      trackData: newTrackData
-    };
-
-    processJson(fakeNextData);
-  }
-}
-
-function cloneObject(object) {
-  return JSON.parse(JSON.stringify(object));
 }
 
 
@@ -208,7 +173,7 @@ const transitionFromCss = parseFloat(getComputedStyle(document.body).getProperty
 function processJson(json) {
   if (json && json.type !== "EMPTY") {
     console.info(json);
-    if (json.type === "DATA" || json.type === "SIMULATED_TRANSITION") {
+    if (json.type === "DATA") {
       if (currentData.deployTime > 0 && getChange(json, "deployTime").wasChanged) {
         window.location.reload(true);
       } else {
@@ -490,7 +455,14 @@ function setCorrectTracklistView(changes) {
     }
   }
 
-  // Scale track list to fit container
+  // Scale track list to fit container (after to account for potential race conditions)
+  setTimeout(() => {
+    scaleTrackList(trackListContainer, queueMode, trackNumber, totalDiscCount, currentDiscNumber, refreshPrintedList, changes);
+  }, transitionFromCss);
+}
+
+const MIN_TRACK_LIST_SCALE = 2.5;
+function scaleTrackList(trackListContainer, queueMode, trackNumber, totalDiscCount, currentDiscNumber, refreshPrintedList, changes) {
   let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") || 1;
 
   let contentCenterContainer = trackListContainer.parentElement;
@@ -501,11 +473,11 @@ function setCorrectTracklistView(changes) {
 
   let trackListScaleRatio;
   if (splitMode) {
-    trackListScaleRatio = Math.max(2, contentCenterHeight / trackListSize);
+    trackListScaleRatio = Math.max(MIN_TRACK_LIST_SCALE, contentCenterHeight / trackListSize);
   } else {
     let contentInfoSize = "center-info-main".select().offsetHeight;
     let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
-    trackListScaleRatio = Math.max(2, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
+    trackListScaleRatio = Math.max(MIN_TRACK_LIST_SCALE, (contentCenterHeight - contentInfoSize - contentCenterGap) / trackListSize);
     trackListScaleRatio = Math.floor(trackListScaleRatio * 10) / 10;
   }
   if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
@@ -543,6 +515,7 @@ function trackListEquals(trackList1, trackList2) {
   return true;
 }
 
+// TODO: Once "text-wrap: balance" rolls out, get rid of this library entirely
 function balanceTextClamp(elem) {
   // balanceText is too stupid to stop itself when in portrait mode.
   // To prevent freezes, disallow balancing in those cases.
@@ -1580,18 +1553,6 @@ const PREFERENCES = [
     css: {"logo": "colored"}
   },
   {
-    id: "fake-song-transition",
-    name: "Guess Next Track",
-    description: "If enabled, simulate the transition to the expected next track in the queue. Otherwise, wait for the actual data to arrive. "
-      + "Enabling this will make the transitions feel much smoother, but it may be inconsistent at times",
-    category: "Performance",
-    callback: (state) => {
-      if (!state) {
-        clearTimeout(fakeSongTransition);
-      }
-    }
-  },
-  {
     id: "current-track-in-website-title",
     name: "Display Current Song in Website Title",
     description: "If enabled, display the current artist and song name in the website title. "
@@ -1725,6 +1686,13 @@ const PREFERENCES = [
     description: "Darkens the entire screen by 50%",
     category: "General",
     css: {"dark-overlay": "show"}
+  },
+  {
+    id: "hide-cog",
+    name: "Hide Settings Icon",
+    description: "Hide the settings icon in the top right when moving the mouse. Note: You can still access the settings menu by pressing Space",
+    category: "General",
+    css: {"settings-menu-toggle-button": "hide"}
   },
   {
     id: "artwork-expand-top",
@@ -1917,11 +1885,11 @@ const PREFERENCES_DEFAULT = {
     "prerender-background"
   ],
   ignoreDefaultOff: [
-    "fake-song-transition",
     "smooth-progress-bar",
     "playback-control",
     "scrollable-track-list",
     "dark-mode",
+    "hide-cog",
     "show-fps"
   ]
 }
