@@ -468,7 +468,7 @@ function setCorrectTracklistView(changes) {
   }
 }
 
-const MIN_TRACK_LIST_SCALE = 1;
+const MIN_TRACK_LIST_SCALE = 2.2;
 const MAX_TRACK_LIST_SCALE = 3;
 function scaleTrackList() {
   let trackListContainer = "track-list".select();
