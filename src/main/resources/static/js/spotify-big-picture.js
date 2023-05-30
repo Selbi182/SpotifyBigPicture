@@ -1819,7 +1819,7 @@ const PREFERENCES = [
     id: "artwork-above-content",
     name: "Artwork Above Track Info",
     description: "If enabled, the artwork is played above the track info, rather than next to it. "
-      + "This mode is intended for portrait mode (it will break everything in landscape mode)",
+      + "Use this setting with caution",
     category: "Layout: Misc",
     css: {"main": "artwork-above-content"}
   },

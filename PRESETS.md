@@ -11,6 +11,18 @@ Here's a list of every preset along with an example screenshot (thank you, Ramms
 
 The default mode: a balanced design that aims to present as much information as possible about the current track (along with its artwork) without compromising on visual appeal
 
+### Track-List Mode
+![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-tracklist.png)
+![Track-List Mode](https://i.imgur.com/gQ9vTje.png)
+
+Disables the artwork and instead only dimly displays it in the background. Doing this opens up more room for the track list, which becomes centered. Also disables some lesser useful information
+
+### Split-Panel Mode
+![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-split-text.png)
+![Split-Panel Mode](https://i.imgur.com/Tr0qq7u.png)
+
+A combination of the default preset and Track-List Mode that puts the current track information on the left and the track list on the right. Disables the artwork and instead only dimly displays it in the background
+
 ### Compact Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-compact.png)
 ![Compact Mode](https://i.imgur.com/1Sl5R2Y.png)
@@ -23,17 +35,11 @@ Similar to the default mode, but the artwork is on the right and a little smalle
 
 The artwork is stretched to its maximum possible size. Apart from that, only the current track, the track list, and the progress bar are displayed
 
-### Track-List Mode
-![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-tracklist.png)
-![Track-List Mode](https://i.imgur.com/gQ9vTje.png)
+### Vintage Mode
+![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-vintage.png)
+![Big Current-Track Mode](https://i.imgur.com/86eYSv4.png)
 
-Disables the artwork and instead only dimly displays it in the background. Doing this opens up more room for the track list, which becomes centered. Also disables some lesser useful information
-
-### Split-Panel Mode
-![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-split-text.png)
-![Split-Panel Mode](https://i.imgur.com/Tr0qq7u.png)
-
-A combination of the default preset and Track-List Mode that puts the current track information on the left and the track list on the right. Disables the artwork and instead only dimly displays it in the background
+A preset inspired by the original Spotify layout on Chromecast. The main content will be displayed below the artwork, the track list is disabled, the background is only a gradient color
 
 ### Big Current-Track Mode
 ![Preset Thumbnail](https://raw.githubusercontent.com/Selbi182/SpotifyBigPicture/master/src/main/resources/static/design/img/presets/preset-big-current-song.png)

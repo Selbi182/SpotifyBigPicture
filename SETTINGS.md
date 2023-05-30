@@ -21,20 +21,22 @@ This will prevent the buttons from the interface from having any functions. It w
 If enabled, the dominant color of the current artwork will be used as the color for all texts and some symbols. Otherwise, plain white will be used
 ### Scrollable Track List
 If enabled, the track list can be scrolled through with the mouse wheel. Otherwise, it can only scroll on its own
-### Show Featured Artists
-Display any potential featured artists. Otherwise, only show the main artist
 ### Strip Titles
 Hides any kind of potentially unnecessary extra information from track tiles and release names (such as 'Remastered Version', 'Anniversary Edition', '2023 Re-Issue', etc.)
 ### Display Current Song in Website Title
 If enabled, display the current artist and song name in the website title. Otherwise, only show 'SpotifyBigPicture'
 ### Dark Mode
 Darkens the entire screen by 50%
+### Hide Settings Icons
+Hide the settings icon in the top right when moving the mouse. Note: You can still access the settings menu by pressing Space
 
 ## Performance
 ### Smooth Transitions
 Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. Disabling this will save on a lot of CPU resources
 ### Smooth Progress Bar
-If enabled, the progress bar will get updated at 60 FPS, rather than only once per second. This setting is not recommended for low-power hardware, like a Raspberry Pi
+If enabled, the progress bar will get updated smoothly, rather than only once per second. It is STRONGLY recommended keep this setting disabled for low-power hardware to save on resources
+### Text Balancing
+If enabled, multiline text is balanced to have roughly the same amount of width per line. Disable this to save on some resources
 ### Allow Idle Mode
 If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. Once playback resumes, the page will refresh automatically (may take up to a minute). Recommended for 24/7 hosting of this app
 
@@ -47,6 +49,8 @@ Show a subtle shadow underneath the artwork
 Enable the main content, the container for the current track data and the track list
 ### Show Artists
 Display the artist(s)
+### Show Featured Artists
+Display any potential featured artists. Otherwise, only show the main artist
 ### Show Titles
 Show the title of the currently playing track
 ### Show Release Name/Date
@@ -63,6 +67,22 @@ While listening to a podcast episode, displays the description of that episode u
 If enabled, the font size for the current track's title, artist, and release is doubled. This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise
 ### Conditional XL Main Content
 Limit 'XL Main Content' to only kick into effect when the title is hidden by 'Album View: Hide Duplicate Track Name'
+
+## Track List
+### Enable Track List
+If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed
+### Show Featured Artists
+Display any potential featured artists in the track list. Otherwise, only show the song name
+### Show Full Titles
+If enabled, longer titles will always be fully displayed (with line breaks). Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...
+### Show Time Stamps
+Show the timestamps for each track in the track list. If disabled, the track names are right-aligned
+### Enable Album View
+If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. (Only works for 200 tracks or fewer, for performance reasons)
+### Album View: Hide Duplicate Track Name
+If 'Album View' is enabled, the current track's name will not be displayed in the main content container (since it's already visible in the track list)
+### Increase Text Scaling Limit
+If enabled, the maximum font size for the track list is drastically increased (factor 5 instead of 3)
 
 ## Top Content
 ### Enable Top Content
@@ -103,20 +123,8 @@ Display the name of the current playback device in the bottom left
 Displays a clock at the bottom center of the page
 ### Show Full Date in Clock
 If enabled, the clock displays the full date, weekday, and current time. Otherwise, only displays the current time
-
-## Track List
-### Enable Track List
-If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed
-### Show Full Titles
-If enabled, longer titles will always be fully displayed (with line breaks). Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...
-### Show Time Stamps
-Show the timestamps for each track in the track list. If disabled, the track names are right-aligned
-### Enable Album View
-If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. (Only works for 200 tracks or fewer, for performance reasons)
-### Album View: Hide Duplicate Track Name
-If 'Album View' is enabled, the current track's name will not be displayed in the main content container (since it's already visible in the track list)
-### XL Track List
-If enabled, the font size for the track list is doubled. This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise
+### Use 24-Hour Format for Clock
+If enabled, the clock uses the 24-hour format. Otherwise, the 12-hour format
 
 ## Layout: Main Content
 ### Expand Artwork to Top
@@ -143,10 +151,10 @@ If enabled, the progress bar and the timestamps/playback state info swap positio
 If enabled, the top content swaps position with the bottom content
 
 ## Layout: Misc
+### Artwork Above Track Info
+If enabled, the artwork is played above the track info, rather than next to it. Use this setting with caution
 ### Decreased Margins
 If enabled, all margins are halved. This allows for more content to be displayed on screen, but will make everything look slightly crammed
-### Vertical Mode
-Convert the two-panel layout into a vertical, centered layout (artwork above track name). Do note that this setting overrides many other settings, namely the track list
 
 ## Background
 ### Enable Background
