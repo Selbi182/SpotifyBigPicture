@@ -496,10 +496,6 @@ div#context-main {
     visibility: hidden;
 }
 
-#content-center.no-feat .feat {
-    display: none;
-}
-
 #content-center.split-main-panels {
     flex-direction: row;
 }
@@ -513,7 +509,8 @@ div#context-main {
 }
 
 #main.artwork-above-content #content-center {
-    padding-top: calc(var(--artwork-size) + var(--margin-main));
+    padding-top: calc(var(--artwork-size) + var(--margin-main) + var(--bonus-padding));
+    --bonus-padding: 0px;
 }
 
 #center-info-main {
@@ -567,6 +564,10 @@ div#context-main {
 }
 
 #artists.hide {
+    display: none;
+}
+
+#artists.no-feat .feat {
     display: none;
 }
 
@@ -661,11 +662,11 @@ div#description {
     max-height: 100%;
     overflow-y: hidden;
     mask-repeat: no-repeat;
-    font-size: var(--font-size-scaled);
-    --font-size-base: calc(1vmin * clamp(1, var(--font-size-scale), 3));
+    font-size: var(--font-size-base);
+    --scale-min: 2.2;
+    --scale-max: 3;
+    --font-size-base: calc(1vmin * clamp(var(--scale-min), var(--font-size-scale), var(--scale-max)));
     --font-size-scale: 1;
-    --font-size-extra-scale: 1;
-    --font-size-scaled: calc(var(--font-size-base) * var(--font-size-extra-scale));
     --gradient-height: 6vmin;
     --gradient-top: white;
     --gradient-bottom: white;
@@ -700,6 +701,10 @@ div#description {
     display: none;
 }
 
+#track-list.no-feat .feat {
+    display: none;
+}
+
 #content-center.split-main-panels #track-list {
     max-width: calc(100% * (2 / 3));
 }
@@ -717,7 +722,7 @@ div#description {
 }
 
 #track-list.big-text {
-    --font-size-extra-scale: 2;
+    --scale-max: 5;
 }
 
 #track-list.gradient-top {
@@ -769,8 +774,8 @@ div#description {
     mask-size: contain;
     mask-position: center;
     mask-repeat: no-repeat;
-    height: var(--font-size-scaled);
-    width: var(--font-size-scaled);
+    height: var(--font-size-base);
+    width: var(--font-size-base);
     background-color: var(--color);
     transition: background-color var(--transition), width var(--transition), height var(--transition) !important;
 }

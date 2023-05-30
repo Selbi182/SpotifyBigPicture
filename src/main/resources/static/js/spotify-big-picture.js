@@ -223,7 +223,6 @@ function setTextData(changes) {
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
 
     if (isPrefEnabled("show-featured-artists") || currentData.currentlyPlaying.artists[0] !== mainArtist) {
-      balanceTextClamp(artistContainer);
       fadeIn(artistContainer);
     }
   }
@@ -238,7 +237,6 @@ function setTextData(changes) {
     "title-main".select().innerHTML = titleMain;
     "title-extra".select().innerHTML = titleExtra;
 
-    balanceTextClamp(titleContainer);
     fadeIn(titleContainer);
   }
 
@@ -264,8 +262,6 @@ function setTextData(changes) {
       setClass("album-release".select(), "hide", true);
     }
 
-    let albumMainContainer = "album-title".select();
-    balanceTextClamp(albumMainContainer);
     let albumContainer = "album".select();
     fadeIn(albumContainer);
   }
@@ -275,7 +271,6 @@ function setTextData(changes) {
     let descriptionContainer = "description".select();
     setClass("content-center".select(), "podcast", description.value && description.value !== BLANK);
     descriptionContainer.innerHTML = description.value;
-    balanceTextClamp(descriptionContainer);
     fadeIn(descriptionContainer);
   }
 
@@ -391,6 +386,9 @@ function setTextData(changes) {
   if (textColor.wasChanged) {
     setTextColor(textColor.value);
   }
+
+  // Text balance
+  refreshTextBalance();
 }
 
 function refreshTrackList() {
@@ -468,11 +466,13 @@ function setCorrectTracklistView(changes) {
   }
 }
 
-const MIN_TRACK_LIST_SCALE = 2.2;
-const MAX_TRACK_LIST_SCALE = 3;
 function scaleTrackList() {
   let trackListContainer = "track-list".select();
   let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") || 1;
+  let minScale = trackListContainer.style.getPropertyValue("--scale-min") || 2.2;
+  let maxScale = trackListContainer.style.getPropertyValue("--scale-max") || 3;
+  previousFontSizeScale = Math.min(Math.max(previousFontSizeScale, minScale), maxScale);
+
 
   let contentCenterContainer = trackListContainer.parentElement;
   let contentCenterHeight = contentCenterContainer.offsetHeight;
@@ -487,10 +487,10 @@ function scaleTrackList() {
     marginForOtherVerticalElements = contentInfoSize - contentCenterGap;
   }
 
-  let baseTrackListScaleRatio = (contentCenterHeight - marginForOtherVerticalElements) / trackListSize;
-  let clampedTrackListScaleRatio = Math.min(MAX_TRACK_LIST_SCALE, Math.max(MIN_TRACK_LIST_SCALE, baseTrackListScaleRatio));
-
-  trackListContainer.style.setProperty("--font-size-scale", clampedTrackListScaleRatio.toString());
+  let trackListScaleRatio = (contentCenterHeight - marginForOtherVerticalElements) / trackListSize;
+  if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
+    trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
+  }
 }
 
 function isExpectedNextSongInQueue(newSongId, previousQueue) {
@@ -517,14 +517,38 @@ function trackListEquals(trackList1, trackList2) {
 function balanceTextClamp(elem) {
   // balanceText is too stupid to stop itself when in portrait mode.
   // To prevent freezes, disallow balancing in those cases.
-  if (!isPortraitMode()) {
+  if (isPrefEnabled("text-balancing") && !isPortraitMode()) {
     // balanceText doesn't take line-clamping into account, unfortunately.
     // So we gotta temporarily remove it, balance the text, then add it again.
     elem.style.setProperty("-webkit-line-clamp", "initial", "important");
     balanceText(elem);
     elem.style.removeProperty("-webkit-line-clamp");
+  } else {
+    removeTags(elem);
   }
 }
+
+// copy-pasted from the library because removeTags(el) isn't accessible from the outside
+function removeTags(el) {
+  // Remove soft-hyphen breaks
+  [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => {
+    br.outerHTML = "";
+  });
+
+  // Replace other breaks with whitespace
+  [...el.querySelectorAll('br[data-owner="balance-text"]')].forEach(br => {
+    br.outerHTML = " ";
+  });
+
+  // Restore hyphens inserted for soft-hyphens
+  [...el.querySelectorAll('span[data-owner="balance-text-softhyphen"]')].forEach(span => {
+    const textNode = document.createTextNode("\u00ad");
+    span.parentNode.insertBefore(textNode, span);
+    span.parentNode.removeChild(span);
+  });
+}
+
+
 
 function refreshTextBalance() {
   isPortraitMode(true);
@@ -918,7 +942,8 @@ function calculateAndRefreshArtworkSize() {
 
   let artworkSize = 0;
   if (isPrefEnabled("display-artwork")) {
-    let centerRect = "content-center".select().getBoundingClientRect();
+    let contentCenterContainer = "content-center".select();
+    let centerRect = contentCenterContainer.getBoundingClientRect();
     let centerTop = centerRect.top;
     let centerBottom = centerRect.bottom;
 
@@ -951,6 +976,19 @@ function calculateAndRefreshArtworkSize() {
     }
 
     artworkSize = Math.min(centerRect.width, artworkSize);
+
+    contentCenterContainer.style.removeProperty("--bonus-padding");
+    if (isPrefEnabled("artwork-above-content") && !isPrefEnabled("show-queue")) {
+      contentCenterContainer.style.setProperty("padding-top", "0");
+      let contentCenterMainHeight = "center-info-main".select().getBoundingClientRect().height;
+
+      artworkSize -= contentCenterMainHeight;
+      if (expandTop) {
+        artworkSize -= contentTop;
+        contentCenterContainer.style.setProperty("--bonus-padding", -(contentTop * 2) + "px");
+      }
+      contentCenterContainer.style.removeProperty("padding-top");
+    }
 
     let topMargin = expandTop ? contentTop : centerTop;
     artwork.style.marginTop = topMargin + "px";
@@ -1262,6 +1300,13 @@ const PREFERENCES = [
     callback: () => refreshProgress()
   },
   {
+    id: "text-balancing",
+    name: "Text Balancing",
+    description: "If enabled, multiline text is balanced to have roughly the same amount of width per line. Disable this to save on some resources",
+    category: "Performance",
+    callback: () => refreshTextBalance()
+  },
+  {
     id: "allow-idle-mode",
     name: "Allow Idle Mode",
     description: "If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. "
@@ -1281,7 +1326,7 @@ const PREFERENCES = [
     name: "Enable Track List",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Track List",
-    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "xl-tracklist", "xl-main-info-scrolling"],
+    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "show-featured-artists-track-list", "full-track-list", "increase-track-list-scaling", "xl-main-info-scrolling"],
     css: {
       "title": "!force-display",
       "track-list": "!hide"
@@ -1294,6 +1339,13 @@ const PREFERENCES = [
     description: "If enabled, the track list can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
     category: "General",
     css: {"track-list": "scrollable"}
+  },
+  {
+    id: "show-featured-artists-track-list",
+    name: "Show Featured Artists",
+    description: "Display any potential featured artists in the track list. Otherwise, only show the song name",
+    category: "Track List",
+    css: {"track-list": "!no-feat"}
   },
   {
     id: "full-track-list",
@@ -1329,10 +1381,9 @@ const PREFERENCES = [
     css: {"center-info-main": "hide-title-in-album-view"}
   },
   {
-    id: "xl-tracklist",
-    name: "XL Track List",
-    description: "If enabled, the font size for the track list is doubled. "
-      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    id: "increase-track-list-scaling",
+    name: "Increase Text Scaling Limit",
+    description: "If enabled, the maximum font size for the track list is drastically increased (factor 5 instead of 3)",
     category: "Track List",
     css: {"track-list": "big-text"}
   },
@@ -1414,8 +1465,8 @@ const PREFERENCES = [
     id: "show-featured-artists",
     name: "Show Featured Artists",
     description: "Display any potential featured artists. Otherwise, only show the main artist",
-    category: "General",
-    css: {"content-center": "!no-feat"}
+    category: "Main Content",
+    css: {"artists": "!no-feat"}
   },
   {
     id: "show-titles",
@@ -1804,9 +1855,9 @@ const PREFERENCES_CATEGORY_ORDER = [
   "General",
   "Performance",
   "Main Content",
+  "Track List",
   "Top Content",
   "Bottom Content",
-  "Track List",
   "Layout: Main Content",
   "Layout: Swap",
   "Layout: Misc",
@@ -1832,7 +1883,6 @@ const PREFERENCES_DEFAULT = {
     "bg-grain",
     "show-artists",
     "show-titles",
-    "colored-symbol-spotify",
     "show-release",
     "enable-top-content",
     "enable-bottom-content",
@@ -1860,9 +1910,8 @@ const PREFERENCES_DEFAULT = {
     "center-lr-margins",
     "reduced-center-margins",
     "xl-main-info-scrolling",
-    "xl-tracklist",
+    "increase-track-list-scaling",
     "swap-top",
-    "colored-symbol-context",
     "spread-timestamps",
     "reverse-bottom",
     "artwork-expand-bottom",
@@ -1878,14 +1927,18 @@ const PREFERENCES_DEFAULT = {
     "current-track-in-website-title",
     "clock-full",
     "clock-24",
+    "text-balancing",
     "allow-idle-mode",
     "show-featured-artists",
+    "show-featured-artists-track-list",
+    "colored-symbol-spotify",
     "prerender-background"
   ],
   ignoreDefaultOff: [
     "smooth-progress-bar",
     "playback-control",
     "scrollable-track-list",
+    "colored-symbol-context",
     "dark-mode",
     "hide-cog",
     "show-fps"
@@ -1979,6 +2032,28 @@ const PREFERENCES_PRESETS = [
       "show-volume-bar",
       "show-device",
       "show-clock"
+    ]
+  },
+  {
+    id: "preset-vintage",
+    name: "Vintage Mode",
+    category: "Presets",
+    description: "A preset inspired by the original Spotify layout on Chromecast. The main content will be displayed below the artwork, the track list is disabled, the background is only a gradient color",
+    enabled: [
+      "artwork-expand-top",
+      "artwork-above-content",
+      "spread-timestamps",
+      "reverse-bottom",
+      "center-info-icons",
+      "reduced-center-margins"
+    ],
+    disabled: [
+      "show-queue",
+      "show-release",
+      "show-info-icons",
+      "show-device",
+      "show-volume",
+      "bg-artwork"
     ]
   },
   {
@@ -2339,6 +2414,8 @@ function updateOverridden(preference) {
 }
 
 function applyPreset(preset) {
+  "main".select().style.setProperty("--artwork-size", "0");
+
   [PREFERENCES_DEFAULT.enabled, preset.enabled].flat()
     .filter(prefId => !preset.disabled.includes(prefId))
     .forEach(prefId => setVisualPreferenceFromId(prefId, true));
