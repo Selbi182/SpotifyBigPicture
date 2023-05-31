@@ -468,11 +468,10 @@ function setCorrectTracklistView(changes) {
 
 function scaleTrackList() {
   let trackListContainer = "track-list".select();
-  let previousFontSizeScale = trackListContainer.style.getPropertyValue("--font-size-scale") || 1;
-  let minScale = trackListContainer.style.getPropertyValue("--scale-min") || 2.2;
-  let maxScale = trackListContainer.style.getPropertyValue("--scale-max") || 3;
+  let previousFontSizeScale = getComputedStyle(trackListContainer).getPropertyValue("--font-size-scale") || 1;
+  let minScale = getComputedStyle(trackListContainer).getPropertyValue("--scale-min") || 2.2;
+  let maxScale = getComputedStyle(trackListContainer).getPropertyValue("--scale-max") || 3;
   previousFontSizeScale = Math.min(Math.max(previousFontSizeScale, minScale), maxScale);
-
 
   let contentCenterContainer = trackListContainer.parentElement;
   let contentCenterHeight = contentCenterContainer.offsetHeight;
@@ -531,14 +530,10 @@ function balanceTextClamp(elem) {
 // copy-pasted from the library because removeTags(el) isn't accessible from the outside
 function removeTags(el) {
   // Remove soft-hyphen breaks
-  [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => {
-    br.outerHTML = "";
-  });
+  [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => br.outerHTML = "");
 
   // Replace other breaks with whitespace
-  [...el.querySelectorAll('br[data-owner="balance-text"]')].forEach(br => {
-    br.outerHTML = " ";
-  });
+  [...el.querySelectorAll('br[data-owner="balance-text"]')].forEach(br => br.outerHTML = " ");
 
   // Restore hyphens inserted for soft-hyphens
   [...el.querySelectorAll('span[data-owner="balance-text-softhyphen"]')].forEach(span => {
@@ -547,8 +542,6 @@ function removeTags(el) {
     span.parentNode.removeChild(span);
   });
 }
-
-
 
 function refreshTextBalance() {
   isPortraitMode(true);
