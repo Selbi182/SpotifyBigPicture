@@ -170,6 +170,7 @@ img:not([src]) {
     position: absolute;
     width: 100%;
     height: 100%;
+    object-fit: cover;
 }
 
 #background-rendered canvas.crossfade {
@@ -511,6 +512,10 @@ div#context-main {
 #main.artwork-above-content #content-center {
     padding-top: calc(var(--artwork-size) + var(--margin-main) + var(--bonus-padding));
     --bonus-padding: 0px;
+}
+
+#main.artwork-above-content.artwork-expand-top #context {
+    max-width: calc(60vw - var(--artwork-size) - (var(--margin-main) * 2));
 }
 
 #center-info-main {

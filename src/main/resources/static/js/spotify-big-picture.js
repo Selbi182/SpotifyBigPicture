@@ -2036,7 +2036,6 @@ const PREFERENCES_PRESETS = [
       "artwork-expand-top",
       "artwork-above-content",
       "spread-timestamps",
-      "reverse-bottom",
       "center-info-icons",
       "reduced-center-margins"
     ],
