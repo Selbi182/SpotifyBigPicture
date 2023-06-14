@@ -22,7 +22,7 @@ Click the cog symbol in the top left of the interface to open the settings for V
 Your settings are automatically stored locally, so you won't need to worry about reconfiguring everything each time you reopen the website.
 
 * A full list of every preset can be found here: [PRESETS.md](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)
-* A full list of every setting can be found here: [SETTINGS.md](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md)
+* General information about the settings can be found here: [SETTINGS.md](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md)
 
 ## Installation
 (If you prefer a video tutorial, [click here](https://www.youtube.com/watch?v=NyJoiEh_qhQ))
