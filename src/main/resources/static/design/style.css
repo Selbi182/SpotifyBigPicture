@@ -668,7 +668,7 @@ div#description {
     overflow-y: hidden;
     mask-repeat: no-repeat;
     font-size: var(--font-size-base);
-    --scale-min: 2.2;
+    --scale-min: 2;
     --scale-max: 3;
     --font-size-base: calc(1vmin * clamp(var(--scale-min), var(--font-size-scale), var(--scale-max)));
     --font-size-scale: 1;
@@ -726,7 +726,10 @@ div#description {
     grid-template-columns: auto auto auto;
 }
 
-#track-list.big-text {
+#track-list.increase-min-scale {
+    --scale-min: 3;
+}
+#track-list.increase-max-scale {
     --scale-max: 5;
 }
 

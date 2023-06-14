@@ -170,23 +170,23 @@ String.prototype.select = function () {
 const BLANK = "BLANK";
 const transitionFromCss = parseFloat(getComputedStyle(document.body).getPropertyValue("--transition").slice(0, -1)) * 1000;
 
-function processJson(json) {
-  if (json && json.type !== "EMPTY") {
-    console.info(json);
-    if (json.type === "DATA") {
-      if (currentData.deployTime > 0 && getChange(json, "deployTime").wasChanged) {
+function processJson(changes) {
+  if (changes && changes.type !== "EMPTY") {
+    console.info(changes);
+    if (changes.type === "DATA") {
+      if (currentData.deployTime > 0 && getChange(changes, "deployTime").wasChanged) {
         window.location.reload(true);
       } else {
-        updateExternallyToggledPreferences(json)
-          .then(() => changeImage(json))
-          .then(() => prerenderNextImage(json))
-          .then(() => setTextData(json))
-          .then(() => setCorrectTracklistView(json))
-          .then(() => refreshIdleTimeout(json))
+        updateExternallyToggledPreferences(changes)
+          .then(() => changeImage(changes))
+          .then(() => prerenderNextImage(changes))
+          .then(() => setTextData(changes))
+          .then(() => setCorrectTracklistView(changes))
+          .then(() => refreshIdleTimeout(changes))
           .finally(() => {
             // Update properties in local storage
-            for (let prop in json) {
-              currentData[prop] = json[prop];
+            for (let prop in changes) {
+              currentData[prop] = changes[prop];
             }
             unlockPlaybackControls();
           });
@@ -208,6 +208,10 @@ function getChange(changes, path) {
     wasChanged: reduceNew != null,
     value: reduceNew !== null && reduceNew !== undefined ? reduceNew : reduceOld
   }
+}
+
+function refreshCurrentTextData() {
+  setTextData(currentData);
 }
 
 function setTextData(changes) {
@@ -379,6 +383,16 @@ function setTextData(changes) {
   if (device.wasChanged) {
     "device".select().innerHTML = convertToTextEmoji(device.value);
     handleDeviceChange(device.value);
+  }
+
+  // Next track (if enabled)
+  if (isPrefEnabled("next-track-replacing-clock")) {
+    let nextTrackInQueue = changes.trackData.queue[0];
+    let nextArtist = nextTrackInQueue?.artists[0];
+    let nextTrackName = nextTrackInQueue?.title;
+    "clock".select().innerHTML = nextArtist && nextTrackName
+      ? `NEXT: ${nextArtist} - ${nextTrackName}`
+      : "";
   }
 
   // Color
@@ -1107,7 +1121,12 @@ function updateProgress(changes) {
     let artists = getChange(changes, "currentlyPlaying.artists").value;
     let title = getChange(changes, "currentlyPlaying.title").value;
     if (!idle && artists && title) {
-      newTitle = `${artists[0]} - ${removeFeaturedArtists(title)} | ${newTitle}`;
+      let mainArtist = artists[0];
+      let titleStripped = removeFeaturedArtists(title);
+      newTitle = isPrefEnabled("track-first-in-website-title") ? `${titleStripped} - ${mainArtist}` : `${mainArtist} - ${titleStripped}`;
+      if (isPrefEnabled("branding-in-website-title")) {
+        newTitle += " | SpotifyBigPicture";
+      }
     }
   }
   if (document.title !== newTitle) {
@@ -1210,11 +1229,13 @@ function refreshProgress() {
   let timeTotal = currentData.currentlyPlaying.timeTotal;
   if (timeCurrent != null && timeTotal != null && !currentData.playbackContext.paused) {
     let now = Date.now();
-    let elapsedTime = now - startTime;
+    let elapsedTime = now - (startTime ?? now);
     startTime = now;
     let newTime = timeCurrent + elapsedTime;
     currentData.currentlyPlaying.timeCurrent = Math.min(timeTotal, newTime);
     updateProgress(currentData);
+  } else {
+    startTime = null;
   }
 }
 
@@ -1319,7 +1340,7 @@ const PREFERENCES = [
     name: "Enable Track List",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Track List",
-    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "show-featured-artists-track-list", "full-track-list", "increase-track-list-scaling", "xl-main-info-scrolling"],
+    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "show-featured-artists-track-list", "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling"],
     css: {
       "title": "!force-display",
       "track-list": "!hide"
@@ -1374,11 +1395,18 @@ const PREFERENCES = [
     css: {"center-info-main": "hide-title-in-album-view"}
   },
   {
-    id: "increase-track-list-scaling",
-    name: "Increase Text Scaling Limit",
+    id: "increase-min-track-list-scaling",
+    name: "Increase Minimum Text Scaling Limit",
+    description: "If enabled, the minimum font size for the track list is drastically increased (factor 3 instead of 2)",
+    category: "Track List",
+    css: {"track-list": "increase-min-scale"}
+  },
+  {
+    id: "increase-max-track-list-scaling",
+    name: "Increase Maximum Text Scaling Limit",
     description: "If enabled, the maximum font size for the track list is drastically increased (factor 5 instead of 3)",
     category: "Track List",
-    css: {"track-list": "big-text"}
+    css: {"track-list": "increase-max-scale"}
   },
   {
     id: "bg-enable",
@@ -1597,9 +1625,24 @@ const PREFERENCES = [
   {
     id: "current-track-in-website-title",
     name: "Display Current Song in Website Title",
-    description: "If enabled, display the current artist and song name in the website title. "
+    description: "If enabled, display the track in the website title. "
       + "Otherwise, only show 'SpotifyBigPicture'",
-    category: "General",
+    category: "Website Title",
+    requiredFor: ["track-first-in-website-title", "branding-in-website-title"],
+    callback: () => refreshProgress()
+  },
+  {
+    id: "track-first-in-website-title",
+    name: "Track Title First",
+    description: "Whether to display the track title before the artist name or vice versa",
+    category: "Website Title",
+    callback: () => refreshProgress()
+  },
+  {
+    id: "branding-in-website-title",
+    name: "Branding",
+    description: "If enabled, suffixes the website title with ' | SpotifyBigPicture'",
+    category: "Website Title",
     callback: () => refreshProgress()
   },
   {
@@ -1707,7 +1750,7 @@ const PREFERENCES = [
     name: "Show Clock",
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
-    requiredFor: ["clock-full", "clock-24"],
+    requiredFor: ["clock-full", "clock-24", "next-track-replacing-clock"],
     css: {"clock-wrapper": "!hide"}
   },
   {
@@ -1721,6 +1764,14 @@ const PREFERENCES = [
     name: "Use 24-Hour Format for Clock",
     description: "If enabled, the clock uses the 24-hour format. Otherwise, the 12-hour format",
     category: "Bottom Content"
+  },
+  {
+    id: "next-track-replacing-clock",
+    name: "Replace Clock with Next Track",
+    description: "If enabled, the clock is replaced by the artist and name of the next track in the queue",
+    overrides: ["clock-full", "clock-24"],
+    category: "Bottom Content",
+    callback: () => refreshCurrentTextData()
   },
   {
     id: "dark-mode",
@@ -1847,6 +1898,7 @@ const PREFERENCES = [
 const PREFERENCES_CATEGORY_ORDER = [
   "General",
   "Performance",
+  "Website Title",
   "Main Content",
   "Track List",
   "Top Content",
@@ -1903,7 +1955,8 @@ const PREFERENCES_DEFAULT = {
     "center-lr-margins",
     "reduced-center-margins",
     "xl-main-info-scrolling",
-    "increase-track-list-scaling",
+    "increase-min-track-list-scaling",
+    "increase-max-track-list-scaling",
     "swap-top",
     "spread-timestamps",
     "reverse-bottom",
@@ -1911,13 +1964,15 @@ const PREFERENCES_DEFAULT = {
     "artwork-right",
     "artwork-above-content",
     "full-track-list",
-    "center-info-icons"
+    "center-info-icons",
+    "next-track-replacing-clock"
   ],
   ignoreDefaultOn: [
     "colored-text",
     "transitions",
     "strip-titles",
     "current-track-in-website-title",
+    "branding-in-website-title",
     "clock-full",
     "clock-24",
     "text-balancing",
@@ -1928,6 +1983,7 @@ const PREFERENCES_DEFAULT = {
     "prerender-background"
   ],
   ignoreDefaultOff: [
+    "track-first-in-website-title",
     "smooth-progress-bar",
     "playback-control",
     "scrollable-track-list",
@@ -2036,8 +2092,8 @@ const PREFERENCES_PRESETS = [
       "artwork-expand-top",
       "artwork-above-content",
       "spread-timestamps",
-      "center-info-icons",
-      "reduced-center-margins"
+      "reduced-center-margins",
+      "next-track-replacing-clock"
     ],
     disabled: [
       "show-queue",
@@ -2058,10 +2114,10 @@ const PREFERENCES_PRESETS = [
       "split-main-panels",
       "separate-release-line",
       "spread-timestamps",
-      "reverse-bottom"
+      "reverse-bottom",
+      "next-track-replacing-clock"
     ],
     disabled: [
-      "show-clock",
       "album-view",
       "show-device",
       "show-volume",
@@ -2108,7 +2164,8 @@ const PREFERENCES_PRESETS = [
       "show-device",
       "show-progress-bar",
       "smooth-progress-bar",
-      "show-clock"
+      "show-clock",
+      "bg-artwork"
     ]
   },
   {
@@ -2857,7 +2914,7 @@ const clockLocale = "en-US";
 
 let prevTime;
 setInterval(() => {
-  if (isPrefEnabled("show-clock")) {
+  if (isPrefEnabled("show-clock") && !isPrefEnabled("next-track-replacing-clock")) {
     let date = new Date();
 
     let hour12 = !isPrefEnabled("clock-24");
@@ -2870,6 +2927,8 @@ setInterval(() => {
       let clock = "clock".select();
       clock.innerHTML = time;
     }
+  } else {
+    prevTime = null;
   }
 }, 1000);
 
