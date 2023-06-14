@@ -25,6 +25,8 @@ Your settings are automatically stored locally, so you won't need to worry about
 * A full list of every setting can be found here: [SETTINGS.md](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md)
 
 ## Installation
+(If you prefer a video tutorial, [click here](https://www.youtube.com/watch?v=NyJoiEh_qhQ))
+
 ### Step 1: Create Spotify App
 1. Create an app on the [Spotify Developers dashboard](https://developer.spotify.com/dashboard) (you might need to create an account first)
 2. Copy the *Client ID* and *Client Secret* and save them for later
