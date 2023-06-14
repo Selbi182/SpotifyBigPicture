@@ -491,13 +491,12 @@ function scaleTrackList() {
   let contentCenterHeight = contentCenterContainer.offsetHeight;
   let trackListContainerHeight = trackListContainer.scrollHeight;
   let trackListSize = trackListContainerHeight / previousFontSizeScale;
-  let splitMode = isPrefEnabled("split-main-panels");
 
   let marginForOtherVerticalElements = 0;
-  if (!splitMode) {
+  if (!isPrefEnabled("split-main-panels")) {
     let contentInfoSize = "center-info-main".select().offsetHeight;
     let contentCenterGap = parseFloat(window.getComputedStyle(contentCenterContainer).gap);
-    marginForOtherVerticalElements = contentInfoSize - contentCenterGap;
+    marginForOtherVerticalElements = contentInfoSize + contentCenterGap;
   }
 
   let trackListScaleRatio = (contentCenterHeight - marginForOtherVerticalElements) / trackListSize;
@@ -2682,6 +2681,12 @@ document.onkeydown = (e) => {
     case 'd':
       toggleVisualPreference(findPreference("dark-mode"));
       break;
+    case 'ArrowUp':
+      scrollSettingsUpDown(-1);
+      break;
+    case 'ArrowDown':
+      scrollSettingsUpDown(1);
+      break;
   }
 };
 
@@ -2842,6 +2847,17 @@ function resetAllSettings() {
     [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.ignoreDefaultOn].flat().forEach(id => setVisualPreferenceFromId(id, true));
     [PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().forEach(id => setVisualPreferenceFromId(id, false));
   }
+}
+
+function scrollSettingsUpDown(direction) {
+  let settingsScroller = "settings-scroller".select();
+  let velocity = settingsScroller.offsetHeight / 2;
+
+  settingsScroller.scroll({
+    top: settingsScroller.scrollTop + (velocity * direction),
+    left: 0,
+    behavior: isPrefEnabled("transitions") ? 'smooth' : 'auto'
+  });
 }
 
 function generatePresetThumbnail() {
