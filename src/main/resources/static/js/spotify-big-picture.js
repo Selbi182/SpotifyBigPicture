@@ -391,7 +391,7 @@ function setTextData(changes) {
     let nextArtist = nextTrackInQueue?.artists[0];
     let nextTrackName = nextTrackInQueue?.title;
     "clock".select().innerHTML = nextArtist && nextTrackName
-      ? `NEXT: ${nextArtist} - ${nextTrackName}`
+      ? `${nextArtist} \u2013 ${removeFeaturedArtists(nextTrackName)}`
       : "";
   }
 
@@ -712,7 +712,7 @@ function createDiscElement(discNumber) {
 }
 
 function createSingleTrackListItem(trackItem, trackNumPadLength) {
-  // Create new track list item
+  // Create new tracklist item
   let trackElem = document.createElement("div");
   trackElem.className = "track-elem";
 
@@ -1122,7 +1122,9 @@ function updateProgress(changes) {
     if (!idle && artists && title) {
       let mainArtist = artists[0];
       let titleStripped = removeFeaturedArtists(title);
-      newTitle = isPrefEnabled("track-first-in-website-title") ? `${titleStripped} - ${mainArtist}` : `${mainArtist} - ${titleStripped}`;
+      newTitle = isPrefEnabled("track-first-in-website-title")
+        ? `${titleStripped} \u2013 ${mainArtist}`
+        : `${mainArtist} \u2013 ${titleStripped}`;
       if (isPrefEnabled("branding-in-website-title")) {
         newTitle += " | SpotifyBigPicture";
       }
@@ -1336,10 +1338,11 @@ const PREFERENCES = [
   },
   {
     id: "show-queue",
-    name: "Enable Track List",
+    name: "Enable Tracklist",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
-    category: "Track List",
-    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "show-featured-artists-track-list", "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling"],
+    category: "Tracklist",
+    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "show-featured-artists-track-list",
+      "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
     css: {
       "title": "!force-display",
       "track-list": "!hide"
@@ -1348,16 +1351,16 @@ const PREFERENCES = [
   },
   {
     id: "scrollable-track-list",
-    name: "Scrollable Track List",
-    description: "If enabled, the track list can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
-    category: "General",
+    name: "Scrollable Tracklist",
+    description: "If enabled, the tracklist can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
+    category: "Tracklist",
     css: {"track-list": "scrollable"}
   },
   {
     id: "show-featured-artists-track-list",
     name: "Show Featured Artists",
-    description: "Display any potential featured artists in the track list. Otherwise, only show the song name",
-    category: "Track List",
+    description: "Display any potential featured artists in the tracklist. Otherwise, only show the song name",
+    category: "Tracklist",
     css: {"track-list": "!no-feat"}
   },
   {
@@ -1365,22 +1368,22 @@ const PREFERENCES = [
     name: "Show Full Titles",
     description: "If enabled, longer titles will always be fully displayed (with line breaks). "
       + "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
-    category: "Track List",
+    category: "Tracklist",
     css: {"track-list": "no-clamp"}
   },
   {
     id: "show-timestamps-track-list",
     name: "Show Time Stamps",
-    description: "Show the timestamps for each track in the track list. If disabled, the track names are right-aligned",
-    category: "Track List",
+    description: "Show the timestamps for each track in the tracklist. If disabled, the track names are right-aligned",
+    category: "Tracklist",
     css: {"track-list": "show-timestamps"}
   },
   {
     id: "album-view",
     name: "Enable Album View",
-    description: "If enabled, while playing an album with shuffle DISABLED, the track list is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
+    description: "If enabled, while playing an album with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
       + "(Only works for 200 tracks or fewer, for performance reasons)",
-    category: "Track List",
+    category: "Tracklist",
     requiredFor: ["hide-title-album-view", "xl-main-info-scrolling"],
     callback: () => refreshTrackList()
   },
@@ -1388,30 +1391,30 @@ const PREFERENCES = [
     id: "hide-title-album-view",
     name: "Album View: Hide Duplicate Track Name",
     description: "If 'Album View' is enabled, the current track's name will not be displayed in the main content container "
-      + "(since it's already visible in the track list)",
-    category: "Track List",
+      + "(since it's already visible in the tracklist)",
+    category: "Tracklist",
     requiredFor: ["xl-main-info-scrolling"],
     css: {"center-info-main": "hide-title-in-album-view"}
   },
   {
     id: "hide-tracklist-podcast-view",
     name: "Hide Tracklist for Podcasts",
-    description: "If the currently playing track is a podcast, hides the track list. This opens up more room for the episode description",
-    category: "Track List",
+    description: "If the currently playing track is a podcast, hides the tracklist. This opens up more room for the episode description",
+    category: "Tracklist",
     css: {"track-list": "hide-for-podcasts"}
   },
   {
     id: "increase-min-track-list-scaling",
     name: "Increase Minimum Text Scaling Limit",
-    description: "If enabled, the minimum font size for the track list is drastically increased (factor 3 instead of 2)",
-    category: "Track List",
+    description: "If enabled, the minimum font size for the tracklist is drastically increased (factor 3 instead of 2)",
+    category: "Tracklist",
     css: {"track-list": "increase-min-scale"}
   },
   {
     id: "increase-max-track-list-scaling",
     name: "Increase Maximum Text Scaling Limit",
-    description: "If enabled, the maximum font size for the track list is drastically increased (factor 5 instead of 3)",
-    category: "Track List",
+    description: "If enabled, the maximum font size for the tracklist is drastically increased (factor 5 instead of 3)",
+    category: "Tracklist",
     css: {"track-list": "increase-max-scale"}
   },
   {
@@ -1471,7 +1474,7 @@ const PREFERENCES = [
   {
     id: "enable-center-content",
     name: "Enable Main Content",
-    description: "Enable the main content, the container for the current track data and the track list",
+    description: "Enable the main content, the container for the current track data and the tracklist",
     category: "Main Content",
     requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
       "main-content-centered", "split-main-panels", "reduced-center-margins"],
@@ -1777,6 +1780,7 @@ const PREFERENCES = [
     description: "If enabled, the clock is replaced by the artist and name of the next track in the queue",
     overrides: ["clock-full", "clock-24"],
     category: "Bottom Content",
+    css: {"clock": "next-track"},
     callback: () => refreshCurrentTextData()
   },
   {
@@ -1810,14 +1814,14 @@ const PREFERENCES = [
   {
     id: "main-content-centered",
     name: "Center-Align",
-    description: "Center the main content (current track information and track list). Otherwise, the text will be aligned to the border",
+    description: "Center the main content (current track information and tracklist). Otherwise, the text will be aligned to the border",
     category: "Layout: Main Content",
     css: {"content-center": "centered"}
   },
   {
     id: "split-main-panels",
     name: "Split Mode",
-    description: "Separate the main content from the track list and display both in their own panel. "
+    description: "Separate the main content from the tracklist and display both in their own panel. "
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Layout: Main Content",
     css: {"content-center": "split-main-panels"}
@@ -1906,7 +1910,7 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Performance",
   "Website Title",
   "Main Content",
-  "Track List",
+  "Tracklist",
   "Top Content",
   "Bottom Content",
   "Layout: Main Content",
@@ -2014,10 +2018,10 @@ const PREFERENCES_PRESETS = [
   },
   {
     id: "preset-tracklist",
-    name: "Track-List Mode",
+    name: "Tracklist Mode",
     category: "Presets",
     description: "Disables the artwork and instead only dimly displays it in the background. "
-      + "Doing this opens up more room for the track list, which becomes centered. Also disables some lesser useful information",
+      + "Doing this opens up more room for the tracklist, which becomes centered. Also disables some lesser useful information",
     enabled: [
       "xl-main-info-scrolling",
       "spread-timestamps",
@@ -2037,7 +2041,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-split-text",
     name: "Split-Panel Mode",
     category: "Presets",
-    description: "A combination of the default preset and Track-List Mode that puts the current track information on the left and the track list on the right. "
+    description: "A combination of the default preset and Track-List Mode that puts the current track information on the left and the tracklist on the right. "
       + "Disables the artwork and instead only dimly displays it in the background",
     enabled: [
       "swap-top",
@@ -2075,7 +2079,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-xl-artwork",
     name: "XL-Artwork Mode",
     category: "Presets",
-    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the track list, and the progress bar are displayed",
+    description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the tracklist, and the progress bar are displayed",
     enabled: [
       "artwork-expand-bottom",
       "decreased-margins"
@@ -2094,7 +2098,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-vintage",
     name: "Vintage Mode",
     category: "Presets",
-    description: "A preset inspired by the original Spotify layout on Chromecast. The main content will be displayed below the artwork, the track list is disabled, the background is only a gradient color",
+    description: "A preset inspired by the original Spotify layout on Chromecast. The main content will be displayed below the artwork, the tracklist is disabled, the background is only a gradient color",
     enabled: [
       "artwork-expand-top",
       "artwork-above-content",
@@ -2115,7 +2119,7 @@ const PREFERENCES_PRESETS = [
     id: "preset-big-current-song",
     name: "Big Current-Track Mode",
     category: "Presets",
-    description: "Only shows the current track's title, artist, and release in an extra large manner. The track list is disabled, the artwork is moved to the background",
+    description: "Only shows the current track's title, artist, and release in an extra large manner. The tracklist is disabled, the artwork is moved to the background",
     enabled: [
       "xl-text",
       "split-main-panels",

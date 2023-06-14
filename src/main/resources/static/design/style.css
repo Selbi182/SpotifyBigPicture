@@ -1546,10 +1546,22 @@ div#device {
     font-size: 3vmin;
     width: fit-content;
     height: min-content;
+    max-width: 60vmin;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: unset;
 }
 
 #clock-wrapper.hide, #clock:empty, #bottom-meta-container.centered-controls #clock-wrapper {
     display: none;
+}
+
+#clock.next-track::before {
+    content: "Next:";
+    opacity: 0.5;
+    margin-right: 1vmin;
 }
 
 #main.playback-control #info-symbols > div {
