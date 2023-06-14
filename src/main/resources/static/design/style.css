@@ -714,7 +714,8 @@ div#description {
     max-width: calc(100% * (2 / 3));
 }
 
-#track-list:empty {
+#track-list:empty,
+#content-center.podcast #track-list.hide-for-podcasts {
     display: none;
 }
 

@@ -1394,6 +1394,13 @@ const PREFERENCES = [
     css: {"center-info-main": "hide-title-in-album-view"}
   },
   {
+    id: "hide-tracklist-podcast-view",
+    name: "Hide Tracklist for Podcasts",
+    description: "If the currently playing track is a podcast, hides the track list. This opens up more room for the episode description",
+    category: "Track List",
+    css: {"track-list": "hide-for-podcasts"}
+  },
+  {
     id: "increase-min-track-list-scaling",
     name: "Increase Minimum Text Scaling Limit",
     description: "If enabled, the minimum font size for the track list is drastically increased (factor 3 instead of 2)",
@@ -1915,6 +1922,7 @@ const PREFERENCES_DEFAULT = {
     "show-queue",
     "album-view",
     "hide-title-album-view",
+    "hide-tracklist-podcast-view",
     "show-timestamps-track-list",
     "show-podcast-descriptions",
     "display-artwork",
