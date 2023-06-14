@@ -2200,6 +2200,10 @@ const PREFERENCES_PRESETS = [
   }
 ];
 
+function getAllSettings() {
+  return [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOn, PREFERENCES_DEFAULT.ignoreDefaultOff].flat();
+}
+
 let prefSearchCache = {};
 
 function findPreference(id) {
@@ -2226,7 +2230,7 @@ function initVisualPreferences() {
   const settingsWrapper = "settings-categories".select();
 
   // Developer integrity check
-  let allSettings = [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOn, PREFERENCES_DEFAULT.ignoreDefaultOff].flat();
+  let allSettings = getAllSettings();
   if (DEV_MODE) {
     if (allSettings.length > [...new Set(allSettings)].length) {
       console.warn("Default settings contain duplicates!");
@@ -2241,10 +2245,13 @@ function initVisualPreferences() {
 
   // User integrity check (reset settings after update)
   if (isLocalStorageAvailable()) {
-    let prefsFromStorage = getVisualPreferencesFromLocalStorage();
-    if (prefsFromStorage && !prefsFromStorage.every(v => allSettings.includes(v))) {
+    let storedVersionHash = getVersionHashFromLocalStorage();
+    let newVersionHash = calculateVersionHash();
+    setVersionHashInLocalStorage(newVersionHash);
+    if (!storedVersionHash || storedVersionHash !== newVersionHash) {
       clearVisualPreferencesInLocalStorage();
-      alert("Looks like you've installed a new version of SpotifyBigPicture. To avoid conflicts with version changes, your previous settings have been reset.");
+      alert("Welcome to SpotifyBigPicture! Please select a preset to proceed.\n\n" +
+        "If you've used SpotifyBigPicture before and you're seeing this message, it indicates that you have installed a new version. To prevent issues arising from the changes in the new version, your previous settings have been reset.");
     }
   }
 
@@ -2377,7 +2384,6 @@ function isLocalStorageAvailable() {
 
 const LOCAL_STORAGE_KEY_SETTINGS = "visual_preferences";
 const LOCAL_STORAGE_SETTINGS_SPLIT_CHAR = "+";
-
 function getVisualPreferencesFromLocalStorage() {
   if (localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS)) {
     let storedVisualPreferences = localStorage.getItem(LOCAL_STORAGE_KEY_SETTINGS);
@@ -2398,6 +2404,20 @@ function refreshPrefsLocalStorage() {
       .join(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
     localStorage.setItem(LOCAL_STORAGE_KEY_SETTINGS, enabledPreferences);
   }
+}
+
+const LOCAL_STORAGE_KEY_VERSION_HASH = "version_hash";
+function getVersionHashFromLocalStorage() {
+  return localStorage.getItem(LOCAL_STORAGE_KEY_VERSION_HASH);
+}
+
+function setVersionHashInLocalStorage(newVersionHash) {
+  return localStorage.setItem(LOCAL_STORAGE_KEY_VERSION_HASH, newVersionHash);
+}
+
+function calculateVersionHash() {
+  let allSettings = getAllSettings();
+  return [...allSettings].reduce((totalLength, str) => totalLength + str.length, 0).toString(); // hash is really just the total length of all setting IDs
 }
 
 function toggleVisualPreference(pref) {
