@@ -120,7 +120,7 @@ public class PlaybackInfoProvider {
               builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
               builder.setQueue(playbackQueue != null ? playbackQueue.getQueue() : List.of());
               playbackQueue = builder.build();
-            } else if (playbackQueue.getCurrentlyPlaying() != null && !Objects.equals(currentlyPlayingContext.getItem().getId(), playbackQueue.getCurrentlyPlaying().getId())) {
+            } else if (currentlyPlayingContext.getItem().getId() != null && playbackQueue.getCurrentlyPlaying() != null && !Objects.equals(currentlyPlayingContext.getItem().getId(), playbackQueue.getCurrentlyPlaying().getId())) {
               // If the currently playing song in the queue doesn't match the currently playing context's song, the endpoints have gotten out of sync
               // It's a hackish solution, but the only way I can feasibly avoid this problem is to force the user to re-request until a match arrives
               return getCurrentPlaybackInfo(previousVersionId);

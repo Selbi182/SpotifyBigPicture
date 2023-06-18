@@ -330,7 +330,7 @@ function setTextData(changes) {
     let circularThumbnail = ["ALBUM", "EP", "SINGLE", "COMPILATION", "ARTIST", "SEARCH", "FAVORITE_TRACKS"].includes(contextType.value);
     setClass(thumbnailWrapperContainer, "circular", circularThumbnail);
 
-    thumbnailContainer.src = thumbnailUrl !== BLANK ? thumbnailUrl : "";
+    thumbnailContainer.src = thumbnailUrl !== BLANK ? thumbnailUrl : DEFAULT_IMAGE;
     fadeIn(thumbnailContainer);
 
     fadeIn("context".select());
