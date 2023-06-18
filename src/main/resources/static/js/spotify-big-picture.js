@@ -175,7 +175,7 @@ function processJson(changes) {
     console.info(changes);
     if (changes.type === "DATA") {
       if (currentData.deployTime > 0 && getChange(changes, "deployTime").wasChanged) {
-        window.location.reload(true);
+        reloadPage();
       } else {
         updateExternallyToggledPreferences(changes)
           .then(() => changeImage(changes))
@@ -274,7 +274,7 @@ function setTextData(changes) {
   if (description.wasChanged) {
     let descriptionContainer = "description".select();
     setClass("content-center".select(), "podcast", description.value && description.value !== BLANK);
-    descriptionContainer.innerHTML = description.value;
+    descriptionContainer.innerHTML = description.value.toString();
     fadeIn(descriptionContainer);
   }
 
@@ -471,7 +471,7 @@ function setCorrectTracklistView(changes) {
 
   if (refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
     // Make sure the tracklist is at the correct position after the scaling transition.
-    // This is a bit of a hackish solution, but a proper ontransitionend is gonna be too tricky on a grid.
+    // This is a bit of a hackish solution, but a proper ontransitionend would be too tricky on a grid.
     refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
     setTimeout(() => {
       refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
@@ -525,13 +525,12 @@ function trackListEquals(trackList1, trackList2) {
   return true;
 }
 
-// TODO: Once "text-wrap: balance" rolls out, get rid of this library entirely
 function balanceTextClamp(elem) {
   // balanceText is too stupid to stop itself when in portrait mode.
   // To prevent freezes, disallow balancing in those cases.
   if (isPrefEnabled("text-balancing") && !isPortraitMode()) {
     // balanceText doesn't take line-clamping into account, unfortunately.
-    // So we gotta temporarily remove it, balance the text, then add it again.
+    // So we got to temporarily remove it, balance the text, then add it again.
     elem.style.setProperty("-webkit-line-clamp", "initial", "important");
     balanceText(elem);
     elem.style.removeProperty("-webkit-line-clamp");
@@ -837,7 +836,7 @@ function changeImage(changes) {
         imageUrl.value = DEFAULT_IMAGE;
       }
       let oldImageUrl = currentData.currentlyPlaying.imageData.imageUrl;
-      let newImageUrl = imageUrl.value;
+      let newImageUrl = imageUrl.value.toString();
       let colors = getChange(changes, "currentlyPlaying.imageData.imageColors").value;
       if (!oldImageUrl.includes(newImageUrl)) {
         if (nextImagePrerenderCanvasData.imageUrl === newImageUrl) {
@@ -2537,7 +2536,8 @@ function updateExternallyToggledPreferences(changes) {
 }
 
 function reloadPage() {
-  window.location.reload(true);
+  // noinspection JSCheckFunctionSignatures
+  window.location.reload(true); // hard-refresh to bypass cache
 }
 
 function toggleFullscreen() {
