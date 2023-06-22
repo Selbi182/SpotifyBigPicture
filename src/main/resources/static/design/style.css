@@ -211,6 +211,10 @@ img:not([src]) {
     filter: brightness(35%);
 }
 
+#background-canvas.no-zoom {
+    transform: unset;
+}
+
 #background-canvas.hide {
     display: none;
 }
@@ -257,6 +261,15 @@ img:not([src]) {
 
 #background-canvas-img {
     filter: blur(1vmin) grayscale(25%);
+    image-rendering: optimizeQuality;
+}
+
+#background-canvas-img.no-blur {
+    filter: grayscale(25%);
+}
+
+#background-canvas-img.pixelated {
+    image-rendering: optimizeSpeed;
 }
 
 #background-canvas.color-only #background-canvas-img {
@@ -1558,10 +1571,27 @@ div#device {
     display: none;
 }
 
+#clock {
+    display: flex;
+    gap: 1vmin;
+    align-items: center;
+}
+
 #clock.next-track::before {
-    content: "Next:";
+    content: "";
+    -webkit-mask-image: url("img/symbols/next-song.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: url("img/symbols/next-song.png");
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
     opacity: 0.5;
-    margin-right: 1vmin;
+    width: 3vmin;
+    height: 3vmin;
+    background-color: var(--color);
+    display: inline-block;
 }
 
 #main.playback-control #info-symbols > div {

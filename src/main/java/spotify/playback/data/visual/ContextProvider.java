@@ -1,5 +1,6 @@
 package spotify.playback.data.visual;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -99,7 +100,7 @@ public class ContextProvider {
         contextDto = getFallbackContext(info);
       }
       previousType = type;
-    } catch (SpotifyApiException e) {
+    } catch (SpotifyApiException | MalformedURLException e) {
       e.printStackTrace();
     }
     if (contextDto != null) {
@@ -185,9 +186,9 @@ public class ContextProvider {
     return null;
   }
 
-  private PlaybackContext.Context getPlaylistContext(Context context, boolean force) {
+  private PlaybackContext.Context getPlaylistContext(Context context, boolean force) throws MalformedURLException {
     if (force || didContextChange(context)) {
-      String playlistId = context.getHref().replace(BigPictureConstants.PLAYLIST_PREFIX, "");
+      String playlistId = SpotifyUtils.getIdFromSpotifyUrl(context.getHref());
       Playlist contextPlaylist = SpotifyCall.execute(spotifyApi.getPlaylist(playlistId));
 
       Image[] playlistImages = contextPlaylist.getImages();
@@ -195,9 +196,14 @@ public class ContextProvider {
       this.thumbnailUrl = largestImage != null ? largestImage : BigPictureConstants.BLANK;
 
       // Limit to 200 for performance reasons
-      PlaylistTrack[] firstHalf = contextPlaylist.getTracks().getItems();
-      PlaylistTrack[] secondHalf = SpotifyCall.execute(spotifyApi.getPlaylistsItems(playlistId).offset(firstHalf.length)).getItems();
-      this.listTracks = Stream.concat(Arrays.stream(firstHalf), Arrays.stream(secondHalf))
+      Paging<PlaylistTrack> contextTracks = contextPlaylist.getTracks();
+      List<PlaylistTrack> playlistTracks = new ArrayList<>(Arrays.asList(contextTracks.getItems()));
+      if (contextTracks.getNext() != null) {
+        PlaylistTrack[] secondHalf = SpotifyCall.execute(spotifyApi.getPlaylistsItems(playlistId).offset(playlistTracks.size())).getItems();
+        playlistTracks.addAll(Arrays.asList(secondHalf));
+
+      }
+      this.listTracks = playlistTracks.stream()
         .map(PlaylistTrack::getTrack)
         .map(TrackElement::fromPlaylistItem)
         .collect(Collectors.toList());
@@ -244,7 +250,7 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
     }
-    String contextString = String.format("%s \u2013 %s (%s)", SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName(), SpotifyUtils.findReleaseYear(currentContextAlbum));
+    String contextString = String.format("%s \u2022 %s (%s)", SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName(), SpotifyUtils.findReleaseYear(currentContextAlbum));
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
@@ -316,7 +322,7 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
 
-      return PlaybackContext.Context.of(SpotifyUtils.getFirstArtistName(track) + " \u2013 " + track.getName(), PlaybackContext.Context.ContextType.SEARCH);
+      return PlaybackContext.Context.of(SpotifyUtils.getFirstArtistName(track) + " \u2022 " + track.getName(), PlaybackContext.Context.ContextType.SEARCH);
     }
     return PlaybackContext.Context.of("Spotify", PlaybackContext.Context.ContextType.FALLBACK);
   }

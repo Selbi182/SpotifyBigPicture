@@ -391,7 +391,7 @@ function setTextData(changes) {
     let nextArtist = nextTrackInQueue?.artists[0];
     let nextTrackName = nextTrackInQueue?.title;
     "clock".select().innerHTML = nextArtist && nextTrackName
-      ? `${nextArtist} \u2013 ${removeFeaturedArtists(nextTrackName)}`
+      ? `${nextArtist} \u2022 ${removeFeaturedArtists(nextTrackName)}`
       : "";
   }
 
@@ -1122,8 +1122,8 @@ function updateProgress(changes) {
       let mainArtist = artists[0];
       let titleStripped = removeFeaturedArtists(title);
       newTitle = isPrefEnabled("track-first-in-website-title")
-        ? `${titleStripped} \u2013 ${mainArtist}`
-        : `${mainArtist} \u2013 ${titleStripped}`;
+        ? `${titleStripped} \u2022 ${mainArtist}`
+        : `${mainArtist} \u2022 ${titleStripped}`;
       if (isPrefEnabled("branding-in-website-title")) {
         newTitle += " | SpotifyBigPicture";
       }
@@ -1421,7 +1421,7 @@ const PREFERENCES = [
     name: "Enable Background",
     description: "Enable the background. Otherwise, plain black will be displayed at all times",
     category: "Background",
-    requiredFor: ["bg-artwork", "bg-tint", "bg-gradient", "bg-grain"],
+    requiredFor: ["bg-artwork", "bg-tint", "bg-gradient", "bg-grain", "bg-blur", "bg-pixelated", "bg-zoom"],
     css: {"background-canvas": "!hide"}
   },
   {
@@ -1429,6 +1429,7 @@ const PREFERENCES = [
     name: "Background Artwork",
     description: "If enabled, uses the release artwork for the background as a blurry, darkened version",
     category: "Background",
+    requiredFor: ["bg-blur", "bg-pixelated"],
     css: {"background-canvas": "!color-only"}
   },
   {
@@ -1451,6 +1452,27 @@ const PREFERENCES = [
     description: "Adds a subtle layer of film grain to the background to increase contrast and prevent color banding for dark images",
     category: "Background",
     css: {"grain": "show"}
+  },
+  {
+    id: "bg-blur",
+    name: "Background Blur",
+    description: "Blurs the background. Note that disabling this will result in low-quality images, as the pictures provided by Spotify are limited to 640x640",
+    category: "Background",
+    css: {"background-canvas-img": "!no-blur"}
+  },
+  {
+    id: "bg-pixelated",
+    name: "Background Pixelation",
+    description: "If enabled, the background will be scaled in a pixelated manner rather than blurry. Toggling this setting has little effect if Background Blur isn't also disabled",
+    category: "Background",
+    css: {"background-canvas-img": "pixelated"}
+  },
+  {
+    id: "bg-zoom",
+    name: "Background Zoom",
+    description: "Zooms the background image slightly in",
+    category: "Background",
+    css: {"background-canvas": "!no-zoom"}
   },
   {
     id: "display-artwork",
@@ -1504,6 +1526,22 @@ const PREFERENCES = [
     category: "Main Content",
     requiredFor: ["hide-title-album-view"],
     css: {"title": "!hide"}
+  },
+  {
+    id: "swap-artist-title",
+    name: "Swap Artist with Title",
+    description: "If enabled, the artist(s) are displayed underneath the title",
+    category: "Main Content",
+    callback: (state) => {
+      let artists = "artists".select();
+      let title = "title".select();
+      let contentInfoMainContainer = "center-info-main".select();
+      if (state) {
+        contentInfoMainContainer.insertBefore(title, artists);
+      } else {
+        contentInfoMainContainer.insertBefore(artists, title);
+      }
+    }
   },
   {
     id: "strip-titles",
@@ -1924,7 +1962,6 @@ const PREFERENCES_DEFAULT = {
     "enable-center-content",
     "show-queue",
     "album-view",
-    "hide-title-album-view",
     "hide-tracklist-podcast-view",
     "show-timestamps-track-list",
     "show-podcast-descriptions",
@@ -1933,9 +1970,12 @@ const PREFERENCES_DEFAULT = {
     "artwork-expand-top",
     "bg-enable",
     "bg-artwork",
+    "bg-blur",
+    "bg-pixelated",
     "bg-tint",
     "bg-gradient",
     "bg-grain",
+    "bg-zoom",
     "show-artists",
     "show-titles",
     "show-release",
@@ -1965,6 +2005,7 @@ const PREFERENCES_DEFAULT = {
     "center-lr-margins",
     "reduced-center-margins",
     "xl-main-info-scrolling",
+    "hide-title-album-view",
     "increase-min-track-list-scaling",
     "increase-max-track-list-scaling",
     "swap-top",
@@ -1973,6 +2014,7 @@ const PREFERENCES_DEFAULT = {
     "artwork-expand-bottom",
     "artwork-right",
     "artwork-above-content",
+    "swap-artist-title",
     "full-track-list",
     "center-info-icons",
     "next-track-replacing-clock"
@@ -2022,7 +2064,6 @@ const PREFERENCES_PRESETS = [
     description: "Disables the artwork and instead only dimly displays it in the background. "
       + "Doing this opens up more room for the tracklist, which becomes centered. Also disables some lesser useful information",
     enabled: [
-      "xl-main-info-scrolling",
       "spread-timestamps",
       "reverse-bottom"
     ],
@@ -2044,8 +2085,6 @@ const PREFERENCES_PRESETS = [
       + "Disables the artwork and instead only dimly displays it in the background",
     enabled: [
       "swap-top",
-      "xl-text",
-      "xl-main-info-scrolling",
       "center-lr-margins",
       "reduced-center-margins",
       "reverse-bottom",
@@ -2134,7 +2173,6 @@ const PREFERENCES_PRESETS = [
       "show-volume-bar",
       "show-podcast-descriptions",
       "show-info-icons",
-      "hide-title-album-view",
       "show-queue",
       "display-artwork",
       "show-timestamps-track-list"
@@ -2154,7 +2192,6 @@ const PREFERENCES_PRESETS = [
       "enable-center-content",
       "show-queue",
       "album-view",
-      "hide-title-album-view",
       "show-timestamps-track-list",
       "show-podcast-descriptions",
       "show-artists",
