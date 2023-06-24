@@ -287,7 +287,7 @@ function setTextData(changes) {
     // Context name
     contextMain.innerHTML = convertToTextEmoji(contextName.value);
 
-    // Context Type / Track count / total duration
+    // Context type / release year / track count / total duration
     let contextType = getChange(changes, "playbackContext.context.contextType");
     let contextTypePrefix = "";
     if (contextType.value !== "PLAYLIST") {
@@ -297,6 +297,12 @@ function setTextData(changes) {
         contextTypePrefix = "LIKED SONGS";
       } else {
         contextTypePrefix = contextType.value;
+      }
+
+      const validContextTypesForYearDisplay = ["ALBUM", "EP", "SINGLE", "COMPILATION", "PODCAST"];
+      if (validContextTypesForYearDisplay.includes(contextType.value)) {
+        let year = getChange(changes, "currentlyPlaying.releaseDate").value.slice(0, 4);
+        contextTypePrefix += ` \u2022 ${year}`;
       }
     }
 
@@ -312,14 +318,15 @@ function setTextData(changes) {
       } else {
         numericDescription = "track"
       }
-      let lengthInfo = `${trackCountFormatted} ${numericDescription}${trackCount !== 1 ? "s" : ""}`;
 
+      let lengthInfo = `${trackCountFormatted} ${numericDescription}${trackCount !== 1 ? "s" : ""}`;
       let combinedTime = getChange(changes, "trackData.combinedTime").value;
       if (combinedTime > 0) {
         let totalTimeFormatted = formatTimeVerbose(combinedTime);
         lengthInfo += ` (${totalTimeFormatted})`;
       }
-      contextExtra.innerHTML =  contextTypePrefix + " \u2022 " + lengthInfo;
+
+      contextExtra.innerHTML = `${contextTypePrefix ? contextTypePrefix + ' \u2022 ' : ""}${lengthInfo}`;
     } else {
       contextExtra.innerHTML = "";
     }
@@ -648,7 +655,7 @@ function buildFeaturedArtistsSpan(artists) {
 }
 
 function removeFeaturedArtists(title) {
-  return title.replace(/[(|\[](f(ea)?t|with).+?[)|\]]/ig, "").trim();
+  return title.replace(/[(|\[](f(ea)?t|with|by).+?[)|\]]/ig, "").trim();
 }
 
 const RELEASE_FULL_FORMAT = {

@@ -250,7 +250,7 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       setTotalTrackDuration(this.listTracks);
     }
-    String contextString = String.format("%s \u2022 %s (%s)", SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName(), SpotifyUtils.findReleaseYear(currentContextAlbum));
+    String contextString = String.format("%s \u2022 %s", SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName());
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
