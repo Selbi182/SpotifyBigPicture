@@ -280,25 +280,26 @@ function setTextData(changes) {
 
   // Context
   let contextName = getChange(changes, "playbackContext.context.contextName");
-  let contextType = getChange(changes, "playbackContext.context.contextType");
-  if (contextName.wasChanged || contextType.wasChanged) {
+  if (contextName.wasChanged) {
     let contextMain = "context-main".select();
     let contextExtra = "context-extra".select();
 
     // Context name
+    contextMain.innerHTML = convertToTextEmoji(contextName.value);
+
+    // Context Type / Track count / total duration
+    let contextType = getChange(changes, "playbackContext.context.contextType");
     let contextTypePrefix = "";
     if (contextType.value !== "PLAYLIST") {
       if (contextType.value === "QUEUE_IN_ALBUM") {
-        contextTypePrefix = "QUEUE &#x00BB; "
+        contextTypePrefix = "QUEUE"
       } else if (contextType.value === "FAVORITE_TRACKS") {
-        contextTypePrefix = "LIKED SONGS: ";
+        contextTypePrefix = "LIKED SONGS";
       } else {
-        contextTypePrefix = contextType.value + ": ";
+        contextTypePrefix = contextType.value;
       }
     }
-    contextMain.innerHTML = `${contextTypePrefix}${convertToTextEmoji(contextName.value)}`;
 
-    // Track count / total duration
     let trackCount = getChange(changes, "trackData.trackCount").value;
     if (trackCount > 0) {
       let trackCountFormatted = numberWithCommas(trackCount);
@@ -318,7 +319,7 @@ function setTextData(changes) {
         let totalTimeFormatted = formatTimeVerbose(combinedTime);
         lengthInfo += ` (${totalTimeFormatted})`;
       }
-      contextExtra.innerHTML = lengthInfo;
+      contextExtra.innerHTML =  contextTypePrefix + " \u2022 " + lengthInfo;
     } else {
       contextExtra.innerHTML = "";
     }
@@ -436,6 +437,9 @@ function setCorrectTracklistView(changes) {
 
   let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
+
+  let hideForSingleTrack = newQueue.length === 1 && isPrefEnabled("hide-single-item-album-view");
+  setClass(trackListContainer, "hide", hideForSingleTrack);
 
   let refreshPrintedList = newQueue.length > 0 &&
     ((queueMode !== wasPreviouslyInQueueMode) || !trackListEquals(oldQueue, newQueue));
@@ -1340,7 +1344,7 @@ const PREFERENCES = [
     name: "Enable Tracklist",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Tracklist",
-    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "show-timestamps-track-list", "show-featured-artists-track-list",
+    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "hide-single-item-album-view", "show-timestamps-track-list", "show-featured-artists-track-list",
       "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
     css: {
       "title": "!force-display",
@@ -1383,7 +1387,14 @@ const PREFERENCES = [
     description: "If enabled, while playing an album with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
       + "(Only works for 200 tracks or fewer, for performance reasons)",
     category: "Tracklist",
-    requiredFor: ["hide-title-album-view", "xl-main-info-scrolling"],
+    requiredFor: ["hide-title-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "hide-single-item-album-view",
+    name: "Album View: Hide Tracklist for Single Song",
+    description: "If 'Album View' is enabled and the current context only has one track (such as a single), don't render the tracklist at all",
+    category: "Tracklist",
     callback: () => refreshTrackList()
   },
   {
@@ -1421,7 +1432,7 @@ const PREFERENCES = [
     name: "Enable Background",
     description: "Enable the background. Otherwise, plain black will be displayed at all times",
     category: "Background",
-    requiredFor: ["bg-artwork", "bg-tint", "bg-gradient", "bg-grain", "bg-blur", "bg-pixelated", "bg-zoom"],
+    requiredFor: ["bg-artwork", "bg-tint", "bg-gradient", "bg-grain", "bg-blur"],
     css: {"background-canvas": "!hide"}
   },
   {
@@ -1429,8 +1440,23 @@ const PREFERENCES = [
     name: "Background Artwork",
     description: "If enabled, uses the release artwork for the background as a blurry, darkened version",
     category: "Background",
-    requiredFor: ["bg-blur", "bg-pixelated"],
+    requiredFor: ["bg-blur", "bg-fill-screen"],
     css: {"background-canvas": "!color-only"}
+  },
+  {
+    id: "bg-fill-screen",
+    name: "Background Fill Screen",
+    description: "If enabled, the artwork is stretched to fill the screen. Otherwise, it will be contained within the borders and fill the remaining " +
+      "background with a plain color",
+    category: "Background",
+    css: {"background-canvas-img": "fill-screen"}
+  },
+  {
+    id: "bg-blur",
+    name: "Background Blur",
+    description: "Blurs the background. Note that disabling this will result in low-quality images, as the pictures provided by Spotify are limited to 640x640",
+    category: "Background",
+    css: {"background-canvas-img": "!no-blur"}
   },
   {
     id: "bg-tint",
@@ -1454,23 +1480,9 @@ const PREFERENCES = [
     css: {"grain": "show"}
   },
   {
-    id: "bg-blur",
-    name: "Background Blur",
-    description: "Blurs the background. Note that disabling this will result in low-quality images, as the pictures provided by Spotify are limited to 640x640",
-    category: "Background",
-    css: {"background-canvas-img": "!no-blur"}
-  },
-  {
-    id: "bg-pixelated",
-    name: "Background Pixelation",
-    description: "If enabled, the background will be scaled in a pixelated manner rather than blurry. Toggling this setting has little effect if Background Blur isn't also disabled",
-    category: "Background",
-    css: {"background-canvas-img": "pixelated"}
-  },
-  {
     id: "bg-zoom",
     name: "Background Zoom",
-    description: "Zooms the background image slightly in",
+    description: "Zooms the background image slightly in (intended to hide darkened edges when the image is blurred)",
     category: "Background",
     css: {"background-canvas": "!no-zoom"}
   },
@@ -1632,7 +1644,7 @@ const PREFERENCES = [
   {
     id: "show-context-summary",
     name: "Context Summary",
-    description: "Show a small summary of the current context (total track count and total time). "
+    description: "Show a small summary of the current context (context type, total track count, and total time). "
       + "Do note that total time cannot be displayed for playlists above 200 tracks for performance reasons",
     category: "Top Content",
     css: {"context-extra": "!hide"}
@@ -1971,11 +1983,11 @@ const PREFERENCES_DEFAULT = {
     "bg-enable",
     "bg-artwork",
     "bg-blur",
-    "bg-pixelated",
+    "bg-fill-screen",
+    "bg-zoom",
     "bg-tint",
     "bg-gradient",
     "bg-grain",
-    "bg-zoom",
     "show-artists",
     "show-titles",
     "show-release",
@@ -2028,6 +2040,7 @@ const PREFERENCES_DEFAULT = {
     "clock-full",
     "clock-24",
     "text-balancing",
+    "hide-single-item-album-view",
     "allow-idle-mode",
     "show-featured-artists",
     "show-featured-artists-track-list",

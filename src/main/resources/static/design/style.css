@@ -155,7 +155,7 @@ img:not([src]) {
     align-items: start;
 }
 
-#background-rendered, #prerender-canvas, #background-canvas, #background-canvas-overlay, #background-canvas-img, #grain {
+#background-rendered, #prerender-canvas, #background-canvas, #background-canvas-overlay, #grain {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -260,16 +260,22 @@ img:not([src]) {
 }
 
 #background-canvas-img {
-    filter: blur(1vmin) grayscale(25%);
+    --bg-blur: 1;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    filter: blur(calc(var(--bg-blur) * 1vmin)) grayscale(25%) drop-shadow(var(--default-shadow));
     image-rendering: optimizeQuality;
+    object-fit: contain;
+    background-color: var(--color);
+}
+
+#background-canvas-img.fill-screen {
+    object-fit: cover;
 }
 
 #background-canvas-img.no-blur {
-    filter: grayscale(25%);
-}
-
-#background-canvas-img.pixelated {
-    image-rendering: optimizeSpeed;
+    --bg-blur: 0;
 }
 
 #background-canvas.color-only #background-canvas-img {
