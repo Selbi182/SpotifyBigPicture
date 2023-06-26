@@ -439,7 +439,7 @@ function setCorrectTracklistView(changes) {
   setClass(mainContainer, "title-duplicate", !titleDisplayed && !queueMode);
   setClass(mainContainer, "queue", queueMode);
 
-  let displayTrackNumbers = listViewType === "ALBUM" && !shuffle && !queueMode;
+  let displayTrackNumbers = !shuffle && !queueMode && (listViewType === "ALBUM" || listViewType === "PLAYLIST_ALBUM" && isPrefEnabled("always-show-track-numbers-album-view"));
   setClass(trackListContainer, "show-tracklist-numbers", displayTrackNumbers)
   setClass(trackListContainer, "show-discs", !queueMode && totalDiscCount > 1)
 
@@ -498,7 +498,7 @@ function setCorrectTracklistView(changes) {
     setTimeout(() => {
       refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
       refreshTextBalance();
-    }, getTransitionFromCss() * 2);
+    }, getTransitionFromCss());
   }
 }
 
@@ -1388,7 +1388,7 @@ const PREFERENCES = [
     name: "Enable Tracklist",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Tracklist",
-    requiredFor: ["scrollable-track-list", "album-view", "hide-title-album-view", "hide-single-item-album-view", "show-timestamps-track-list", "show-featured-artists-track-list",
+    requiredFor: ["scrollable-track-list", "album-view", "always-show-track-numbers-album-view", "hide-single-item-album-view", "show-timestamps-track-list", "show-featured-artists-track-list",
       "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
     css: {
       "title": "!force-display",
@@ -1428,10 +1428,10 @@ const PREFERENCES = [
   {
     id: "album-view",
     name: "Enable Album View",
-    description: "If enabled, while playing an album with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
+    description: "If enabled, while playing an album or playlist with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
       + "(Only works for 200 tracks or fewer, for performance reasons)",
     category: "Tracklist",
-    requiredFor: ["hide-title-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
+    requiredFor: ["always-show-track-numbers-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
     callback: () => refreshTrackList()
   },
   {
@@ -1442,13 +1442,13 @@ const PREFERENCES = [
     callback: () => refreshTrackList()
   },
   {
-    id: "hide-title-album-view",
-    name: "Album View: Hide Duplicate Track Name",
-    description: "If 'Album View' is enabled, the current track's name will not be displayed in the main content container "
-      + "(since it's already visible in the tracklist)",
+    id: "always-show-track-numbers-album-view",
+    name: "Album View: Always Show Everything",
+    description: "If 'Album View' is enabled, the track numbers and artists are always displayed as well (four columns). " +
+      "Otherwise, track numbers are hidden for playlists and artists are hidden for albums",
     category: "Tracklist",
-    requiredFor: ["xl-main-info-scrolling"],
-    css: {"center-info-main": "hide-title-in-album-view"}
+    css: {"track-list": "always-show-track-numbers-album-view"},
+    callback: () => refreshTrackList()
   },
   {
     id: "hide-tracklist-podcast-view",
@@ -1580,7 +1580,6 @@ const PREFERENCES = [
     name: "Show Titles",
     description: "Show the title of the currently playing track",
     category: "Main Content",
-    requiredFor: ["hide-title-album-view"],
     css: {"title": "!hide"}
   },
   {
@@ -2069,7 +2068,6 @@ const PREFERENCES_DEFAULT = {
     "center-lr-margins",
     "reduced-center-margins",
     "xl-main-info-scrolling",
-    "hide-title-album-view",
     "increase-min-track-list-scaling",
     "increase-max-track-list-scaling",
     "swap-top",
@@ -2103,6 +2101,7 @@ const PREFERENCES_DEFAULT = {
     "text-shadows",
     "slow-transitions",
     "track-first-in-website-title",
+    "always-show-track-numbers-album-view",
     "smooth-progress-bar",
     "playback-control",
     "scrollable-track-list",

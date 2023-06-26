@@ -207,6 +207,9 @@ public class ContextProvider {
         .map(PlaylistTrack::getTrack)
         .map(TrackElement::fromPlaylistItem)
         .collect(Collectors.toList());
+      for (int i = 1; i <= listTracks.size(); i++) {
+        this.listTracks.get(i - 1).setTrackNumber(i);
+      }
 
       Integer realTrackCount = contextPlaylist.getTracks().getTotal();
       setTrackCount(realTrackCount);
