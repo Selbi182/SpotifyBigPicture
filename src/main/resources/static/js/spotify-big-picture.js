@@ -448,8 +448,8 @@ function setCorrectTracklistView(changes) {
   let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
   let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
-  let hideForSingleTrack = newQueue.length === 1 && isPrefEnabled("hide-single-item-album-view");
-  setClass(trackListContainer, "hide", hideForSingleTrack);
+  let isSingleTrack = newQueue.length === 1 && isPrefEnabled("hide-single-item-album-view");
+  setClass(trackListContainer, "single-track", isSingleTrack);
 
   let refreshPrintedList = newQueue.length > 0 &&
     ((queueMode !== wasPreviouslyInQueueMode) || !trackListEquals(oldQueue, newQueue));
