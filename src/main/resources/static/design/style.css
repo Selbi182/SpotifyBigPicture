@@ -756,6 +756,10 @@ div#description {
     --track-list-gradient: linear-gradient(to bottom, black 20%, transparent 100%);
 }
 
+#content-center.queue #track-list .track-elem:not(.current) > div {
+    opacity: 0.65;
+}
+
 #track-list.show-timestamps {
     grid-template-columns: auto auto auto;
 }

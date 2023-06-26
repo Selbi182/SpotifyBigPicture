@@ -458,7 +458,7 @@ function setCorrectTracklistView(changes) {
     if (queueMode) {
       if (isExpectedNextSongInQueue(currentId, currentData.trackData.queue)) {
         // Special animation when the expected next song comes up
-        let trackListContainer = printTrackList([currentData.trackData.queue[0], ...changes.trackData.queue], false);
+        let trackListContainer = printTrackList([changes.currentlyPlaying, currentData.trackData.queue[0], ...changes.trackData.queue], false);
         requestAnimationFrame(() => requestAnimationFrame(() => { // double requestAnimationFrame to avoid race conditions...
           let currentTrackListTopElem = trackListContainer.firstElementChild;
           let currentTrackListBottomElem = trackListContainer.lastElementChild;
@@ -472,7 +472,7 @@ function setCorrectTracklistView(changes) {
           currentTrackListBottomElem.classList.add("grow");
         }));
       } else {
-        let trackListContainer = printTrackList(changes.trackData.queue, false);
+        let trackListContainer = printTrackList([changes.currentlyPlaying, ...changes.trackData.queue], false);
         trackListContainer.lastElementChild.classList.add("grow");
       }
     } else {
