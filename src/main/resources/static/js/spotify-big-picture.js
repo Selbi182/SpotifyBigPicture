@@ -168,7 +168,15 @@ String.prototype.select = function () {
 }
 
 const BLANK = "BLANK";
-const transitionFromCss = parseFloat(getComputedStyle(document.body).getPropertyValue("--transition").slice(0, -1)) * 1000;
+
+let transitionFromCss = null;
+function getTransitionFromCss(forceUpdate = false) {
+  if (!transitionFromCss || forceUpdate) {
+    transitionFromCss = parseFloat(getComputedStyle(document.body).getPropertyValue("--transition").slice(0, -1)) * 1000;
+  }
+  return transitionFromCss || 0;
+}
+
 
 function processJson(changes) {
   if (changes && changes.type !== "EMPTY") {
@@ -281,29 +289,24 @@ function setTextData(changes) {
   // Context
   let contextName = getChange(changes, "playbackContext.context.contextName");
   if (contextName.wasChanged) {
+    // Context main
     let contextMain = "context-main".select();
-    let contextExtra = "context-extra".select();
-
-    // Context name
     contextMain.innerHTML = convertToTextEmoji(contextName.value);
 
     // Context type / release year / track count / total duration
+    let contextExtra = "context-extra".select();
     let contextType = getChange(changes, "playbackContext.context.contextType");
-    let contextTypePrefix = "";
-    if (contextType.value !== "PLAYLIST") {
-      if (contextType.value === "QUEUE_IN_ALBUM") {
-        contextTypePrefix = "QUEUE"
-      } else if (contextType.value === "FAVORITE_TRACKS") {
-        contextTypePrefix = "LIKED SONGS";
-      } else {
-        contextTypePrefix = contextType.value;
-      }
+    let contextTypePrefix = contextType.value;
+    if (contextType.value === "QUEUE_IN_ALBUM") {
+      contextTypePrefix = "QUEUE"
+    } else if (contextType.value === "FAVORITE_TRACKS") {
+      contextTypePrefix = "LIKED SONGS";
+    }
 
-      const validContextTypesForYearDisplay = ["ALBUM", "EP", "SINGLE", "COMPILATION", "PODCAST"];
-      if (validContextTypesForYearDisplay.includes(contextType.value)) {
-        let year = getChange(changes, "currentlyPlaying.releaseDate").value.slice(0, 4);
-        contextTypePrefix += ` \u2022 ${year}`;
-      }
+    const validContextTypesForYearDisplay = ["ALBUM", "EP", "SINGLE", "COMPILATION"];
+    if (validContextTypesForYearDisplay.includes(contextType.value)) {
+      let year = getChange(changes, "currentlyPlaying.releaseDate").value.slice(0, 4);
+      contextTypePrefix += `, ${year}`;
     }
 
     let trackCount = getChange(changes, "trackData.trackCount").value;
@@ -323,7 +326,7 @@ function setTextData(changes) {
       let combinedTime = getChange(changes, "trackData.combinedTime").value;
       if (combinedTime > 0) {
         let totalTimeFormatted = formatTimeVerbose(combinedTime);
-        lengthInfo += ` (${totalTimeFormatted})`;
+        lengthInfo += `, ${totalTimeFormatted}`;
       }
 
       contextExtra.innerHTML = `${contextTypePrefix ? contextTypePrefix + ' \u2022 ' : ""}${lengthInfo}`;
@@ -487,7 +490,7 @@ function setCorrectTracklistView(changes) {
     setTimeout(() => {
       refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
       refreshTextBalance();
-    }, transitionFromCss * 2);
+    }, getTransitionFromCss() * 2);
   }
 }
 
@@ -888,7 +891,7 @@ function prerenderNextImage(changes) {
                 };
                 nextPrerenderInProgress = false;
               });
-          }, transitionFromCss)
+          }, getTransitionFromCss())
         }
       }
     }
@@ -1314,7 +1317,16 @@ const PREFERENCES = [
     description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. "
       + "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
     category: "Performance",
+    requiredFor: ["slow-transitions"],
     css: {"main": "transitions"}
+  },
+  {
+    id: "slow-transitions",
+    name: "Slower Transitions",
+    description: "If enabled, the transition speed is halved (increased to 1 second, up from 500 milliseconds)",
+    category: "Performance",
+    css: {"main": "slow-transitions"},
+    callback: () => getTransitionFromCss(true)
   },
   {
     id: "smooth-progress-bar",
@@ -1345,6 +1357,13 @@ const PREFERENCES = [
     description: "If enabled, the dominant color of the current artwork will be used as the color for all texts and some symbols. Otherwise, plain white will be used",
     category: "General",
     css: {"main": "!no-colored-text"}
+  },
+  {
+    id: "text-shadows",
+    name: "Text Shadows",
+    description: "Adds shadows to all texts and symbols",
+    category: "General",
+    css: {"content": "text-shadows"}
   },
   {
     id: "show-queue",
@@ -1930,7 +1949,7 @@ const PREFERENCES = [
     name: "Artwork Above Track Info",
     description: "If enabled, the artwork is played above the track info, rather than next to it. "
       + "Use this setting with caution",
-    category: "Layout: Misc",
+    category: "Layout: Misc / Experimental",
     css: {"main": "artwork-above-content"}
   },
   {
@@ -1938,8 +1957,15 @@ const PREFERENCES = [
     name: "Decreased Margins",
     description: "If enabled, all margins are halved. " +
       "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
-    category: "Layout: Misc",
+    category: "Layout: Misc / Experimental",
     css: {"main": "decreased-margins"},
+  },
+  {
+    id: "extra-wide-mode",
+    name: "Extra-wide Mode",
+    description: "If enabled, the top and bottom margins will be doubled, resulting in a wider and more compact view",
+    category: "Layout: Misc / Experimental",
+    css: {"content": "extra-wide"},
   },
   {
     id: "show-fps",
@@ -1971,7 +1997,7 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Bottom Content",
   "Layout: Main Content",
   "Layout: Swap",
-  "Layout: Misc",
+  "Layout: Misc / Experimental",
   "Background",
   "Developer Tools"
 ];
@@ -2016,6 +2042,7 @@ const PREFERENCES_DEFAULT = {
   disabled: [
     "swap-top-bottom",
     "decreased-margins",
+    "extra-wide-mode",
     "xl-text",
     "separate-release-line",
     "full-release-date",
@@ -2055,6 +2082,8 @@ const PREFERENCES_DEFAULT = {
     "prerender-background"
   ],
   ignoreDefaultOff: [
+    "text-shadows",
+    "slow-transitions",
     "track-first-in-website-title",
     "smooth-progress-bar",
     "playback-control",
@@ -2518,7 +2547,7 @@ function refreshPreference(preference, state) {
   refreshContentTimeout = setTimeout(() => {
     refreshAll();
     refreshContentTimeout = null;
-  }, transitionFromCss);
+  }, getTransitionFromCss());
 
   // Update the settings that are invalidated
   updateOverridden(preference);
@@ -2688,7 +2717,7 @@ window.onresize = () => {
       portraitModePresetSwitchPrompt();
     }
     refreshAll();
-  }, transitionFromCss);
+  }, getTransitionFromCss());
 };
 
 

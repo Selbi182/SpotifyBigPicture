@@ -22,7 +22,9 @@
     --margin-main: 8vmin;
     --margin-half: calc(var(--margin-main) / 2);
     --margin-double: calc(var(--margin-main) * 2);
-    --default-shadow: 0.5vmin 0.5vmin 0.5vmin #00000044;
+    --shadow-light: 0.5vmin 0.5vmin 0.5vmin #00000044;
+    --shadow-medium: 0.5vmin 0.5vmin 0.5vmin #000000aa;
+    --shadow-full: 0.5vmin 0.5vmin 0.5vmin black;
 }
 
 html, body {
@@ -84,6 +86,10 @@ a:hover {
         filter var(--transition);
 }
 
+#main.slow-transitions {
+    --transition: 1s;
+}
+
 img:not([src]) {
     visibility: hidden;
 }
@@ -125,7 +131,7 @@ img:not([src]) {
     color: var(--color);
     --artwork-size: 0;
     transform-origin: top right;
-    transition: transform var(--transition);
+    transition: transform 500ms;
     background-color: black;
 }
 
@@ -139,6 +145,14 @@ img:not([src]) {
 
 #main.decreased-margins {
     --margin-main: 4vmin;
+}
+
+#content.extra-wide {
+    padding: calc(var(--margin-main) * 2) var(--margin-main);
+}
+
+#content.text-shadows {
+    filter: drop-shadow(var(--shadow-medium));
 }
 
 #main.scale-down {
@@ -264,7 +278,7 @@ img:not([src]) {
     position: absolute;
     width: 100%;
     height: 100%;
-    filter: blur(calc(var(--bg-blur) * 1vmin)) grayscale(25%) drop-shadow(var(--default-shadow));
+    filter: blur(calc(var(--bg-blur) * 1vmin)) grayscale(25%) drop-shadow(var(--shadow-light));
     image-rendering: optimizeQuality;
     object-fit: contain;
     background-color: var(--color);
@@ -352,7 +366,7 @@ img:not([src]) {
 }
 
 #artwork.shadow {
-    filter: drop-shadow(var(--default-shadow));
+    filter: drop-shadow(var(--shadow-light));
 }
 
 #artwork.top-disabled.center-disabled.bottom-disabled {
