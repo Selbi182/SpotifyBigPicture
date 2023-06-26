@@ -172,7 +172,7 @@ const BLANK = "BLANK";
 let transitionFromCss = null;
 function getTransitionFromCss(forceUpdate = false) {
   if (!transitionFromCss || forceUpdate) {
-    transitionFromCss = parseFloat(getComputedStyle(document.body).getPropertyValue("--transition").slice(0, -1)) * 1000;
+    transitionFromCss = parseFloat(getComputedStyle("main".select()).getPropertyValue("--transition").slice(0, -1)) * 1000;
   }
   return transitionFromCss || 0;
 }
@@ -457,25 +457,33 @@ function setCorrectTracklistView(changes) {
   if (refreshPrintedList) {
     if (queueMode) {
       if (isExpectedNextSongInQueue(currentId, currentData.trackData.queue)) {
-        // Special animation when the expected next song comes up
-        let trackListContainer = printTrackList([changes.currentlyPlaying, currentData.trackData.queue[0], ...changes.trackData.queue], false);
-        requestAnimationFrame(() => requestAnimationFrame(() => { // double requestAnimationFrame to avoid race conditions...
-          let currentTrackListTopElem = trackListContainer.firstElementChild;
-          let currentTrackListBottomElem = trackListContainer.lastElementChild;
-          currentTrackListTopElem.querySelector(".track-name").ontransitionend = (e) => {
-            let parent = e.target.parentNode;
-            if (parent.classList.contains("track-elem") && parent.classList.contains("shrink")) {
-              parent.remove();
-            }
-          }
-          currentTrackListTopElem.classList.add("shrink");
-          currentTrackListBottomElem.classList.add("grow");
-        }));
+        // Shrink and remove the first item in the queue
+        let first = trackListContainer.querySelector(".track-elem:first-child");
+        first.classList.remove("current");
+        first.classList.add("shrink");
+        setTimeout(() => {
+          first.remove();
+        }, getTransitionFromCss());
+
+        // Mark the second item as the current track
+        let second = trackListContainer.querySelector(".track-elem:nth-child(2)");
+        second.classList.add("current");
+
+        // Insert and grow the new (last) song to the queue
+        let last = trackListContainer.querySelector(".track-elem:last-child");
+        last.classList.remove("grow");
+        let newQueueElement = newQueue[newQueue.length - 1];
+        let trackElem = createSingleTrackListItem(newQueueElement);
+        trackListContainer.append(trackElem);
+        trackElem.classList.add("grow");
       } else {
+        // Complete refresh of the queue
         let trackListContainer = printTrackList([changes.currentlyPlaying, ...changes.trackData.queue], false);
+        trackListContainer.firstElementChild.classList.add("current");
         trackListContainer.lastElementChild.classList.add("grow");
       }
     } else {
+      // Album View
       let isMultiDisc = listTracks.find(t => 'discNumber' in t && t.discNumber > 1);
       printTrackList(listTracks, listViewType === "ALBUM" && isMultiDisc && !shuffle);
     }
@@ -724,7 +732,7 @@ function createDiscElement(discNumber) {
   return discTrackElem;
 }
 
-function createSingleTrackListItem(trackItem, trackNumPadLength) {
+function createSingleTrackListItem(trackItem, trackNumPadLength = 2) {
   // Create new tracklist item
   let trackElem = document.createElement("div");
   trackElem.className = "track-elem";
@@ -778,7 +786,13 @@ function setupScrollGradients() {
 
 function refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber) {
   if (queueMode) {
-    updateScrollPositions(1);
+    let trackListContainer = "track-list".select();
+    trackListContainer.scroll({
+      top: 0,
+      left: 0,
+      behavior: isPrefEnabled("transitions") ? 'smooth' : 'auto'
+    });
+    updateScrollGradients();
   } else {
     let targetTrackNumber = trackNumber + (totalDiscCount > 1 ? currentDiscNumber : 0);
     updateScrollPositions(targetTrackNumber);
@@ -1326,7 +1340,11 @@ const PREFERENCES = [
     description: "If enabled, the transition speed is halved (increased to 1 second, up from 500 milliseconds)",
     category: "Performance",
     css: {"main": "slow-transitions"},
-    callback: () => getTransitionFromCss(true)
+    callback: () => {
+      requestAnimationFrame(() => { // to avoid race conditions
+        getTransitionFromCss(true);
+      });
+    }
   },
   {
     id: "smooth-progress-bar",
