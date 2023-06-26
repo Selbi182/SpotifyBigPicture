@@ -2700,14 +2700,31 @@ function isPortraitMode(refresh = false) {
 let wasPreviouslyInPortraitMode = false;
 let refreshBackgroundEvent;
 
+const LOCAL_STORAGE_KEY_PORTRAIT_PROMPT_ENABLED = "portrait_mode_prompt_enabled";
+let portraitModePresetSwitchPromptEnabled = true;
+window.addEventListener('load', () => {
+  let localStoragePortraitPromptEnabled = localStorage.getItem(LOCAL_STORAGE_KEY_PORTRAIT_PROMPT_ENABLED);
+  if (localStoragePortraitPromptEnabled) {
+    portraitModePresetSwitchPromptEnabled = localStoragePortraitPromptEnabled === "true";
+  }
+})
+
 function portraitModePresetSwitchPrompt() {
   let portraitMode = isPortraitMode(true);
-  if (!wasPreviouslyInPortraitMode && portraitMode && !isPrefEnabled("artwork-above-content")) {
+  if (portraitModePresetSwitchPromptEnabled && !wasPreviouslyInPortraitMode && portraitMode && !isPrefEnabled("artwork-above-content")) {
     if (confirm("It seems like you're using the app in portrait mode. Would you like to switch to the design optimized for vertical aspect ratios?")) {
       applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-vertical"));
+    } else if (confirm("No longer show this prompt when resizing windows?")) {
+      portraitModePresetSwitchPromptEnabled = false;
+      localStorage.setItem(LOCAL_STORAGE_KEY_PORTRAIT_PROMPT_ENABLED, "false");
     }
   }
   wasPreviouslyInPortraitMode = portraitMode;
+}
+
+function clearLocalStoragePortraitModePresetPromptPreference() {
+  portraitModePresetSwitchPromptEnabled = true;
+  localStorage.removeItem(LOCAL_STORAGE_KEY_PORTRAIT_PROMPT_ENABLED);
 }
 
 window.onresize = () => {
@@ -2964,6 +2981,7 @@ function resetAllSettings() {
   if (confirm("Do you really want to reset all settings to their default state?")) {
     [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.ignoreDefaultOn].flat().forEach(id => setVisualPreferenceFromId(id, true));
     [PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().forEach(id => setVisualPreferenceFromId(id, false));
+    clearLocalStoragePortraitModePresetPromptPreference();
   }
 }
 
