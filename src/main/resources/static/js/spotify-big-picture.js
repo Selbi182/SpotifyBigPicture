@@ -3102,19 +3102,18 @@ setInterval(() => {
       prevTime = time;
       let clock = "clock".select();
       clock.innerHTML = time;
-      let closestClockEmoji1 = getClosestClockTextEmoji(date);
-      clock.style.setProperty("--clock-symbol", `"${closestClockEmoji1}"`);
+      clock.style.setProperty("--clock-symbol", `"${getClosestClockTextEmoji(date)}"`);
     }
   } else {
     prevTime = null;
   }
 }, 1000);
 
-const clockEmojis = ["5B", "67", "50", "5C", "51", "5D", "52", "5E", "53", "5F", "54", "60", "55", "61", "56", "62", "57", "63", "58", "64", "59", "65", "5A", "66"];
 function getClosestClockTextEmoji(currentTime) {
-  const totalMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-  const closestIndex = Math.round(totalMinutes / 30) % 24;
-  return `\\01F5${clockEmojis[closestIndex]}\uFE0E`;
+  // half-hour clock emojis exist as well, but I chose to only have the full hours for simplicity
+  let hours = currentTime.getHours() % 12 || 12;
+  let hoursHex = (hours - 1).toString(16).toUpperCase();
+  return `\\01F55${hoursHex}\uFE0E`;
 }
 
 
