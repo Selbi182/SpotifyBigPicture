@@ -45,8 +45,12 @@ body.hide {
     display: none;
 }
 
-.hide-cursor {
+#main.hide-cursor-enabled.hide-cursor {
     cursor: none !important;
+}
+
+#main.allow-user-select {
+    user-select: all;
 }
 
 .transparent {
@@ -878,10 +882,6 @@ div#description {
     display: none;
 }
 
-#artists, #title, #description, #album-title, .track-name  {
-    user-select: text;
-}
-
 #context-main, #artists, #album-title, #title, #description, #device,
 #content-center:not(.queue) #track-list .track-elem.current div {
     --max-lines: 3;
@@ -1241,7 +1241,6 @@ div#device {
     --color: white;
     width: 100%;
     height: 100%;
-    z-index: 2;
     position: absolute;
     padding: var(--margin-settings);
     font-size: 3vmin;
@@ -1378,6 +1377,17 @@ div#device {
     margin-bottom: 1vmin;
     opacity: 0.65;
     cursor: pointer;
+}
+
+#settings-categories .setting-category-header .count {
+    opacity: 0.5;
+}
+
+#settings-categories .setting-category-header .count::before {
+    content: "(";
+}
+#settings-categories .setting-category-header .count::after {
+    content: ")";
 }
 
 #settings-categories .setting-category-header:hover {
@@ -1602,6 +1612,12 @@ div#device {
     display: flex;
     gap: 1vmin;
     align-items: center;
+    --clock-symbol: "";
+}
+
+#clock:not(.next-track)::before {
+    content: var(--clock-symbol);
+    opacity: 0.5;
 }
 
 #clock.next-track::before {

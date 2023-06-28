@@ -1142,7 +1142,7 @@ function updateProgress(changes) {
   }
 
   // Website Title
-  let newTitle = "SpotifyBigPicture";
+  let newTitle = "Spotify Big Picture";
   if (isPrefEnabled("current-track-in-website-title")) {
     let artists = getChange(changes, "currentlyPlaying.artists").value;
     let title = getChange(changes, "currentlyPlaying.title").value;
@@ -1153,7 +1153,7 @@ function updateProgress(changes) {
         ? `${titleStripped} \u2022 ${mainArtist}`
         : `${mainArtist} \u2022 ${titleStripped}`;
       if (isPrefEnabled("branding-in-website-title")) {
-        newTitle += " | SpotifyBigPicture";
+        newTitle += " | Spotify Big Picture";
       }
     }
   }
@@ -1727,7 +1727,7 @@ const PREFERENCES = [
     id: "current-track-in-website-title",
     name: "Display Current Song in Website Title",
     description: "If enabled, display the track in the website title. "
-      + "Otherwise, only show 'SpotifyBigPicture'",
+      + "Otherwise, only show 'Spotify Big Picture'",
     category: "Website Title",
     requiredFor: ["track-first-in-website-title", "branding-in-website-title"],
     callback: () => refreshProgress()
@@ -1742,7 +1742,7 @@ const PREFERENCES = [
   {
     id: "branding-in-website-title",
     name: "Branding",
-    description: "If enabled, suffixes the website title with ' | SpotifyBigPicture'",
+    description: "If enabled, suffixes the website title with ' | Spotify Big Picture'",
     category: "Website Title",
     callback: () => refreshProgress()
   },
@@ -1883,6 +1883,20 @@ const PREFERENCES = [
     css: {"dark-overlay": "show"}
   },
   {
+    id: "allow-user-select",
+    name: "Allow Text Selection",
+    description: "If enabled, text on can be selected/copied. Otherwise it's all read-only",
+    category: "General",
+    css: {"main": "allow-user-select"}
+  },
+  {
+    id: "hide-mouse",
+    name: "Hide Mouse Cursor",
+    description: "Hides the mouse cursor after a short duration of no movement",
+    category: "General",
+    css: {"main": "hide-cursor-enabled"}
+  },
+  {
     id: "hide-cog",
     name: "Hide Settings Icon",
     description: "Hide the settings icon in the top right when moving the mouse. Note: You can still access the settings menu by pressing Space",
@@ -1966,7 +1980,7 @@ const PREFERENCES = [
     name: "Artwork Above Track Info",
     description: "If enabled, the artwork is played above the track info, rather than next to it. "
       + "Use this setting with caution",
-    category: "Layout: Misc / Experimental",
+    category: "Layout: Experimental",
     css: {"main": "artwork-above-content"}
   },
   {
@@ -1974,14 +1988,14 @@ const PREFERENCES = [
     name: "Decreased Margins",
     description: "If enabled, all margins are halved. " +
       "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
-    category: "Layout: Misc / Experimental",
+    category: "Layout: Experimental",
     css: {"main": "decreased-margins"},
   },
   {
     id: "extra-wide-mode",
     name: "Extra-wide Mode",
     description: "If enabled, the top and bottom margins will be doubled, resulting in a wider and more compact view",
-    category: "Layout: Misc / Experimental",
+    category: "Layout: Experimental",
     css: {"content": "extra-wide"},
   },
   {
@@ -2012,10 +2026,10 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Tracklist",
   "Top Content",
   "Bottom Content",
+  "Background",
   "Layout: Main Content",
   "Layout: Swap",
-  "Layout: Misc / Experimental",
-  "Background",
+  "Layout: Experimental",
   "Developer Tools"
 ];
 
@@ -2083,6 +2097,7 @@ const PREFERENCES_DEFAULT = {
   ],
   ignoreDefaultOn: [
     "colored-text",
+    "hide-mouse",
     "transitions",
     "strip-titles",
     "current-track-in-website-title",
@@ -2100,6 +2115,7 @@ const PREFERENCES_DEFAULT = {
   ignoreDefaultOff: [
     "text-shadows",
     "slow-transitions",
+    "allow-user-select",
     "track-first-in-website-title",
     "always-show-track-numbers-album-view",
     "smooth-progress-bar",
@@ -2352,8 +2368,8 @@ function initVisualPreferences() {
     setVersionHashInLocalStorage(newVersionHash);
     if (!storedVersionHash || storedVersionHash !== newVersionHash) {
       clearVisualPreferencesInLocalStorage();
-      alert("Welcome to SpotifyBigPicture! Please select a preset to proceed.\n\n" +
-        "If you've used SpotifyBigPicture before and you're seeing this message, it indicates that you have installed a new version. To prevent issues arising from the changes in the new version, your previous settings have been reset.");
+      alert("Welcome to Spotify Big Picture! Please select a preset to proceed.\n\n" +
+        "If you've used Spotify Big Picture before and you're seeing this message, it indicates that you have installed a new version. To prevent issues arising from the changes in the new version, your previous settings have been reset.");
     }
   }
 
@@ -2365,7 +2381,8 @@ function initVisualPreferences() {
     let categoryElemHeader = document.createElement("div");
     categoryElemHeader.classList.add("setting-category-header");
     categoryElemHeader.title = "Expand/collapse category..."
-    categoryElemHeader.innerHTML = category;
+    let count = PREFERENCES.filter(obj => obj.category === category).length;
+    categoryElemHeader.innerHTML = `${category} <span class="count">${count}</span>`;
     categoryElemHeader.onclick = () => {
       categoryElem.classList.toggle("collapse");
     }
@@ -2856,7 +2873,7 @@ let cursorTimeout;
 const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 
 function setMouseVisibility(state) {
-  setClass(document.documentElement, "hide-cursor", !state);
+  setClass("main".select(), "hide-cursor", !state);
 }
 
 function handleMouseEvent(e) {
@@ -2866,7 +2883,7 @@ function handleMouseEvent(e) {
   let settingsMenuToggleButton = "settings-menu-toggle-button".select();
   setClass(settingsMenuToggleButton, "show", true);
 
-  if (!isHoveringControlElem(e.target)) {
+  if (!isHoveringControlElem(e.target) && !settingsVisible) {
     cursorTimeout = setTimeout(() => {
       setMouseVisibility(false);
       setClass(settingsMenuToggleButton, "show", false);
@@ -2952,17 +2969,7 @@ function initSettingsMouseMove() {
 }
 
 function isSettingControlElem(e) {
-  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
-  let settingsMenuExpertModeToggleButton = "settings-expert-mode-toggle".select();
-  let settingsResetButton = "settings-reset".select();
-  return e.target === settingsMenuToggleButton
-    || e.target === settingsMenuExpertModeToggleButton
-    || e.target === settingsResetButton
-    || e.target.classList.contains("setting")
-    || e.target.classList.contains("setting-category")
-    || e.target.classList.contains("setting-category-header")
-    || e.target.classList.contains("preset")
-    || e.target.parentNode.classList.contains("preset");
+  return !"main".select().contains(e.target);
 }
 
 const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat", "Volume"];
@@ -3095,11 +3102,20 @@ setInterval(() => {
       prevTime = time;
       let clock = "clock".select();
       clock.innerHTML = time;
+      let closestClockEmoji1 = getClosestClockTextEmoji(date);
+      clock.style.setProperty("--clock-symbol", `"${closestClockEmoji1}"`);
     }
   } else {
     prevTime = null;
   }
 }, 1000);
+
+const clockEmojis = ["5B", "67", "50", "5C", "51", "5D", "52", "5E", "53", "5F", "54", "60", "55", "61", "56", "62", "57", "63", "58", "64", "59", "65", "5A", "66"];
+function getClosestClockTextEmoji(currentTime) {
+  const totalMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const closestIndex = Math.round(totalMinutes / 30) % 24;
+  return `\\01F5${clockEmojis[closestIndex]}\uFE0E`;
+}
 
 
 ///////////////////////////////
