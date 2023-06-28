@@ -1048,7 +1048,8 @@ function loadBackground(newImage, colors) {
       let grainOverlay = "grain".select();
 
       let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
-      backgroundCanvasOverlay.style.setProperty("--background-color", backgroundColorOverlay);
+      "background-canvas".select().style.setProperty("--background-color", backgroundColorOverlay);
+
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
       setClass(backgroundCanvasOverlay, "brighter", averageBrightness < 0.2);
       setClass(backgroundCanvasOverlay, "darker", averageBrightness > 0.4);

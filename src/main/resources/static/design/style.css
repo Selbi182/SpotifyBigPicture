@@ -225,6 +225,7 @@ img:not([src]) {
 }
 
 #background-canvas {
+    --background-color: black;
     transform: scale(1.1);
     filter: brightness(35%);
 }
@@ -238,7 +239,6 @@ img:not([src]) {
 }
 
 #background-canvas-overlay {
-    --background-color: black;
     background: var(--background-gradients), var(--background-color);
     --background-brightness: 0.5;
     --background-gradients:
@@ -285,7 +285,7 @@ img:not([src]) {
     filter: blur(calc(var(--bg-blur) * 1vmin)) grayscale(25%) drop-shadow(var(--shadow-light));
     image-rendering: optimizeQuality;
     object-fit: contain;
-    background-color: var(--color);
+    background-color: var(--background-color);
 }
 
 #background-canvas-img.fill-screen {
