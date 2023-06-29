@@ -41,7 +41,11 @@ html, body {
     word-break: keep-all;
 }
 
-body.hide {
+body.idle {
+    cursor: none;
+}
+
+body.idle > * {
     display: none;
 }
 

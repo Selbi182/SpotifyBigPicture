@@ -1293,7 +1293,7 @@ function enableIdleMode() {
   if (!idle) {
     console.info("No music was played in a long while. Enabling idle mode...");
     idle = true;
-    setClass(document.body, "hide", true);
+    setClass(document.body, "idle", true);
   }
 }
 
@@ -2171,7 +2171,6 @@ const PREFERENCES_PRESETS = [
     enabled: [
       "swap-top",
       "center-lr-margins",
-      "reduced-center-margins",
       "reverse-bottom",
       "split-main-panels",
       "separate-release-line",
@@ -2372,7 +2371,7 @@ function initVisualPreferences() {
     if (!storedVersionHash || storedVersionHash !== newVersionHash) {
       clearVisualPreferencesInLocalStorage();
       alert("Welcome to Spotify Big Picture! Please select a preset to proceed.\n\n" +
-        "If you've used Spotify Big Picture before and you're seeing this message, it indicates that you have installed a new version. To prevent issues arising from the changes in the new version, your previous settings have been reset.");
+        "If you've used Spotify Big Picture before and you're seeing this message, it indicates that you have installed a new version. To prevent conflicts arising from the changes in the new version, your previous settings have been reset.");
     }
   }
 
