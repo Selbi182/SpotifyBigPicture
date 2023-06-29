@@ -1149,10 +1149,12 @@ function updateProgress(changes) {
     let title = getChange(changes, "currentlyPlaying.title").value;
     if (!idle && artists && title) {
       let mainArtist = artists[0];
-      let titleStripped = removeFeaturedArtists(title);
-      newTitle = isPrefEnabled("track-first-in-website-title")
-        ? `${titleStripped} \u2022 ${mainArtist}`
-        : `${mainArtist} \u2022 ${titleStripped}`;
+      let trackStripped = separateUnimportantTitleInfo(removeFeaturedArtists(title)).main;
+      let titleElements = [mainArtist, trackStripped];
+      if (isPrefEnabled("track-first-in-website-title")) {
+        titleElements.reverse();
+      }
+      newTitle = titleElements.join(" \u2022 ");
       if (isPrefEnabled("branding-in-website-title")) {
         newTitle += " | Spotify Big Picture";
       }
