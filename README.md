@@ -76,4 +76,4 @@ However, if the interface becomes completely unresponsive, try these approaches:
 ## Support
 If you got any problems, [write an issue ticket on GitHub](https://github.com/Selbi182/SpotifyBigPicture/issues) and I will gladly take a look at it :)
 
-Alternatively, message me on Discord: **Selbi#7270**
+Alternatively, message me on Discord. My username is: **selbi**
