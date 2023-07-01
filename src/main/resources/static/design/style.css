@@ -273,11 +273,11 @@ img:not([src]) {
     mix-blend-mode: hard-light;
 }
 
-#background-canvas-overlay:not(.no-tint).brighter {
+#background-canvas-overlay:not(.no-tint).dark-compensation.brighter {
     opacity: calc(0.5 - var(--background-brightness));
 }
 
-#background-canvas-overlay:not(.no-tint).darker {
+#background-canvas-overlay:not(.no-tint).bright-compensation.darker {
     background-blend-mode: hard-light;
 }
 

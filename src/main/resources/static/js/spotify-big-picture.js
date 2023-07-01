@@ -2721,7 +2721,7 @@ const PREFERENCES = [
   },
   {
     id: "bg-artwork",
-    name: "Background Artwork",
+    name: "Artwork",
     description: "If enabled, uses the release artwork for the background as a blurry, darkened version",
     category: "Background",
     requiredFor: ["bg-blur", "bg-fill-screen"],
@@ -2729,7 +2729,7 @@ const PREFERENCES = [
   },
   {
     id: "bg-fill-screen",
-    name: "Background Fill Screen",
+    name: "Fill Screen",
     description: "If enabled, the artwork is stretched to fill the screen. Otherwise, it will be contained within the borders and fill the remaining " +
       "background with a plain color",
     category: "Background",
@@ -2737,35 +2737,50 @@ const PREFERENCES = [
   },
   {
     id: "bg-blur",
-    name: "Background Blur",
+    name: "Blur",
     description: "Blurs the background. Note that disabling this will result in low-quality images, as the pictures provided by Spotify are limited to 640x640",
     category: "Background",
     css: {"background-canvas-img": "!no-blur"}
   },
   {
     id: "bg-tint",
-    name: "Background Overlay Color",
+    name: "Overlay Color",
     description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps to increase the contrast for very dark artworks",
     category: "Background",
+    requiredFor: ["bg-tint-dark-compensation", "bg-tint-bright-compensation"],
     css: {"background-canvas-overlay": "!no-tint"}
   },
   {
+    id: "bg-tint-dark-compensation",
+    name: "Overlay Color: Darkness Compensation",
+    description: "Increases the overlay color's brightness for very dark artworks",
+    category: "Background",
+    css: {"background-canvas-overlay": "dark-compensation"}
+  },
+  {
+    id: "bg-tint-bright-compensation",
+    name: "Overlay Color: Brightness Compensation",
+    description: "Decreases the overlay color's brightness for very bright artworks",
+    category: "Background",
+    css: {"background-canvas-overlay": "bright-compensation"}
+  },
+  {
     id: "bg-gradient",
-    name: "Background Gradient",
+    name: "Gradient",
     description: "Add a subtle gradient to the background that gets steadily darker towards the bottom",
     category: "Background",
     css: {"background-canvas-overlay": "!no-gradient"}
   },
   {
     id: "bg-grain",
-    name: "Background Dithering",
+    name: "Dithering",
     description: "Adds a subtle layer of film grain to the background to increase contrast and prevent color banding for dark images",
     category: "Background",
     css: {"grain": "show"}
   },
   {
     id: "bg-zoom",
-    name: "Background Zoom",
+    name: "Zoom",
     description: "Zooms the background image slightly in (intended to hide darkened edges when the image is blurred)",
     category: "Background",
     css: {"background-canvas": "!no-zoom"}
@@ -2929,6 +2944,8 @@ const PREFERENCES_DEFAULT = {
     "bg-fill-screen",
     "bg-zoom",
     "bg-tint",
+    "bg-tint-dark-compensation",
+    "bg-tint-bright-compensation",
     "bg-gradient",
     "bg-grain",
     "show-artists",
