@@ -547,40 +547,50 @@ function trackListEquals(trackList1, trackList2) {
   return true;
 }
 
-function balanceTextClamp(elem) {
-  // balanceText is too stupid to stop itself when in portrait mode.
-  // To prevent freezes, disallow balancing in those cases.
-  if (isPrefEnabled("text-balancing") && !isPortraitMode()) {
-    // balanceText doesn't take line-clamping into account, unfortunately.
-    // So we got to temporarily remove it, balance the text, then add it again.
-    elem.style.setProperty("-webkit-line-clamp", "initial", "important");
-    balanceText(elem);
-    elem.style.removeProperty("-webkit-line-clamp");
-  } else {
-    removeTags(elem);
-  }
-}
-
-// copy-pasted from the library because removeTags(el) isn't accessible from the outside
-function removeTags(el) {
-  // Remove soft-hyphen breaks
-  [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => br.outerHTML = "");
-
-  // Replace other breaks with whitespace
-  [...el.querySelectorAll('br[data-owner="balance-text"]')].forEach(br => br.outerHTML = " ");
-
-  // Restore hyphens inserted for soft-hyphens
-  [...el.querySelectorAll('span[data-owner="balance-text-softhyphen"]')].forEach(span => {
-    const textNode = document.createTextNode("\u00ad");
-    span.parentNode.insertBefore(textNode, span);
-    span.parentNode.removeChild(span);
-  });
-}
-
+const idsToBalance = ["artists", "title", "album-title", "description"];
 function refreshTextBalance() {
-  isPortraitMode(true);
-  for (let id of ["artists", "title", "album-title", "description"]) {
-    balanceTextClamp(id.select());
+  refreshPortraitModeState();
+  for (let id of idsToBalance) {
+    let elem = id.select();
+    balanceTextClamp(elem).then();
+  }
+
+  async function balanceTextClamp(elem) {
+    if (isPrefEnabled("text-balancing")) {
+      // balanceText doesn't take line-clamping into account, unfortunately.
+      // So we got to temporarily remove it, balance the text, then add it again.
+      elem.style.setProperty("-webkit-line-clamp", "initial", "important");
+      try {
+        // balanceText sometimes gets stuck and causes freezes.
+        // Running it async with a timeout should prevent this from happening.
+        await Promise.race([
+          new Promise((resolve) => {
+            balanceText(elem);
+            resolve();
+          }),
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('text-balancing timed out')), 1000);
+          })
+        ]);
+      } catch (e) {
+        console.warn(`text-balancing caused a deadlock (id: ${elem.id}) and was forcibly aborted`);
+      } finally {
+        elem.style.removeProperty("-webkit-line-clamp");
+      }
+    } else {
+      removeTags(elem);
+    }
+  }
+
+  // copy-pasted from the balanceText library because removeTags(el) isn't accessible from the outside
+  function removeTags(el) {
+    [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => br.outerHTML = "");
+    [...el.querySelectorAll('br[data-owner="balance-text"]')].forEach(br => br.outerHTML = " ");
+    [...el.querySelectorAll('span[data-owner="balance-text-softhyphen"]')].forEach(span => {
+      const textNode = document.createTextNode("\u00ad");
+      span.parentNode.insertBefore(textNode, span);
+      span.parentNode.removeChild(span);
+    });
   }
 }
 
@@ -2726,9 +2736,13 @@ function refreshAll() {
 
 let mobileView = null;
 
-function isPortraitMode(refresh = false) {
-  if (refresh || mobileView === null) {
-    mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
+function refreshPortraitModeState() {
+  mobileView = window.matchMedia("screen and (max-aspect-ratio: 3/2)").matches;
+}
+
+function isPortraitMode() {
+  if (mobileView === null) {
+    refreshPortraitModeState();
   }
   return mobileView;
 }
@@ -2746,7 +2760,8 @@ window.addEventListener('load', () => {
 })
 
 function portraitModePresetSwitchPrompt() {
-  let portraitMode = isPortraitMode(true);
+  refreshPortraitModeState();
+  let portraitMode = isPortraitMode();
   if (portraitModePresetSwitchPromptEnabled && !wasPreviouslyInPortraitMode && portraitMode && !isPrefEnabled("artwork-above-content")) {
     if (confirm("It seems like you're using the app in portrait mode. Would you like to switch to the design optimized for vertical aspect ratios?")) {
       applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-vertical"));
