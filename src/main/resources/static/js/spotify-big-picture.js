@@ -564,7 +564,7 @@ function refreshLyrics(changes) {
 
 function fetchAndPrintLyrics(changes) {
   let artist = getChange(changes, "currentlyPlaying.artists").value[0];
-  let song = separateUnimportantTitleInfo(getChange(changes, "currentlyPlaying.title").value).main;
+  let song = removeFeaturedArtists(separateUnimportantTitleInfo(getChange(changes, "currentlyPlaying.title").value).main);
   if (artist && song) {
     fetch(`/lyrics?artist=${artist}&song=${song}`)
       .then(response => response.text())

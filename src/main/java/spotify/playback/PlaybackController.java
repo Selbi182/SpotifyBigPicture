@@ -17,17 +17,17 @@ import spotify.playback.control.PlaybackControl;
 import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.misc.BigPictureSetting;
-import spotify.playback.data.lyrics.GeniusLyrics;
+import spotify.playback.data.lyrics.GeniusLyricsScraper;
 
 @RestController
 public class PlaybackController {
   private final PlaybackInfoProvider playbackInfoProvider;
   private final PlaybackControl playbackControl;
-  private final GeniusLyrics geniusLyrics;
+  private final GeniusLyricsScraper geniusLyrics;
 
   private List<BigPictureSetting> bigPictureSettings;
 
-  PlaybackController(PlaybackInfoProvider playbackInfoProvider, PlaybackControl playbackControl, GeniusLyrics geniusLyrics) {
+  PlaybackController(PlaybackInfoProvider playbackInfoProvider, PlaybackControl playbackControl, GeniusLyricsScraper geniusLyrics) {
     this.playbackInfoProvider = playbackInfoProvider;
     this.playbackControl = playbackControl;
     this.geniusLyrics = geniusLyrics;
