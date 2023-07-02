@@ -412,9 +412,15 @@ function setTextData(changes) {
     setTextColor(textColor.value);
   }
 
+  // Lyrics
+  if (isPrefEnabled("show-lyrics") && getChange(changes, "currentlyPlaying.id").wasChanged) {
+    refreshLyrics(changes);
+  }
+
   // Text balance
   refreshTextBalance();
 }
+
 
 function refreshTrackList() {
   setCorrectTracklistView(currentData);
@@ -546,6 +552,93 @@ function trackListEquals(trackList1, trackList2) {
   }
   return true;
 }
+
+
+let lyricsContainer = "lyrics".select();
+function refreshLyrics(changes) {
+  stopLyricsScroll();
+  lyricsContainer.innerHTML = "";
+  lyricsContainer.scrollTop = 0;
+  fetchAndPrintLyrics(changes);
+}
+
+function fetchAndPrintLyrics(changes) {
+  let artist = getChange(changes, "currentlyPlaying.artists").value[0];
+  let song = separateUnimportantTitleInfo(getChange(changes, "currentlyPlaying.title").value).main;
+  if (artist && song) {
+    fetch(`/lyrics?artist=${artist}&song=${song}`)
+      .then(response => response.text())
+      .then(lyrics => {
+        let lyricsContainer = "lyrics".select();
+        lyricsContainer.innerHTML = lyrics;
+
+        let hasLyrics = !!lyrics;
+        setClass("content-center".select(), "lyrics", hasLyrics);
+        if (hasLyrics) {
+          lyricsContainer.scrollTop = 0;
+          fadeIn(lyricsContainer);
+          if (isPrefEnabled("lyrics-simulated-scroll")) {
+            scrollLyrics(changes);
+          }
+          setTimeout(() => {
+            refreshTextBalance();
+          }, getTransitionFromCss());
+        }
+      });
+  }
+}
+
+const lyricsScrollInitialDelayPercentage = 0.25;
+let lyricsScrollInterval;
+let lyricsScrollIntervalMs = 10;
+function scrollLyrics(changes, noDelay = false) {
+  stopLyricsScroll();
+
+  let timeCurrent = getChange(changes, "currentlyPlaying.timeCurrent").value;
+  let timeTotal = getChange(changes, "currentlyPlaying.timeTotal").value;
+  let remainingTime = timeTotal - timeCurrent;
+
+  let visibleHeight = lyricsContainer.offsetHeight;
+  let totalHeight = lyricsContainer.scrollHeight;
+  let currentScrollPosition = lyricsContainer.scrollTop;
+
+  let pixelsToScroll = totalHeight - visibleHeight - currentScrollPosition;
+  let preAndPostBuffer = remainingTime * lyricsScrollInitialDelayPercentage;
+  lyricsScrollIntervalMs = (remainingTime * (1 - (lyricsScrollInitialDelayPercentage * 2))) / pixelsToScroll;
+
+  setTimeout(() => {
+    startLyricsScroll();
+  }, noDelay ? 0 : preAndPostBuffer);
+}
+
+function startLyricsScroll() {
+  if (!lyricsScrollInterval) {
+    lyricsScrollInterval = setInterval(() =>  {
+      lyricsContainer.scrollBy(0, 1);
+      if (lyricsContainer.scrollHeight - lyricsContainer.scrollTop <= lyricsContainer.clientHeight) {
+        stopLyricsScroll();
+      }
+    }, lyricsScrollIntervalMs);
+  }
+}
+
+function stopLyricsScroll() {
+  clearInterval(lyricsScrollInterval);
+  lyricsScrollInterval = null;
+}
+
+lyricsContainer.onclick = () => {
+  if (!window.getSelection().toString()) {
+    if (lyricsScrollInterval) {
+      stopLyricsScroll();
+    } else {
+      scrollLyrics(currentData, true);
+    }
+  }
+};
+
+lyricsContainer.onkeydown = (e) => e.preventDefault();
+
 
 const idsToBalance = ["artists", "title", "album-title", "description"];
 function refreshTextBalance() {
@@ -2516,6 +2609,45 @@ const PREFERENCES = [
   },
 
   ///////////////////////////////
+  // Lyrics
+  {
+    id: "show-lyrics",
+    name: "Enable Lyrics",
+    description: "Try to search for and display the lyrics of the current song (requires external configuration to work)",
+    category: "Lyrics",
+    requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist"],
+    css: {"lyrics": "!hide"},
+    callback: (state) => {
+      if (state) {
+        refreshLyrics(currentData)
+      } else {
+        setClass("content-center".select(), "lyrics", false);
+      }
+    }
+  },
+  {
+    id: "lyrics-simulated-scroll",
+    name: "Automatic Scrolling",
+    description: "Automatically scrolls the lyrics container as the current song progresses after a short delay (pseudo-synchronization). " +
+      "Won't always be flawless, unfortunately",
+    category: "Lyrics",
+    callback: (state) => {
+      if (state) {
+        scrollLyrics(currentData, true);
+      } else {
+        stopLyricsScroll();
+      }
+    }
+  },
+  {
+    id: "lyrics-hide-tracklist",
+    name: "Hide Tracklist for Lyrics",
+    description: "If lyrics for the current song were found, hide the tracklist to make room for them",
+    category: "Lyrics",
+    css: {"track-list": "hide-for-lyrics"}
+  },
+
+  ///////////////////////////////
   // Top Content
   {
     id: "enable-top-content",
@@ -2918,6 +3050,7 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Website Title",
   "Main Content",
   "Tracklist",
+  "Lyrics",
   "Top Content",
   "Bottom Content",
   "Background",
@@ -3009,6 +3142,9 @@ const PREFERENCES_DEFAULT = {
     "prerender-background"
   ],
   ignoreDefaultOff: [
+    "show-lyrics",
+    "lyrics-simulated-scroll",
+    "lyrics-hide-tracklist",
     "text-shadows",
     "slow-transitions",
     "allow-user-select",

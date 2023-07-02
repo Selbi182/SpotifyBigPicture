@@ -17,17 +17,20 @@ import spotify.playback.control.PlaybackControl;
 import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.misc.BigPictureSetting;
+import spotify.playback.data.lyrics.GeniusLyrics;
 
 @RestController
 public class PlaybackController {
   private final PlaybackInfoProvider playbackInfoProvider;
   private final PlaybackControl playbackControl;
+  private final GeniusLyrics geniusLyrics;
 
   private List<BigPictureSetting> bigPictureSettings;
 
-  PlaybackController(PlaybackInfoProvider playbackInfoProvider, PlaybackControl playbackControl) {
+  PlaybackController(PlaybackInfoProvider playbackInfoProvider, PlaybackControl playbackControl, GeniusLyrics geniusLyrics) {
     this.playbackInfoProvider = playbackInfoProvider;
     this.playbackControl = playbackControl;
+    this.geniusLyrics = geniusLyrics;
   }
 
   /**
@@ -50,6 +53,22 @@ public class PlaybackController {
   public ResponseEntity<PlaybackInfo> getCurrentPlaybackInfo(@RequestParam int v) {
     PlaybackInfo currentPlaybackInfo = playbackInfoProvider.getCurrentPlaybackInfo(v);
     return ResponseEntity.ok(currentPlaybackInfo);
+  }
+
+  ///////////////
+
+  /**
+   * Try to look for lyrics for the given song name and artist.
+   *
+   * @param artist the artist name
+   * @param song the song name
+   * @return the lyrics as String (empty string when none were found)
+   */
+  @CrossOrigin
+  @GetMapping("/lyrics")
+  public ResponseEntity<String> getSongLyrics(@RequestParam String artist, @RequestParam String song) {
+    String songLyrics = geniusLyrics.getSongLyrics(artist, song);
+    return ResponseEntity.ok(songLyrics);
   }
 
   ///////////////

@@ -82,6 +82,7 @@ a:hover {
     #context-main, #context-extra, #thumbnail-wrapper, #logo,
     #artists, #title, #description, #album,
     #track-list, #track-list .track-elem div,
+    #lyrics,
     #progress-background,
     #info-symbols > div, #volume, #volume-text, #device,
     #clock, #time-current, #time-total
@@ -715,10 +716,10 @@ div#description {
     --gradient-height: 6vmin;
     --gradient-top: white;
     --gradient-bottom: white;
-    --track-list-gradient: linear-gradient(to bottom, var(--gradient-top) 0%, white var(--gradient-height),
+    --gradient: linear-gradient(to bottom, var(--gradient-top) 0%, white var(--gradient-height),
         white calc(100% - var(--gradient-height)), var(--gradient-bottom)  100%);
-    -webkit-mask-image: var(--track-list-gradient);
-    mask-image: var(--track-list-gradient);
+    -webkit-mask-image: var(--gradient);
+    mask-image: var(--gradient);
 }
 
 #track-list.scrollable {
@@ -743,7 +744,9 @@ div#description {
 }
 
 #track-list.hide,
-#track-list.single-track {
+#track-list.single-track,
+#content-center.lyrics #track-list.hide-for-lyrics
+{
     display: none;
 }
 
@@ -751,7 +754,7 @@ div#description {
     display: none;
 }
 
-#content-center.split-main-panels #track-list {
+#content-center.split-main-panels :is(#track-list, #lyrics) {
     max-width: calc(100% * (2 / 3));
 }
 
@@ -761,7 +764,7 @@ div#description {
 }
 
 #content-center.queue #track-list {
-    --track-list-gradient: linear-gradient(to bottom, black 20%, transparent 100%);
+    --gradient: linear-gradient(to bottom, black 20%, transparent 100%);
 }
 
 #content-center.queue #track-list .track-elem:not(.current) > div {
@@ -885,6 +888,30 @@ div#description {
 #track-list.strip .track-elem div.track-name span.extra {
     display: none;
 }
+
+#lyrics {
+    cursor: pointer;
+    white-space: pre-line;
+    font-size: 2vmin;
+    text-align: center;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    opacity: 0.65;
+    width: fit-content;
+    max-width: 100%;
+    max-height: 100%;
+    scrollbar-width: thin;
+    --scroller-gradient: linear-gradient(to bottom, transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
+    -webkit-mask-image: var(--scroller-gradient);
+    mask-image: var(--scroller-gradient);
+    padding: var(--mask-padding);
+    --mask-padding: 2vmin;
+}
+
+#lyrics.hide, #lyrics:empty {
+    display: none;
+}
+
 
 #context-main, #artists, #album-title, #title, #description, #device,
 #content-center:not(.queue) #track-list .track-elem.current div {

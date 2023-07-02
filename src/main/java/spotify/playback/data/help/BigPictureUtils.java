@@ -1,5 +1,14 @@
 package spotify.playback.data.help;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.lang.NonNull;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
@@ -35,5 +44,30 @@ public class BigPictureUtils {
       return ModelObjectType.EPISODE;
     }
     return null;
+  }
+
+  /**
+   * Traverses through a Gson object in a convenient way and returns the deepest element as String.
+   * Example: "response.lyrics_for_edit_proposal.body.plain"
+   * This method assumes that all elements are on the way are JsonObjects.
+   *
+   * @param rootJsonElement the entry point
+   * @param traversalPath the traversal path
+   * @return the deep string
+   */
+  @NonNull
+  public static String getDeepJsonString(JsonElement rootJsonElement, String traversalPath) {
+    JsonObject jsonObject = rootJsonElement.getAsJsonObject();
+    List<String> memberNames = Arrays.asList(traversalPath.split("\\."));
+    for (Iterator<String> itr = memberNames.iterator(); itr.hasNext(); ) {
+      String next = itr.next();
+      JsonElement nextJsonElement = jsonObject.get(next);
+      if (itr.hasNext()) {
+        jsonObject = nextJsonElement.getAsJsonObject();
+      } else {
+        return nextJsonElement.getAsString();
+      }
+    }
+    throw new IllegalArgumentException("Invalid traversalPath");
   }
 }
