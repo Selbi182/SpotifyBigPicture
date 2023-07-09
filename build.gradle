@@ -48,6 +48,5 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
 
     implementation 'se.michaelthelin.spotify:spotify-web-api-java:8.0.0'
-    implementation 'com.github.jagrosh:JLyrics:master-SNAPSHOT'
     implementation 'org.jsoup:jsoup:1.15.4'
 }
