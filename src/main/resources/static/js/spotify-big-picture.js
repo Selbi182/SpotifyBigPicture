@@ -1721,7 +1721,10 @@ function updateExternallyToggledPreferences(changes) {
     let reload = false;
     if (changes.settingsToToggle?.length > 0) {
       for (let setting of changes.settingsToToggle) {
-        if (setting === "reload") {
+        if (setting.startsWith("dark-mode-")) {
+          setDarkModeIntensity(setting);
+          setting = "dark-mode";
+        } else if (setting === "reload") {
           reload = true;
         } else {
           let preference = findPreference(setting);
@@ -1760,6 +1763,15 @@ function toggleFullscreen() {
       document.exitFullscreen().then();
     }
   }
+}
+
+function toggleDarkMode() {
+  toggleVisualPreference(findPreference("dark-mode"));
+}
+
+function setDarkModeIntensity(setting) {
+  let intensity = parseInt(setting.replace("dark-mode-", "")) / 100;
+  "dark-overlay".select().style.setProperty("--dark-intensity", intensity.toString());
 }
 
 const OPACITY_TIMEOUT = 2 * 1000;
@@ -1945,7 +1957,7 @@ document.onkeydown = (e) => {
       toggleFullscreen();
       break;
     case 'd':
-      toggleVisualPreference(findPreference("dark-mode"));
+      toggleDarkMode();
       break;
     case 'ArrowUp':
       scrollSettingsUpDown(-1);
@@ -2646,6 +2658,13 @@ const PREFERENCES = [
     category: "Lyrics",
     css: {"track-list": "hide-for-lyrics"}
   },
+  {
+    id: "xl-lyrics",
+    name: "XL Lyrics",
+    description: "Increases the font size of the lyrics",
+    category: "Lyrics",
+    css: {"lyrics": "xl"}
+  },
 
   ///////////////////////////////
   // Top Content
@@ -3060,7 +3079,7 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Developer Tools"
 ];
 
-const PREFERENCES_DEFAULT = {
+const PREFERENCES_DEFAULT = { // TODO integrate this into the settings themselves (and do an integrity check about the ignored settings and which settings are never touched anyway with presets)
   enabled: [
     "enable-center-content",
     "show-queue",
@@ -3125,6 +3144,8 @@ const PREFERENCES_DEFAULT = {
     "next-track-replacing-clock"
   ],
   ignoreDefaultOn: [
+    "lyrics-simulated-scroll",
+    "lyrics-hide-tracklist",
     "colored-text",
     "hide-mouse",
     "transitions",
@@ -3143,8 +3164,7 @@ const PREFERENCES_DEFAULT = {
   ],
   ignoreDefaultOff: [
     "show-lyrics",
-    "lyrics-simulated-scroll",
-    "lyrics-hide-tracklist",
+    "xl-lyrics",
     "text-shadows",
     "slow-transitions",
     "allow-user-select",

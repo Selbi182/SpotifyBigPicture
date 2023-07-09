@@ -104,13 +104,14 @@ img:not([src]) {
 }
 
 #dark-overlay {
+    --dark-intensity: 0.5;
+    opacity: var(--dark-intensity);
     background: black;
     position: absolute;
     width: 100%;
     height: 100%;
     z-index: 2;
     pointer-events: none;
-    opacity: 0.5;
     display: none;
 }
 
@@ -906,6 +907,10 @@ div#description {
     mask-image: var(--scroller-gradient);
     padding: var(--mask-padding);
     --mask-padding: 2vmin;
+}
+
+#lyrics.xl {
+    font-size: 3vmin;
 }
 
 #lyrics.hide, #lyrics:empty {

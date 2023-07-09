@@ -114,6 +114,17 @@ public class PlaybackController {
     if (settingId.startsWith("preset-") || settingId.equals("reload")) {
       playbackInfoProvider.addSettingToToggleForNextPoll(settingId);
       return ResponseEntity.ok(null);
+    } else if (settingId.startsWith("dark-mode-")) {
+      Optional<BigPictureSetting> darkModeSetting = this.bigPictureSettings.stream()
+        .filter(setting -> setting.getId().equals("dark-mode"))
+        .findFirst();
+      if (darkModeSetting.isPresent()) {
+        BigPictureSetting bigPictureSetting = darkModeSetting.get();
+        bigPictureSetting.setState(!bigPictureSetting.getState());
+        playbackInfoProvider.addSettingToToggleForNextPoll(settingId);
+        return ResponseEntity.ok(bigPictureSetting);
+      }
+      return ResponseEntity.notFound().build();
     } else {
       Optional<BigPictureSetting> settingToToggle = this.bigPictureSettings.stream()
         .filter(setting -> setting.getId().equals(settingId))

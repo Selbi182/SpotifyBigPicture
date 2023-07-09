@@ -88,6 +88,16 @@
   function toggleSetting(settingElement, settingId) {
     if (!settingElement.classList.contains("loading")) {
       settingElement.classList.add("loading");
+
+      if (settingId === "dark-mode" && !settingElement.classList.contains("on")) {
+        let darkModeIntensity = prompt("Enter intensity in % (1-100)");
+        if (darkModeIntensity > 0 && darkModeIntensity <= 100) {
+          settingId += "-" + darkModeIntensity;
+        } else {
+          settingId += "-50";
+        }
+      }
+
       fetch("/settings/toggle/" + settingId, {
         method: 'POST',
         headers: {
