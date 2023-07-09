@@ -37,7 +37,7 @@ public class GeniusLyricsScraper {
     return "";
   }
 
-  private static String findLyricsUrl(String artistName, String songName) throws IOException {
+  private String findLyricsUrl(String artistName, String songName) throws IOException {
     String searchUrl = "https://genius.com/api/search?q=" + artistName + " " + songName;
     Document searchDoc = Jsoup.connect(searchUrl)
       .userAgent("") // needs to be unset or Genius freaks out
@@ -54,7 +54,7 @@ public class GeniusLyricsScraper {
     return null;
   }
 
-  private static String scrapeLyrics(String url) throws IOException {
+  private String scrapeLyrics(String url) throws IOException {
     Document document = Jsoup.connect(url)
       .userAgent("") // needs to be unset or Genius freaks out
       .ignoreContentType(true)
@@ -71,7 +71,7 @@ public class GeniusLyricsScraper {
     return lyricsBuilder.toString();
   }
 
-  private static void recursivelyGetDeepestLyricsNodeText(Node node, StringBuilder stringBuilder) {
+  private void recursivelyGetDeepestLyricsNodeText(Node node, StringBuilder stringBuilder) {
     if (node instanceof TextNode) {
       // Get the raw lyrics text for this verse
       TextNode textNode = (TextNode) node;
