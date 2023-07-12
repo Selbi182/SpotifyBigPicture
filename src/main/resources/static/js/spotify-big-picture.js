@@ -2100,11 +2100,14 @@ function initSettingsMouseMove() {
     }
   });
 
-  settingsWrapper.onmousemove = (event) => {
-    requestAnimationFrame(() => clearTimeout(cursorTimeout));
-    printSettingDescription(event);
-  }
-  "settings-scroller".select().onscroll = () => setDescriptionVisibility(false);
+  settingsWrapper.onmousemove = (event) => updateSettingDescription(event);
+  settingsWrapper.onmousedown = (event) => updateSettingDescription(event);
+  "settings-scroller".select().onscroll = () => setDescriptionVisibility(false); // to avoid mismatches
+}
+
+function updateSettingDescription(event) {
+  requestAnimationFrame(() => clearTimeout(cursorTimeout));
+  printSettingDescription(event);
 }
 
 function isSettingControlElem(e) {
@@ -3243,7 +3246,7 @@ const PREFERENCES_PRESETS = [
     ]
   },
   {
-    id: "preset-tracklist", // TODO update readme and thumbnail
+    id: "preset-tracklist",
     name: "Tracklist Mode",
     category: "Presets",
     description: "Disables the artwork and instead only dimly displays it in the background, as well as the main content. "
