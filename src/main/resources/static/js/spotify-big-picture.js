@@ -562,29 +562,50 @@ function refreshLyrics(changes) {
   fetchAndPrintLyrics(changes);
 }
 
+let preloadedNextLyricsId;
+let preloadedNextLyrics;
 function fetchAndPrintLyrics(changes) {
   let artist = getChange(changes, "currentlyPlaying.artists").value[0];
-  let song = removeFeaturedArtists(separateUnimportantTitleInfo(getChange(changes, "currentlyPlaying.title").value).main);
-  if (artist && song) {
-    fetch(`/lyrics?artist=${artist}&song=${song}`)
-      .then(response => response.text())
-      .then(lyrics => {
-        let lyricsContainer = "lyrics".select();
-        lyricsContainer.innerHTML = lyrics;
+  let song = fullStrip(getChange(changes, "currentlyPlaying.title").value);
 
-        let hasLyrics = !!lyrics;
-        setClass("content-center".select(), "lyrics", hasLyrics);
-        if (hasLyrics) {
-          lyricsContainer.scrollTop = 0;
-          fadeIn(lyricsContainer);
-          if (isPrefEnabled("lyrics-simulated-scroll")) {
-            scrollLyrics(changes);
-          }
-          setTimeout(() => {
-            refreshTextBalance();
-          }, getTransitionFromCss());
-        }
+  if (getChange(changes, "currentlyPlaying.id").value === preloadedNextLyricsId && preloadedNextLyrics) {
+    printLyrics(preloadedNextLyrics);
+  } else if (artist && song) {
+    fetchLyrics(artist, song)
+      .then(lyrics => printLyrics(lyrics))
+      .then(() => {
+        let nextTrackInQueue = changes.trackData.queue[0];
+        let nextArtist = nextTrackInQueue?.artists[0];
+        let nextTrackName = nextTrackInQueue?.title;
+        fetchLyrics(nextArtist, nextTrackName)
+          .then(nextLyrics => {
+            preloadedNextLyricsId = nextTrackInQueue.id;
+            preloadedNextLyrics = nextLyrics;
+          })
       });
+  }
+
+  function fetchLyrics(artistName, songName) {
+    return fetch(`/lyrics?artist=${artistName}&song=${songName}`)
+      .then(response => response.text());
+  }
+
+  function printLyrics(lyrics) {
+    let lyricsContainer = "lyrics".select();
+    lyricsContainer.innerHTML = lyrics;
+
+    let hasLyrics = !!lyrics;
+    setClass("content-center".select(), "lyrics", hasLyrics);
+    if (hasLyrics) {
+      lyricsContainer.scrollTop = 0;
+      fadeIn(lyricsContainer);
+      if (isPrefEnabled("lyrics-simulated-scroll")) {
+        scrollLyrics(changes);
+      }
+      setTimeout(() => {
+        refreshTextBalance();
+      }, getTransitionFromCss());
+    }
   }
 }
 
@@ -2632,7 +2653,7 @@ const PREFERENCES = [
   ///////////////////////////////
   // Lyrics
   {
-    id: "show-lyrics", // TODO make this feature more apparent somehow // pre-load lyrics for next song to reduce delay
+    id: "show-lyrics", // TODO make this feature more apparent somehow
     name: "Enable Lyrics",
     description: "Try to search for and display the lyrics of the current song (requires external configuration to work)",
     category: "Lyrics",
