@@ -570,19 +570,11 @@ function fetchAndPrintLyrics(changes) {
 
   if (getChange(changes, "currentlyPlaying.id").value === preloadedNextLyricsId && preloadedNextLyrics) {
     printLyrics(preloadedNextLyrics);
+    preloadNextLyrics(changes);
   } else if (artist && song) {
     fetchLyrics(artist, song)
       .then(lyrics => printLyrics(lyrics))
-      .then(() => {
-        let nextTrackInQueue = changes.trackData.queue[0];
-        let nextArtist = nextTrackInQueue?.artists[0];
-        let nextTrackName = nextTrackInQueue?.title;
-        fetchLyrics(nextArtist, nextTrackName)
-          .then(nextLyrics => {
-            preloadedNextLyricsId = nextTrackInQueue.id;
-            preloadedNextLyrics = nextLyrics;
-          })
-      });
+      .then(() => preloadNextLyrics(changes));
   }
 
   function fetchLyrics(artistName, songName) {
@@ -606,6 +598,17 @@ function fetchAndPrintLyrics(changes) {
         refreshTextBalance();
       }, getTransitionFromCss());
     }
+  }
+
+  function preloadNextLyrics(changes) {
+    let nextTrackInQueue = changes.trackData.queue[0];
+    let nextArtist = nextTrackInQueue?.artists[0];
+    let nextTrackName = nextTrackInQueue?.title;
+    fetchLyrics(nextArtist, nextTrackName)
+      .then(nextLyrics => {
+        preloadedNextLyricsId = nextTrackInQueue.id;
+        preloadedNextLyrics = nextLyrics;
+      });
   }
 }
 
