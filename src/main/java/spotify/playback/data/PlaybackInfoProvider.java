@@ -316,7 +316,7 @@ public class PlaybackInfoProvider {
       if (queueCutOffTrack.isPresent()) {
         TrackElement cutOffTrackElement = queueCutOffTrack.get();
         queue = queue.subList(0, queue.indexOf(cutOffTrackElement) + 1);
-        if (queue.size() == 1 && currentlyPlaying.getId().equals(cutOffTrackElement.getId())) {
+        if (queue.size() == 1 && Objects.equals(currentlyPlaying.getId(), cutOffTrackElement.getId())) {
           queue = List.of();
         }
       }

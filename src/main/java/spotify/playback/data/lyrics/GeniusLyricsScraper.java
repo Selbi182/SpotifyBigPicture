@@ -1,10 +1,8 @@
 package spotify.playback.data.lyrics;
 
 import java.io.IOException;
-import java.util.StringJoiner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,9 +10,17 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 @Service
 public class GeniusLyricsScraper {
+  private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
+  private static final Gson gson = new Gson();
 
   /**
    * Try to find the lyrics for the given artist and song name on the lyrics website genius.com.
@@ -22,8 +28,8 @@ public class GeniusLyricsScraper {
    * web page recursively.
    *
    * @param artistName the artist name to search for
-   * @param songName the song name to search for
-   * @return the lyrics as single, compiled string (empty string if the lyrics couldn't be found)
+   * @param songName   the song name to search for
+   * @return the lyrics as a single, compiled string (empty string if the lyrics couldn't be found)
    */
   public String getSongLyrics(String artistName, String songName) {
     try {
@@ -39,34 +45,48 @@ public class GeniusLyricsScraper {
 
   private String findLyricsUrl(String artistName, String songName) throws IOException {
     String searchUrl = "https://genius.com/api/search?q=" + artistName + " " + songName;
-    Document searchDoc = Jsoup.connect(searchUrl)
-      .userAgent("") // needs to be unset or Genius freaks out
+    Connection.Response response = Jsoup.connect(searchUrl)
+      .userAgent(USER_AGENT)
       .ignoreContentType(true)
-      .get();
+      .execute();
+    String json = response.body();
 
-    String body = searchDoc.body().text();
-    Pattern compile = Pattern.compile("\"path\":\"(.+?)\"");
-    Matcher matcher = compile.matcher(body);
-
-    if (matcher.find()) {
-      return "https://genius.com" + matcher.group(1);
+    String matchingPath = findMatchingPath(json, artistName, songName);
+    if (matchingPath != null) {
+      return "https://genius.com" + matchingPath;
     }
     return null;
   }
 
-  private String scrapeLyrics(String url) throws IOException {
-    Document document = Jsoup.connect(url)
-      .userAgent("") // needs to be unset or Genius freaks out
-      .ignoreContentType(true)
-      .get();
+  private String findMatchingPath(String json, String artistName, String songName) {
+    JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+    JsonArray hits = jsonObject.getAsJsonObject("response").getAsJsonArray("hits");
 
+    for (JsonElement hit : hits) {
+      JsonObject result = hit.getAsJsonObject().getAsJsonObject("result");
+      String artistNames = result.get("artist_names").getAsString();
+      String title = result.get("title").getAsString();
+
+      if (StringUtils.startsWithIgnoreCase(artistNames, artistName) && StringUtils.startsWithIgnoreCase(title, songName)) {
+        return result.get("path").getAsString();
+      }
+    }
+
+    return null;
+  }
+
+  private String scrapeLyrics(String url) throws IOException {
+    Connection.Response response = Jsoup.connect(url)
+      .userAgent(USER_AGENT)
+      .ignoreContentType(true)
+      .execute();
+
+    Document document = response.parse();
     Elements lyricsElements = document.select("div[class^=Lyrics__Container]");
 
-    StringJoiner lyricsBuilder = new StringJoiner("\n");
+    StringBuilder lyricsBuilder = new StringBuilder();
     for (Element element : lyricsElements) {
-      StringBuilder lyricsSegment = new StringBuilder();
-      recursivelyGetDeepestLyricsNodeText(element, lyricsSegment);
-      lyricsBuilder.add(lyricsSegment.toString());
+      recursivelyGetDeepestLyricsNodeText(element, lyricsBuilder);
     }
     return lyricsBuilder.toString();
   }

@@ -572,6 +572,10 @@ div#context-main {
     max-height: 100%;
 }
 
+#center-info-main.hide {
+    display: none;
+}
+
 #main.artwork-right #content-center:not(.centered) #center-info-main,
 #main #content.full-content #content-center:not(.centered) #center-info-main {
     align-items: start;
@@ -1153,6 +1157,7 @@ div#device {
 #bottom-meta-container {
     width: 100%;
     display: flex;
+    gap: 4vmin;
     flex-direction: row;
     justify-content: space-between;
     max-height: 4vmin;
@@ -1624,7 +1629,7 @@ div#device {
     padding-right: 1vmin;
 }
 
-#clock-wrapper {
+#clock {
     text-align: center;
     font-weight: bold;
     opacity: 0.65;
@@ -1632,28 +1637,22 @@ div#device {
     font-size: 3vmin;
     width: fit-content;
     height: min-content;
-    max-width: 60vmin;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
     white-space: unset;
-}
-
-#clock-wrapper.hide, #clock:empty, #bottom-meta-container.centered-controls #clock-wrapper {
-    display: none;
-}
-
-#clock {
-    display: flex;
-    gap: 1vmin;
-    align-items: center;
     --clock-symbol: "";
+}
+
+#clock.hide, #clock:empty, #bottom-meta-container.centered-controls #clock {
+    display: none;
 }
 
 #clock:not(.next-track)::before {
     content: var(--clock-symbol);
     opacity: 0.5;
+    margin-right: 1vmin;
 }
 
 #clock.next-track::before {
@@ -1671,6 +1670,8 @@ div#device {
     height: 3vmin;
     background-color: var(--color);
     display: inline-block;
+    margin-right: 1vmin;
+    vertical-align: -12%;
 }
 
 #main.playback-control #info-symbols > div {

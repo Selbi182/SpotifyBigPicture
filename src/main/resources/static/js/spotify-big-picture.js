@@ -402,7 +402,7 @@ function setTextData(changes) {
     let nextArtist = nextTrackInQueue?.artists[0];
     let nextTrackName = nextTrackInQueue?.title;
     "clock".select().innerHTML = nextArtist && nextTrackName
-      ? `${nextArtist} \u2022 ${removeFeaturedArtists(nextTrackName)}`
+      ? `${nextArtist} \u2022 ${fullStrip(nextTrackName)}`
       : "";
   }
 
@@ -413,7 +413,7 @@ function setTextData(changes) {
   }
 
   // Lyrics
-  if (isPrefEnabled("show-lyrics") && getChange(changes, "currentlyPlaying.id").wasChanged) {
+  if (isPrefEnabled("show-lyrics") && (getChange(changes, "currentlyPlaying.artists").wasChanged || getChange(changes, "currentlyPlaying.title").wasChanged)) {
     refreshLyrics(changes);
   }
 
@@ -771,6 +771,10 @@ function buildFeaturedArtistsSpan(artists) {
 
 function removeFeaturedArtists(title) {
   return title.replace(/[(|\[](f(ea)?t|with|by).+?[)|\]]/ig, "").trim();
+}
+
+function fullStrip(title) {
+  return separateUnimportantTitleInfo(removeFeaturedArtists(title)).main;
 }
 
 const RELEASE_FULL_FORMAT = {
@@ -1254,7 +1258,7 @@ function updateProgress(changes) {
     let title = getChange(changes, "currentlyPlaying.title").value;
     if (!idle && artists && title) {
       let mainArtist = artists[0];
-      let trackStripped = separateUnimportantTitleInfo(removeFeaturedArtists(title)).main;
+      let trackStripped = fullStrip(title);
       let titleElements = [mainArtist, trackStripped];
       if (isPrefEnabled("track-first-in-website-title")) {
         titleElements.reverse();
@@ -2005,7 +2009,6 @@ window.addEventListener('load', initSettingsMouseMove);
 function printSettingDescription(event) {
   let target = event.target;
   if (target?.classList) {
-    let settingsDescriptionContainer = "settings-description".select();
     let header = "settings-description-header".select();
     let description = "settings-description-description".select();
     let unaffected = "settings-description-unaffected".select();
@@ -2027,12 +2030,17 @@ function printSettingDescription(event) {
           .map(pref => pref.category + " &#x00BB; " + pref.name)
           .join(" // ");
 
-        setClass(settingsDescriptionContainer, "show", true);
+        setDescriptionVisibility(true);
       }
     } else {
-      setClass(settingsDescriptionContainer, "show", false);
+      setDescriptionVisibility(false);
     }
   }
+}
+
+function setDescriptionVisibility(state) {
+  let settingsDescriptionContainer = "settings-description".select();
+  setClass(settingsDescriptionContainer, "show", state);
 }
 
 function initSettingsMouseMove() {
@@ -2075,6 +2083,7 @@ function initSettingsMouseMove() {
     requestAnimationFrame(() => clearTimeout(cursorTimeout));
     printSettingDescription(event);
   }
+  "settings-scroller".select().onscroll = () => setDescriptionVisibility(false);
 }
 
 function isSettingControlElem(e) {
@@ -2429,10 +2438,10 @@ const PREFERENCES = [
     name: "Enable Main Content",
     description: "Enable the main content, the container for the current track data and the tracklist",
     category: "Main Content",
-    requiredFor: ["show-queue", "show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
+    requiredFor: ["show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
       "main-content-centered", "split-main-panels", "reduced-center-margins"],
     css: {
-      "content-center": "!hide",
+      "center-info-main": "!hide",
       "artwork": "!center-disabled"
     }
   },
@@ -2623,11 +2632,11 @@ const PREFERENCES = [
   ///////////////////////////////
   // Lyrics
   {
-    id: "show-lyrics",
+    id: "show-lyrics", // TODO make this feature more apparent somehow // pre-load lyrics for next song to reduce delay
     name: "Enable Lyrics",
     description: "Try to search for and display the lyrics of the current song (requires external configuration to work)",
     category: "Lyrics",
-    requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist"],
+    requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics"],
     css: {"lyrics": "!hide"},
     callback: (state) => {
       if (state) {
@@ -2799,10 +2808,10 @@ const PREFERENCES = [
       let infoSymbols = "info-symbols".select();
       let bottomLeft = "bottom-left".select();
       let bottomMetaContainer = "bottom-meta-container".select();
-      let clockWrapper = "clock-wrapper".select();
+      let clock = "clock".select();
       let volume = "volume".select();
       if (state) {
-        bottomMetaContainer.insertBefore(infoSymbols, clockWrapper);
+        bottomMetaContainer.insertBefore(infoSymbols, clock);
       } else {
         bottomLeft.insertBefore(infoSymbols, volume);
       }
@@ -2836,7 +2845,7 @@ const PREFERENCES = [
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
     requiredFor: ["clock-full", "clock-24", "next-track-replacing-clock"],
-    css: {"clock-wrapper": "!hide"}
+    css: {"clock": "!hide"}
   },
   {
     id: "clock-full",
@@ -3145,7 +3154,6 @@ const PREFERENCES_DEFAULT = { // TODO integrate this into the settings themselve
   ],
   ignoreDefaultOn: [
     "lyrics-simulated-scroll",
-    "lyrics-hide-tracklist",
     "colored-text",
     "hide-mouse",
     "transitions",
@@ -3164,6 +3172,7 @@ const PREFERENCES_DEFAULT = { // TODO integrate this into the settings themselve
   ],
   ignoreDefaultOff: [
     "show-lyrics",
+    "lyrics-hide-tracklist",
     "xl-lyrics",
     "text-shadows",
     "slow-transitions",
@@ -3192,30 +3201,10 @@ const PREFERENCES_PRESETS = [
     disabled: []
   },
   {
-    id: "preset-tracklist",
-    name: "Tracklist Mode",
-    category: "Presets",
-    description: "Disables the artwork and instead only dimly displays it in the background. "
-      + "Doing this opens up more room for the tracklist, which becomes centered. Also disables some lesser useful information",
-    enabled: [
-      "spread-timestamps",
-      "reverse-bottom"
-    ],
-    disabled: [
-      "show-clock",
-      "show-device",
-      "show-volume",
-      "show-volume-bar",
-      "show-info-icons",
-      "display-artwork",
-      "bg-tint"
-    ]
-  },
-  {
     id: "preset-split-text",
     name: "Split-Panel Mode",
     category: "Presets",
-    description: "A combination of the default preset and Track-List Mode that puts the current track information on the left and the tracklist on the right. "
+    description: "Puts the current track information on the left and the tracklist on the right. "
       + "Disables the artwork and instead only dimly displays it in the background",
     enabled: [
       "swap-top",
@@ -3230,6 +3219,28 @@ const PREFERENCES_PRESETS = [
       "main-content-centered",
       "bg-tint",
       "display-artwork"
+    ]
+  },
+  {
+    id: "preset-tracklist", // TODO update readme and thumbnail
+    name: "Tracklist Mode",
+    category: "Presets",
+    description: "Disables the artwork and instead only dimly displays it in the background, as well as the main content. "
+      + "Doing this opens up more room for the tracklist, which becomes centered. Also disables some lesser useful information",
+    enabled: [
+      "increase-min-track-list-scaling",
+      "spread-timestamps",
+      "reverse-bottom"
+    ],
+    disabled: [
+      "enable-center-content",
+      "show-clock",
+      "show-device",
+      "show-volume",
+      "show-volume-bar",
+      "show-info-icons",
+      "display-artwork",
+      "bg-tint"
     ]
   },
   {
