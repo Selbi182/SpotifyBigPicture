@@ -11,10 +11,10 @@ An example where this is useful would be hosting a party where you want to let y
 Examples of the default preset. For more screenshots, [see the presets](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
 
 ### Album View
-![Deafheaven - Dream House](https://i.imgur.com/Z2Ymz6g.png)
+![Deafheaven - Dream House](https://i.imgur.com/oWB5cnW.png)
 
 ### Playlist View
-![Playlist View](https://i.imgur.com/ZTtEpGC.png)
+![Playlist View](https://i.imgur.com/zbIkWvf.png)
 
 ### Customization
 Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can customize the styling of the interface from a number of options with just a few clicks!

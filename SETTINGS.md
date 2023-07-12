@@ -1,5 +1,5 @@
 # Spotify Big Picture - Settings
-![Settings Menu](https://i.imgur.com/XBuLv1z.png)
+![Settings Menu](https://i.imgur.com/6aGNZmB.png)
 
 If you wish for a more nuanced way to control the appearance, click the "Show All Settings" checkbox. In here, you will be able to customize everything individually. A detailed explanation for each setting appears when you hover over the respective settings.
 

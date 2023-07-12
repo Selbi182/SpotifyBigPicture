@@ -1,5 +1,5 @@
 # Spotify Big Picture - Presets
-![Preset Selection](https://i.imgur.com/CQivw21.png)
+![Preset Selection](https://i.imgur.com/YU2dXEz.png)
 
 Presets are the recommended way to customize the app. They're combinations of multiple settings (see [here](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md)) that form a unique identity and purpose. There's no harm done in just switching between presets at any time, so feel free to experiment until you find your desired style!
 
