@@ -1,6 +1,7 @@
 package spotify.playback.data.lyrics;
 
 import java.io.IOException;
+import java.util.StringJoiner;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -84,11 +85,13 @@ public class GeniusLyricsScraper {
     Document document = response.parse();
     Elements lyricsElements = document.select("div[class^=Lyrics__Container]");
 
-    StringBuilder lyricsBuilder = new StringBuilder();
+    StringJoiner lyricsBlocks = new StringJoiner("\n");
     for (Element element : lyricsElements) {
+      StringBuilder lyricsBuilder = new StringBuilder();
       recursivelyGetDeepestLyricsNodeText(element, lyricsBuilder);
+      lyricsBlocks.add(lyricsBuilder);
     }
-    return lyricsBuilder.toString();
+    return lyricsBlocks.toString();
   }
 
   private void recursivelyGetDeepestLyricsNodeText(Node node, StringBuilder stringBuilder) {
