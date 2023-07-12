@@ -2365,76 +2365,140 @@ const PREFERENCES = [
   },
 
   ///////////////////////////////
-  // Performance
+  // Lyrics
   {
-    id: "transitions",
-    name: "Smooth Transitions",
-    description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. "
-      + "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
-    category: "Performance",
-    requiredFor: ["slow-transitions"],
-    css: {"main": "transitions"}
-  },
-  {
-    id: "slow-transitions",
-    name: "Slower Transitions",
-    description: "If enabled, the transition speed is halved (increased to 1 second, up from 500 milliseconds)",
-    category: "Performance",
-    css: {"main": "slow-transitions"},
-    callback: () => {
-      requestAnimationFrame(() => { // to avoid race conditions
-        getTransitionFromCss(true);
-      });
+    id: "show-lyrics",
+    name: "Enable Lyrics",
+    description: "Try to search for and display the lyrics of the current song (requires external configuration to work)",
+    category: "Lyrics",
+    requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics"],
+    css: {"lyrics": "!hide"},
+    callback: (state) => {
+      if (state) {
+        refreshLyrics(currentData)
+      } else {
+        setClass("content-center".select(), "lyrics", false);
+      }
     }
   },
   {
-    id: "smooth-progress-bar",
-    name: "Smooth Progress Bar",
-    description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. "
-      + "It is STRONGLY recommended keep this setting disabled for low-power hardware to save on resources!",
-    category: "Performance",
-    callback: () => refreshProgress()
+    id: "lyrics-simulated-scroll",
+    name: "Automatic Scrolling",
+    description: "Automatically scrolls the lyrics container as the current song progresses after a short delay (pseudo-synchronization). " +
+      "Won't always be flawless, unfortunately",
+    category: "Lyrics",
+    callback: (state) => {
+      if (state) {
+        scrollLyrics(currentData, true);
+      } else {
+        stopLyricsScroll();
+      }
+    }
   },
   {
-    id: "text-balancing",
-    name: "Text Balancing",
-    description: "If enabled, multiline text is balanced to have roughly the same amount of width per line. Disable this to save on some resources",
-    category: "Performance",
-    callback: () => refreshTextBalance()
+    id: "lyrics-hide-tracklist",
+    name: "Hide Tracklist for Lyrics",
+    description: "If lyrics for the current song were found, hide the tracklist to make room for them",
+    category: "Lyrics",
+    css: {"track-list": "hide-for-lyrics"}
   },
   {
-    id: "allow-idle-mode",
-    name: "Allow Idle Mode",
-    description: "If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. "
-      + "Once playback resumes, the page will refresh automatically. Recommended for 24/7 hosting of this app",
-    category: "Performance",
-    callback: () => refreshIdleTimeout(currentData, true)
+    id: "xl-lyrics",
+    name: "XL Lyrics",
+    description: "Increases the font size of the lyrics",
+    category: "Lyrics",
+    css: {"lyrics": "xl"}
   },
 
   ///////////////////////////////
-  // Website Title
+  // Tracklist
   {
-    id: "current-track-in-website-title",
-    name: "Display Current Song in Website Title",
-    description: "If enabled, display the track in the website title. "
-      + "Otherwise, only show 'Spotify Big Picture'",
-    category: "Website Title",
-    requiredFor: ["track-first-in-website-title", "branding-in-website-title"],
-    callback: () => refreshProgress()
+    id: "show-queue",
+    name: "Enable Tracklist",
+    description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
+    category: "Tracklist",
+    requiredFor: ["scrollable-track-list", "album-view", "always-show-track-numbers-album-view", "hide-single-item-album-view", "show-timestamps-track-list", "show-featured-artists-track-list",
+      "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
+    css: {
+      "title": "!force-display",
+      "track-list": "!hide"
+    },
+    callback: () => refreshTrackList()
   },
   {
-    id: "track-first-in-website-title",
-    name: "Track Title First",
-    description: "Whether to display the track title before the artist name or vice versa",
-    category: "Website Title",
-    callback: () => refreshProgress()
+    id: "scrollable-track-list",
+    name: "Scrollable Tracklist",
+    description: "If enabled, the tracklist can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
+    category: "Tracklist",
+    css: {"track-list": "scrollable"}
   },
   {
-    id: "branding-in-website-title",
-    name: "Branding",
-    description: "If enabled, suffixes the website title with ' | Spotify Big Picture'",
-    category: "Website Title",
-    callback: () => refreshProgress()
+    id: "show-featured-artists-track-list",
+    name: "Show Featured Artists",
+    description: "Display any potential featured artists in the tracklist. Otherwise, only show the song name",
+    category: "Tracklist",
+    css: {"track-list": "!no-feat"}
+  },
+  {
+    id: "full-track-list",
+    name: "Show Full Titles",
+    description: "If enabled, longer titles will always be fully displayed (with line breaks). "
+      + "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
+    category: "Tracklist",
+    css: {"track-list": "no-clamp"}
+  },
+  {
+    id: "show-timestamps-track-list",
+    name: "Show Time Stamps",
+    description: "Show the timestamps for each track in the tracklist. If disabled, the track names are right-aligned",
+    category: "Tracklist",
+    css: {"track-list": "show-timestamps"}
+  },
+  {
+    id: "album-view",
+    name: "Enable Album View",
+    description: "If enabled, while playing an album or playlist with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
+      + "(Only works for 200 tracks or fewer, for performance reasons)",
+    category: "Tracklist",
+    requiredFor: ["always-show-track-numbers-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "hide-single-item-album-view",
+    name: "Album View: Hide Tracklist for Single Song",
+    description: "If 'Album View' is enabled and the current context only has one track (such as a single), don't render the tracklist at all",
+    category: "Tracklist",
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "always-show-track-numbers-album-view",
+    name: "Album View: Always Show Everything",
+    description: "If 'Album View' is enabled, the track numbers and artists are always displayed as well (four columns). " +
+      "Otherwise, track numbers are hidden for playlists and artists are hidden for albums",
+    category: "Tracklist",
+    css: {"track-list": "always-show-track-numbers-album-view"},
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "hide-tracklist-podcast-view",
+    name: "Hide Tracklist for Podcasts",
+    description: "If the currently playing track is a podcast, hides the tracklist. This opens up more room for the episode description",
+    category: "Tracklist",
+    css: {"track-list": "hide-for-podcasts"}
+  },
+  {
+    id: "increase-min-track-list-scaling",
+    name: "Increase Minimum Text Scaling Limit",
+    description: "If enabled, the minimum font size for the tracklist is drastically increased (factor 3 instead of 2)",
+    category: "Tracklist",
+    css: {"track-list": "increase-min-scale"}
+  },
+  {
+    id: "increase-max-track-list-scaling",
+    name: "Increase Maximum Text Scaling Limit",
+    description: "If enabled, the maximum font size for the tracklist is drastically increased (factor 5 instead of 3)",
+    category: "Tracklist",
+    css: {"track-list": "increase-max-scale"}
   },
 
   ///////////////////////////////
@@ -2560,143 +2624,6 @@ const PREFERENCES = [
     description: "Limit 'XL Main Content' to only kick into effect when the title is hidden by 'Album View: Hide Duplicate Track Name'",
     category: "Main Content",
     css: {"center-info-main": "big-text-scrolling"}
-  },
-
-  ///////////////////////////////
-  // Tracklist
-  {
-    id: "show-queue",
-    name: "Enable Tracklist",
-    description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
-    category: "Tracklist",
-    requiredFor: ["scrollable-track-list", "album-view", "always-show-track-numbers-album-view", "hide-single-item-album-view", "show-timestamps-track-list", "show-featured-artists-track-list",
-      "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
-    css: {
-      "title": "!force-display",
-      "track-list": "!hide"
-    },
-    callback: () => refreshTrackList()
-  },
-  {
-    id: "scrollable-track-list",
-    name: "Scrollable Tracklist",
-    description: "If enabled, the tracklist can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
-    category: "Tracklist",
-    css: {"track-list": "scrollable"}
-  },
-  {
-    id: "show-featured-artists-track-list",
-    name: "Show Featured Artists",
-    description: "Display any potential featured artists in the tracklist. Otherwise, only show the song name",
-    category: "Tracklist",
-    css: {"track-list": "!no-feat"}
-  },
-  {
-    id: "full-track-list",
-    name: "Show Full Titles",
-    description: "If enabled, longer titles will always be fully displayed (with line breaks). "
-      + "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
-    category: "Tracklist",
-    css: {"track-list": "no-clamp"}
-  },
-  {
-    id: "show-timestamps-track-list",
-    name: "Show Time Stamps",
-    description: "Show the timestamps for each track in the tracklist. If disabled, the track names are right-aligned",
-    category: "Tracklist",
-    css: {"track-list": "show-timestamps"}
-  },
-  {
-    id: "album-view",
-    name: "Enable Album View",
-    description: "If enabled, while playing an album or playlist with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
-      + "(Only works for 200 tracks or fewer, for performance reasons)",
-    category: "Tracklist",
-    requiredFor: ["always-show-track-numbers-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
-    callback: () => refreshTrackList()
-  },
-  {
-    id: "hide-single-item-album-view",
-    name: "Album View: Hide Tracklist for Single Song",
-    description: "If 'Album View' is enabled and the current context only has one track (such as a single), don't render the tracklist at all",
-    category: "Tracklist",
-    callback: () => refreshTrackList()
-  },
-  {
-    id: "always-show-track-numbers-album-view",
-    name: "Album View: Always Show Everything",
-    description: "If 'Album View' is enabled, the track numbers and artists are always displayed as well (four columns). " +
-      "Otherwise, track numbers are hidden for playlists and artists are hidden for albums",
-    category: "Tracklist",
-    css: {"track-list": "always-show-track-numbers-album-view"},
-    callback: () => refreshTrackList()
-  },
-  {
-    id: "hide-tracklist-podcast-view",
-    name: "Hide Tracklist for Podcasts",
-    description: "If the currently playing track is a podcast, hides the tracklist. This opens up more room for the episode description",
-    category: "Tracklist",
-    css: {"track-list": "hide-for-podcasts"}
-  },
-  {
-    id: "increase-min-track-list-scaling",
-    name: "Increase Minimum Text Scaling Limit",
-    description: "If enabled, the minimum font size for the tracklist is drastically increased (factor 3 instead of 2)",
-    category: "Tracklist",
-    css: {"track-list": "increase-min-scale"}
-  },
-  {
-    id: "increase-max-track-list-scaling",
-    name: "Increase Maximum Text Scaling Limit",
-    description: "If enabled, the maximum font size for the tracklist is drastically increased (factor 5 instead of 3)",
-    category: "Tracklist",
-    css: {"track-list": "increase-max-scale"}
-  },
-
-  ///////////////////////////////
-  // Lyrics
-  {
-    id: "show-lyrics", // TODO make this feature more apparent somehow
-    name: "Enable Lyrics",
-    description: "Try to search for and display the lyrics of the current song (requires external configuration to work)",
-    category: "Lyrics",
-    requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics"],
-    css: {"lyrics": "!hide"},
-    callback: (state) => {
-      if (state) {
-        refreshLyrics(currentData)
-      } else {
-        setClass("content-center".select(), "lyrics", false);
-      }
-    }
-  },
-  {
-    id: "lyrics-simulated-scroll",
-    name: "Automatic Scrolling",
-    description: "Automatically scrolls the lyrics container as the current song progresses after a short delay (pseudo-synchronization). " +
-      "Won't always be flawless, unfortunately",
-    category: "Lyrics",
-    callback: (state) => {
-      if (state) {
-        scrollLyrics(currentData, true);
-      } else {
-        stopLyricsScroll();
-      }
-    }
-  },
-  {
-    id: "lyrics-hide-tracklist",
-    name: "Hide Tracklist for Lyrics",
-    description: "If lyrics for the current song were found, hide the tracklist to make room for them",
-    category: "Lyrics",
-    css: {"track-list": "hide-for-lyrics"}
-  },
-  {
-    id: "xl-lyrics",
-    name: "XL Lyrics",
-    description: "Increases the font size of the lyrics",
-    category: "Lyrics",
-    css: {"lyrics": "xl"}
   },
 
   ///////////////////////////////
@@ -3075,6 +3002,79 @@ const PREFERENCES = [
   },
 
   ///////////////////////////////
+  // Performance
+  {
+    id: "transitions",
+    name: "Smooth Transitions",
+    description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. "
+      + "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
+    category: "Performance",
+    requiredFor: ["slow-transitions"],
+    css: {"main": "transitions"}
+  },
+  {
+    id: "slow-transitions",
+    name: "Slower Transitions",
+    description: "If enabled, the transition speed is halved (increased to 1 second, up from 500 milliseconds)",
+    category: "Performance",
+    css: {"main": "slow-transitions"},
+    callback: () => {
+      requestAnimationFrame(() => { // to avoid race conditions
+        getTransitionFromCss(true);
+      });
+    }
+  },
+  {
+    id: "smooth-progress-bar",
+    name: "Smooth Progress Bar",
+    description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. "
+      + "It is STRONGLY recommended keep this setting disabled for low-power hardware to save on resources!",
+    category: "Performance",
+    callback: () => refreshProgress()
+  },
+  {
+    id: "text-balancing",
+    name: "Text Balancing",
+    description: "If enabled, multiline text is balanced to have roughly the same amount of width per line. Disable this to save on some resources",
+    category: "Performance",
+    callback: () => refreshTextBalance()
+  },
+  {
+    id: "allow-idle-mode",
+    name: "Allow Idle Mode",
+    description: "If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. "
+      + "Once playback resumes, the page will refresh automatically. Recommended for 24/7 hosting of this app",
+    category: "Performance",
+    callback: () => refreshIdleTimeout(currentData, true)
+  },
+
+  ///////////////////////////////
+  // Website Title
+  {
+    id: "current-track-in-website-title",
+    name: "Display Current Song in Website Title",
+    description: "If enabled, display the track in the website title. "
+      + "Otherwise, only show 'Spotify Big Picture'",
+    category: "Website Title",
+    requiredFor: ["track-first-in-website-title", "branding-in-website-title"],
+    callback: () => refreshProgress()
+  },
+  {
+    id: "track-first-in-website-title",
+    name: "Track Title First",
+    description: "Whether to display the track title before the artist name or vice versa",
+    category: "Website Title",
+    callback: () => refreshProgress()
+  },
+  {
+    id: "branding-in-website-title",
+    name: "Branding",
+    description: "If enabled, suffixes the website title with ' | Spotify Big Picture'",
+    category: "Website Title",
+    callback: () => refreshProgress()
+  },
+
+  ///////////////////////////////
   // Developer Tools
   {
     id: "show-fps",
@@ -3098,17 +3098,17 @@ const PREFERENCES = [
 
 const PREFERENCES_CATEGORY_ORDER = [
   "General",
-  "Performance",
-  "Website Title",
-  "Main Content",
-  "Tracklist",
   "Lyrics",
+  "Tracklist",
+  "Main Content",
   "Top Content",
   "Bottom Content",
   "Background",
   "Layout: Main Content",
   "Layout: Swap",
   "Layout: Experimental",
+  "Performance",
+  "Website Title",
   "Developer Tools"
 ];
 
