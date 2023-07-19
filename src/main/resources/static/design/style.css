@@ -127,13 +127,14 @@ img:not([src]) {
 
 #modal-overlay {
     --modal-transition: 0.35s;
+    --modal-overlay-background: #0008;
     position: absolute;
     width: 100%;
     height: 100%;
-    background: #0008;
+    background: var(--modal-overlay-background);
     top: 0;
     left: 0;
-    z-index: 2;
+    z-index: 4;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -152,11 +153,13 @@ img:not([src]) {
 }
 
 #modal {
+    --modal-background-primary: #444c;
+    --modal-background-secondary: #000c;
+    color: white;
     scale: 0;
     transition: scale var(--modal-transition);
     width: 30%;
     min-height: 30%;
-    background: #000c;
     flex-direction: column;
     display: flex;
     justify-content: space-between;
@@ -165,6 +168,8 @@ img:not([src]) {
     gap: 3vmin;
     border-bottom-left-radius: 3vmin;
     border-bottom-right-radius: 3vmin;
+    border: 0.5vmin solid var(--modal-background-primary);
+    background: var(--modal-background-secondary);
 }
 
 #modal > div {
@@ -176,7 +181,7 @@ img:not([src]) {
 #modal-header {
     font-size: 3vmin;
     color: white;
-    background: #444c;
+    background: var(--modal-background-primary);
 }
 
 #modal-main {
@@ -1179,11 +1184,6 @@ div#description {
 }
 #volume-background {
     opacity: 0.25;
-}
-
-#main.playback-control #volume:hover {
-    opacity: 1;
-    cursor: pointer;
 }
 
 div#device {

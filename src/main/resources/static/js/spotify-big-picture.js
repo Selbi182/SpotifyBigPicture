@@ -1761,7 +1761,8 @@ function updateExternallyToggledPreferences(changes) {
         if (setting.startsWith("dark-mode-")) {
           setDarkModeIntensity(setting);
           setting = "dark-mode";
-        } else if (setting === "reload") {
+        }
+        if (setting === "reload") {
           reload = true;
         } else {
           let preference = findPreference(setting);
@@ -1937,7 +1938,6 @@ function initPlaybackControls() {
   "repeat".select().onclick = () => fireControl("REPEAT");
   "prev".select().onclick = () => fireControl("PREV");
   "next".select().onclick = () => fireControl("NEXT");
-  "volume".select().onclick = () => changeVolume();
 }
 
 const CONTROL_RESPONSE_DELAY = 100;
@@ -1955,7 +1955,7 @@ function fireControl(control, param) {
           }, CONTROL_RESPONSE_DELAY);
         }
         if (response.status >= 400) {
-          console.warn("Failed to transmit control");
+          showModal("Playback Control", "ERROR: Failed to transmit control to backend!");
           unlockPlaybackControls();
         }
       });
@@ -1969,56 +1969,47 @@ function unlockPlaybackControls() {
   }
 }
 
-function changeVolume() {
-  if (isPrefEnabled("playback-control")) {
-    let newVolume = prompt("Enter new volume in % (0-100):");
-    if (newVolume !== null) {
-      if (newVolume >= 0 && newVolume <= 100) {
-        fireControl("VOLUME", newVolume);
-      } else {
-        showModal("ERROR: Invalid Volume", "Must be a number between 0-100")
-      }
-    }
-  }
-}
-
 
 ///////////////////////////////
 // HOTKEYS
 ///////////////////////////////
 
 document.onkeydown = (e) => {
-  switch (e.key) {
-    case ' ':
-      toggleSettingsMenu();
-      break;
-    case 'Escape':
-      if (modalActive) {
+  if (modalActive) {
+    switch (e.key) {
+      case 'Escape':
         hideModal();
-      } else {
+        break;
+    }
+  } else {
+    switch (e.key) {
+      case ' ':
+        toggleSettingsMenu();
+        break;
+      case 'Escape':
         setSettingsMenuState(false);
-      }
-      break;
-    case 'Control':
-      if (settingsVisible) {
-        toggleSettingsExpertMode();
-      }
-      break;
-    case 'f':
-      toggleFullscreen();
-      break;
-    case 'd':
-      toggleDarkMode();
-      break;
-    case 'l':
-      toggleLyrics();
-      break;
-    case 'ArrowUp':
-      scrollSettingsUpDown(-1);
-      break;
-    case 'ArrowDown':
-      scrollSettingsUpDown(1);
-      break;
+        break;
+      case 'Control':
+        if (settingsVisible) {
+          toggleSettingsExpertMode();
+        }
+        break;
+      case 'f':
+        toggleFullscreen();
+        break;
+      case 'd':
+        toggleDarkMode();
+        break;
+      case 'l':
+        toggleLyrics();
+        break;
+      case 'ArrowUp':
+        scrollSettingsUpDown(-1);
+        break;
+      case 'ArrowDown':
+        scrollSettingsUpDown(1);
+        break;
+    }
   }
 };
 
@@ -2043,14 +2034,16 @@ function handleMouseEvent(e) {
   clearTimeout(cursorTimeout);
   setMouseVisibility(true)
 
-  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
-  setClass(settingsMenuToggleButton, "show", true);
+  if (!modalActive) {
+    let settingsMenuToggleButton = "settings-menu-toggle-button".select();
+    setClass(settingsMenuToggleButton, "show", true);
 
-  if (!isHoveringControlElem(e.target) && !settingsVisible) {
-    cursorTimeout = setTimeout(() => {
-      setMouseVisibility(false);
-      setClass(settingsMenuToggleButton, "show", false);
-    }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
+    if (!isHoveringControlElem(e.target) && !settingsVisible) {
+      cursorTimeout = setTimeout(() => {
+        setMouseVisibility(false);
+        setClass(settingsMenuToggleButton, "show", false);
+      }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
+    }
   }
 }
 
@@ -2118,7 +2111,9 @@ function initSettingsMouseMove() {
   };
 
   document.body.onclick = (e) => {
-    if (settingsVisible && !isSettingControlElem(e) && !isRenderingPreferenceChange()) {
+    if (modalActive && !"modal".select().contains(e.target)) {
+      hideModal();
+    } else if (settingsVisible && !isSettingControlElem(e) && !isRenderingPreferenceChange()) {
       setSettingsMenuState(false);
     }
   }
@@ -2143,7 +2138,7 @@ function isSettingControlElem(e) {
   return !"main".select().contains(e.target);
 }
 
-const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat", "Volume"];
+const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat"];
 
 function isHoveringControlElem(target) {
   return target && isPrefEnabled("playback-control") && CONTROL_ELEM_IDS.includes(target.id);
@@ -2291,39 +2286,41 @@ function getClosestClockTextEmoji(currentTime) {
 
 let modalActive = false;
 function showModal(title, content, onConfirm = null, onReject = null) {
-  // Set content
-  "modal-header".select().innerHTML = title;
-  "modal-main".select().innerHTML = content;
+  requestAnimationFrame(() => {
+    // Set content
+    "modal-header".select().innerHTML = title;
+    "modal-main".select().innerHTML = content;
 
-  // Create buttons
-  let modalButtons = "modal-buttons".select();
-  modalButtons.innerHTML = ""; // Remove all old buttons to avoid conflicts
-  createModalButton("Close", "close", onReject);
+    // Create buttons
+    let modalButtons = "modal-buttons".select();
+    modalButtons.innerHTML = ""; // Remove all old buttons to avoid conflicts
+    createModalButton("Close", "close", onReject);
 
-  // Set onConfirm logic if this is a confirmation modal
-  setClass(modalButtons, "confirm", !!onConfirm);
-  if (onConfirm) {
-    createModalButton("Okay", "okay", onConfirm);
-  }
-
-  // Display modal
-  setClass("modal-overlay".select(), "show", true);
-  setClass(document.body, "modal", true);
-  modalActive = true;
-
-  // Modal button generator
-  function createModalButton(text, className, customOnClick = null) {
-    let modalButton = document.createElement("div");
-    modalButton.innerHTML = text;
-    modalButton.className = className;
-    modalButtons.append(modalButton);
-    modalButton.onclick = () => {
-      if (customOnClick) {
-        requestAnimationFrame(() => customOnClick.call(this));
-      }
-      hideModal();
+    // Set onConfirm logic if this is a confirmation modal
+    setClass(modalButtons, "confirm", !!onConfirm);
+    if (onConfirm) {
+      createModalButton("Okay", "okay", onConfirm);
     }
-  }
+
+    // Display modal
+    setClass("modal-overlay".select(), "show", true);
+    setClass(document.body, "modal", true);
+    modalActive = true;
+
+    // Modal button generator
+    function createModalButton(text, className, customOnClick = null) {
+      let modalButton = document.createElement("div");
+      modalButton.innerHTML = text;
+      modalButton.className = className;
+      modalButtons.append(modalButton);
+      modalButton.onclick = () => {
+        if (customOnClick) {
+          requestAnimationFrame(() => customOnClick.call(this));
+        }
+        hideModal();
+      }
+    }
+  });
 }
 
 function hideModal() {
