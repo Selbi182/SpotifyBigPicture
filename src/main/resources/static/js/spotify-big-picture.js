@@ -1143,7 +1143,9 @@ function calculateAndRefreshArtworkSize() {
       artworkSize = contentBottom - centerTop;
     }
 
-    artworkSize = Math.min(centerRect.width, artworkSize);
+    if (!expandTop || !expandBottom) {
+      artworkSize = Math.min(centerRect.width, artworkSize);
+    }
 
     contentCenterContainer.style.removeProperty("--bonus-padding");
     if (isPrefEnabled("artwork-above-content") && !isPrefEnabled("show-queue")) {
@@ -3375,7 +3377,6 @@ const PREFERENCES_PRESETS = [
     category: "Presets",
     description: "A preset inspired by the original Spotify layout on Chromecast. The main content will be displayed below the artwork, the tracklist is disabled, the background is only a gradient color",
     enabled: [
-      "artwork-expand-top",
       "artwork-above-content",
       "spread-timestamps",
       "reduced-center-margins",
@@ -3419,10 +3420,8 @@ const PREFERENCES_PRESETS = [
     id: "preset-artwork-only",
     name: "Artwork-Only Mode",
     category: "Presets",
-    description: "Just displays the artwork on a background, literally nothing else",
+    description: "Just displays the artwork on a gradient background, literally nothing else",
     enabled: [
-      "decreased-margins",
-      "display-artwork",
       "artwork-expand-bottom"
     ],
     disabled: [
@@ -3433,7 +3432,6 @@ const PREFERENCES_PRESETS = [
       "show-podcast-descriptions",
       "show-artists",
       "show-titles",
-      "colored-symbol-spotify",
       "show-release",
       "enable-top-content",
       "enable-bottom-content",
@@ -3447,7 +3445,6 @@ const PREFERENCES_PRESETS = [
       "show-volume-bar",
       "show-device",
       "show-progress-bar",
-      "smooth-progress-bar",
       "show-clock",
       "bg-artwork"
     ]
@@ -3476,3 +3473,25 @@ const PREFERENCES_PRESETS = [
 const FILTERED_AND_ORDERED_PREFS = [...PREFERENCES_PRESETS, ...PREFERENCES]
   .sort((a, b) => PREFERENCES_CATEGORY_ORDER.indexOf(a.category) - PREFERENCES_CATEGORY_ORDER.indexOf(b.category))
   .filter(pref => DEV_MODE || pref.category !== "Developer Tools");
+
+
+if (DEV_MODE) {
+  // Anomaly check for presets
+  for (let pref of PREFERENCES_PRESETS) {
+    const checkForAnomaly = (enabled, type) => {
+      if (PREFERENCES_DEFAULT[type].includes(enabled)) {
+        console.warn(`${pref.name}: ${enabled} is already ${type} and included in the default preferences`);
+      }
+    };
+    pref.enabled.forEach((enabled) => {
+      checkForAnomaly(enabled, "enabled");
+      checkForAnomaly(enabled, "ignoreDefaultOn");
+      checkForAnomaly(enabled, "ignoreDefaultOff");
+    });
+    pref.disabled.forEach((disabled) => {
+      checkForAnomaly(disabled, "disabled");
+      checkForAnomaly(disabled, "ignoreDefaultOn");
+      checkForAnomaly(disabled, "ignoreDefaultOff");
+    });
+  }
+}

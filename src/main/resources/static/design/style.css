@@ -481,8 +481,7 @@ img:not([src]) {
 }
 
 #artwork.top-disabled.center-disabled.bottom-disabled {
-    margin-left: auto;
-    margin-right: auto;
+    margin: auto;
 }
 
 #artwork.double-margins {
@@ -1489,7 +1488,7 @@ div#device {
 
 #settings-categories .setting.unaffected::after {
     content: "";
-    background-image: url("img/symbols/info.png");
+    background-image: url("img/symbols/warning.png");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -1634,7 +1633,7 @@ div#device {
 
 #settings-description > #settings-description-unaffected::before {
     content: "";
-    background-image: url("img/symbols/info.png");
+    background-image: url("img/symbols/warning.png");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
