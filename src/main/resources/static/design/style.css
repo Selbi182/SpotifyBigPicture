@@ -39,6 +39,7 @@ html, body {
     line-height: 1.3;
     user-select: none;
     word-break: keep-all;
+    transition: filter var(--transition);
 }
 
 body.idle {
@@ -47,6 +48,10 @@ body.idle {
 
 body.idle > * {
     display: none;
+}
+
+body.modal > *:not(#modal-overlay) {
+    filter: blur(1vmin);
 }
 
 #main.hide-cursor-enabled.hide-cursor {
@@ -116,6 +121,97 @@ img:not([src]) {
 }
 
 #dark-overlay.show {
+    display: initial;
+}
+
+
+#modal-overlay {
+    --modal-transition: 0.35s;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #0008;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--modal-transition);
+}
+
+#modal-overlay.show {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+#modal-overlay.show #modal {
+    scale: 1;
+}
+
+#modal {
+    scale: 0;
+    transition: scale var(--modal-transition);
+    width: 30%;
+    min-height: 30%;
+    background: #000c;
+    flex-direction: column;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    gap: 3vmin;
+    border-bottom-left-radius: 3vmin;
+    border-bottom-right-radius: 3vmin;
+}
+
+#modal > div {
+    padding: 2vmin;
+    width: 100%;
+    text-align: center;
+}
+
+#modal-header {
+    font-size: 3vmin;
+    color: white;
+    background: #444c;
+}
+
+#modal-main {
+    padding: 0 4vmin !important;
+    text-align: left !important;
+}
+
+#modal-buttons {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: end;
+    gap: 2vmin;
+    font-size: 3vmin;
+}
+
+#modal-buttons > div {
+    transition: opacity var(--transition);
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+#modal-buttons > div:hover {
+    opacity: 1;
+}
+
+#modal-buttons .close {
+    opacity: 0.25;
+}
+
+#modal-buttons .okay {
+    display: none;
+}
+
+#modal-buttons.confirm .okay {
     display: initial;
 }
 

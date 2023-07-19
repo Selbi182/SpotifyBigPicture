@@ -553,6 +553,9 @@ function trackListEquals(trackList1, trackList2) {
   return true;
 }
 
+function toggleLyrics() {
+  toggleVisualPreference(findPreference("show-lyrics"));
+}
 
 let lyricsContainer = "lyrics".select();
 function refreshLyrics(changes) {
@@ -1245,7 +1248,8 @@ function unsetNextImagePrerender() {
 }
 
 function setTextColor(rgbText) {
-  document.documentElement.style.setProperty("--color", `rgb(${rgbText.r}, ${rgbText.g}, ${rgbText.b})`);
+  let rgbCss = `rgb(${rgbText.r}, ${rgbText.g}, ${rgbText.b})`;
+  document.documentElement.style.setProperty("--color", rgbCss);
 }
 
 
@@ -1490,10 +1494,14 @@ function initVisualPreferences() {
     let storedVersionHash = getVersionHashFromLocalStorage();
     let newVersionHash = calculateVersionHash();
     setVersionHashInLocalStorage(newVersionHash);
-    if (!storedVersionHash || storedVersionHash !== newVersionHash) {
+    if (!storedVersionHash) {
+      showModal("Welcome to SpotifyBigPicture", "Please select a preset to proceed...")
       clearVisualPreferencesInLocalStorage();
-      alert("Welcome to Spotify Big Picture! Please select a preset to proceed.\n\n" +
-        "If you've used Spotify Big Picture before and you're seeing this message, it indicates that you have installed a new version. To prevent conflicts arising from the changes in the new version, your previous settings have been reset.");
+    } else if (storedVersionHash !== newVersionHash) {
+      showModal(
+        "New Version Detected",
+        "It looks like you've installed a new version of SpotifyBigPicture. To prevent conflicts arising from the changes in the new version, it is strongly recommended to reset your settings. Reset settings now?",
+        () => clearVisualPreferencesInLocalStorage())
     }
   }
 
@@ -1632,6 +1640,7 @@ function getVisualPreferencesFromLocalStorage() {
 }
 
 function clearVisualPreferencesInLocalStorage() {
+  console.warn("Visual preferences have been reset!")
   localStorage.removeItem(LOCAL_STORAGE_KEY_SETTINGS);
 }
 
@@ -1883,12 +1892,19 @@ function portraitModePresetSwitchPrompt() {
   refreshPortraitModeState();
   let portraitMode = isPortraitMode();
   if (portraitModePresetSwitchPromptEnabled && !wasPreviouslyInPortraitMode && portraitMode && !isPrefEnabled("artwork-above-content")) {
-    if (confirm("It seems like you're using the app in portrait mode. Would you like to switch to the design optimized for vertical aspect ratios?")) {
-      applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-vertical"));
-    } else if (confirm("No longer show this prompt when resizing windows?")) {
-      portraitModePresetSwitchPromptEnabled = false;
-      localStorage.setItem(LOCAL_STORAGE_KEY_PORTRAIT_PROMPT_ENABLED, "false");
-    }
+    showModal(
+      "Portrait Mode",
+      "It seems like you're using the app in portrait mode. Would you like to switch to the design optimized for vertical aspect ratios?",
+      () => applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-vertical")),
+      () => {
+        showModal(
+          "Portrait Mode",
+          "No longer show this prompt when resizing windows?",
+          () => {
+            portraitModePresetSwitchPromptEnabled = false;
+            localStorage.setItem(LOCAL_STORAGE_KEY_PORTRAIT_PROMPT_ENABLED, "false");
+          });
+      });
   }
   wasPreviouslyInPortraitMode = portraitMode;
 }
@@ -1960,7 +1976,7 @@ function changeVolume() {
       if (newVolume >= 0 && newVolume <= 100) {
         fireControl("VOLUME", newVolume);
       } else {
-        alert("Invalid volume (must be a number between 0-100)")
+        showModal("ERROR: Invalid Volume", "Must be a number between 0-100")
       }
     }
   }
@@ -1976,6 +1992,13 @@ document.onkeydown = (e) => {
     case ' ':
       toggleSettingsMenu();
       break;
+    case 'Escape':
+      if (modalActive) {
+        hideModal();
+      } else {
+        setSettingsMenuState(false);
+      }
+      break;
     case 'Control':
       if (settingsVisible) {
         toggleSettingsExpertMode();
@@ -1986,6 +2009,9 @@ document.onkeydown = (e) => {
       break;
     case 'd':
       toggleDarkMode();
+      break;
+    case 'l':
+      toggleLyrics();
       break;
     case 'ArrowUp':
       scrollSettingsUpDown(-1);
@@ -2147,11 +2173,11 @@ function toggleSettingsExpertMode() {
 }
 
 function resetAllSettings() {
-  if (confirm("Do you really want to reset all settings to their default state?")) {
+  showModal("Reset", "Do you really want to reset all settings to their default state?", () => {
     [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.ignoreDefaultOn].flat().forEach(id => setVisualPreferenceFromId(id, true));
     [PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().forEach(id => setVisualPreferenceFromId(id, false));
     clearLocalStoragePortraitModePresetPromptPreference();
-  }
+  });
 }
 
 function scrollSettingsUpDown(direction) {
@@ -2263,6 +2289,49 @@ function getClosestClockTextEmoji(currentTime) {
   return `\\01F55${hoursHex}\uFE0E`;
 }
 
+let modalActive = false;
+function showModal(title, content, onConfirm = null, onReject = null) {
+  // Set content
+  "modal-header".select().innerHTML = title;
+  "modal-main".select().innerHTML = content;
+
+  // Create buttons
+  let modalButtons = "modal-buttons".select();
+  modalButtons.innerHTML = ""; // Remove all old buttons to avoid conflicts
+  createModalButton("Close", "close", onReject);
+
+  // Set onConfirm logic if this is a confirmation modal
+  setClass(modalButtons, "confirm", !!onConfirm);
+  if (onConfirm) {
+    createModalButton("Okay", "okay", onConfirm);
+  }
+
+  // Display modal
+  setClass("modal-overlay".select(), "show", true);
+  setClass(document.body, "modal", true);
+  modalActive = true;
+
+  // Modal button generator
+  function createModalButton(text, className, customOnClick = null) {
+    let modalButton = document.createElement("div");
+    modalButton.innerHTML = text;
+    modalButton.className = className;
+    modalButtons.append(modalButton);
+    modalButton.onclick = () => {
+      if (customOnClick) {
+        requestAnimationFrame(() => customOnClick.call(this));
+      }
+      hideModal();
+    }
+  }
+}
+
+function hideModal() {
+  modalActive = false;
+  setClass("modal-overlay".select(), "show", false);
+  setClass(document.body, "modal", false);
+}
+// document.querySelector("#modal-buttons .close").onclick = () => hideModal();
 
 ///////////////////////////////
 // FPS Counter
@@ -2340,8 +2409,8 @@ const PREFERENCES = [
   },
   {
     id: "dark-mode",
-    name: "Dark Mode",
-    description: "Darkens the entire screen by 50%",
+    name: "Dark Mode (D)",
+    description: "Darkens the entire screen by 50% (Hotkey: d)",
     category: "General",
     css: {"dark-overlay": "show"}
   },
@@ -2371,8 +2440,8 @@ const PREFERENCES = [
   // Lyrics
   {
     id: "show-lyrics",
-    name: "Enable Lyrics",
-    description: "Try to search for and display the lyrics of the current song (requires external configuration to work)",
+    name: "Enable Lyrics (L)",
+    description: "Try to search for and display the lyrics of the current song (requires external configuration to work) (Hotkey: L)",
     category: "Lyrics",
     requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics"],
     css: {"lyrics": "!hide"},
@@ -3115,7 +3184,7 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Developer Tools"
 ];
 
-const PREFERENCES_DEFAULT = { // TODO integrate this into the settings themselves (and do an integrity check about the ignored settings and which settings are never touched anyway with presets)
+const PREFERENCES_DEFAULT = {
   enabled: [
     "enable-center-content",
     "show-queue",
