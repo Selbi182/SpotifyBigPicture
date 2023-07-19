@@ -189,6 +189,9 @@ public class PlaybackInfoProvider {
     if (context.getItem() != null && !Objects.equals(currentTrack.getId(), context.getItem().getId())) {
       currentTrack = context.getItem();
     }
+    if (previous != null && previous.hasPayload() && !Objects.equals(currentTrack.getId(), previous.getCurrentlyPlaying().getId())) {
+      previous = null; // Force a full context refresh on song change
+    }
 
     // Meta data
     PlaybackInfo playbackInfo = new PlaybackInfo(PlaybackInfo.Type.DATA);

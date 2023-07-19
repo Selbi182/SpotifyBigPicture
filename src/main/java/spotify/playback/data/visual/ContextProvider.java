@@ -144,7 +144,7 @@ public class ContextProvider {
     this.trackCount = trackCount;
   }
 
-  private void setTotalTrackDuration(List<TrackElement> listTracks) {
+  private void calculateAndSetTotalTrackDuration(List<TrackElement> listTracks) {
     this.totalTrackDuration = listTracks.stream().mapToLong(TrackElement::getTimeTotal).sum();
   }
 
@@ -179,7 +179,7 @@ public class ContextProvider {
       this.listTracks = List.of();
 
       setTrackCount(contextArtist.getFollowers().getTotal());
-      setTotalTrackDuration(List.of());
+      calculateAndSetTotalTrackDuration(List.of());
 
       return PlaybackContext.Context.of(contextArtist.getName(), PlaybackContext.Context.ContextType.ARTIST);
     }
@@ -213,7 +213,7 @@ public class ContextProvider {
 
       Integer realTrackCount = contextPlaylist.getTracks().getTotal();
       setTrackCount(realTrackCount);
-      setTotalTrackDuration(realTrackCount <= this.listTracks.size() ? this.listTracks : List.of());
+      calculateAndSetTotalTrackDuration(realTrackCount <= this.listTracks.size() ? this.listTracks : List.of());
 
       return PlaybackContext.Context.of(contextPlaylist.getName(), PlaybackContext.Context.ContextType.PLAYLIST);
     }
@@ -251,7 +251,7 @@ public class ContextProvider {
         .collect(Collectors.toList());
 
       setTrackCount(this.listTracks.size());
-      setTotalTrackDuration(this.listTracks);
+      calculateAndSetTotalTrackDuration(this.listTracks);
     }
     String contextString = String.format("%s \u2022 %s", SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName());
     if (currentContextAlbumTracks != null && track != null) {
@@ -286,7 +286,7 @@ public class ContextProvider {
 
         Show show = SpotifyCall.execute(spotifyApi.getShow(showSimplified.getId()));
         setTrackCount(show.getEpisodes().getTotal());
-        setTotalTrackDuration(List.of());
+        calculateAndSetTotalTrackDuration(List.of());
 
         return PlaybackContext.Context.of(show.getName(), PlaybackContext.Context.ContextType.PODCAST);
       }
@@ -307,7 +307,7 @@ public class ContextProvider {
       this.listTracks = List.of();
 
       setTrackCount(usersSavedTracks.getTotal());
-      setTotalTrackDuration(List.of());
+      calculateAndSetTotalTrackDuration(List.of());
 
       return PlaybackContext.Context.of(user.getDisplayName(), PlaybackContext.Context.ContextType.FAVORITE_TRACKS);
     }
@@ -323,7 +323,7 @@ public class ContextProvider {
 
       this.listTracks = List.of(TrackElement.fromPlaylistItem(track));
       setTrackCount(this.listTracks.size());
-      setTotalTrackDuration(this.listTracks);
+      calculateAndSetTotalTrackDuration(this.listTracks);
 
       return PlaybackContext.Context.of(SpotifyUtils.getFirstArtistName(track) + " \u2022 " + track.getName(), PlaybackContext.Context.ContextType.SEARCH);
     }
