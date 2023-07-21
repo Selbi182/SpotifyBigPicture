@@ -1,4 +1,4 @@
-# Spotify Big Picture
+# SpotifyBigPicture
 A highly customizable interface that displays your current playback status on Spotify in a beautiful little browser page!
 
 You might want to use this over [Spotify's own (in my opinion, rather underwhelming) full-screen mode](https://i.imgur.com/dvreOAX.jpg), or you can use it for your TV to give [that outdated, low-resolution OSD](https://i.imgur.com/lNfCcrW.jpg) a fresh paint job!
@@ -8,7 +8,7 @@ This interface is primarily read-only. Specifically, this means that you **canno
 An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
 
 ## Screenshots
-Examples of the default preset. For more screenshots, [see the presets](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
+These two examples only show examples of SpotifyBigPicture's default preset. For more screenshots, [see the other presets](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
 
 ### Album View
 ![Deafheaven - Dream House](https://i.imgur.com/oWB5cnW.png)

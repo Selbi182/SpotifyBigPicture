@@ -1,4 +1,4 @@
-# Spotify Big Picture - Settings
+# SpotifyBigPicture - "Show All Settings"
 ![Settings Menu](https://i.imgur.com/6aGNZmB.png)
 
 If you wish for a more nuanced way to control the appearance, click the "Show All Settings" checkbox. In here, you will be able to customize everything individually. A detailed explanation for each setting appears when you hover over the respective settings.
@@ -10,7 +10,7 @@ Here are some noteworthy things to keep in mind:
 ## Enable Playback Controls
 ![Playback Controls](https://i.imgur.com/RBgj1Us.png)
 
-If enabled, the interface can be used to directly control some basic playback functions of Spotify: play, pause, next track, previous track, shuffle, repeat, and volume.
+If enabled, the interface can be used to directly control some basic playback functions of Spotify: play, pause, next track, previous track, shuffle, and repeat.
 
 **Security notice about playback controls:** If your interface is publicly accessible from the internet, it is _strongly_ recommended you disable the backend controls for this feature, so that people who randomly got their hands on the URL won't be able to mess with your music. You can do this by passing the following environment variable to the service:
 
@@ -18,15 +18,20 @@ If enabled, the interface can be used to directly control some basic playback fu
 
 This will prevent the buttons from the interface from having any functions. It won't visually disable them, but clicking them will do nothing.
 
-## (i) Symbols
-![(i) Symbol](https://i.imgur.com/70ZFBdv.png)
-
-Some settings have a small (i) symbol next to them. These are all options that come down to individual user preference (such as Colored Text) and as such are *not* affected by changing presets. The only way to revert these settings is by pressing Reset.
+## (!) Symbols
+Some settings have a small (!) symbol next to them. These are all options that come down to individual user preference (such as Colored Text) and as such are *not* affected by changing presets. The only way to revert these settings is by pressing Reset.
 
 ## Hotkeys
-* *Space*: toggles the settings menu (same effect as clicking the cog symbol in the top right)
-* *Ctrl*: toggles between the preset list or all-settings list
-* *Up/Down arrow keys*: scroll
+### Settings
+* *Space*: toggle the settings menu (same effect as clicking the cog symbol in the top right)
+* *Ctrl*: toggle between the preset list or all-settings list
+* *Up/Down arrow keys*: scroll in settings menu
+* *Esc*: Close settings
+
+### Other
+* *F*: toggle fullscreen (or just double click anywhere)
+* *D*: toggle dark mode
+* *L*: toggle lyrics
 
 ## Remote Control
 ![Remote Control](https://i.imgur.com/Es48dMs.png)

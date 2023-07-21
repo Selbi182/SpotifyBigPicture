@@ -1282,7 +1282,17 @@ function updateProgress(changes) {
   }
 
   // Website Title
-  let newTitle = "Spotify Big Picture";
+  updateWebsiteTitle(changes);
+
+  // Update Progress Bar
+  if (isPrefEnabled("smooth-progress-bar") || timeCurrentUpdated || timeTotalUpdated) {
+    setProgressBarTarget(current, total, paused);
+  }
+}
+
+const WEBSITE_TITLE_BRANDING = "SpotifyBigPicture";
+function updateWebsiteTitle(changes) {
+  let newTitle = WEBSITE_TITLE_BRANDING;
   if (isPrefEnabled("current-track-in-website-title")) {
     let artists = getChange(changes, "currentlyPlaying.artists").value;
     let title = getChange(changes, "currentlyPlaying.title").value;
@@ -1295,17 +1305,12 @@ function updateProgress(changes) {
       }
       newTitle = titleElements.join(" \u2022 ");
       if (isPrefEnabled("branding-in-website-title")) {
-        newTitle += " | Spotify Big Picture";
+        newTitle += " | " + WEBSITE_TITLE_BRANDING;
       }
     }
   }
   if (document.title !== newTitle) {
     document.title = newTitle;
-  }
-
-  // Update Progress Bar
-  if (isPrefEnabled("smooth-progress-bar") || timeCurrentUpdated || timeTotalUpdated) {
-    setProgressBarTarget(current, total, paused);
   }
 }
 
@@ -3125,7 +3130,7 @@ const PREFERENCES = [
     id: "current-track-in-website-title",
     name: "Display Current Song in Website Title",
     description: "If enabled, display the track in the website title. "
-      + "Otherwise, only show 'Spotify Big Picture'",
+      + `Other, only show '${WEBSITE_TITLE_BRANDING}'`,
     category: "Website Title",
     requiredFor: ["track-first-in-website-title", "branding-in-website-title"],
     callback: () => refreshProgress()
@@ -3139,8 +3144,8 @@ const PREFERENCES = [
   },
   {
     id: "branding-in-website-title",
-    name: "Branding",
-    description: "If enabled, suffixes the website title with ' | Spotify Big Picture'",
+    name: `"${WEBSITE_TITLE_BRANDING}"`,
+    description: `If enabled, suffixes the website title with ' | ${WEBSITE_TITLE_BRANDING}'`,
     category: "Website Title",
     callback: () => refreshProgress()
   },
