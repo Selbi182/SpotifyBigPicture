@@ -1614,6 +1614,10 @@ div#device {
     font-family: var(--font-bold);
 }
 
+#settings-description > #settings-description-description {
+    white-space: pre-line;
+}
+
 #settings-description > :is(#settings-description-overridden, #settings-description-unaffected) {
     opacity: 0.5;
     font-size: 2vmin;
