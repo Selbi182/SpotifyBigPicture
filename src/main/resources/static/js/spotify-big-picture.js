@@ -2117,6 +2117,10 @@ function initSettingsMouseMove() {
     resetAllSettings();
   };
 
+  "settings-shutdown".select().onclick = () => {
+    shutdownPrompt();
+  };
+
   document.body.onclick = (e) => {
     if (modalActive && !"modal".select().contains(e.target)) {
       hideModal();
@@ -2181,6 +2185,31 @@ function resetAllSettings() {
     clearLocalStoragePortraitModePresetPromptPreference();
   });
 }
+
+function shutdownPrompt() {
+  showModal("Shutdown", "Exit SpotifyBigPicture?", () => {
+    showModal("Logout", "Do you also want to log out? You will have to reenter your credentials on the next startup!",
+      () => shutdown(true),
+      () => shutdown(false),
+      "Yes",
+      "No"
+    )
+  })
+  
+  function shutdown(logout) {
+    fetch(`/shutdown?logout=${logout}`, {method: 'POST'})
+      .then(response => {
+        if (response.status === 200) {
+          setSettingsMenuState(false);
+          enableIdleMode();
+          showModal("Shutdown", "Successfully shut down! You may close this tab now.");
+        } else {
+          showModal("Error", "Failed to shut down! Are the playback controls disabled?");
+        }
+      });
+  }
+}
+
 
 function scrollSettingsUpDown(direction) {
   let settingsScroller = "settings-scroller".select();
@@ -2292,7 +2321,7 @@ function getClosestClockTextEmoji(currentTime) {
 }
 
 let modalActive = false;
-function showModal(title, content, onConfirm = null, onReject = null) {
+function showModal(title, content, onConfirm = null, onReject = null, okayButtonLabel = "Okay", closeButtonLabel = "Close") {
   requestAnimationFrame(() => {
     // Set content
     "modal-header".select().innerHTML = title;
@@ -2301,12 +2330,12 @@ function showModal(title, content, onConfirm = null, onReject = null) {
     // Create buttons
     let modalButtons = "modal-buttons".select();
     modalButtons.innerHTML = ""; // Remove all old buttons to avoid conflicts
-    createModalButton("Close", "close", onReject);
+    createModalButton(closeButtonLabel, "close", onReject);
 
     // Set onConfirm logic if this is a confirmation modal
     setClass(modalButtons, "confirm", !!onConfirm);
     if (onConfirm) {
-      createModalButton("Okay", "okay", onConfirm);
+      createModalButton(okayButtonLabel, "okay", onConfirm);
     }
 
     // Display modal

@@ -1,7 +1,12 @@
 package spotify.playback;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -13,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import spotify.config.SpotifyApiConfig;
 import spotify.playback.control.PlaybackControl;
 import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.dto.PlaybackInfo;
@@ -21,17 +27,36 @@ import spotify.playback.data.lyrics.GeniusLyricsScraper;
 
 @RestController
 public class PlaybackController {
+  private static final String DISABLE_PLAYBACK_CONTROLS_ENV_NAME = "disable_playback_controls";
+
   private final PlaybackInfoProvider playbackInfoProvider;
   private final PlaybackControl playbackControl;
+  private final SpotifyApiConfig spotifyApiConfig;
   private final GeniusLyricsScraper geniusLyrics;
 
   private List<BigPictureSetting> bigPictureSettings;
 
-  PlaybackController(PlaybackInfoProvider playbackInfoProvider, PlaybackControl playbackControl, GeniusLyricsScraper geniusLyrics) {
+  private final boolean playbackControlsDisabled;
+  private final Logger logger = Logger.getLogger(PlaybackController.class.getName());
+
+  PlaybackController(PlaybackInfoProvider playbackInfoProvider, PlaybackControl playbackControl, SpotifyApiConfig spotifyApiConfig, GeniusLyricsScraper geniusLyrics) {
     this.playbackInfoProvider = playbackInfoProvider;
+    this.spotifyApiConfig = spotifyApiConfig;
     this.playbackControl = playbackControl;
     this.geniusLyrics = geniusLyrics;
+
+    String env = System.getenv(DISABLE_PLAYBACK_CONTROLS_ENV_NAME);
+    this.playbackControlsDisabled = Boolean.parseBoolean(env);
   }
+
+  @PostConstruct
+  void printPlaybackDisabledState() {
+    if (this.playbackControlsDisabled) {
+      logger.warning("Playback controls have been manually disabled with " + DISABLE_PLAYBACK_CONTROLS_ENV_NAME + "=true");
+    }
+  }
+
+  ///////////////
 
   /**
    * Return the layout.html file (root entry endpoint)
@@ -86,7 +111,31 @@ public class PlaybackController {
   @CrossOrigin
   @PostMapping("/modify-playback/{control}")
   public ResponseEntity<Void> modifyPlaybackState(@PathVariable String control, @RequestParam(required = false) String param) {
-    if (playbackControl.modifyPlaybackState(control, param)) {
+    if (checkPlaybackControlsEnabled() && playbackControl.modifyPlaybackState(control, param)) {
+      return ResponseEntity.ok().build();
+    }
+    return ResponseEntity.badRequest().build();
+  }
+
+  ///////////////
+
+  /**
+   * Shutdown the application.
+   *
+   * @param logout if "true", also logs out the user (more specifically, removes the tokens from the properties file)
+   * @return 200 on success, 400 on bad request
+   *         (unknown parameter name or controls have been disabled using the
+   *         <code>disable_playback_controls=true</code> environment variable)
+   * @throws IOException on a write error to the properties file
+   */
+  @CrossOrigin
+  @PostMapping("/shutdown")
+  public ResponseEntity<Void> shutdown(@RequestParam String logout) throws IOException {
+    if (checkPlaybackControlsEnabled()) {
+      if (Boolean.parseBoolean(logout)) {
+        spotifyApiConfig.logout();
+      }
+      CompletableFuture.runAsync(() -> System.exit(0));
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();
@@ -163,5 +212,13 @@ public class PlaybackController {
     if (bigPictureSettings == null) {
       throw new IllegalStateException("Settings haven't been transmitted yet. Open the interface at least once.");
     }
+  }
+
+  private boolean checkPlaybackControlsEnabled() {
+    if (playbackControlsDisabled) {
+      logger.warning("Playback controls have been manually disabled with " + DISABLE_PLAYBACK_CONTROLS_ENV_NAME + "=true");
+      return false;
+    }
+    return true;
   }
 }

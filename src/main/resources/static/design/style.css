@@ -42,10 +42,6 @@ html, body {
     transition: filter var(--transition);
 }
 
-body.idle {
-    cursor: none;
-}
-
 body.idle > * {
     display: none;
 }
@@ -1335,7 +1331,7 @@ div#device {
     border-radius: 2vmin;
 }
 
-#settings-menu-toggle-button {
+:is(#settings-menu-toggle-button, #settings-shutdown) {
     --offset: var(--margin-half);
     width: var(--offset);
     height: var(--offset);
@@ -1364,12 +1360,21 @@ div#device {
     transition-duration: var(--transition);
 }
 
-#settings-menu-toggle-button.hide {
+:is(#settings-menu-toggle-button, #settings-shutdown).hide {
     display: none;
 }
 
-#settings-menu-toggle-button:hover {
+:is(#settings-menu-toggle-button, #settings-shutdown):hover {
     opacity: 1;
+}
+
+#settings-shutdown {
+    -webkit-mask-image: url("img/symbols/power.png");
+    mask-image: url("img/symbols/power.png");
+    top: unset;
+    bottom: calc(var(--offset) / 2);
+    left: calc(var(--offset) / 2);
+    opacity: 0.5;
 }
 
 #settings-wrapper {
