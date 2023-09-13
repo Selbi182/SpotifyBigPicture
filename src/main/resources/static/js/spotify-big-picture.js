@@ -1596,15 +1596,18 @@ function initVisualPreferences() {
 }
 
 function submitVisualPreferencesToBackend() {
-  let simplifiedPrefs = FILTERED_AND_ORDERED_PREFS.map(pref => {
-    return {
-      id: pref.id,
-      name: pref.name,
-      category: pref.category,
-      description: pref.description,
-      state: pref.state
-    }
-  });
+   let simplifiedPrefs = [...PREFERENCES_PRESETS, ...PREFERENCES]
+     .sort((a, b) => PREFERENCES_CATEGORY_ORDER.indexOf(a.category) - PREFERENCES_CATEGORY_ORDER.indexOf(b.category))
+     .filter(pref => DEV_MODE || pref.category !== "Developer Tools")
+     .map(pref => {
+       return {
+         id: pref.id,
+         name: pref.name,
+         category: pref.category,
+         description: pref.description,
+         state: pref.state
+       }
+     });
 
   fetch("/settings/list", {
     method: 'POST',
@@ -2364,7 +2367,7 @@ function hideModal() {
   setClass("modal-overlay".select(), "show", false);
   setClass(document.body, "modal", false);
 }
-// document.querySelector("#modal-buttons .close").onclick = () => hideModal();
+
 
 ///////////////////////////////
 // FPS Counter
@@ -2388,6 +2391,7 @@ function fpsTick() {
     requestAnimationFrame(fpsTick);
   }
 }
+
 
 ///////////////////////////////
 // Preferences & Presets Data
@@ -2464,7 +2468,7 @@ const PREFERENCES = [
   {
     id: "hide-cog",
     name: "Hide Settings Icon",
-    description: "Hide the settings icon in the top right when moving the mouse. Note: You can still access the settings menu by pressing Space",
+    description: "Hide the settings icon in the top right when moving the mouse. Note: If you disable this icon, the settings menu can only be accessed by pressing Space",
     category: "General",
     css: {"settings-menu-toggle-button": "hide"}
   },
@@ -2474,7 +2478,7 @@ const PREFERENCES = [
   {
     id: "show-lyrics",
     name: "Enable Lyrics (L)",
-    description: "Try to search for and display the lyrics of the current song (requires external configuration to work) (Hotkey: L)",
+    description: "Searches for and displays the lyrics of the current song from Genius.com (Hotkey: L)",
     category: "Lyrics",
     requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics"],
     css: {"lyrics": "!hide"},
@@ -2548,7 +2552,7 @@ const PREFERENCES = [
     id: "full-track-list",
     name: "Show Full Titles",
     description: "If enabled, longer titles will always be fully displayed (with line breaks). "
-      + "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ...",
+      + "Otherwise, the line count will be limited to 1 and overflowing text will be cut off with ellipsis",
     category: "Tracklist",
     css: {"track-list": "no-clamp"}
   },
@@ -2607,12 +2611,12 @@ const PREFERENCES = [
   },
 
   ///////////////////////////////
-  // Main Content
+  // Artwork
   {
     id: "display-artwork",
     name: "Enable Artwork",
     description: "Whether to display the artwork of the current track or not. If disabled, the layout will be centered",
-    category: "Main Content",
+    category: "Artwork",
     requiredFor: ["artwork-shadow", "artwork-expand-top", "artwork-expand-bottom", "artwork-right"],
     css: {
       "artwork": "!hide",
@@ -2623,9 +2627,26 @@ const PREFERENCES = [
     id: "artwork-shadow",
     name: "Artwork Shadow",
     description: "Show a subtle shadow underneath the artwork",
-    category: "Main Content",
+    category: "Artwork",
     css: {"artwork": "shadow"}
   },
+  {
+    id: "artwork-expand-top",
+    name: "Expand Artwork to Top",
+    description: "If enabled, expand the artwork to the top content and push that content to the side",
+    category: "Artwork",
+    css: {"main": "artwork-expand-top"}
+  },
+  {
+    id: "artwork-expand-bottom",
+    name: "Expand Artwork to Bottom",
+    description: "If enabled, expand the artwork to the bottom content and push that content to the side",
+    category: "Artwork",
+    css: {"main": "artwork-expand-bottom"}
+  },
+
+  ///////////////////////////////
+  // Main Content
   {
     id: "enable-center-content",
     name: "Enable Main Content",
@@ -2961,7 +2982,7 @@ const PREFERENCES = [
   {
     id: "bg-tint",
     name: "Overlay Color",
-    description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps to increase the contrast for very dark artworks",
+    description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps to increase the contrast between the background and foreground",
     category: "Background",
     requiredFor: ["bg-tint-dark-compensation", "bg-tint-bright-compensation"],
     css: {"background-canvas-overlay": "!no-tint"}
@@ -3004,20 +3025,6 @@ const PREFERENCES = [
 
   ///////////////////////////////
   // Layout: Main Content
-  {
-    id: "artwork-expand-top",
-    name: "Expand Artwork to Top",
-    description: "If enabled, expand the artwork to the top content and push that content to the side",
-    category: "Layout: Main Content",
-    css: {"main": "artwork-expand-top"}
-  },
-  {
-    id: "artwork-expand-bottom",
-    name: "Expand Artwork to Bottom",
-    description: "If enabled, expand the artwork to the bottom content and push that content to the side",
-    category: "Layout: Main Content",
-    css: {"main": "artwork-expand-bottom"}
-  },
   {
     id: "main-content-centered",
     name: "Center-Align",
@@ -3205,6 +3212,7 @@ const PREFERENCES_CATEGORY_ORDER = [
   "General",
   "Lyrics",
   "Tracklist",
+  "Artwork",
   "Main Content",
   "Top Content",
   "Bottom Content",
@@ -3503,11 +3511,6 @@ const PREFERENCES_PRESETS = [
     ]
   }
 ];
-
-const FILTERED_AND_ORDERED_PREFS = [...PREFERENCES_PRESETS, ...PREFERENCES]
-  .sort((a, b) => PREFERENCES_CATEGORY_ORDER.indexOf(a.category) - PREFERENCES_CATEGORY_ORDER.indexOf(b.category))
-  .filter(pref => DEV_MODE || pref.category !== "Developer Tools");
-
 
 if (DEV_MODE) {
   // Anomaly check for presets

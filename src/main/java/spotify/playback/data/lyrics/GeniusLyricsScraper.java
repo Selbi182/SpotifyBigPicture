@@ -18,6 +18,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+
+// TODO: redo implementation based on fmbot https://github.com/fmbot-discord/fmbot/blob/dev/src/FMBot.Bot/Services/ThirdParty/GeniusService.cs#L22
 @Service
 public class GeniusLyricsScraper {
   private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
