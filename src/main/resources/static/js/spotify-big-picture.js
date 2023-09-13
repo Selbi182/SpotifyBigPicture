@@ -1179,13 +1179,9 @@ function loadBackground(newImage, colors) {
   return new Promise((resolve) => {
     let backgroundCanvasImg = "background-canvas-img".select();
     backgroundCanvasImg.onload = () => {
-      let rgbOverlay = colors.secondary;
       let averageBrightness = colors.averageBrightness;
       let backgroundCanvasOverlay = "background-canvas-overlay".select();
       let grainOverlay = "grain".select();
-
-      let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
-      "background-canvas".select().style.setProperty("--background-color", backgroundColorOverlay);
 
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
       setClass(backgroundCanvasOverlay, "brighter", averageBrightness < 0.2);
@@ -1520,8 +1516,8 @@ function initVisualPreferences() {
     let categoryElemHeader = document.createElement("div");
     categoryElemHeader.classList.add("setting-category-header");
     categoryElemHeader.title = "Expand/collapse category..."
-    let count = PREFERENCES.filter(obj => obj.category === category).length;
-    categoryElemHeader.innerHTML = `${category} <span class="count">${count}</span>`;
+    let totalOptionsInCategoryCount = PREFERENCES.filter(pref => pref.category === category).length;
+    categoryElemHeader.innerHTML = `${category} <span class="count">${totalOptionsInCategoryCount}</span>`;
     categoryElemHeader.onclick = () => {
       categoryElem.classList.toggle("collapse");
     }
@@ -2447,7 +2443,7 @@ const PREFERENCES = [
   {
     id: "dark-mode",
     name: "Dark Mode (D)",
-    description: "Darkens the entire screen by 50% (Hotkey: d)",
+    description: "Darkens the entire screen by 50%<br>[Hotkey: D]",
     category: "General",
     css: {"dark-overlay": "show"}
   },
@@ -2478,7 +2474,7 @@ const PREFERENCES = [
   {
     id: "show-lyrics",
     name: "Enable Lyrics (L)",
-    description: "Searches for and displays the lyrics of the current song from Genius.com (Hotkey: L)",
+    description: "Searches for and displays the lyrics of the current song from Genius.com<br>[Hotkey: L]",
     category: "Lyrics",
     requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics"],
     css: {"lyrics": "!hide"},

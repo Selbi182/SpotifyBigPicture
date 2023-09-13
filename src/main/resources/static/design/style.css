@@ -1353,6 +1353,10 @@ div#device {
     transition: opacity var(--transition), left var(--transition), transform var(--transition);
 }
 
+body.modal #settings-menu-toggle-button {
+    display: none;
+}
+
 #settings-menu-toggle-button.show {
     opacity: 0.5;
     left: calc(var(--offset) / 2);
