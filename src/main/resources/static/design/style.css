@@ -714,6 +714,10 @@ div#context-main {
     display: none;
 }
 
+#artists .feat {
+    opacity: 0.65;
+}
+
 #artists.no-feat .feat {
     display: none;
 }
@@ -737,11 +741,17 @@ div#context-main {
     gap: 0 1vmin;
 }
 
-#album.separate-date {
+#album:not(.hide-name, .hide-date).separate-date {
     flex-direction: column;
 }
 
-#album.hide {
+#album.hide-name #album-title {
+    display: none;
+}
+#album.hide-date #album-release {
+    display: none;
+}
+#album.hide-name.hide-date {
     display: none;
 }
 
@@ -774,11 +784,11 @@ div#context-main {
     display: initial;
 }
 
-#album:not(.separate-date) :is(#release-year, #release-full)::before {
+#album:not(.hide-name, .separate-date) :is(#release-year, #release-full)::before {
     content: "(";
 }
 
-#album:not(.separate-date) :is(#release-year, #release-full):after {
+#album:not(.hide-name, .separate-date) :is(#release-year, #release-full):after {
     content: ")";
 }
 
@@ -849,6 +859,10 @@ div#description {
 #content-center.lyrics #track-list.hide-for-lyrics
 {
     display: none;
+}
+
+#track-list .feat {
+    opacity: 0.65;
 }
 
 #track-list.no-feat .feat {
@@ -1185,8 +1199,7 @@ div#device {
     --max-lines: 1;
     opacity: 0.5;
     font-size: 2vmin;
-    display: flex;
-    gap: 1vmin;
+    display: -webkit-box;
 }
 #device:empty, #device.hide {
     display: none;
@@ -1209,6 +1222,7 @@ div#device {
     height: 2vmin;
     background-color: var(--color);
     display: inline-block;
+    margin-right: 1vmin;
 }
 
 #progress {

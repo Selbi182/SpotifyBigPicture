@@ -803,7 +803,7 @@ function buildFeaturedArtistsSpan(artists) {
 }
 
 function removeFeaturedArtists(title) {
-  return title.replace(/[(|\[](f(ea)?t|with|by).+?[)|\]]/ig, "").trim();
+  return title.replace(/[(|\[](f(ea)?t|with|by|w)\b.+?[)|\]]/ig, "").trim();
 }
 
 function fullStrip(title) {
@@ -1185,9 +1185,13 @@ function loadBackground(newImage, colors) {
   return new Promise((resolve) => {
     let backgroundCanvasImg = "background-canvas-img".select();
     backgroundCanvasImg.onload = () => {
+      let rgbOverlay = colors.secondary;
       let averageBrightness = colors.averageBrightness;
       let backgroundCanvasOverlay = "background-canvas-overlay".select();
       let grainOverlay = "grain".select();
+
+      let backgroundColorOverlay = `rgb(${rgbOverlay.r}, ${rgbOverlay.g}, ${rgbOverlay.b})`;
+      "background-canvas".select().style.setProperty("--background-color", backgroundColorOverlay);
 
       backgroundCanvasOverlay.style.setProperty("--background-brightness", averageBrightness);
       setClass(backgroundCanvasOverlay, "brighter", averageBrightness < 0.2);
@@ -2568,7 +2572,7 @@ const PREFERENCES = [
   {
     id: "show-timestamps-track-list",
     name: "Show Time Stamps",
-    description: "Show the timestamps for each track in the tracklist. If disabled, the track names are right-aligned",
+    description: "Displays the timestamps for each track in the tracklist. If disabled, the track names are right-aligned",
     category: "Tracklist",
     css: {"track-list": "show-timestamps"}
   },
@@ -2635,7 +2639,7 @@ const PREFERENCES = [
   {
     id: "artwork-shadow",
     name: "Artwork Shadow",
-    description: "Show a subtle shadow underneath the artwork",
+    description: "Adds a subtle shadow underneath the artwork",
     category: "Artwork",
     css: {"artwork": "shadow"}
   },
@@ -2661,8 +2665,8 @@ const PREFERENCES = [
     name: "Enable Main Content",
     description: "Enable the main content, the container for the current track data and the tracklist",
     category: "Main Content",
-    requiredFor: ["show-artists", "show-titles", "strip-titles", "xl-text", "show-release", "show-podcast-descriptions",
-      "main-content-centered", "split-main-panels", "reduced-center-margins"],
+    requiredFor: ["show-artists", "show-titles", "strip-titles", "xl-text", "show-release-name", "show-release-date",
+      "show-podcast-descriptions", "main-content-centered", "split-main-panels", "reduced-center-margins"],
     css: {
       "center-info-main": "!hide",
       "artwork": "!center-disabled"
@@ -2686,14 +2690,14 @@ const PREFERENCES = [
   {
     id: "show-titles",
     name: "Show Titles",
-    description: "Show the title of the currently playing track",
+    description: "Displays the title of the currently playing track",
     category: "Main Content",
     css: {"title": "!hide"}
   },
   {
     id: "swap-artist-title",
     name: "Swap Artist with Title",
-    description: "If enabled, the artist(s) are displayed underneath the title",
+    description: "If enabled, the artist(s) are displayed underneath the title (this mimics the layout of Spotify's own interface)",
     category: "Main Content",
     callback: (state) => {
       let artists = "artists".select();
@@ -2707,16 +2711,24 @@ const PREFERENCES = [
     }
   },
   {
-    id: "show-release",
-    name: "Show Release Name/Date",
-    description: "Displays the release name with its release date (usually the year of the currently playing track's album)",
+    id: "show-release-name",
+    name: "Show Release Name",
+    description: "Displays the release name (e.g. album title)",
+    category: "Main Content",
+    requiredFor: ["separate-release-line"],
+    css: {"album": "!hide-name"}
+  },
+  {
+    id: "show-release-date",
+    name: "Show Release Date",
+    description: "Displays the release date (usually the year of the currently playing track's album)",
     category: "Main Content",
     requiredFor: ["separate-release-line", "full-release-date"],
-    css: {"album": "!hide"}
+    css: {"album": "!hide-date"}
   },
   {
     id: "separate-release-line",
-    name: "Separate Release Date",
+    name: "Release Date on New Line",
     description: "Displays the release date in a new line, rather than right next to the release name",
     category: "Main Content",
     css: {"album": "separate-date"}
@@ -2786,7 +2798,7 @@ const PREFERENCES = [
   {
     id: "show-context-summary",
     name: "Context Summary",
-    description: "Show a small summary of the current context (context type, total track count, and total time). "
+    description: "Displays a small summary of the current context (context type, total track count, and total time). "
       + "Do note that total time cannot be displayed for playlists above 200 tracks for performance reasons",
     category: "Top Content",
     css: {"context-extra": "!hide"}
@@ -2794,8 +2806,8 @@ const PREFERENCES = [
   {
     id: "show-context-thumbnail",
     name: "Context Image",
-    description: "Display a small image (thumbnail) of the current context. "
-      + "For playlists, it's the playlist image and for anything else it's the first artist",
+    description: "Displays a small image (thumbnail) of the current context. "
+      + "For playlists, it's the playlist image and for anything else the artist's thumbnail",
     category: "Top Content",
     requiredFor: ["colored-symbol-context"],
     css: {"thumbnail-wrapper": "!hide"}
@@ -2818,7 +2830,7 @@ const PREFERENCES = [
   {
     id: "colored-symbol-spotify",
     name: "Colored Spotify Logo",
-    description: "If enabled, the dominant color of the current artwork will be used as the color for the Spotify logo",
+    description: "If enabled, the dominant color of the current artwork will be used as the color for the Spotify logo instead of the default green",
     category: "Top Content",
     css: {"logo": "colored"}
   },
@@ -2876,7 +2888,7 @@ const PREFERENCES = [
   {
     id: "show-info-icons",
     name: "Show Play/Pause/Shuffle/Repeat Icons",
-    description: "Display the state icons for play/pause as well as shuffle and repeat in the bottom left. "
+    description: "Displays the state icons for play/pause as well as shuffle and repeat in the bottom left. "
       + "This setting is required for the playback controls to work",
     category: "Bottom Content",
     requiredFor: ["playback-control"],
@@ -2906,7 +2918,7 @@ const PREFERENCES = [
   {
     id: "show-volume",
     name: "Show Volume",
-    description: "Display the current volume in the bottom left",
+    description: "Displays the current volume in the bottom left",
     category: "Bottom Content",
     requiredFor: ["show-volume-bar"],
     css: {"volume": "!hide"}
@@ -2914,14 +2926,14 @@ const PREFERENCES = [
   {
     id: "show-volume-bar",
     name: "Show Volume Bar",
-    description: "Show an additional bar underneath the volume",
+    description: "Displays an additional bar underneath the volume",
     category: "Bottom Content",
     css: {"volume-bar": "!hide"}
   },
   {
     id: "show-device",
     name: "Show Device Name",
-    description: "Display the name of the current playback device in the bottom left",
+    description: "Displays the name of the current playback device in the bottom left",
     category: "Bottom Content",
     css: {"device": "!hide"}
   },
@@ -2968,7 +2980,7 @@ const PREFERENCES = [
   {
     id: "bg-artwork",
     name: "Artwork",
-    description: "If enabled, uses the release artwork for the background as a blurry, darkened version",
+    description: "If enabled, uses the release artwork for the background as a darkened version",
     category: "Background",
     requiredFor: ["bg-blur", "bg-fill-screen"],
     css: {"background-canvas": "!color-only"}
@@ -3128,7 +3140,7 @@ const PREFERENCES = [
     id: "transitions",
     name: "Smooth Transitions",
     description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. "
-      + "It is STRONGLY recommended to disable this setting for low-power hardware to save on resources!",
+      + "It is recommended to disable this setting for low-power hardware to save on resources",
     category: "Performance",
     requiredFor: ["slow-transitions"],
     css: {"main": "transitions"}
@@ -3175,7 +3187,7 @@ const PREFERENCES = [
     id: "current-track-in-website-title",
     name: "Display Current Song in Website Title",
     description: "If enabled, display the track in the website title. "
-      + `Other, only show '${WEBSITE_TITLE_BRANDING}'`,
+      + `Otherwise, only show '${WEBSITE_TITLE_BRANDING}'`,
     category: "Website Title",
     requiredFor: ["track-first-in-website-title", "branding-in-website-title"],
     callback: () => refreshProgress()
@@ -3257,7 +3269,8 @@ const PREFERENCES_DEFAULT = {
     "bg-grain",
     "show-artists",
     "show-titles",
-    "show-release",
+    "show-release-name",
+    "show-release-date",
     "enable-top-content",
     "enable-bottom-content",
     "main-content-centered",
@@ -3435,7 +3448,8 @@ const PREFERENCES_PRESETS = [
     ],
     disabled: [
       "show-queue",
-      "show-release",
+      "show-release-name",
+      "show-release-date",
       "show-info-icons",
       "show-device",
       "show-volume",
@@ -3483,7 +3497,8 @@ const PREFERENCES_PRESETS = [
       "show-podcast-descriptions",
       "show-artists",
       "show-titles",
-      "show-release",
+      "show-release-name",
+      "show-release-date",
       "enable-top-content",
       "enable-bottom-content",
       "show-context",
