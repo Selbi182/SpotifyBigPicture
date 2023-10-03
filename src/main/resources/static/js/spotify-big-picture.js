@@ -93,7 +93,7 @@ const INFO_URL = "/playback-info";
 window.addEventListener('load', entryPoint);
 
 function entryPoint() {
-  pollingLoop();
+  startPollingLoop();
 }
 
 function singleRequest(forceUpdate) {
@@ -131,16 +131,23 @@ const POLLING_INTERVAL_IDLE_MS = 60 * 1000;
 let pollingRetryAttempt = 0;
 const MAX_POLLING_RETRY_ATTEMPT = 5;
 
+let pollTimeout;
+
+function startPollingLoop() {
+  clearTimeout(pollTimeout);
+  pollingLoop();
+}
+
 function pollingLoop() {
   singleRequest()
     .then(success => calculateNextPollingTimeout(success))
-    .then(pollingMs => setTimeout(pollingLoop, parseInt(pollingMs.toString())));
+    .then(pollingMs => pollTimeout = setTimeout(pollingLoop, parseInt(pollingMs.toString())));
 }
 
 function calculateNextPollingTimeout(success) {
   if (success) {
     pollingRetryAttempt = 0;
-    if (!idle) {
+    if (!idle && isTabVisible()) {
       if (!currentData.playbackContext.paused) {
         let timeCurrent = currentData.currentlyPlaying.timeCurrent;
         let timeTotal = currentData.currentlyPlaying.timeTotal;
@@ -158,6 +165,9 @@ function calculateNextPollingTimeout(success) {
   return retryTimeoutMs;
 }
 
+function isTabVisible() {
+  return document.visibilityState === "visible";
+}
 
 ///////////////////////////////
 // MAIN DISPLAY STUFF
@@ -185,7 +195,7 @@ function processJson(changes) {
       if (currentData.deployTime > 0 && getChange(changes, "deployTime").wasChanged) {
         reloadPage();
       } else {
-        if (document.visibilityState === "visible") {
+        if (isTabVisible()) {
           updateExternallyToggledPreferences(changes)
             .then(() => changeImage(changes))
             .then(() => prerenderNextImage(changes))
@@ -1315,7 +1325,7 @@ function updateWebsiteTitle(changes) {
       }
     }
   }
-  if (document.title !== newTitle && document.visibilityState === "visible") {
+  if (isTabVisible() && document.title !== newTitle) {
     document.title = newTitle;
   }
 }
@@ -1939,7 +1949,7 @@ function clearLocalStoragePortraitModePresetPromptPreference() {
 window.onresize = () => {
   clearTimeout(refreshBackgroundEvent);
   refreshBackgroundEvent = setTimeout(() => {
-    if (document.visibilityState === "visible") {
+    if (isTabVisible()) {
       portraitModePresetSwitchPrompt();
     }
     refreshAll();
@@ -2280,8 +2290,8 @@ function generatePresetThumbnail() {
 }
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    singleRequest(true).then();
+  if (isTabVisible()) {
+    startPollingLoop();
   } else {
     markWebsiteTitleAsIdle();
   }
