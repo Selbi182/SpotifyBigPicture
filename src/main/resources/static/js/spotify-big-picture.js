@@ -96,9 +96,9 @@ function entryPoint() {
   pollingLoop();
 }
 
-function singleRequest() {
+function singleRequest(forceUpdate) {
   return new Promise(resolve => {
-    let url = `${INFO_URL}?v=${currentData.versionId}`;
+    let url = `${INFO_URL}?v=${forceUpdate ? -1 : currentData.versionId}`;
     fetch(url)
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
@@ -185,23 +185,29 @@ function processJson(changes) {
       if (currentData.deployTime > 0 && getChange(changes, "deployTime").wasChanged) {
         reloadPage();
       } else {
-        updateExternallyToggledPreferences(changes)
-          .then(() => changeImage(changes))
-          .then(() => prerenderNextImage(changes))
-          .then(() => setTextData(changes))
-          .then(() => setCorrectTracklistView(changes))
-          .then(() => refreshIdleTimeout(changes))
-          .finally(() => {
-            // Update properties in local storage
-            for (let prop in changes) {
-              currentData[prop] = changes[prop];
-            }
-            unlockPlaybackControls();
-          });
+        if (document.visibilityState === "visible") {
+          updateExternallyToggledPreferences(changes)
+            .then(() => changeImage(changes))
+            .then(() => prerenderNextImage(changes))
+            .then(() => setTextData(changes))
+            .then(() => setCorrectTracklistView(changes))
+            .then(() => refreshIdleTimeout(changes))
+            .finally(() => {
+              updateCurrentData(changes);
+              unlockPlaybackControls();
+            });
+        }
       }
     }
   }
 }
+
+function updateCurrentData(changes) {
+  for (let prop in changes) {
+    currentData[prop] = changes[prop];
+  }
+}
+
 
 function getChange(changes, path) {
   let properties = path.split(".")
@@ -1305,7 +1311,7 @@ function updateWebsiteTitle(changes) {
       }
     }
   }
-  if (document.title !== newTitle) {
+  if (document.title !== newTitle && document.visibilityState === "visible") {
     document.title = newTitle;
   }
 }
@@ -1433,6 +1439,7 @@ function enableIdleMode() {
   if (!idle) {
     console.info("No music was played in a long while. Enabling idle mode...");
     idle = true;
+    markWebsiteTitleAsIdle();
     setClass(document.body, "idle", true);
   }
 }
@@ -1442,6 +1449,10 @@ function disableIdleMode() {
     idle = false;
     reloadPage();
   }
+}
+
+function markWebsiteTitleAsIdle() {
+  document.title = `${WEBSITE_TITLE_BRANDING} (Idle)`;
 }
 
 
@@ -1859,7 +1870,7 @@ function handleDeviceChange(device) {
 
 function refreshAll() {
   refreshTextBalance();
-  refreshBackgroundRender(true);
+  refreshBackgroundRender();
   refreshProgress();
   updateScrollGradients();
   submitVisualPreferencesToBackend();
@@ -2266,7 +2277,9 @@ function generatePresetThumbnail() {
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    refreshAll();
+    singleRequest(true).then();
+  } else {
+    markWebsiteTitleAsIdle();
   }
 });
 
