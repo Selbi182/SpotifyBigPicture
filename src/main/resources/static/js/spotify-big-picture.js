@@ -719,6 +719,7 @@ function refreshTextBalance() {
     }
   }
 
+  // TODO rework this using a data attr or something
   // copy-pasted from the balanceText library because removeTags(el) isn't accessible from the outside
   function removeTags(el) {
     [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => br.outerHTML = "");
@@ -1302,6 +1303,10 @@ function updateProgress(changes) {
 
   // Update Progress Bar
   if (isPrefEnabled("smooth-progress-bar") || timeCurrentUpdated || timeTotalUpdated) {
+    if (formattedCurrentTime === formattedTotalTime) {
+      // Snap to maximum on the last second
+      current = total;
+    }
     setProgressBarTarget(current, total, paused);
   }
 }
