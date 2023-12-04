@@ -1011,7 +1011,6 @@ div#description {
     text-align: center;
     overflow-x: hidden;
     overflow-y: scroll;
-    opacity: 0.65;
     width: fit-content;
     max-width: 100%;
     max-height: 100%;
@@ -1025,6 +1024,15 @@ div#description {
 
 #lyrics.xl {
     font-size: 3vmin;
+}
+
+#lyrics.dim {
+    opacity: 0.65;
+}
+
+#lyrics.max-width {
+    width: 100%;
+    max-width: 100% !important;
 }
 
 #lyrics.hide, #lyrics:empty {

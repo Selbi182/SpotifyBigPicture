@@ -169,6 +169,7 @@ function isTabVisible() {
   return document.visibilityState === "visible";
 }
 
+
 ///////////////////////////////
 // MAIN DISPLAY STUFF
 ///////////////////////////////
@@ -690,46 +691,46 @@ function refreshTextBalance() {
     let elem = id.select();
     balanceTextClamp(elem).then();
   }
+}
 
-  async function balanceTextClamp(elem) {
-    if (isPrefEnabled("text-balancing")) {
-      // balanceText doesn't take line-clamping into account, unfortunately.
-      // So we got to temporarily remove it, balance the text, then add it again.
-      elem.style.setProperty("-webkit-line-clamp", "initial", "important");
-      try {
-        // balanceText sometimes gets stuck and causes freezes.
-        // Running it async with a timeout should prevent this from happening.
-        await Promise.race([
-          new Promise((resolve) => {
-            // noinspection JSUnresolvedFunction
-            balanceText(elem);
-            resolve();
-          }),
-          new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('text-balancing timed out')), 1000);
-          })
-        ]);
-      } catch (e) {
-        console.warn(`text-balancing caused a deadlock (id: ${elem.id}) and was forcibly aborted`);
-      } finally {
-        elem.style.removeProperty("-webkit-line-clamp");
-      }
-    } else {
-      removeTags(elem);
+async function balanceTextClamp(elem) {
+  if (isPrefEnabled("text-balancing")) {
+    // balanceText doesn't take line-clamping into account, unfortunately.
+    // So we got to temporarily remove it, balance the text, then add it again.
+    elem.style.setProperty("-webkit-line-clamp", "initial", "important");
+    try {
+      // balanceText sometimes gets stuck and causes freezes.
+      // Running it async with a timeout should prevent this from happening.
+      await Promise.race([
+        new Promise((resolve) => {
+          // noinspection JSUnresolvedFunction
+          balanceText(elem);
+          resolve();
+        }),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('text-balancing timed out')), 1000);
+        })
+      ]);
+    } catch (e) {
+      console.warn(`text-balancing caused a deadlock (id: ${elem.id}) and was forcibly aborted`);
+    } finally {
+      elem.style.removeProperty("-webkit-line-clamp");
     }
+  } else {
+    removeTags(elem);
   }
+}
 
-  // TODO rework this using a data attr or something
-  // copy-pasted from the balanceText library because removeTags(el) isn't accessible from the outside
-  function removeTags(el) {
-    [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => br.outerHTML = "");
-    [...el.querySelectorAll('br[data-owner="balance-text"]')].forEach(br => br.outerHTML = " ");
-    [...el.querySelectorAll('span[data-owner="balance-text-softhyphen"]')].forEach(span => {
-      const textNode = document.createTextNode("\u00ad");
-      span.parentNode.insertBefore(textNode, span);
-      span.parentNode.removeChild(span);
-    });
-  }
+// TODO rework this using a data attr or something
+// copy-pasted from the balanceText library because removeTags(el) isn't accessible from the outside
+function removeTags(el) {
+  [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => br.outerHTML = "");
+  [...el.querySelectorAll('br[data-owner="balance-text"]')].forEach(br => br.outerHTML = " ");
+  [...el.querySelectorAll('span[data-owner="balance-text-softhyphen"]')].forEach(span => {
+    const textNode = document.createTextNode("\u00ad");
+    span.parentNode.insertBefore(textNode, span);
+    span.parentNode.removeChild(span);
+  });
 }
 
 function setClass(elem, className, state) {
@@ -759,6 +760,7 @@ const USELESS_WORDS = [
   "single",
   "ep",
   "motion\\spicture",
+  "theme",
   "re.?issue",
   "re.?record",
   "re.?imagine",
@@ -770,7 +772,8 @@ const WHITELISTED_WORDS = [
   "symphonic",
   "live",
   "classic",
-  "demo"
+  "demo",
+  "session"
 ];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
@@ -844,10 +847,21 @@ function finishAnimations(elem) {
 }
 
 function fadeIn(elem) {
-  finishAnimations(elem);
-  elem.classList.add("transparent", "text-grow");
-  finishAnimations(elem);
-  elem.classList.remove("transparent", "text-grow");
+  if (isPrefEnabled("text-balancing")) {
+    finishAnimations(elem);
+    elem.classList.add("transparent");
+    elem.classList.remove("text-grow");
+    finishAnimations(elem);
+    balanceTextClamp(elem)
+      .then(() => elem.classList.add("text-grow"))
+      .then(() => finishAnimations(elem))
+      .then(() => elem.classList.remove("transparent", "text-grow"));
+  } else {
+    finishAnimations(elem);
+    elem.classList.add("transparent", "text-grow");
+    finishAnimations(elem);
+    elem.classList.remove("transparent", "text-grow");
+  }
 }
 
 function printTrackList(trackList, printDiscs) {
@@ -1285,11 +1299,21 @@ function updateProgress(changes) {
   let formattedTimes = formatTime(current, total);
   let formattedCurrentTime = formattedTimes.current;
   let formattedTotalTime = formattedTimes.total;
+  let formattedRemainingTime = formattedTimes.remaining;
 
   let elemTimeCurrent = "time-current".select();
-  let timeCurrentUpdated = formattedCurrentTime !== elemTimeCurrent.innerHTML;
-  if (timeCurrentUpdated) {
-    elemTimeCurrent.innerHTML = formattedCurrentTime;
+
+  let timeCurrentUpdated;
+  if (isPrefEnabled("remaining-time-timestamp")) {
+    timeCurrentUpdated = formattedRemainingTime !== elemTimeCurrent.innerHTML;
+    if (timeCurrentUpdated) {
+      elemTimeCurrent.innerHTML = formattedRemainingTime;
+    }
+  } else {
+    timeCurrentUpdated = formattedCurrentTime !== elemTimeCurrent.innerHTML;
+    if (timeCurrentUpdated) {
+      elemTimeCurrent.innerHTML = formattedCurrentTime;
+    }
   }
 
   let elemTimeTotal = "time-total".select();
@@ -1345,24 +1369,30 @@ function setProgressBarTarget(current, total) {
 function formatTime(current, total) {
   let currentHMS = calcHMS(current);
   let totalHMS = calcHMS(total);
+  let remainingHMS = calcHMS(total - current);
 
   let formattedCurrent = `${pad2(currentHMS.seconds)}`;
   let formattedTotal = `${pad2(totalHMS.seconds)}`;
+  let formattedRemaining = `${pad2(remainingHMS.seconds)}`;
   if (totalHMS.minutes >= 10 || totalHMS.hours >= 1) {
     formattedCurrent = `${pad2(currentHMS.minutes)}:${formattedCurrent}`;
     formattedTotal = `${pad2(totalHMS.minutes)}:${formattedTotal}`;
+    formattedRemaining = `-${pad2(remainingHMS.minutes)}:${formattedRemaining}`;
     if (totalHMS.hours > 0) {
       formattedCurrent = `${currentHMS.hours}:${formattedCurrent}`;
       formattedTotal = `${totalHMS.hours}:${formattedTotal}`;
+      formattedRemaining = `-${remainingHMS.hours}:${formattedRemaining}`;
     }
   } else {
     formattedCurrent = `${currentHMS.minutes}:${formattedCurrent}`;
     formattedTotal = `${totalHMS.minutes}:${formattedTotal}`;
+    formattedRemaining = `-${remainingHMS.minutes}:${formattedRemaining}`;
   }
 
   return {
     current: formattedCurrent,
-    total: formattedTotal
+    total: formattedTotal,
+    remaining: formattedRemaining
   };
 }
 
@@ -1534,7 +1564,10 @@ function initVisualPreferences() {
       showModal(
         "New Version Detected",
         "It looks like you've installed a new version of SpotifyBigPicture. To prevent conflicts arising from the changes in the new version, it is strongly recommended to reset your settings. Reset settings now?",
-        () => clearVisualPreferencesInLocalStorage())
+        () => clearVisualPreferencesInLocalStorage(),
+        null,
+        "Reset Settings",
+        "Keep Settings")
     }
   }
 
@@ -1940,8 +1973,14 @@ function portraitModePresetSwitchPrompt() {
           () => {
             portraitModePresetSwitchPromptEnabled = false;
             localStorage.setItem(LOCAL_STORAGE_KEY_PORTRAIT_PROMPT_ENABLED, "false");
-          });
-      });
+          },
+          null,
+          "Disable Prompts",
+          "Keep Prompts"
+        )
+      },
+      "Switch to Portrait Mode",
+      "Cancel");
   }
   wasPreviouslyInPortraitMode = portraitMode;
 }
@@ -2208,20 +2247,24 @@ function toggleSettingsExpertMode() {
 }
 
 function resetAllSettings() {
-  showModal("Reset", "Do you really want to reset all settings to their default state?", () => {
-    [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.ignoreDefaultOn].flat().forEach(id => setVisualPreferenceFromId(id, true));
-    [PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().forEach(id => setVisualPreferenceFromId(id, false));
-    clearLocalStoragePortraitModePresetPromptPreference();
-  });
+  showModal("Reset", "Do you really want to reset all settings to their default state?",
+    () => {
+      [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.ignoreDefaultOn].flat().forEach(id => setVisualPreferenceFromId(id, true));
+      [PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().forEach(id => setVisualPreferenceFromId(id, false));
+      clearLocalStoragePortraitModePresetPromptPreference();
+    },
+    null,
+    "Reset Settings",
+    "Cancel");
 }
 
 function shutdownPrompt() {
   showModal("Shutdown", "Exit SpotifyBigPicture?", () => {
-    showModal("Logout", "Do you also want to log out? You will have to reenter your credentials on the next startup!",
+    showModal("Logout", "Do you also want to log out? You will have to re-enter your credentials on the next startup!",
       () => shutdown(true),
       () => shutdown(false),
-      "Yes",
-      "No"
+      "Logout",
+      "Cancel"
     )
   })
   
@@ -2545,6 +2588,20 @@ const PREFERENCES = [
     description: "Increases the font size of the lyrics",
     category: "Lyrics",
     css: {"lyrics": "xl"}
+  },
+  {
+    id: "dim-lyrics",
+    name: "Dim Lyrics",
+    description: "When enabled, dims the opacity down to 65% (same as the tracklist)",
+    category: "Lyrics",
+    css: {"lyrics": "dim"}
+  },
+  {
+    id: "max-width-lyrics",
+    name: "Max Width Lyrics",
+    description: "When enabled, the lyrics container is always at 100% width",
+    category: "Lyrics",
+    css: {"lyrics": "max-width"}
   },
 
   ///////////////////////////////
@@ -2877,7 +2934,7 @@ const PREFERENCES = [
     name: "Timestamps",
     description: "Displays the current and total timestamps of the currently playing track as numeric values",
     category: "Bottom Content",
-    requiredFor: ["spread-timestamps"],
+    requiredFor: ["spread-timestamps", "remaining-time-timestamp"],
     css: {
       "artwork": "!hide-timestamps",
       "bottom-meta-container": "!hide-timestamps"
@@ -2899,6 +2956,13 @@ const PREFERENCES = [
         bottomRight.insertBefore(timeCurrent, bottomRight.firstChild);
       }
     }
+  },
+  {
+    id: "remaining-time-timestamp",
+    name: "Replace Current Time with Remaining Time",
+    description: "When enabled, the current timestamp of the current track instead displays the remaining time",
+    category: "Bottom Content",
+    callback: () => updateProgress(currentData)
   },
   {
     id: "show-info-icons",
@@ -3317,6 +3381,7 @@ const PREFERENCES_DEFAULT = {
     "increase-max-track-list-scaling",
     "swap-top",
     "spread-timestamps",
+    "remaining-time-timestamp",
     "reverse-bottom",
     "artwork-expand-bottom",
     "artwork-right",
@@ -3348,6 +3413,8 @@ const PREFERENCES_DEFAULT = {
     "show-lyrics",
     "lyrics-hide-tracklist",
     "xl-lyrics",
+    "dim-lyrics",
+    "max-width-lyrics",
     "text-shadows",
     "slow-transitions",
     "allow-user-select",
