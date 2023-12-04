@@ -916,6 +916,10 @@ div#description {
     opacity: 0.5;
 }
 
+#content-center:not(.queue) #track-list.album-spacers .track-elem.spacer div {
+    margin-top: 2vmin;
+}
+
 #content-center:not(.queue) #track-list .track-elem.current div {
     opacity: 1;
 }

@@ -871,6 +871,7 @@ function printTrackList(trackList, printDiscs) {
   let previousDiscNumber = 0;
   let trackNumPadLength = Math.max(...trackList.map(t => t.trackNumber)).toString().length;
 
+  let previousAlbum = trackList[0].album;
   for (let trackItem of trackList) {
     if (printDiscs && 'discNumber' in trackItem) {
       let newDiscNumber = trackItem.discNumber;
@@ -880,7 +881,11 @@ function printTrackList(trackList, printDiscs) {
         trackListContainer.append(discTrackElem);
       }
     }
-    let trackElem = createSingleTrackListItem(trackItem, trackNumPadLength);
+    let spacer = previousAlbum !== trackItem.album;
+    if (previousAlbum !== trackItem.album) {
+      previousAlbum = trackItem.album;
+    }
+    let trackElem = createSingleTrackListItem(trackItem, trackNumPadLength, spacer);
     trackListContainer.append(trackElem);
   }
   return trackListContainer;
@@ -898,7 +903,7 @@ function createDiscElement(discNumber) {
   return discTrackElem;
 }
 
-function createSingleTrackListItem(trackItem, trackNumPadLength = 2) {
+function createSingleTrackListItem(trackItem, trackNumPadLength = 2, spacer = false) {
   // Create new tracklist item
   let trackElem = document.createElement("div");
   trackElem.className = "track-elem";
@@ -937,10 +942,14 @@ function createSingleTrackListItem(trackItem, trackNumPadLength = 2) {
     trackLength.innerHTML = formatTime(0, trackItem.timeTotal).total;
   }
 
+  // Insert spacers after a new album
+  setClass(trackElem, "spacer", spacer);
+
   // Append
   trackElem.append(trackNumberContainer, trackArtist, trackName, trackLength);
   return trackElem;
 }
+
 
 window.addEventListener('load', setupScrollGradients);
 
@@ -2611,8 +2620,8 @@ const PREFERENCES = [
     name: "Enable Tracklist",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Tracklist",
-    requiredFor: ["scrollable-track-list", "album-view", "always-show-track-numbers-album-view", "hide-single-item-album-view", "show-timestamps-track-list", "show-featured-artists-track-list",
-      "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
+    requiredFor: ["scrollable-track-list", "album-view", "always-show-track-numbers-album-view", "album-spacers-in-album-view", "hide-single-item-album-view", "show-timestamps-track-list",
+      "show-featured-artists-track-list", "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
     css: {
       "title": "!force-display",
       "track-list": "!hide"
@@ -2654,7 +2663,7 @@ const PREFERENCES = [
     description: "If enabled, while playing an album or playlist with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
       + "(Only works for 200 tracks or fewer, for performance reasons)",
     category: "Tracklist",
-    requiredFor: ["always-show-track-numbers-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
+    requiredFor: ["always-show-track-numbers-album-view", "album-spacers-in-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
     callback: () => refreshTrackList()
   },
   {
@@ -2672,6 +2681,14 @@ const PREFERENCES = [
     category: "Tracklist",
     css: {"track-list": "always-show-track-numbers-album-view"},
     callback: () => refreshTrackList()
+  },
+  {
+    id: "album-spacers-in-album-view",
+    name: "Album View: Margin Between Albums",
+    description: "If enabled, after each album in a tracklist, some margin is added to visually separate them. " +
+      "This setting is intended to be used for playlists that have multiple albums in chunks",
+    category: "Tracklist",
+    css: {"track-list": "album-spacers"}
   },
   {
     id: "hide-tracklist-podcast-view",
@@ -3420,6 +3437,7 @@ const PREFERENCES_DEFAULT = {
     "allow-user-select",
     "track-first-in-website-title",
     "always-show-track-numbers-album-view",
+    "album-spacers-in-album-view",
     "smooth-progress-bar",
     "playback-control",
     "scrollable-track-list",
