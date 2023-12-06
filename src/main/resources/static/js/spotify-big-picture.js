@@ -141,7 +141,12 @@ function startPollingLoop() {
 function pollingLoop() {
   singleRequest()
     .then(success => calculateNextPollingTimeout(success))
-    .then(pollingMs => pollTimeout = setTimeout(pollingLoop, parseInt(pollingMs.toString())));
+    .then(pollingMs => {
+      if (pollingMs > 0 && pollingMs !== POLLING_INTERVAL_MS && isPrefEnabled("guess-next-track")) {
+        fakeSongTransition = setTimeout(() => simulateNextSongTransition(), pollingMs);
+      }
+      pollTimeout = setTimeout(pollingLoop, parseInt(pollingMs.toString()))
+    });
 }
 
 function calculateNextPollingTimeout(success) {
@@ -153,7 +158,7 @@ function calculateNextPollingTimeout(success) {
         let timeTotal = currentData.currentlyPlaying.timeTotal;
         let remainingTime = timeTotal - timeCurrent;
         if (remainingTime < POLLING_INTERVAL_MS * 2) {
-          return remainingTime;
+          return remainingTime === POLLING_INTERVAL_MS ? remainingTime + 1 : remainingTime;
         }
       }
       return POLLING_INTERVAL_MS;
@@ -164,6 +169,34 @@ function calculateNextPollingTimeout(success) {
   pollingRetryAttempt++;
   return retryTimeoutMs;
 }
+
+let fakeSongTransition;
+function simulateNextSongTransition() {
+  if (currentData.trackData.queue.length > 0) {
+    let newTrackData = cloneObject(currentData.trackData);
+
+    let expectedSong = newTrackData.queue.shift();
+    expectedSong.timeCurrent = 0;
+    expectedSong.imageData = newTrackData.nextImageData;
+
+    newTrackData.trackNumber = newTrackData.listTracks.findIndex(track => track.id === expectedSong.id) + 1;
+    newTrackData.discNumber = expectedSong.discNumber;
+    delete newTrackData.nextImageData;
+
+    let fakeNextData = {
+      type: "SIMULATED_TRANSITION",
+      currentlyPlaying: expectedSong,
+      trackData: newTrackData
+    };
+
+    processJson(fakeNextData);
+  }
+}
+
+function cloneObject(object) {
+  return JSON.parse(JSON.stringify(object));
+}
+
 
 function isTabVisible() {
   return document.visibilityState === "visible";
@@ -192,7 +225,7 @@ function getTransitionFromCss(forceUpdate = false) {
 function processJson(changes) {
   if (changes && changes.type !== "EMPTY") {
     console.info(changes);
-    if (changes.type === "DATA") {
+    if (changes.type === "DATA" || changes.type === "SIMULATED_TRANSITION") {
       if (currentData.deployTime > 0 && getChange(changes, "deployTime").wasChanged) {
         reloadPage();
       } else {
@@ -2096,6 +2129,9 @@ document.onkeydown = (e) => {
       case 'l':
         toggleLyrics();
         break;
+      case 's':
+        toggleVisualPreference(findPreference("album-spacers"));
+        break;
       case 'ArrowUp':
         scrollSettingsUpDown(-1);
         break;
@@ -2648,7 +2684,7 @@ const PREFERENCES = [
     name: "Enable Tracklist",
     description: "If enabled, show the queue/tracklist for playlists and albums. Otherwise, only the current track is displayed",
     category: "Tracklist",
-    requiredFor: ["scrollable-track-list", "album-view", "always-show-track-numbers-album-view", "album-spacers-in-album-view", "hide-single-item-album-view", "show-timestamps-track-list",
+    requiredFor: ["scrollable-track-list", "album-view", "always-show-track-numbers-album-view", "album-spacers", "hide-single-item-album-view", "show-timestamps-track-list",
       "show-featured-artists-track-list", "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
     css: {
       "title": "!force-display",
@@ -2706,6 +2742,14 @@ const PREFERENCES = [
     category: "Tracklist",
     css: {"track-list": "hide-for-podcasts"}
   },
+  {
+    id: "album-spacers",
+    name: "Margin Between Albums",
+    description: "If enabled, after each album in the tracklist, some margin is added to visually separate them. " +
+      "This setting is intended to be used for playlists that have multiple albums in chunks<br>[Hotkey: S]",
+    category: "Tracklist",
+    css: {"track-list": "album-spacers"}
+  },
 
   // Album View
   {
@@ -2715,7 +2759,7 @@ const PREFERENCES = [
       + "(Only works for 200 tracks or fewer, for performance reasons)",
     category: "Tracklist",
     subcategoryHeader: "Album View",
-    requiredFor: ["always-show-track-numbers-album-view", "album-spacers-in-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
+    requiredFor: ["always-show-track-numbers-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
     callback: () => refreshTrackList()
   },
   {
@@ -2734,13 +2778,15 @@ const PREFERENCES = [
     css: {"track-list": "always-show-track-numbers-album-view"},
     callback: () => refreshTrackList()
   },
+
+  // Queue View
   {
-    id: "album-spacers-in-album-view",
-    name: "Margin Between Albums",
-    description: "If enabled, after each album in the album view tracklist, some margin is added to visually separate them. " +
-      "This setting is intended to be used for playlists that have multiple albums in chunks",
+    id: "queue-big-gradient",
+    name: "Large Gradient",
+    description: "If enabled and while in queue mode, use a larger gradient that covers the entire tracklist",
     category: "Tracklist",
-    css: {"track-list": "album-spacers"}
+    subcategoryHeader: "Queue View",
+    css: {"track-list": "queue-big-gradient"}
   },
 
   ///////////////////////////////
@@ -2783,7 +2829,7 @@ const PREFERENCES = [
   {
     id: "enable-center-content",
     name: "Enable Main Content",
-    description: "Enable the main content, the container for the current track data and the tracklist",
+    description: "Enable the main content, the container for the current track data",
     category: "Main Content",
     requiredFor: ["show-artists", "show-titles", "strip-titles", "xl-text", "show-release-name", "show-release-date",
       "show-podcast-descriptions", "main-content-centered", "split-main-panels", "reduced-center-margins"],
@@ -2831,10 +2877,36 @@ const PREFERENCES = [
     }
   },
   {
+    id: "show-podcast-descriptions",
+    name: "Show Podcast Descriptions",
+    description: "While listening to a podcast episode, displays the description of that episode underneath the title",
+    category: "Main Content",
+    css: {"description": "!hide"}
+  },
+  {
+    id: "xl-text",
+    name: "XL Main Content",
+    description: "If enabled, the font size for the current track's title, artist, and release is doubled. "
+      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    category: "Main Content",
+    requiredFor: ["xl-main-info-scrolling"],
+    css: {"center-info-main": "big-text"}
+  },
+  {
+    id: "xl-main-info-scrolling",
+    name: "Conditional XL Main Content",
+    description: "Limit 'XL Main Content' to only kick into effect when the title is hidden by 'Album View: Hide Duplicate Track Name'",
+    category: "Main Content",
+    css: {"center-info-main": "big-text-scrolling"}
+  },
+
+  // Release
+  {
     id: "show-release-name",
     name: "Show Release Name",
     description: "Displays the release name (e.g. album title)",
     category: "Main Content",
+    subcategoryHeader: "Release",
     requiredFor: ["separate-release-line"],
     css: {"album": "!hide-name"}
   },
@@ -2865,32 +2937,9 @@ const PREFERENCES = [
   {
     id: "full-release-date-podcasts",
     name: "Full Release Date only for Podcasts",
-    description: "Limit full release dates only for podcasts. Normal songs will continue to only display the year",
+    description: "Limit full release dates to only be displayed for podcasts. Normal songs will continue to only display the year",
     category: "Main Content",
     css: {"album-release": "podcasts-only"}
-  },
-  {
-    id: "show-podcast-descriptions",
-    name: "Show Podcast Descriptions",
-    description: "While listening to a podcast episode, displays the description of that episode underneath the title",
-    category: "Main Content",
-    css: {"description": "!hide"}
-  },
-  {
-    id: "xl-text",
-    name: "XL Main Content",
-    description: "If enabled, the font size for the current track's title, artist, and release is doubled. "
-      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
-    category: "Main Content",
-    requiredFor: ["xl-main-info-scrolling"],
-    css: {"center-info-main": "big-text"}
-  },
-  {
-    id: "xl-main-info-scrolling",
-    name: "Conditional XL Main Content",
-    description: "Limit 'XL Main Content' to only kick into effect when the title is hidden by 'Album View: Hide Duplicate Track Name'",
-    category: "Main Content",
-    css: {"center-info-main": "big-text-scrolling"}
   },
 
   ///////////////////////////////
@@ -2910,7 +2959,7 @@ const PREFERENCES = [
   {
     id: "show-context",
     name: "Show Context",
-    description: "Displays the playlist/artist/album name along with some additional information at the top of the page",
+    description: "Displays the playlist/artist/album name along with some additional information",
     category: "Top Content",
     requiredFor: ["show-context-thumbnail", "show-context-summary"],
     css: {"meta-left": "!hide"}
@@ -2927,7 +2976,7 @@ const PREFERENCES = [
     id: "show-context-thumbnail",
     name: "Context Image",
     description: "Displays a small image (thumbnail) of the current context. "
-      + "For playlists, it's the playlist image and for anything else the artist's thumbnail",
+      + "For playlists, it's the playlist's image and for anything else the artist's thumbnail",
     category: "Top Content",
     requiredFor: ["colored-symbol-context"],
     css: {"thumbnail-wrapper": "!hide"}
@@ -2942,7 +2991,7 @@ const PREFERENCES = [
   {
     id: "show-logo",
     name: "Spotify Logo",
-    description: "Whether to display the Spotify logo in the top right",
+    description: "Whether to display the Spotify logo",
     category: "Top Content",
     requiredFor: ["colored-symbol-spotify"],
     css: {"meta-right": "!hide"}
@@ -2950,7 +2999,7 @@ const PREFERENCES = [
   {
     id: "colored-symbol-spotify",
     name: "Colored Spotify Logo",
-    description: "If enabled, the dominant color of the current artwork will be used as the color for the Spotify logo instead of the default green",
+    description: "If enabled, the dominant color of the current artwork will be used as the color for the Spotify logo instead of the default Spotify green",
     category: "Top Content",
     css: {"logo": "colored"}
   },
@@ -2978,10 +3027,65 @@ const PREFERENCES = [
     css: {"progress": "!hide"}
   },
   {
-    id: "show-timestamps",
-    name: "Timestamps",
-    description: "Displays the current and total timestamps of the currently playing track as numeric values",
+    id: "show-info-icons",
+    name: "Show Play/Pause/Shuffle/Repeat Icons",
+    description: "Displays the state icons for play/pause as well as shuffle and repeat. "
+      + "This setting is required for the playback controls to work",
     category: "Bottom Content",
+    requiredFor: ["playback-control"],
+    css: {"info-symbols": "!hide"}
+  },
+  {
+    id: "center-info-icons",
+    name: "Center Icons",
+    description: "If enabled, the play/pause/shuffle/repeat icons are centered (like it's the case on the default Spotify player). "
+      + "Enabling this will disable the clock",
+    category: "Bottom Content",
+    overrides: ["show-clock"],
+    css: {"bottom-meta-container": "centered-controls"},
+    callback: (state) => {
+      let infoSymbols = "info-symbols".select();
+      let bottomLeft = "bottom-left".select();
+      let bottomMetaContainer = "bottom-meta-container".select();
+      let clock = "clock".select();
+      let volume = "volume".select();
+      if (state) {
+        bottomMetaContainer.insertBefore(infoSymbols, clock);
+      } else {
+        bottomLeft.insertBefore(infoSymbols, volume);
+      }
+    }
+  },
+  {
+    id: "show-volume",
+    name: "Show Volume",
+    description: "Displays the current Spotify volume",
+    category: "Bottom Content",
+    requiredFor: ["show-volume-bar"],
+    css: {"volume": "!hide"}
+  },
+  {
+    id: "show-volume-bar",
+    name: "Show Volume Bar",
+    description: "Displays an additional bar underneath the volume",
+    category: "Bottom Content",
+    css: {"volume-bar": "!hide"}
+  },
+  {
+    id: "show-device",
+    name: "Show Device Name",
+    description: "Displays the name of the current playback device",
+    category: "Bottom Content",
+    css: {"device": "!hide"}
+  },
+
+  // Timestamps
+  {
+    id: "show-timestamps",
+    name: "Show Timestamps",
+    description: "Displays the current and total timestamps of the currently playing track",
+    category: "Bottom Content",
+    subcategoryHeader: "Timestamps",
     requiredFor: ["spread-timestamps", "remaining-time-timestamp"],
     css: {
       "artwork": "!hide-timestamps",
@@ -3012,62 +3116,12 @@ const PREFERENCES = [
     category: "Bottom Content",
     callback: () => updateProgress(currentData)
   },
-  {
-    id: "show-info-icons",
-    name: "Show Play/Pause/Shuffle/Repeat Icons",
-    description: "Displays the state icons for play/pause as well as shuffle and repeat in the bottom left. "
-      + "This setting is required for the playback controls to work",
-    category: "Bottom Content",
-    requiredFor: ["playback-control"],
-    css: {"info-symbols": "!hide"}
-  },
-  {
-    id: "center-info-icons",
-    name: "Center Icons",
-    description: "If enabled, the play/pause/shuffle/repeat icons are centered in the bottom content (like it's the case on the default Spotify player). "
-      + "Enabling this will disable the clock",
-    category: "Bottom Content",
-    overrides: ["show-clock"],
-    css: {"bottom-meta-container": "centered-controls"},
-    callback: (state) => {
-      let infoSymbols = "info-symbols".select();
-      let bottomLeft = "bottom-left".select();
-      let bottomMetaContainer = "bottom-meta-container".select();
-      let clock = "clock".select();
-      let volume = "volume".select();
-      if (state) {
-        bottomMetaContainer.insertBefore(infoSymbols, clock);
-      } else {
-        bottomLeft.insertBefore(infoSymbols, volume);
-      }
-    }
-  },
-  {
-    id: "show-volume",
-    name: "Show Volume",
-    description: "Displays the current volume in the bottom left",
-    category: "Bottom Content",
-    requiredFor: ["show-volume-bar"],
-    css: {"volume": "!hide"}
-  },
-  {
-    id: "show-volume-bar",
-    name: "Show Volume Bar",
-    description: "Displays an additional bar underneath the volume",
-    category: "Bottom Content",
-    css: {"volume-bar": "!hide"}
-  },
-  {
-    id: "show-device",
-    name: "Show Device Name",
-    description: "Displays the name of the current playback device in the bottom left",
-    category: "Bottom Content",
-    css: {"device": "!hide"}
-  },
+
+  // Clock
   {
     id: "show-clock",
     name: "Show Clock",
-    description: "Displays a clock at the bottom center of the page",
+    description: "Displays the current time",
     category: "Bottom Content",
     subcategoryHeader: "Clock",
     requiredFor: ["clock-full", "clock-24", "next-track-replacing-clock"],
@@ -3116,7 +3170,7 @@ const PREFERENCES = [
   {
     id: "bg-fill-screen",
     name: "Fill Screen",
-    description: "If enabled, the artwork is stretched to fill the screen. Otherwise, it will be contained within the borders and fill the remaining " +
+    description: "If enabled, the artwork is zoomed in to cover the screen. Otherwise, it will be contained within the borders and fill the remaining " +
       "background with a plain color",
     category: "Background",
     css: {"background-canvas-img": "fill-screen"}
@@ -3124,45 +3178,10 @@ const PREFERENCES = [
   {
     id: "bg-blur",
     name: "Blur",
-    description: "Blurs the background. Note that disabling this will result in low-quality images, as the pictures provided by Spotify are limited to 640x640",
+    description: "Blurs the background. Note that disabling this will result in low-quality background images, as the pictures provided by Spotify are limited to " +
+      "a resolution of 640x640",
     category: "Background",
     css: {"background-canvas-img": "!no-blur"}
-  },
-  {
-    id: "bg-tint",
-    name: "Overlay Color",
-    description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps to increase the contrast between the background and foreground",
-    category: "Background",
-    requiredFor: ["bg-tint-dark-compensation", "bg-tint-bright-compensation"],
-    css: {"background-canvas-overlay": "!no-tint"}
-  },
-  {
-    id: "bg-tint-dark-compensation",
-    name: "Overlay Color: Darkness Compensation",
-    description: "Increases the overlay color's brightness for very dark artworks",
-    category: "Background",
-    css: {"background-canvas-overlay": "dark-compensation"}
-  },
-  {
-    id: "bg-tint-bright-compensation",
-    name: "Overlay Color: Brightness Compensation",
-    description: "Decreases the overlay color's brightness for very bright artworks",
-    category: "Background",
-    css: {"background-canvas-overlay": "bright-compensation"}
-  },
-  {
-    id: "bg-gradient",
-    name: "Gradient",
-    description: "Add a subtle gradient to the background that gets steadily darker towards the bottom",
-    category: "Background",
-    css: {"background-canvas-overlay": "!no-gradient"}
-  },
-  {
-    id: "bg-grain",
-    name: "Dithering",
-    description: "Adds a subtle layer of film grain to the background to increase contrast and prevent color banding for dark images",
-    category: "Background",
-    css: {"grain": "show"}
   },
   {
     id: "bg-zoom",
@@ -3170,6 +3189,45 @@ const PREFERENCES = [
     description: "Zooms the background image slightly in (intended to hide darkened edges when the image is blurred)",
     category: "Background",
     css: {"background-canvas": "!no-zoom"}
+  },
+  {
+    id: "bg-gradient",
+    name: "Gradient",
+    description: "Adds a subtle gradient to the background that gets steadily darker towards the bottom",
+    category: "Background",
+    css: {"background-canvas-overlay": "!no-gradient"}
+  },
+  {
+    id: "bg-grain",
+    name: "Dithering",
+    description: "Adds a subtle layer of film grain/noise to the background to increase contrast and prevent color banding for dark images",
+    category: "Background",
+    css: {"grain": "show"}
+  },
+
+  // Overlay Color
+  {
+    id: "bg-tint",
+    name: "Overlay Color",
+    description: "Add a subtle layer of one of the artwork's most dominant colors to the background. This helps to increase the contrast between the background and foreground",
+    category: "Background",
+    subcategoryHeader: "Overlay Color",
+    requiredFor: ["bg-tint-dark-compensation", "bg-tint-bright-compensation"],
+    css: {"background-canvas-overlay": "!no-tint"}
+  },
+  {
+    id: "bg-tint-dark-compensation",
+    name: "Darkness Compensation",
+    description: "Increases the overlay color's brightness for very dark artworks",
+    category: "Background",
+    css: {"background-canvas-overlay": "dark-compensation"}
+  },
+  {
+    id: "bg-tint-bright-compensation",
+    name: "Brightness Compensation",
+    description: "Decreases the overlay color's brightness for very bright artworks",
+    category: "Background",
+    css: {"background-canvas-overlay": "bright-compensation"}
   },
 
   ///////////////////////////////
@@ -3241,8 +3299,8 @@ const PREFERENCES = [
   {
     id: "artwork-above-content",
     name: "Artwork Above Track Info",
-    description: "If enabled, the artwork is played above the track info, rather than next to it. "
-      + "Use this setting with caution",
+    description: "If enabled, the artwork is placed above the track info, rather than next to it. "
+      + "Use this setting with caution!",
     category: "Layout: Experimental",
     css: {"main": "artwork-above-content"}
   },
@@ -3265,6 +3323,18 @@ const PREFERENCES = [
   ///////////////////////////////
   // Performance
   {
+    id: "guess-next-track",
+    name: "Guess Next Track",
+    description: "If enabled, simulate the transition to the expected next track in the queue before the actual data is returned from Spotify. "
+      + "Enabling this will reduce the delay between songs, but it may be inconsistent at times",
+    category: "Performance",
+    callback: (state) => {
+      if (!state) {
+        clearTimeout(fakeSongTransition);
+      }
+    }
+  },
+  {
     id: "transitions",
     name: "Smooth Transitions",
     description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. "
@@ -3276,7 +3346,7 @@ const PREFERENCES = [
   {
     id: "slow-transitions",
     name: "Slower Transitions",
-    description: "If enabled, the transition speed is halved (increased to 1 second, up from 500 milliseconds)",
+    description: "If enabled, the transition speed is halved (increased to 1s, up from 0.5s)",
     category: "Performance",
     css: {"main": "slow-transitions"},
     callback: () => {
@@ -3313,8 +3383,8 @@ const PREFERENCES = [
   // Website Title
   {
     id: "current-track-in-website-title",
-    name: "Display Current Song in Website Title",
-    description: "If enabled, display the track in the website title. "
+    name: "Display Current Track in Website Title",
+    description: "If enabled, displays the current track's name and artist in the website title. "
       + `Otherwise, only show '${WEBSITE_TITLE_BRANDING}'`,
     category: "Website Title",
     requiredFor: ["track-first-in-website-title", "branding-in-website-title"],
@@ -3379,6 +3449,7 @@ const PREFERENCES_DEFAULT = {
     "enable-center-content",
     "show-queue",
     "album-view",
+    "queue-big-gradient",
     "hide-tracklist-podcast-view",
     "show-timestamps-track-list",
     "show-podcast-descriptions",
@@ -3465,6 +3536,7 @@ const PREFERENCES_DEFAULT = {
     "dim-lyrics",
     "max-width-lyrics",
     "text-shadows",
+    "guess-next-track",
     "slow-transitions",
     "allow-user-select",
     "track-first-in-website-title",

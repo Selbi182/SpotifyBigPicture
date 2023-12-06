@@ -878,9 +878,6 @@ div#description {
     display: none;
 }
 
-#content-center.queue #track-list {
-    --gradient: linear-gradient(to bottom, black 20%, transparent 100%);
-}
 
 #content-center.queue #track-list .track-elem:not(.current) > div {
     opacity: 0.65;
@@ -904,8 +901,12 @@ div#description {
     --gradient-top: transparent;
 }
 
-#track-list.gradient-bottom {
+#track-list.gradient-bottom, #content-center.queue #track-list {
     --gradient-bottom: transparent;
+}
+
+#content-center.queue #track-list.queue-big-gradient {
+    --gradient: linear-gradient(to bottom, black 20%, transparent 100%) !important;
 }
 
 #track-list .track-elem {
@@ -916,7 +917,7 @@ div#description {
     opacity: 0.5;
 }
 
-#content-center:not(.queue) #track-list.album-spacers .track-elem.spacer div {
+#content-center #track-list.album-spacers .track-elem.spacer div {
     margin-top: 2vmin;
 }
 
