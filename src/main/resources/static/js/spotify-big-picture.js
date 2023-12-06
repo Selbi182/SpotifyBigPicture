@@ -272,6 +272,7 @@ function refreshCurrentTextData() {
   setTextData(currentData);
 }
 
+const ATTR_DATA_RAW = "data-raw";
 function setTextData(changes) {
   // Main Content
   let titleContainer = "title".select();
@@ -283,6 +284,7 @@ function setTextData(changes) {
     let artistContainer = "artists".select();
     let artistsString = mainArtist + buildFeaturedArtistsSpan(artistsNew);
     artistContainer.innerHTML = convertToTextEmoji(artistsString);
+    artistContainer.setAttribute(ATTR_DATA_RAW, artistContainer.innerHTML);
 
     if (isPrefEnabled("show-featured-artists") || currentData.currentlyPlaying.artists[0] !== mainArtist) {
       fadeIn(artistContainer);
@@ -298,6 +300,7 @@ function setTextData(changes) {
     let titleExtra = splitTitle.extra;
     "title-main".select().innerHTML = titleMain;
     "title-extra".select().innerHTML = titleExtra;
+    titleContainer.setAttribute(ATTR_DATA_RAW, titleContainer.innerHTML);
 
     fadeIn(titleContainer);
   }
@@ -311,6 +314,8 @@ function setTextData(changes) {
     let albumTitleExtra = splitTitle.extra;
     "album-title-main".select().innerHTML = albumTitleMain;
     "album-title-extra".select().innerHTML = albumTitleExtra;
+    let albumTitleContainer = "album-title".select();
+    albumTitleContainer.setAttribute(ATTR_DATA_RAW, albumTitleContainer.innerHTML);
 
     let release = releaseDate.value;
     if (release !== BLANK) {
@@ -333,6 +338,8 @@ function setTextData(changes) {
     let descriptionContainer = "description".select();
     setClass("content-center".select(), "podcast", description.value && description.value !== BLANK);
     descriptionContainer.innerHTML = description.value.toString();
+    descriptionContainer.setAttribute(ATTR_DATA_RAW, descriptionContainer.innerHTML);
+
     fadeIn(descriptionContainer);
   }
 
@@ -750,20 +757,11 @@ async function balanceTextClamp(elem) {
       elem.style.removeProperty("-webkit-line-clamp");
     }
   } else {
-    removeTags(elem);
+    let dataRaw = elem.getAttribute(ATTR_DATA_RAW);
+    if (dataRaw && dataRaw.length > 0) {
+      elem.innerHTML = dataRaw;
+    }
   }
-}
-
-// TODO rework this using a data attr or something
-// copy-pasted from the balanceText library because removeTags(el) isn't accessible from the outside
-function removeTags(el) {
-  [...el.querySelectorAll('br[data-owner="balance-text-hyphen"]')].forEach(br => br.outerHTML = "");
-  [...el.querySelectorAll('br[data-owner="balance-text"]')].forEach(br => br.outerHTML = " ");
-  [...el.querySelectorAll('span[data-owner="balance-text-softhyphen"]')].forEach(span => {
-    const textNode = document.createTextNode("\u00ad");
-    span.parentNode.insertBefore(textNode, span);
-    span.parentNode.removeChild(span);
-  });
 }
 
 function setClass(elem, className, state) {
@@ -1601,12 +1599,12 @@ function initVisualPreferences() {
     setVersionHashInLocalStorage(newVersionHash);
     if (!storedVersionHash) {
       showModal("Welcome to SpotifyBigPicture", "Please select a preset to proceed...")
-      clearVisualPreferencesInLocalStorage();
+      resetSettings();
     } else if (storedVersionHash !== newVersionHash) {
       showModal(
         "New Version Detected",
         "It looks like you've installed a new version of SpotifyBigPicture. To prevent conflicts arising from the changes in the new version, it is strongly recommended to reset your settings. Reset settings now?",
-        () => clearVisualPreferencesInLocalStorage(),
+        () => resetSettings(),
         null,
         "Reset Settings",
         "Keep Settings")
@@ -1692,17 +1690,21 @@ function initVisualPreferences() {
       }
     } else {
       // On first load, apply the default preset and enable the ignoreDefaultOn settings. Then force-open the settings menu
-      applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-default"));
-      PREFERENCES_DEFAULT.ignoreDefaultOn.forEach(prefId => {
-        setVisualPreferenceFromId(prefId, true);
-      });
-      requestAnimationFrame(() => {
-        setSettingsMenuState(true);
-      });
+      applyDefaultPreset();
     }
   }
 
   submitVisualPreferencesToBackend();
+}
+
+function applyDefaultPreset() {
+  applyPreset(PREFERENCES_PRESETS.find(preset => preset.id === "preset-default"));
+  PREFERENCES_DEFAULT.ignoreDefaultOn.forEach(prefId => {
+    setVisualPreferenceFromId(prefId, true);
+  });
+  requestAnimationFrame(() => {
+    setSettingsMenuState(true);
+  });
 }
 
 function submitVisualPreferencesToBackend() {
@@ -1757,11 +1759,6 @@ function getVisualPreferencesFromLocalStorage() {
     return storedVisualPreferences?.split(LOCAL_STORAGE_SETTINGS_SPLIT_CHAR);
   }
   return null;
-}
-
-function clearVisualPreferencesInLocalStorage() {
-  console.warn("Visual preferences have been reset!")
-  localStorage.removeItem(LOCAL_STORAGE_KEY_SETTINGS);
 }
 
 function refreshPrefsLocalStorage() {
@@ -2242,7 +2239,7 @@ function initSettingsMouseMove() {
   };
 
   "settings-reset".select().onclick = () => {
-    resetAllSettings();
+    resetSettingsPrompt();
   };
 
   "settings-shutdown".select().onclick = () => {
@@ -2306,16 +2303,21 @@ function toggleSettingsExpertMode() {
   setClass(settingsWrapper, "expert", settingsExpertMode);
 }
 
-function resetAllSettings() {
+function resetSettingsPrompt() {
   showModal("Reset", "Do you really want to reset all settings to their default state?",
-    () => {
-      [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.ignoreDefaultOn].flat().forEach(id => setVisualPreferenceFromId(id, true));
-      [PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().forEach(id => setVisualPreferenceFromId(id, false));
-      clearLocalStoragePortraitModePresetPromptPreference();
-    },
+    () => resetSettings(),
     null,
     "Reset Settings",
     "Cancel");
+}
+
+function resetSettings() {
+  [PREFERENCES_DEFAULT.enabled, PREFERENCES_DEFAULT.ignoreDefaultOn].flat().forEach(id => setVisualPreferenceFromId(id, true));
+  [PREFERENCES_DEFAULT.disabled, PREFERENCES_DEFAULT.ignoreDefaultOff].flat().forEach(id => setVisualPreferenceFromId(id, false));
+  clearLocalStoragePortraitModePresetPromptPreference();
+  localStorage.removeItem(LOCAL_STORAGE_KEY_SETTINGS);
+  applyDefaultPreset();
+  console.warn("Settings have been reset!")
 }
 
 function shutdownPrompt() {
@@ -3146,7 +3148,11 @@ const PREFERENCES = [
     overrides: ["clock-full", "clock-24"],
     category: "Bottom Content",
     css: {"clock": "next-track"},
-    callback: () => refreshCurrentTextData()
+    callback: () => {
+      requestAnimationFrame(() => { // to avoid race conditions
+        refreshCurrentTextData();
+      })
+    }
   },
 
   ///////////////////////////////
@@ -3499,6 +3505,7 @@ const PREFERENCES_DEFAULT = {
     "xl-main-info-scrolling",
     "increase-min-track-list-scaling",
     "increase-max-track-list-scaling",
+    "album-spacers",
     "swap-top",
     "spread-timestamps",
     "remaining-time-timestamp",
