@@ -1474,7 +1474,7 @@ function refreshProgress() {
   }
 }
 
-const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+const IDLE_TIMEOUT_MS = 60 * 60 * 1000;
 let idleTimeout;
 
 function refreshIdleTimeout(changes, force = false) {
@@ -1601,6 +1601,15 @@ function initVisualPreferences() {
   // Create settings
   for (let prefIndex in PREFERENCES) {
     let pref = PREFERENCES[prefIndex];
+
+    // Subcategory Headers
+    if (pref.subcategoryHeader) {
+      let prefElem = document.createElement("div");
+      prefElem.innerHTML = pref.subcategoryHeader;
+      prefElem.classList.add("setting-subcategory-header");
+      let categoryElem = categories[pref.category];
+      categoryElem.appendChild(prefElem);
+    }
 
     // Create button element
     let prefElem = document.createElement("div");
@@ -2119,13 +2128,13 @@ function handleMouseEvent(e) {
   setMouseVisibility(true)
 
   if (!modalActive) {
-    let settingsMenuToggleButton = "settings-menu-toggle-button".select();
-    setClass(settingsMenuToggleButton, "show", true);
+    let mouseMoveButtons = "mouse-move-buttons".select();
+    setClass(mouseMoveButtons, "show", true);
 
-    if (!isHoveringControlElem(e.target) && !settingsVisible) {
+    if (!settingsVisible && e.target.parentNode !== mouseMoveButtons && !isHoveringControlElem(e.target)) {
       cursorTimeout = setTimeout(() => {
         setMouseVisibility(false);
-        setClass(settingsMenuToggleButton, "show", false);
+        setClass(mouseMoveButtons, "show", false);
       }, MOUSE_MOVE_HIDE_TIMEOUT_MS);
     }
   }
@@ -2186,6 +2195,12 @@ function initSettingsMouseMove() {
     "preset-thumbnail-generator-canvas".select().remove();
   }
 
+  let nosleepButton = "nosleep-lock-button".select();
+  nosleepButton.onclick = () => {
+    toggleNoSleepMode();
+  };
+
+
   "settings-expert-mode-toggle".select().onclick = () => {
     toggleSettingsExpertMode();
   };
@@ -2238,10 +2253,10 @@ function toggleSettingsMenu() {
 
 function setSettingsMenuState(state) {
   settingsVisible = state;
-
-  let settingsMenuToggleButton = "settings-menu-toggle-button".select();
-  setClass(settingsMenuToggleButton, "show", settingsVisible);
   setMouseVisibility(settingsVisible)
+
+  let mouseMoveButtons = "mouse-move-buttons".select();
+  setClass(mouseMoveButtons, "settings-active", settingsVisible);
 
   let settingsWrapper = "settings-wrapper".select();
   let mainBody = "main".select();
@@ -2291,7 +2306,6 @@ function shutdownPrompt() {
   }
 }
 
-
 function scrollSettingsUpDown(direction) {
   let settingsScroller = "settings-scroller".select();
   let velocity = settingsScroller.offsetHeight / 2;
@@ -2301,6 +2315,20 @@ function scrollSettingsUpDown(direction) {
     left: 0,
     behavior: isPrefEnabled("transitions") ? 'smooth' : 'auto'
   });
+}
+
+let nosleep = new NoSleep();
+let nosleepActive = false;
+function toggleNoSleepMode() {
+  nosleepActive = !nosleepActive;
+  if (nosleepActive) {
+    nosleep.enable();
+    console.info("No-sleep mode enabled!")
+  } else {
+    nosleep.disable();
+    console.info("No-sleep mode disabled!")
+  }
+  setClass("nosleep-lock-button".select(), "enabled", nosleepActive);
 }
 
 function generatePresetThumbnail() {
@@ -2546,11 +2574,11 @@ const PREFERENCES = [
     css: {"main": "hide-cursor-enabled"}
   },
   {
-    id: "hide-cog",
-    name: "Hide Settings Icon",
-    description: "Hide the settings icon in the top right when moving the mouse. Note: If you disable this icon, the settings menu can only be accessed by pressing Space",
+    id: "hide-top-buttons",
+    name: "Hide Top Buttons",
+    description: "Hide the settings/keep screen awake icons at the top when moving the mouse. Note: If you disable this, the settings menu can only be accessed by pressing Space!",
     category: "General",
-    css: {"settings-menu-toggle-button": "hide"}
+    css: {"mouse-move-buttons": "hide"}
   },
 
   ///////////////////////////////
@@ -2560,7 +2588,7 @@ const PREFERENCES = [
     name: "Enable Lyrics (L)",
     description: "Searches for and displays the lyrics of the current song from Genius.com<br>[Hotkey: L]",
     category: "Lyrics",
-    requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics"],
+    requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics", "dim-lyrics", "max-width-lyrics"],
     css: {"lyrics": "!hide"},
     callback: (state) => {
       if (state) {
@@ -2658,46 +2686,6 @@ const PREFERENCES = [
     css: {"track-list": "show-timestamps"}
   },
   {
-    id: "album-view",
-    name: "Enable Album View",
-    description: "If enabled, while playing an album or playlist with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
-      + "(Only works for 200 tracks or fewer, for performance reasons)",
-    category: "Tracklist",
-    requiredFor: ["always-show-track-numbers-album-view", "album-spacers-in-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
-    callback: () => refreshTrackList()
-  },
-  {
-    id: "hide-single-item-album-view",
-    name: "Album View: Hide Tracklist for Single Song",
-    description: "If 'Album View' is enabled and the current context only has one track (such as a single), don't render the tracklist at all",
-    category: "Tracklist",
-    callback: () => refreshTrackList()
-  },
-  {
-    id: "always-show-track-numbers-album-view",
-    name: "Album View: Always Show Everything",
-    description: "If 'Album View' is enabled, the track numbers and artists are always displayed as well (four columns). " +
-      "Otherwise, track numbers are hidden for playlists and artists are hidden for albums",
-    category: "Tracklist",
-    css: {"track-list": "always-show-track-numbers-album-view"},
-    callback: () => refreshTrackList()
-  },
-  {
-    id: "album-spacers-in-album-view",
-    name: "Album View: Margin Between Albums",
-    description: "If enabled, after each album in a tracklist, some margin is added to visually separate them. " +
-      "This setting is intended to be used for playlists that have multiple albums in chunks",
-    category: "Tracklist",
-    css: {"track-list": "album-spacers"}
-  },
-  {
-    id: "hide-tracklist-podcast-view",
-    name: "Hide Tracklist for Podcasts",
-    description: "If the currently playing track is a podcast, hides the tracklist. This opens up more room for the episode description",
-    category: "Tracklist",
-    css: {"track-list": "hide-for-podcasts"}
-  },
-  {
     id: "increase-min-track-list-scaling",
     name: "Increase Minimum Text Scaling Limit",
     description: "If enabled, the minimum font size for the tracklist is drastically increased (factor 3 instead of 2)",
@@ -2710,6 +2698,49 @@ const PREFERENCES = [
     description: "If enabled, the maximum font size for the tracklist is drastically increased (factor 5 instead of 3)",
     category: "Tracklist",
     css: {"track-list": "increase-max-scale"}
+  },
+  {
+    id: "hide-tracklist-podcast-view",
+    name: "Hide Tracklist for Podcasts",
+    description: "If the currently playing track is a podcast, hides the tracklist. This opens up more room for the episode description",
+    category: "Tracklist",
+    css: {"track-list": "hide-for-podcasts"}
+  },
+
+  // Album View
+  {
+    id: "album-view",
+    name: "Enable Album View",
+    description: "If enabled, while playing an album or playlist with shuffle DISABLED, the tracklist is replaced by an alternate design that displays the surrounding tracks in an automatically scrolling list. "
+      + "(Only works for 200 tracks or fewer, for performance reasons)",
+    category: "Tracklist",
+    subcategoryHeader: "Album View",
+    requiredFor: ["always-show-track-numbers-album-view", "album-spacers-in-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "hide-single-item-album-view",
+    name: "Hide Tracklist for Single Song",
+    description: "If 'Album View' is enabled and the current context only has one track (such as a single), don't render the tracklist at all",
+    category: "Tracklist",
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "always-show-track-numbers-album-view",
+    name: "Always Show Everything",
+    description: "If 'Album View' is enabled, the track numbers and artists are always displayed as well (four columns). " +
+      "Otherwise, track numbers are hidden for playlists and artists are hidden for albums",
+    category: "Tracklist",
+    css: {"track-list": "always-show-track-numbers-album-view"},
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "album-spacers-in-album-view",
+    name: "Margin Between Albums",
+    description: "If enabled, after each album in the album view tracklist, some margin is added to visually separate them. " +
+      "This setting is intended to be used for playlists that have multiple albums in chunks",
+    category: "Tracklist",
+    css: {"track-list": "album-spacers"}
   },
 
   ///////////////////////////////
@@ -3038,6 +3069,7 @@ const PREFERENCES = [
     name: "Show Clock",
     description: "Displays a clock at the bottom center of the page",
     category: "Bottom Content",
+    subcategoryHeader: "Clock",
     requiredFor: ["clock-full", "clock-24", "next-track-replacing-clock"],
     css: {"clock": "!hide"}
   },
@@ -3271,7 +3303,7 @@ const PREFERENCES = [
   {
     id: "allow-idle-mode",
     name: "Allow Idle Mode",
-    description: "If enabled and no music has been played for the past 30 minutes, the screen will go black to save on resources. "
+    description: "If enabled and no music has been played for the past 60 minutes, the screen will go black to save on resources. "
       + "Once playback resumes, the page will refresh automatically. Recommended for 24/7 hosting of this app",
     category: "Performance",
     callback: () => refreshIdleTimeout(currentData, true)
@@ -3443,7 +3475,7 @@ const PREFERENCES_DEFAULT = {
     "scrollable-track-list",
     "colored-symbol-context",
     "dark-mode",
-    "hide-cog",
+    "hide-top-buttons",
     "show-fps"
   ]
 }

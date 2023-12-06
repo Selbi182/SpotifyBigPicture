@@ -1357,55 +1357,61 @@ div#device {
     border-radius: 2vmin;
 }
 
-:is(#settings-menu-toggle-button, #settings-shutdown) {
-    --offset: var(--margin-half);
-    width: var(--offset);
-    height: var(--offset);
-    left: calc(var(--offset) / -2);
-    top: calc(var(--offset) / 2);
-    position: absolute;
-    -webkit-mask-image: url("img/symbols/cog.png");
-    -webkit-mask-size: contain;
-    -webkit-mask-position: right;
-    -webkit-mask-repeat: no-repeat;
-    mask-image: url("img/symbols/cog.png");
-    mask-size: contain;
-    mask-position: right;
-    mask-repeat: no-repeat;
-    opacity: 0;
-    background-color: white;
-    z-index: 3;
-    cursor: pointer;
-    transition: opacity var(--transition), left var(--transition), transform var(--transition);
-}
 
-body.modal #settings-menu-toggle-button {
+#mouse-move-buttons {
+    --offset: var(--margin-half);
+    position: absolute;
+    padding: 0 calc(var(--offset) / 2);
+    top: calc(var(--offset) / 2);
+    height: var(--offset);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity var(--transition);
+    pointer-events: none;
+}
+#mouse-move-buttons.show {
+    opacity: 1;
+}
+#mouse-move-buttons.hide, body.modal #mouse-move-buttons {
+    display: none;
+}
+#mouse-move-buttons.settings-active > div:not(:first-child) {
     display: none;
 }
 
-#settings-menu-toggle-button.show {
+#mouse-move-buttons > div {
+    --offset: var(--margin-half);
+    width: var(--offset);
+    height: var(--offset);
+    background: var(--icon);
+    background-size: contain;
     opacity: 0.5;
-    left: calc(var(--offset) / 2);
+    cursor: pointer;
+    transition: opacity var(--transition), transform var(--transition);
+    pointer-events: all;
+}
+#mouse-move-buttons > div:hover {
+    opacity: 1;
+}
+
+#mouse-move-buttons > #settings-menu-toggle-button {
+    --icon: url("img/symbols/cog.png");
+}
+#mouse-move-buttons > #settings-menu-toggle-button:hover {
     transform: rotate(180deg);
     transition-duration: var(--transition);
 }
 
-:is(#settings-menu-toggle-button, #settings-shutdown).hide {
-    display: none;
+#mouse-move-buttons > #nosleep-lock-button {
+    --icon: url("img/symbols/lock-unlocked.png");
+}
+#mouse-move-buttons > #nosleep-lock-button.enabled {
+    --icon: url("img/symbols/lock-locked.png");
 }
 
-:is(#settings-menu-toggle-button, #settings-shutdown):hover {
-    opacity: 1;
-}
-
-#settings-shutdown {
-    -webkit-mask-image: url("img/symbols/power.png");
-    mask-image: url("img/symbols/power.png");
-    top: unset;
-    bottom: calc(var(--offset) / 2);
-    left: calc(var(--offset) / 2);
-    opacity: 0.5;
-}
 
 #settings-wrapper {
     color: white;
@@ -1578,6 +1584,12 @@ body.modal #settings-menu-toggle-button {
     visibility: hidden;
 }
 
+#settings-categories .setting-subcategory-header {
+    opacity: 0.25;
+    margin-top: 1vmin;
+    border-bottom: 0.3vmin solid var(--color);
+}
+
 #settings-right {
     display: flex;
     flex-direction: column;
@@ -1747,6 +1759,33 @@ body.modal #settings-menu-toggle-button {
 
 #settings-wrapper.expert #settings-expert-mode-toggle::before {
     background-image: url("img/symbols/checkbox-on.png");
+}
+
+#settings-shutdown {
+    -webkit-mask-image: url("img/symbols/power.png");
+    mask-image: url("img/symbols/power.png");
+    top: unset;
+    bottom: calc(var(--offset) / 2);
+    left: calc(var(--offset) / 2);
+    opacity: 0.5;
+    --offset: var(--margin-half);
+    width: var(--offset);
+    height: var(--offset);
+    position: absolute;
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
+    background-color: white;
+    z-index: 3;
+    cursor: pointer;
+    transition: opacity var(--transition);
+}
+
+#settings-shutdown:hover {
+    opacity: 1;
 }
 
 #settings-reset::before {
