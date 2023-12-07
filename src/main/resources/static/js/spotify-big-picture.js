@@ -142,10 +142,12 @@ function pollingLoop() {
   singleRequest()
     .then(success => calculateNextPollingTimeout(success))
     .then(pollingMs => {
+      let nextPollingMs = pollingMs;
       if (pollingMs > 0 && pollingMs !== POLLING_INTERVAL_MS && isPrefEnabled("guess-next-track")) {
         fakeSongTransition = setTimeout(() => simulateNextSongTransition(), pollingMs);
+        nextPollingMs = pollingMs * 2;
       }
-      pollTimeout = setTimeout(pollingLoop, parseInt(pollingMs.toString()))
+      pollTimeout = setTimeout(pollingLoop, parseInt(nextPollingMs.toString()))
     });
 }
 
@@ -172,7 +174,10 @@ function calculateNextPollingTimeout(success) {
 
 let fakeSongTransition;
 function simulateNextSongTransition() {
-  if (currentData.trackData.queue.length > 0) {
+  if (currentData.trackData.queue.length > 0
+    && !currentData.playbackContext.paused
+    && (currentData.currentlyPlaying.timeTotal - currentData.currentlyPlaying.timeCurrent) < POLLING_INTERVAL_MS
+    && isTabVisible()) {
     let newTrackData = cloneObject(currentData.trackData);
 
     let expectedSong = newTrackData.queue.shift();
