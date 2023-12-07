@@ -104,6 +104,30 @@ img:not([src]) {
     visibility: hidden;
 }
 
+#toast {
+    position: absolute;
+    width: 100%;
+    height: var(--margin-main);
+    z-index: 4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2vmin;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition), margin-top var(--transition);
+    margin-top: calc(-1 * var(--margin-half));
+}
+#toast.show {
+    opacity: 1;
+    margin-top: 0;
+}
+#toast-text {
+    background: #00000060;
+    padding: 1vmin 2vmin;
+    border-radius: 1vmin;
+}
+
 #dark-overlay {
     --dark-intensity: 0.5;
     opacity: var(--dark-intensity);

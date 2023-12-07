@@ -662,6 +662,8 @@ function fetchAndPrintLyrics(changes) {
       setTimeout(() => {
         refreshTextBalance();
       }, getTransitionFromCss());
+    } else {
+      showToast("Lyrics not found for current track!");
     }
   }
 
@@ -883,7 +885,7 @@ function finishAnimations(elem) {
 }
 
 function fadeIn(elem) {
-  if (isPrefEnabled("text-balancing")) {
+  if (isPrefEnabled("text-balancing") && idsToBalance.includes(elem.id)) {
     finishAnimations(elem);
     elem.classList.add("transparent");
     elem.classList.remove("text-grow");
@@ -1325,8 +1327,20 @@ function unsetNextImagePrerender() {
   });
 }
 
+const MIN_PERCEIVED_BRIGHTNESS = 0.7;
 function setTextColor(rgbText) {
-  let rgbCss = `rgb(${rgbText.r}, ${rgbText.g}, ${rgbText.b})`;
+  let r = rgbText.r;
+  let g = rgbText.g;
+  let b = rgbText.b;
+
+  // Calculate perceived brightness of color and fall back to white if it's under a certain threshold
+  // (Formula taken from: http://alienryderflex.com/hsp.html)
+  let perceivedBrightness = Math.sqrt(0.299 * Math.pow(r, 2) + 0.587 * Math.pow(g, 2) + 0.114 * Math.pow(b, 2)) / 255;
+  if (perceivedBrightness < MIN_PERCEIVED_BRIGHTNESS) {
+    [r, g, b] = [255, 255, 255];
+  }
+
+  let rgbCss = `rgb(${r}, ${g}, ${b})`;
   document.documentElement.style.setProperty("--color", rgbCss);
 }
 
@@ -2366,10 +2380,10 @@ function toggleNoSleepMode() {
   nosleepActive = !nosleepActive;
   if (nosleepActive) {
     nosleep.enable();
-    console.info("No-sleep mode enabled!")
+    showToast("No-sleep mode enabled!")
   } else {
     nosleep.disable();
-    console.info("No-sleep mode disabled!")
+    showToast("No-sleep mode disabled!")
   }
   setClass("nosleep-lock-button".select(), "enabled", nosleepActive);
 }
@@ -2517,6 +2531,23 @@ function hideModal() {
   modalActive = false;
   setClass("modal-overlay".select(), "show", false);
   setClass(document.body, "modal", false);
+}
+
+
+///////////////////////////////
+// Toast Notifications
+///////////////////////////////
+
+let toastTimeout;
+function showToast(text) {
+  clearTimeout(toastTimeout);
+  let toastContainer = "toast".select();
+  let toastTextContainer = "toast-text".select();
+  toastTextContainer.innerHTML = text;
+  setClass(toastContainer, "show", true);
+  toastTimeout = setTimeout(() => {
+    setClass(toastContainer, "show", false);
+  }, 3000);
 }
 
 
