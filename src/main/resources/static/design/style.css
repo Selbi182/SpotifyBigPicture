@@ -844,6 +844,7 @@ div#description {
     overflow-y: hidden;
     mask-repeat: no-repeat;
     font-size: var(--font-size-base);
+    --min-change: 0.1;
     --scale-min: 2;
     --scale-max: 3;
     --font-size-base: calc(1vmin * clamp(var(--scale-min), var(--font-size-scale), var(--scale-max)));
@@ -1475,6 +1476,21 @@ div#device {
     -webkit-writing-mode: vertical-lr;
     writing-mode: vertical-lr;
     margin: auto 0;
+}
+
+#kofi-button {
+    z-index: 1;
+    position: absolute;
+    bottom: var(--margin-half);
+    right: var(--margin-half);
+    transition: var(--transition);
+}
+
+#kofi-button:hover {
+    opacity: 1;
+    rotate: -7deg;
+    transform: scale(1.1);
+    filter: brightness(125%);
 }
 
 #settings-scroller {

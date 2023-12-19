@@ -103,17 +103,15 @@ function singleRequest(forceUpdate) {
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
           return response.json()
-        } else {
-          return {
-            type: "EMPTY"
-          }
         }
+        throw new Error("Internal Server Error");
       })
       .then(json => processJson(json))
       .then(() => resolve(true))
       .catch(ex => {
         if (!ex.message.startsWith("NetworkError")) {
           console.error(ex);
+          showToast(ex);
         }
         resolve(false);
       });
@@ -172,12 +170,22 @@ function calculateNextPollingTimeout(success) {
   return retryTimeoutMs;
 }
 
+let fakeSongTransitionCooldown = false;
 let fakeSongTransition;
 function simulateNextSongTransition() {
+  if (fakeSongTransitionCooldown) {
+    console.debug("Simulated song transition skipped!")
+    return;
+  }
   if (currentData.trackData.queue.length > 0
     && !currentData.playbackContext.paused
     && (currentData.currentlyPlaying.timeTotal - currentData.currentlyPlaying.timeCurrent) < POLLING_INTERVAL_MS
     && isTabVisible()) {
+    fakeSongTransitionCooldown = true;
+    setTimeout(() => {
+      fakeSongTransitionCooldown = false;
+    }, 5000);
+
     let newTrackData = cloneObject(currentData.trackData);
 
     let expectedSong = newTrackData.queue.shift();
@@ -205,6 +213,30 @@ function cloneObject(object) {
 
 function isTabVisible() {
   return document.visibilityState === "visible";
+}
+
+
+///////////////////////////////
+// ONE-TIME LOADING
+///////////////////////////////
+
+window.addEventListener('load', runOnceDuringLaunch);
+function runOnceDuringLaunch() {
+  kofiwidget2.init('Support Me On Ko-fi', '#1DB954', 'T6T8S1H5E');
+
+  let kofi = kofiwidget2.getHTML();
+  let settingsWrapper = "settings-wrapper".select();
+  settingsWrapper.innerHTML += kofi;
+  let kofiButton = settingsWrapper.querySelector(".btn-container");
+  kofiButton.id = "kofi-button";
+
+  kofiButton.addEventListener("mouseover", (event) => {
+    setSettingDescription(
+      "Buy Me A Ko-Fi!",
+      "For extra cool people :)"
+    )
+    setDescriptionVisibility(true);
+  });
 }
 
 
@@ -575,6 +607,7 @@ function scaleTrackList() {
   let previousFontSizeScale = getComputedStyle(trackListContainer).getPropertyValue("--font-size-scale") || 1;
   let minScale = getComputedStyle(trackListContainer).getPropertyValue("--scale-min") || 2.2;
   let maxScale = getComputedStyle(trackListContainer).getPropertyValue("--scale-max") || 3;
+  let minChange = getComputedStyle(trackListContainer).getPropertyValue("--min-change") || 0.1;
   previousFontSizeScale = Math.min(Math.max(previousFontSizeScale, minScale), maxScale);
 
   let contentCenterContainer = trackListContainer.parentElement;
@@ -590,6 +623,10 @@ function scaleTrackList() {
   }
 
   let trackListScaleRatio = (contentCenterHeight - marginForOtherVerticalElements) / trackListSize;
+  if (Math.abs(previousFontSizeScale - trackListScaleRatio) < minChange) {
+    return;
+  }
+
   if (!isNaN(trackListScaleRatio) && isFinite(trackListScaleRatio)) {
     trackListContainer.style.setProperty("--font-size-scale", trackListScaleRatio.toString());
   }
@@ -2197,32 +2234,43 @@ window.addEventListener('load', initSettingsMouseMove);
 function printSettingDescription(event) {
   let target = event.target;
   if (target?.classList) {
-    let header = "settings-description-header".select();
-    let description = "settings-description-description".select();
-    let unaffected = "settings-description-unaffected".select();
-    let overridden = "settings-description-overridden".select();
-
     if (target.parentNode.classList.contains("preset")) {
       target = target.parentNode;
     }
-    if (target.classList.contains("setting") || target.classList.contains("preset")) {
+    if (target.id === "kofi-button" || target.parentNode.id === "kofi-button") {
+      setDescriptionVisibility(true);
+    } else if (target.classList.contains("setting") || target.classList.contains("preset")) {
       let pref = findPreference(target.id) || findPreset(target.id);
       if (pref) {
-        header.innerHTML = (pref.category === "Presets" ? "Preset: " : "") + pref.name;
-        description.innerHTML = pref.description;
-        unaffected.innerHTML = PREFERENCES_IGNORED_SETTINGS.includes(pref.id) ? "This setting is unaffected by changing presets" : "";
-
-        overridden.innerHTML = [...target.classList]
-          .filter(className => className.startsWith("overridden-"))
-          .map(className => findPreference(className.replace("overridden-", "")))
-          .map(pref => pref.category + " &#x00BB; " + pref.name)
-          .join(" // ");
-
+        setSettingDescription(
+          (pref.category === "Presets" ? "Preset: " : "") + pref.name,
+          pref.description,
+          PREFERENCES_IGNORED_SETTINGS.includes(pref.id)
+        )
         setDescriptionVisibility(true);
       }
     } else {
       setDescriptionVisibility(false);
     }
+  }
+}
+
+function setSettingDescription(headerText, descriptionText, isUnaffected, overriddenRootId) {
+  let header = "settings-description-header".select();
+  let description = "settings-description-description".select();
+  let unaffected = "settings-description-unaffected".select();
+  let overridden = "settings-description-overridden".select();
+
+  header.innerHTML = headerText;
+  description.innerHTML = descriptionText;
+  unaffected.innerHTML = isUnaffected ? "This setting is unaffected by changing presets" : "";
+
+  if (overriddenRootId) {
+    overridden.innerHTML = [...overriddenRootId.classList]
+      .filter(className => className.startsWith("overridden-"))
+      .map(className => findPreference(className.replace("overridden-", "")))
+      .map(pref => pref.category + " &#x00BB; " + pref.name)
+      .join(" // ");
   }
 }
 

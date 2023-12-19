@@ -76,8 +76,12 @@ public class PlaybackController {
   @CrossOrigin
   @GetMapping("/playback-info")
   public ResponseEntity<PlaybackInfo> getCurrentPlaybackInfo(@RequestParam int v) {
-    PlaybackInfo currentPlaybackInfo = playbackInfoProvider.getCurrentPlaybackInfo(v);
-    return ResponseEntity.ok(currentPlaybackInfo);
+    try {
+      PlaybackInfo currentPlaybackInfo = playbackInfoProvider.getCurrentPlaybackInfo(v);
+      return ResponseEntity.ok(currentPlaybackInfo);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
   }
 
   ///////////////
