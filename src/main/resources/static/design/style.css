@@ -1288,13 +1288,16 @@ div#device {
 
 #progress-current {
     --progress-percent: 0%;
-    transform: translateX(calc(var(--progress-percent) - 100%));
-    background-color: var(--color);
-    width: 100%;
+    background: var(--color);
+    width: var(--progress-percent);
     height: 100%;
     position: absolute;
     z-index: 1;
     border-radius: inherit;
+}
+
+#progress-current.gradient {
+    background: linear-gradient(to right, transparent 0%, var(--color) 100%);
 }
 
 #bottom-meta-container {

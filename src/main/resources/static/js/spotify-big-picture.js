@@ -230,7 +230,7 @@ function runOnceDuringLaunch() {
   let kofiButton = settingsWrapper.querySelector(".btn-container");
   kofiButton.id = "kofi-button";
 
-  kofiButton.addEventListener("mouseover", (event) => {
+  kofiButton.addEventListener("mouseover", () => {
     setSettingDescription(
       "Buy Me A Ko-Fi!",
       "For extra cool people :)"
@@ -1941,10 +1941,12 @@ function updateExternallyToggledPreferences(changes) {
           let preference = findPreference(setting);
           if (preference) {
             toggleVisualPreference(preference);
+            showToast(`${preference.name} ${preference.state ? "enabled" : "disabled"} via remote`);
           } else {
             let preset = findPreset(setting);
             if (preset) {
               applyPreset(preset);
+              showToast(`Preset ${preset.name} applied via remote`);
               requestAnimationFrame(() => {
                 setMouseVisibility(false);
               });
@@ -2422,6 +2424,7 @@ function scrollSettingsUpDown(direction) {
   });
 }
 
+// noinspection JSUnresolvedFunction
 let nosleep = new NoSleep();
 let nosleepActive = false;
 function toggleNoSleepMode() {
@@ -3109,9 +3112,17 @@ const PREFERENCES = [
     name: "Progress Bar",
     description: "Displays a progress bar, indicating how far along the currently played track is",
     category: "Bottom Content",
-    requiredFor: ["smooth-progress-bar"],
+    requiredFor: ["smooth-progress-bar", "progress-bar-gradient"],
     css: {"progress": "!hide"}
   },
+  {
+    id: "progress-bar-gradient",
+    name: "Progress Bar Gradient",
+    description: "Uses an alternate design for the progress bar with a gradient instead of a flat color",
+    category: "Bottom Content",
+    css: {"progress-current": "gradient"}
+  },
+
   {
     id: "show-info-icons",
     name: "Show Play/Pause/Shuffle/Repeat Icons",
@@ -3593,6 +3604,7 @@ const PREFERENCES_DEFAULT = {
     "swap-top",
     "spread-timestamps",
     "remaining-time-timestamp",
+    "progress-bar-gradient",
     "reverse-bottom",
     "artwork-expand-bottom",
     "artwork-right",
