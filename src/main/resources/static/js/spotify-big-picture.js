@@ -217,30 +217,6 @@ function isTabVisible() {
 
 
 ///////////////////////////////
-// ONE-TIME LOADING
-///////////////////////////////
-
-window.addEventListener('load', runOnceDuringLaunch);
-function runOnceDuringLaunch() {
-  kofiwidget2.init('Support Me On Ko-fi', '#1DB954', 'T6T8S1H5E');
-
-  let kofi = kofiwidget2.getHTML();
-  let settingsWrapper = "settings-wrapper".select();
-  settingsWrapper.innerHTML += kofi;
-  let kofiButton = settingsWrapper.querySelector(".btn-container");
-  kofiButton.id = "kofi-button";
-
-  kofiButton.addEventListener("mouseover", () => {
-    setSettingDescription(
-      "Buy Me A Ko-Fi!",
-      "For extra cool people :)"
-    )
-    setDescriptionVisibility(true);
-  });
-}
-
-
-///////////////////////////////
 // MAIN DISPLAY STUFF
 ///////////////////////////////
 
@@ -520,7 +496,7 @@ function refreshTrackList() {
   setCorrectTracklistView(currentData);
 }
 
-function setCorrectTracklistView(changes) {
+function setCorrectTracklistView(changes, forceScroll = false) {
   let mainContainer = "content-center".select();
   let trackListContainer = "track-list".select();
   let listViewType = getChange(changes, "trackData.trackListView").value;
@@ -591,7 +567,7 @@ function setCorrectTracklistView(changes) {
 
   scaleTrackList();
 
-  if (refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
+  if (forceScroll || refreshPrintedList || getChange(changes, "trackData.trackNumber").wasChanged) {
     // Make sure the tracklist is at the correct position after the scaling transition.
     // This is a bit of a hackish solution, but a proper ontransitionend would be too tricky on a grid.
     refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
@@ -650,6 +626,10 @@ function trackListEquals(trackList1, trackList2) {
     }
   }
   return true;
+}
+
+"track-list".select().onclick = () => {
+  setCorrectTracklistView(currentData, true);
 }
 
 function toggleLyrics() {
@@ -946,6 +926,14 @@ function printTrackList(trackList, printDiscs) {
   let previousDiscNumber = 0;
   let trackNumPadLength = Math.max(...trackList.map(t => t.trackNumber)).toString().length;
 
+  let albumSwaps = 0;
+  for (let i = 1; i < trackList.length; i++) {
+    if (trackList[i].album !== trackList[i - 1].album) {
+      albumSwaps++;
+    }
+  }
+  let spacersEnabled = (trackList.length / 2) > albumSwaps;
+
   let previousAlbum = trackList[0].album;
   for (let trackItem of trackList) {
     if (printDiscs && 'discNumber' in trackItem) {
@@ -956,7 +944,7 @@ function printTrackList(trackList, printDiscs) {
         trackListContainer.append(discTrackElem);
       }
     }
-    let spacer = previousAlbum !== trackItem.album;
+    let spacer = spacersEnabled && previousAlbum !== trackItem.album;
     if (previousAlbum !== trackItem.album) {
       previousAlbum = trackItem.album;
     }
@@ -1659,7 +1647,7 @@ function initVisualPreferences() {
     } else if (storedVersionHash !== newVersionHash) {
       showModal(
         "New Version Detected",
-        "It looks like you've installed a new version of SpotifyBigPicture. To prevent conflicts arising from the changes in the new version, it is strongly recommended to reset your settings. Reset settings now?",
+        "It looks like you've installed a new version of SpotifyBigPicture. To prevent conflicts arising from the changes in the new version, it is recommended to reset your settings. Reset settings now?",
         () => resetSettings(),
         null,
         "Reset Settings",
@@ -1740,9 +1728,12 @@ function initVisualPreferences() {
   if (isLocalStorageAvailable()) {
     let visualPreferencesFromLocalStorage = getVisualPreferencesFromLocalStorage();
     if (visualPreferencesFromLocalStorage) {
-      // Init setting states from local storage
+      // Init setting states from local storage (dark mode is auto-disabled on page refresh)
       for (let pref of PREFERENCES) {
-        refreshPreference(pref, visualPreferencesFromLocalStorage.includes(pref.id));
+        let state = (pref.id !== "dark-mode")
+          ? visualPreferencesFromLocalStorage.includes(pref.id)
+          : false;
+        refreshPreference(pref, state);
       }
     } else {
       // On first load, apply the default preset and enable the ignoreDefaultOn settings. Then force-open the settings menu
@@ -1838,7 +1829,10 @@ function setVersionHashInLocalStorage(newVersionHash) {
 
 function calculateVersionHash() {
   let allSettings = getAllSettings();
-  return [...allSettings].reduce((totalLength, str) => totalLength + str.length, 0).toString(); // hash is really just the total length of all setting IDs
+
+  // the generated hash is really just the total length of all setting IDs concatenated
+  let pseudoHash = [...allSettings].reduce((totalLength, str) => totalLength + str.length, 0);
+  return pseudoHash.toString();
 }
 
 function toggleVisualPreference(pref) {
@@ -1941,7 +1935,7 @@ function updateExternallyToggledPreferences(changes) {
           let preference = findPreference(setting);
           if (preference) {
             toggleVisualPreference(preference);
-            showToast(`${preference.name} ${preference.state ? "enabled" : "disabled"} via remote`);
+            showToast(`'${preference.name}' ${preference.state ? "enabled" : "disabled"} via remote`);
           } else {
             let preset = findPreset(setting);
             if (preset) {
@@ -2014,7 +2008,6 @@ function handleVolumeChange(volume, device, customVolumeSettings) {
 }
 
 let deviceTimeout;
-
 function handleDeviceChange(device) {
   let deviceContainer = "device".select();
   deviceContainer.innerHTML = device;
@@ -2032,6 +2025,27 @@ function refreshAll() {
   refreshProgress();
   updateScrollGradients();
   submitVisualPreferencesToBackend();
+}
+
+let kofiButton;
+function showKofiButton() {
+  if (!kofiButton) {
+    kofiwidget2.init('Support Me On Ko-fi', '#1DB954', 'T6T8S1H5E');
+
+    let kofi = kofiwidget2.getHTML();
+    let settingsWrapper = "settings-wrapper".select();
+    settingsWrapper.innerHTML += kofi;
+    let kofiButton = settingsWrapper.querySelector(".btn-container");
+    kofiButton.id = "kofi-button";
+
+    kofiButton.addEventListener("mouseover", () => {
+      setSettingDescription(
+        "Buy Me A Ko-Fi!",
+        "For extra cool people :)"
+      )
+      setDescriptionVisibility(true);
+    });
+  }
 }
 
 
@@ -2364,6 +2378,10 @@ function setSettingsMenuState(state) {
   let mainBody = "main".select();
   setClass(settingsWrapper, "show", settingsVisible);
   setClass(mainBody, "scale-down", settingsVisible);
+
+  if (state) {
+    showKofiButton();
+  }
 }
 
 function toggleSettingsExpertMode() {
@@ -2679,8 +2697,8 @@ const PREFERENCES = [
   },
   {
     id: "dark-mode",
-    name: "Dark Mode (D)",
-    description: "Darkens the entire screen by 50%<br>[Hotkey: D]",
+    name: "Dark Mode",
+    description: "Darkens the entire screen by 50%. This setting gets automatically disabled on a page refresh<br>[Hotkey: D]",
     category: "General",
     css: {"dark-overlay": "show"}
   },
@@ -2710,7 +2728,7 @@ const PREFERENCES = [
   // Lyrics
   {
     id: "show-lyrics",
-    name: "Enable Lyrics (L)",
+    name: "Enable Lyrics",
     description: "Searches for and displays the lyrics of the current song from Genius.com<br>[Hotkey: L]",
     category: "Lyrics",
     requiredFor: ["lyrics-simulated-scroll", "lyrics-hide-tracklist", "xl-lyrics", "dim-lyrics", "max-width-lyrics"],
@@ -2835,7 +2853,7 @@ const PREFERENCES = [
     id: "album-spacers",
     name: "Margin Between Albums",
     description: "If enabled, after each album in the tracklist, some margin is added to visually separate them. " +
-      "This setting is intended to be used for playlists that have multiple albums in chunks<br>[Hotkey: S]",
+      "Only works for playlists that have multiple albums in chunks, not individual ones<br>[Hotkey: S]",
     category: "Tracklist",
     css: {"track-list": "album-spacers"}
   },
