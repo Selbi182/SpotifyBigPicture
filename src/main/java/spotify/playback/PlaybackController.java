@@ -80,6 +80,7 @@ public class PlaybackController {
       PlaybackInfo currentPlaybackInfo = playbackInfoProvider.getCurrentPlaybackInfo(v);
       return ResponseEntity.ok(currentPlaybackInfo);
     } catch (Exception e) {
+      e.printStackTrace();
       return ResponseEntity.internalServerError().build();
     }
   }

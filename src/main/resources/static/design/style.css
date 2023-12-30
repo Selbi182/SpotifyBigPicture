@@ -1481,21 +1481,6 @@ div#device {
     margin: auto 0;
 }
 
-#kofi-button {
-    z-index: 1;
-    position: absolute;
-    bottom: var(--margin-half);
-    right: var(--margin-half);
-    transition: var(--transition);
-}
-
-#kofi-button:hover {
-    opacity: 1;
-    rotate: -7deg;
-    transform: scale(1.1);
-    filter: brightness(125%);
-}
-
 #settings-scroller {
     overflow-x: hidden;
     overflow-y: auto;

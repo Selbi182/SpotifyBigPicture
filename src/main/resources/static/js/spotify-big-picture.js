@@ -2027,27 +2027,6 @@ function refreshAll() {
   submitVisualPreferencesToBackend();
 }
 
-let kofiButton;
-function showKofiButton() {
-  if (!kofiButton) {
-    kofiwidget2.init('Support Me On Ko-fi', '#1DB954', 'T6T8S1H5E');
-
-    let kofi = kofiwidget2.getHTML();
-    let settingsWrapper = "settings-wrapper".select();
-    settingsWrapper.innerHTML += kofi;
-    let kofiButton = settingsWrapper.querySelector(".btn-container");
-    kofiButton.id = "kofi-button";
-
-    kofiButton.addEventListener("mouseover", () => {
-      setSettingDescription(
-        "Buy Me A Ko-Fi!",
-        "For extra cool people :)"
-      )
-      setDescriptionVisibility(true);
-    });
-  }
-}
-
 
 ///////////////////////////////
 // REFRESH IMAGE ON RESIZE
@@ -2253,9 +2232,7 @@ function printSettingDescription(event) {
     if (target.parentNode.classList.contains("preset")) {
       target = target.parentNode;
     }
-    if (target.id === "kofi-button" || target.parentNode.id === "kofi-button") {
-      setDescriptionVisibility(true);
-    } else if (target.classList.contains("setting") || target.classList.contains("preset")) {
+    if (target.classList.contains("setting") || target.classList.contains("preset")) {
       let pref = findPreference(target.id) || findPreset(target.id);
       if (pref) {
         setSettingDescription(
@@ -2378,10 +2355,6 @@ function setSettingsMenuState(state) {
   let mainBody = "main".select();
   setClass(settingsWrapper, "show", settingsVisible);
   setClass(mainBody, "scale-down", settingsVisible);
-
-  if (state) {
-    showKofiButton();
-  }
 }
 
 function toggleSettingsExpertMode() {
