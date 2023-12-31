@@ -632,9 +632,11 @@ function trackListEquals(trackList1, trackList2) {
   setCorrectTracklistView(currentData, true);
 }
 
+
 function toggleLyrics() {
   toggleVisualPreference(findPreference("show-lyrics"));
 }
+"lyrics-toggle-button".select().onclick = () => toggleLyrics();
 
 let lyricsContainer = "lyrics".select();
 function refreshLyrics(changes) {
@@ -2709,8 +2711,10 @@ const PREFERENCES = [
     callback: (state) => {
       if (state) {
         refreshLyrics(currentData)
+        setClass("lyrics-toggle-button".select(), "enabled", true);
       } else {
         setClass("content-center".select(), "lyrics", false);
+        setClass("lyrics-toggle-button".select(), "enabled", false);
       }
     }
   },

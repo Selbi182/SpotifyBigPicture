@@ -1434,6 +1434,13 @@ div#device {
     transition-duration: var(--transition);
 }
 
+#mouse-move-buttons > #lyrics-toggle-button {
+    --icon: url("img/symbols/lyrics-off.png");
+}
+#mouse-move-buttons > #lyrics-toggle-button.enabled {
+    --icon: url("img/symbols/lyrics-on.png");
+}
+
 #mouse-move-buttons > #nosleep-lock-button {
     --icon: url("img/symbols/lock-unlocked.png");
 }
