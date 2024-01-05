@@ -518,14 +518,14 @@ function setCorrectTracklistView(changes, forceScroll = false) {
   setClass(mainContainer, "title-duplicate", !titleDisplayed && !queueMode);
   setClass(mainContainer, "queue", queueMode);
 
-  let displayTrackNumbers = !shuffle && !queueMode && (listViewType === "ALBUM" || listViewType === "PLAYLIST_ALBUM" && isPrefEnabled("always-show-track-numbers-album-view"));
+  let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
+  let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
+
+  let displayTrackNumbers = !shuffle && !queueMode && (listViewType === "ALBUM" || listViewType === "PLAYLIST_ALBUM" && isPrefEnabled("always-show-track-numbers-album-view") || hasOnlyOneArtist(newQueue));
   setClass(trackListContainer, "show-tracklist-numbers", displayTrackNumbers)
   setClass(trackListContainer, "show-discs", !queueMode && totalDiscCount > 1)
 
   ///////////
-
-  let oldQueue = (queueMode ? currentData.trackData.queue : currentData.trackData.listTracks) || [];
-  let newQueue = (queueMode ? changes.trackData.queue : changes.trackData.listTracks) || [];
 
   let isSingleTrack = newQueue.length === 1 && isPrefEnabled("hide-single-item-album-view");
   setClass(trackListContainer, "single-track", isSingleTrack);
@@ -629,6 +629,14 @@ function trackListEquals(trackList1, trackList2) {
     }
   }
   return true;
+}
+
+function hasOnlyOneArtist(tracks) {
+  if (tracks.length === 0 || !isPrefEnabled("one-artist-numbers-album-view")) {
+    return false;
+  }
+  let firstArtistName = tracks[0].artists[0];
+  return tracks.every(track => track.artists[0] === firstArtistName);
 }
 
 "track-list".select().onclick = () => {
@@ -2866,7 +2874,16 @@ const PREFERENCES = [
     description: "If 'Album View' is enabled, the track numbers and artists are always displayed as well (four columns). " +
       "Otherwise, track numbers are hidden for playlists and artists are hidden for albums",
     category: "Tracklist",
+    overrides: ["one-artist-numbers-album-view"],
     css: {"track-list": "always-show-track-numbers-album-view"},
+    callback: () => refreshTrackList()
+  },
+  {
+    id: "one-artist-numbers-album-view",
+    name: "Use Numbers For One-Artist Playlists",
+    description: "If 'Album View' is enabled while the current context is a playlist and ALL songs are by the same artist, " +
+      "show index numbers instead of the artist name",
+    category: "Tracklist",
     callback: () => refreshTrackList()
   },
 
@@ -3485,7 +3502,7 @@ const PREFERENCES = [
     id: "idle-when-hidden",
     name: "Idle When Tab Is Hidden",
     description: "If enabled, idle mode is automatically turned on when you switch tabs. It is STRONGLY recommended to keep this setting enabled, " +
-      "or else you might run freezes after the page has been hidden for a long while!",
+      "or else you might run into freezes after the page has been hidden for a long while!",
     category: "Performance / Misc"
   },
   {
@@ -3565,6 +3582,7 @@ const PREFERENCES_DEFAULT = {
     "enable-center-content",
     "show-queue",
     "album-view",
+    "one-artist-numbers-album-view",
     "queue-big-gradient",
     "hide-tracklist-podcast-view",
     "show-timestamps-track-list",
