@@ -100,18 +100,21 @@ function singleRequest(forceUpdate) {
   return new Promise(resolve => {
     let url = `${INFO_URL}?v=${forceUpdate ? -1 : currentData.versionId}`;
     fetch(url)
-      .then(response => {
-        if (response.status >= 200 && response.status < 300) {
-          return response.json()
+      .then(response => response.json())
+      .then(json => {
+        if ('errorMessage' in json) {
+          throw new Error(json.errorMessage);
         }
-        throw new Error("Internal Server Error");
+        return processJson(json);
       })
-      .then(json => processJson(json))
       .then(() => resolve(true))
       .catch(ex => {
-        if (!ex.message.startsWith("NetworkError")) {
+        let networkError = ex.message.startsWith("NetworkError");
+        if (!networkError) {
           console.error(ex);
-          showToast(ex);
+        }
+        if (isPrefEnabled("show-error-toasts")) {
+          showToast(networkError ? "Failed to connect to Java service" : ex);
         }
         resolve(false);
       });
@@ -212,7 +215,7 @@ function cloneObject(object) {
 
 
 function isTabVisible() {
-  return document.visibilityState === "visible";
+  return document.visibilityState === "visible" || !isPrefEnabled("idle-when-hidden");
 }
 
 
@@ -830,7 +833,8 @@ const WHITELISTED_WORDS = [
   "live",
   "classic",
   "demo",
-  "session"
+  "session",
+  "reprise"
 ];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
@@ -874,7 +878,10 @@ function buildFeaturedArtistsSpan(artists) {
 }
 
 function removeFeaturedArtists(title) {
-  return title.replace(/[(|\[](f(ea)?t|with|by|w)\b.+?[)|\]]/ig, "").trim();
+  return title
+    .replace(/[(|\[](f(ea)?t|with|by|w)\b.+?[)|\]]/ig, "")
+    .replace(/( feat\. ).+/ig, "") // special case for when the 'feat.' is not placed in brackets
+    .trim();
 }
 
 function fullStrip(title) {
@@ -3417,13 +3424,13 @@ const PREFERENCES = [
   },
 
   ///////////////////////////////
-  // Performance
+  // Performance / Misc
   {
     id: "guess-next-track",
     name: "Guess Next Track",
     description: "If enabled, simulate the transition to the expected next track in the queue before the actual data is returned from Spotify. "
       + "Enabling this will reduce the delay between songs, but it may be inconsistent at times",
-    category: "Performance",
+    category: "Performance / Misc",
     callback: (state) => {
       if (!state) {
         clearTimeout(fakeSongTransition);
@@ -3435,7 +3442,7 @@ const PREFERENCES = [
     name: "Smooth Transitions",
     description: "Smoothly fade from one track to another. Otherwise, track switches will be displayed instantaneously. "
       + "It is recommended to disable this setting for low-power hardware to save on resources",
-    category: "Performance",
+    category: "Performance / Misc",
     requiredFor: ["slow-transitions"],
     css: {"main": "transitions"}
   },
@@ -3443,7 +3450,7 @@ const PREFERENCES = [
     id: "slow-transitions",
     name: "Slower Transitions",
     description: "If enabled, the transition speed is halved (increased to 1s, up from 0.5s)",
-    category: "Performance",
+    category: "Performance / Misc",
     css: {"main": "slow-transitions"},
     callback: () => {
       requestAnimationFrame(() => { // to avoid race conditions
@@ -3456,23 +3463,36 @@ const PREFERENCES = [
     name: "Smooth Progress Bar",
     description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. "
       + "It is STRONGLY recommended keep this setting disabled for low-power hardware to save on resources!",
-    category: "Performance",
+    category: "Performance / Misc",
     callback: () => refreshProgress()
   },
   {
     id: "text-balancing",
     name: "Text Balancing",
     description: "If enabled, multiline text is balanced to have roughly the same amount of width per line. Disable this to save on some resources",
-    category: "Performance",
+    category: "Performance / Misc",
     callback: () => refreshTextBalance()
   },
   {
     id: "allow-idle-mode",
-    name: "Allow Idle Mode",
+    name: "Idle After One Hour",
     description: "If enabled and no music has been played for the past 60 minutes, the screen will go black to save on resources. "
       + "Once playback resumes, the page will refresh automatically. Recommended for 24/7 hosting of this app",
-    category: "Performance",
+    category: "Performance / Misc",
     callback: () => refreshIdleTimeout(currentData, true)
+  },
+  {
+    id: "idle-when-hidden",
+    name: "Idle When Tab Is Hidden",
+    description: "If enabled, idle mode is automatically turned on when you switch tabs. It is STRONGLY recommended to keep this setting enabled, " +
+      "or else you might run freezes after the page has been hidden for a long while!",
+    category: "Performance / Misc"
+  },
+  {
+    id: "show-error-toasts",
+    name: "Show Error Messages",
+    description: "If enabled, display any potential error messages as a toast notification at the top",
+    category: "Performance / Misc"
   },
 
   ///////////////////////////////
@@ -3535,7 +3555,7 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Layout: Main Content",
   "Layout: Swap",
   "Layout: Experimental",
-  "Performance",
+  "Performance / Misc",
   "Website Title",
   "Developer Tools"
 ];
@@ -3622,6 +3642,8 @@ const PREFERENCES_DEFAULT = {
     "text-balancing",
     "hide-single-item-album-view",
     "allow-idle-mode",
+    "idle-when-hidden",
+    "show-error-toasts",
     "show-featured-artists",
     "show-featured-artists-track-list",
     "colored-symbol-spotify",

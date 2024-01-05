@@ -22,6 +22,8 @@ import spotify.config.SpotifyApiConfig;
 import spotify.playback.control.PlaybackControl;
 import spotify.playback.data.PlaybackInfoProvider;
 import spotify.playback.data.dto.PlaybackInfo;
+import spotify.playback.data.dto.PlaybackInfoError;
+import spotify.playback.data.dto.PlaybackInfoResponse;
 import spotify.playback.data.dto.misc.BigPictureSetting;
 import spotify.playback.data.lyrics.GeniusLyricsScraper;
 
@@ -71,17 +73,17 @@ public class PlaybackController {
    *
    * @param v versionId provided by the interface
    *          to see if there actually were any updates
-   * @return the playback info
+   * @return a PlaybackInfoResponse (either the playback info or an error object)
    */
   @CrossOrigin
   @GetMapping("/playback-info")
-  public ResponseEntity<PlaybackInfo> getCurrentPlaybackInfo(@RequestParam int v) {
+  public ResponseEntity<? extends PlaybackInfoResponse> getCurrentPlaybackInfo(@RequestParam int v) {
     try {
       PlaybackInfo currentPlaybackInfo = playbackInfoProvider.getCurrentPlaybackInfo(v);
       return ResponseEntity.ok(currentPlaybackInfo);
     } catch (Exception e) {
-      e.printStackTrace();
-      return ResponseEntity.internalServerError().build();
+      PlaybackInfoError playbackInfoError = new PlaybackInfoError(e);
+      return ResponseEntity.internalServerError().body(playbackInfoError);
     }
   }
 

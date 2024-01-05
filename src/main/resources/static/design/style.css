@@ -1612,7 +1612,7 @@ div#device {
     display: block;
 }
 
-#settings-categories .setting-category.collapse .setting {
+#settings-categories .setting-category.collapse > *:not(.setting-category-header) {
     display: none;
 }
 

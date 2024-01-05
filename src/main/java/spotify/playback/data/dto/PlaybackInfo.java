@@ -12,7 +12,7 @@ import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
 
 @JsonInclude(Include.NON_EMPTY)
-public class PlaybackInfo {
+public class PlaybackInfo implements PlaybackInfoResponse {
   public static final PlaybackInfo EMPTY = new PlaybackInfo(Type.EMPTY);
 
   public enum Type {
