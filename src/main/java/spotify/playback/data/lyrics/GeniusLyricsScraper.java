@@ -1,8 +1,12 @@
 package spotify.playback.data.lyrics;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -47,35 +51,86 @@ public class GeniusLyricsScraper {
   }
 
   private String findLyricsUrl(String artistName, String songName) throws IOException {
-    String searchUrl = "https://genius.com/api/search?q=" + artistName + " " + songName;
+    // Preprocess artistName and songName to remove brackets
+    String processedArtistName = preprocessString(artistName);
+    String processedSongName = preprocessString(songName);
+
+    String searchUrl = "https://genius.com/api/search?q=" + processedArtistName + " " + processedSongName;
+
     Connection.Response response = Jsoup.connect(searchUrl)
-      .userAgent(USER_AGENT)
-      .ignoreContentType(true)
-      .execute();
+            .userAgent(USER_AGENT)
+            .ignoreContentType(true)
+            .execute();
     String json = response.body();
 
-    String matchingPath = findMatchingPath(json, artistName, songName);
+    String matchingPath = findMatchingPath(json, processedArtistName, processedSongName);
+
     if (matchingPath != null) {
       return "https://genius.com" + matchingPath;
     }
     return null;
   }
 
+  private String preprocessString(String input) {
+    // Remove all occurrences of problematic symbols
+    input = input.replaceAll("[#@_]", "");
+
+    // Check if the string contains only non-language characters outside the brackets
+    String outsideBrackets = input.replaceAll("\\(.*?\\)", "").trim();
+    if (outsideBrackets.isEmpty() || outsideBrackets.matches("[^\\p{L}\\p{N}]+")) {
+      // If so, keep the content inside the brackets
+      Pattern pattern = Pattern.compile("\\((.*?)\\)");
+      Matcher matcher = pattern.matcher(input);
+      if (matcher.find()) {
+        return matcher.group(1).trim();
+      }
+    }
+
+    // Remove content inside brackets
+    input = input.replaceAll("\\(.*?\\)", "").trim();
+
+    // Remove any trailing text after an unpaired opening bracket
+    if (input.contains("(") && !input.contains(")")) {
+      input = input.substring(0, input.indexOf('(')).trim();
+    }
+
+    return input;
+  }
+
   private String findMatchingPath(String json, String artistName, String songName) {
     JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
     JsonArray hits = jsonObject.getAsJsonObject("response").getAsJsonArray("hits");
+
+    // Normalize the search strings
+    String normalizedArtistName = normalizeString(artistName);
+    String normalizedSongName = normalizeString(songName);
+    String[] artistNameParts = normalizedArtistName.split("\\s+");
 
     for (JsonElement hit : hits) {
       JsonObject result = hit.getAsJsonObject().getAsJsonObject("result");
       String artistNames = result.get("artist_names").getAsString();
       String title = result.get("title").getAsString();
 
-      if (StringUtils.startsWithIgnoreCase(artistNames, artistName) && StringUtils.startsWithIgnoreCase(title, songName)) {
+      // Normalize the JSON strings
+      String normalizedArtistNames = normalizeString(artistNames);
+      String normalizedTitle = normalizeString(title);
+
+      // Check for partial matches in artist names
+      boolean artistMatch = Arrays.stream(artistNameParts)
+              .allMatch(normalizedArtistNames::contains);
+      // Match title
+      boolean titleMatch = normalizedTitle.contains(normalizedSongName);
+
+      if (artistMatch && titleMatch) {
         return result.get("path").getAsString();
       }
     }
 
     return null;
+  }
+
+  private String normalizeString(String input) {
+    return input.toLowerCase().replaceAll("[^a-zA-Z0-9\\s]", "").trim();
   }
 
   private String scrapeLyrics(String url) throws IOException {
