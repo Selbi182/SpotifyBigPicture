@@ -29,10 +29,6 @@ public class GeniusLyricsScraper {
   private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
   private static final Gson gson = new Gson();
 
-  // Testing fetching higher resolution image - Noah
-  String geniusAlbumArtUrl = "";
-  public String getHighResURL() { return geniusAlbumArtUrl; }
-
   /**
    * Try to find the lyrics for the given artist and song name on the lyrics website genius.com.
    * This method works by first searching for the track URL, then scraping the lyrics from the actual
@@ -43,9 +39,6 @@ public class GeniusLyricsScraper {
    * @return the lyrics as a single, compiled string (empty string if the lyrics couldn't be found)
    */
   public String getSongLyrics(String artistName, String songName) {
-    // Set to empty string (wipes previous song data) - Noah
-    geniusAlbumArtUrl = "";
-
     try {
       String url = findLyricsUrl(artistName, songName);
       if (url != null) {
@@ -63,7 +56,6 @@ public class GeniusLyricsScraper {
     String processedSongName = preprocessString(songName);
 
     String searchUrl = "https://genius.com/api/search?q=" + processedArtistName + " " + processedSongName;
-    System.out.println(searchUrl);
 
     Connection.Response response = Jsoup.connect(searchUrl)
             .userAgent(USER_AGENT)
@@ -72,7 +64,6 @@ public class GeniusLyricsScraper {
     String json = response.body();
 
     String matchingPath = findMatchingPath(json, processedArtistName, processedSongName);
-    System.out.println(matchingPath);
 
     if (matchingPath != null) {
       return "https://genius.com" + matchingPath;
@@ -82,9 +73,7 @@ public class GeniusLyricsScraper {
 
   private String preprocessString(String input) {
     // Remove all occurrences of problematic symbols
-    input = input.replace("#", "");
-    input = input.replace("@", "");
-    input = input.replace("_", "");
+    input = input.replaceAll("[#@_]", "");
 
     // Check if the string contains only non-language characters outside the brackets
     String outsideBrackets = input.replaceAll("\\(.*?\\)", "").trim();
@@ -128,15 +117,11 @@ public class GeniusLyricsScraper {
 
       // Check for partial matches in artist names
       boolean artistMatch = Arrays.stream(artistNameParts)
-              .allMatch(part -> normalizedArtistNames.contains(part));
-
+              .allMatch(normalizedArtistNames::contains);
       // Match title
       boolean titleMatch = normalizedTitle.contains(normalizedSongName);
 
       if (artistMatch && titleMatch) {
-        // Testing fetching higher resolution image - Noah
-        geniusAlbumArtUrl = result.get("header_image_url").getAsString();
-        //
         return result.get("path").getAsString();
       }
     }
