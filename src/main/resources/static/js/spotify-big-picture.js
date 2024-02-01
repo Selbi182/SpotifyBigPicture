@@ -647,7 +647,10 @@ function hasOnlyOneArtist(tracks) {
 function toggleLyrics() {
   toggleVisualPreference(findPreference("show-lyrics"));
 }
-"lyrics-toggle-button".select().onclick = () => toggleLyrics();
+"lyrics-toggle-button".select().onclick = () => {
+  toggleLyrics();
+  showToast(`Lyrics ${isPrefEnabled("show-lyrics") ? "enabled" : "disabled"}!`);
+}
 
 let lyricsContainer = "lyrics".select();
 function refreshLyrics(changes) {
@@ -828,6 +831,8 @@ const USELESS_WORDS = [
   "single",
   "ep",
   "motion\\spicture",
+  "ost",
+  "sound.?track",
   "theme",
   "re.?issue",
   "re.?record",
@@ -2709,7 +2714,7 @@ const PREFERENCES = [
   {
     id: "hide-top-buttons",
     name: "Hide Top Buttons",
-    description: "Hide the settings/keep screen awake icons at the top when moving the mouse. Note: If you disable this, the settings menu can only be accessed by pressing Space!",
+    description: "Hide the buttons at the top when moving the mouse. Note: If you disable this, the settings menu can only be accessed by pressing Space!",
     category: "General",
     css: {"mouse-move-buttons": "hide"}
   },

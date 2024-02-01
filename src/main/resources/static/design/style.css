@@ -1400,6 +1400,10 @@ div#device {
     opacity: 0;
     transition: opacity var(--transition);
     pointer-events: none;
+    gap: 2vmin;
+}
+#mouse-move-buttons > div:first-child {
+    margin-right: auto;
 }
 #mouse-move-buttons.show {
     opacity: 1;
