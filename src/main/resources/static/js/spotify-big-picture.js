@@ -1695,6 +1695,14 @@ function initVisualPreferences() {
     categories[category] = categoryElem;
   }
 
+  let quickJumpElem = "settings-quick-jump".select();
+  for (let category of PREFERENCES_CATEGORY_ORDER) {
+    let quickJumper = document.createElement("div");
+    quickJumper.innerHTML = category;
+    quickJumper.onclick = () => quickJump(category);
+    quickJumpElem.append(quickJumper);
+  }
+
   // Create settings
   for (let prefIndex in PREFERENCES) {
     let pref = PREFERENCES[prefIndex];
@@ -1728,6 +1736,7 @@ function initVisualPreferences() {
   // Hide developer tools when not in dev mode
   if (!DEV_MODE) {
     settingsWrapper.lastElementChild.remove();
+    quickJumpElem.lastElementChild.remove();
   }
 
   // Create preset buttons
@@ -2047,6 +2056,21 @@ function refreshAll() {
   refreshProgress();
   updateScrollGradients();
   submitVisualPreferencesToBackend();
+}
+
+function quickJump(targetCategoryName) {
+  let settingsCategories = "settings-categories".select();
+  let allCategories = settingsCategories.querySelectorAll(".setting-category-header");
+  let jumpResult = [...allCategories].find(elem => elem.innerText.startsWith(targetCategoryName));
+  if (jumpResult) {
+    let settingsScroller = "settings-scroller".select();
+    let y = jumpResult.offsetTop - settingsScroller.offsetTop - 35;
+    settingsScroller.scroll({
+      top: y,
+      left: 0,
+      behavior: 'smooth'
+    });
+  }
 }
 
 
@@ -2381,8 +2405,8 @@ function setSettingsMenuState(state) {
 
 function toggleSettingsExpertMode() {
   settingsExpertMode = !settingsExpertMode;
-  let settingsWrapper = "settings-wrapper".select();
-  setClass(settingsWrapper, "expert", settingsExpertMode);
+  setClass("settings-wrapper".select(), "expert", settingsExpertMode);
+  setClass("settings-quick-jump".select(), "show", settingsExpertMode);
 }
 
 function resetSettingsPrompt() {
@@ -3420,32 +3444,6 @@ const PREFERENCES = [
   },
 
   ///////////////////////////////
-  // Layout: Experimental
-  {
-    id: "artwork-above-content",
-    name: "Artwork Above Track Info",
-    description: "If enabled, the artwork is placed above the track info, rather than next to it. "
-      + "Use this setting with caution!",
-    category: "Layout: Experimental",
-    css: {"main": "artwork-above-content"}
-  },
-  {
-    id: "decreased-margins",
-    name: "Decreased Margins",
-    description: "If enabled, all margins are halved. " +
-      "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
-    category: "Layout: Experimental",
-    css: {"main": "decreased-margins"},
-  },
-  {
-    id: "extra-wide-mode",
-    name: "Extra-wide Mode",
-    description: "If enabled, the top and bottom margins will be doubled, resulting in a wider and more compact view",
-    category: "Layout: Experimental",
-    css: {"content": "extra-wide"},
-  },
-
-  ///////////////////////////////
   // Performance / Misc
   {
     id: "guess-next-track",
@@ -3518,6 +3516,40 @@ const PREFERENCES = [
   },
 
   ///////////////////////////////
+  // Experimental
+  {
+    id: "artwork-above-content",
+    name: "Artwork Above Track Info",
+    description: "If enabled, the artwork is placed above the track info, rather than next to it. "
+      + "Use this setting with caution!",
+    category: "Experimental",
+    css: {"main": "artwork-above-content"}
+  },
+  {
+    id: "decreased-margins",
+    name: "Decreased Margins",
+    description: "If enabled, all margins are halved. " +
+      "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
+    category: "Experimental",
+    css: {"main": "decreased-margins"},
+  },
+  {
+    id: "extra-wide-mode",
+    name: "Extra-wide Mode",
+    description: "If enabled, the top and bottom margins will be doubled, resulting in a wider and more compact view",
+    category: "Experimental",
+    css: {"content": "extra-wide"},
+  },
+  {
+    id: "color-dodge-skin",
+    name: "Color-Doge Blend",
+    description: "If enabled, blends the content with the background using 'mix-blend-mode: color-dodge' " +
+      "(might look cool or terrible, that's up to you)",
+    category: "Experimental",
+    css: {"content": "color-dodge"},
+  },
+
+  ///////////////////////////////
   // Website Title
   {
     id: "current-track-in-website-title",
@@ -3576,8 +3608,8 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Background",
   "Layout: Main Content",
   "Layout: Swap",
-  "Layout: Experimental",
   "Performance / Misc",
+  "Experimental",
   "Website Title",
   "Developer Tools"
 ];
@@ -3628,6 +3660,7 @@ const PREFERENCES_DEFAULT = {
     "swap-top-bottom",
     "decreased-margins",
     "extra-wide-mode",
+    "color-dodge-skin",
     "xl-text",
     "separate-release-line",
     "full-release-date",

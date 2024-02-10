@@ -461,6 +461,11 @@ img:not([src]) {
     gap: var(--margin-half);
 }
 
+#content.color-dodge {
+    mix-blend-mode: color-dodge;
+    opacity: 0.8;
+}
+
 #content.swap-top-bottom {
     flex-direction: column-reverse;
 }
@@ -1492,6 +1497,12 @@ div#device {
     margin: auto 0;
 }
 
+#settings-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
 #settings-scroller {
     overflow-x: hidden;
     overflow-y: auto;
@@ -1529,6 +1540,33 @@ div#device {
     font-size: 2vmin;
     display: none;
     gap: 4vmin;
+}
+
+#settings-quick-jump {
+    display: none;
+    flex-direction: row;
+    gap: 1vmin;
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius: 1vmin;
+    padding: 1vmin 0;
+    font-size: 2vmin;
+}
+
+#settings-quick-jump.show {
+    display: flex;
+}
+
+#settings-quick-jump > div {
+    background: #ffffff20;
+    border-radius: 2vmin;
+    padding: 0 1vmin;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+#settings-quick-jump > div:hover {
+    opacity: 1;
 }
 
 #settings-categories .setting {
