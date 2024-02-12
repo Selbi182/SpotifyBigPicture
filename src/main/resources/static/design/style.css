@@ -240,19 +240,7 @@ img:not([src]) {
     display: initial;
 }
 
-#fps-counter {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 0;
-    font-size: 3vmin;
-}
-
-#fps-counter.show {
-    display: initial;
-}
-
-:is(#time-current, #time-total, .track-number, .track-length, #volume, #fps-counter) {
+:is(#time-current, #time-total, .track-number, .track-length, #volume) {
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.2vmin;
 }
@@ -822,7 +810,7 @@ div#context-main {
 }
 
 #album :is(#release-year, #release-full):empty {
-    display: none;
+    display: none !important;
 }
 
 #album-title-extra.hide {
@@ -1533,13 +1521,14 @@ div#device {
 }
 
 #settings-categories {
+    --size: 1.75vmin;
     width: 100%;
     height: 100%;
     justify-content: space-between;
     flex-direction: column;
-    font-size: 2vmin;
+    font-size: var(--size);
+    gap: var(--size);
     display: none;
-    gap: 4vmin;
 }
 
 #settings-quick-jump {
@@ -1596,8 +1585,8 @@ div#device {
     background-position: center;
     margin-right: 1vmin;
     opacity: 0.5;
-    width: 2vmin;
-    height: 2vmin;
+    width: var(--size);
+    height: var(--size);
 }
 
 #settings-categories .setting.on::before {
@@ -1613,8 +1602,8 @@ div#device {
     background-position: center;
     margin-left: 1vmin;
     opacity: 0.5;
-    width: 2vmin;
-    height: 2vmin;
+    width: var(--size);
+    height: var(--size);
 }
 
 #settings-categories .setting-category {
@@ -1623,13 +1612,12 @@ div#device {
     padding: 2vmin;
     display: flex;
     flex-direction: column;
-    gap: 1vmin;
+    gap: 0.25vmin;
 }
 
 #settings-categories .setting-category-header {
     font-family: var(--font-bold);
-    font-size: 3vmin;
-    margin-bottom: 1vmin;
+    font-size: 2vmin;
     opacity: 0.65;
     cursor: pointer;
 }
@@ -1664,8 +1652,9 @@ div#device {
 
 #settings-categories .setting-subcategory-header {
     opacity: 0.25;
-    margin-top: 1vmin;
     border-bottom: 0.3vmin solid var(--color);
+    width: fit-content;
+    margin-top: 1vmin;
 }
 
 #settings-right {

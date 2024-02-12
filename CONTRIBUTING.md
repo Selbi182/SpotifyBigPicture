@@ -45,26 +45,21 @@ Let's create a new setting to help you understand how things work!
 
 Settings are defined under the `Preferences & Presets Data` section in the lower half of the main JavaScript file.
 
-### Step 1: Choose ID
+### Step 1: Create Base Setting
 Before you do anything else, you need to choose a _unique_ ID for your setting. The ID must not collide with any other one and must be Kebab Case (i.e. lower-case-and-concatenated-by-hyphens).
 
-### Step 2: Define Default
-After deciding on an ID, a _mandatory_ step is to define a default behavior for your new setting. Go to `PREFERENCES_DEFAULT` and decide what you want your new setting's default state to be. Put the ID of your setting anywhere in the respective list.
-
-There are two flavors, the standard _enabled/disabled_ lists, but also _ignoreDefaultOn/ignoreDefaultOff_. The difference is how the setting is to be affected by changing presets. Let's say you want your new cool setting to always be reverted to be enabled when you change presets, you'd put it in the _enabled_ list. Comparatively, if you want a setting to only be set to enabled when first starting the app but after that _don't_ want it to get affected by changing presets, put it in _ignoreDefaultOn_. You get the idea.
-
-### Step 3: Create Base Setting
-Go back to the start of the `Preferences & Presets Data`, decide where in the settings list you want your new setting to appear, and insert a new block for it there. Here's a minimum template you can use:
+Next go to `Preferences & Presets Data`, decide where in the settings list you want your new setting to appear, and insert a new block for it there. Here's a minimum template you can use:
 ```
  {
     id: "my-cool-setting",
     name: "My Cool Setting",
     description: "If enabled, cool things will happen",
     category: "General",
+    default: true,
 },
 ```
 
-### Step 4: Adding Logic
+### Step 2: Adding Logic
 If you did everything right and reload the app now, you'll already see your fancy new setting in the settings menu. But of course, it doesn't do anything yet, so let's add some logic!
 
 There are two main control schemes for the logic:
@@ -105,8 +100,15 @@ In cases where simply changing a bit of CSS isn't enough, _callbacks_ come in ha
 
 **Note:** Callbacks also get called when the website is opened or refreshed! Make sure you keep this in mind to avoid any conflicts.
 
-### (Optional) Step 5: Further Setting Features
-Your setting is basically ready for shipment! But there are two more things you might want to keep in mind: overriding & subcategory headers
+### (Optional) Step 3: Further Setting Features
+Your setting is basically ready for shipment! But there are a few more things you might want to keep in mind when creating settings.
+
+#### Protection:
+If you want to avoid the state of the setting to revert to its default state whenever you change presets, you can do so by adding the following field:
+```
+    protected: true,
+```
+Doing this will make the setting's default state _only_ kick into effect when starting the app for the very first time or resetting all settings.
 
 #### Overriding:
 Having your new settings be completely detached from anything else and doing its own thing is nice, easy to handle, and the ideal case. However, you may have noticed that some settings are always grayed-out in the settings menu. These settings have been "overridden", meaning changing their state will have no effect. This is necessary, as there are plenty of settings that either depend on one another to be enabled as well, or take priority over another setting for one reason or another.
@@ -135,12 +137,14 @@ This will add a header above this setting in the settings menu (such as _Main Co
 ### Settings Summary
 Congratulations, you have learned everything there is to creating new settings! Here's the full template from this guide for your convenience and reference:
 
-```javascript
+```
  {
     id: "my-cool-setting",
     name: "My Cool Setting",
     description: "If enabled, cool things will happen",
     category: "General",
+    default: true,
+    protected: false,
     css: {
         "elem-id": "some-css-class",
         "some-other-elem": "!some-other-css-class"
@@ -163,7 +167,9 @@ And here's a basic summary of every field in a setting:
 * `id` (required): the setting's unique identifier; must not collide with another one and must be Kebab Case (i.e. lower-case-and-concatenated-by-hyphens)
 * `name` (required): the setting's name; doesn't need to be unique
 * `description` (required): the description that appears at the bottom right in the settings menu when you mouse-over the setting
-* `category (required)`: the category the setting will be located under (must match the category's name _exactly_; see the list of categories under `PREFERENCES_CATEGORY_ORDER`)
+* `category` (required): the category the setting will be located under (must match the category's name _exactly_; see the list of categories under `PREFERENCES_CATEGORY_ORDER`)
+* `default` (optional): the default state of this setting (enabled/disabled); absence implies _false_
+* `protected` (optional): if set to true, protects the setting from being changed when changing presets ("unaffected"); absence implies _false_
 
 * `css` (logic): adds or removes CSS class names to the specified HTML IDs depending on whether the setting is enabled or disabled
 * `callback` (logic): runs custom JavaScript code whenever the setting is toggled and once during startup
