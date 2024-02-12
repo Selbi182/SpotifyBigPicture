@@ -16,6 +16,7 @@
       let settingsListContainer = document.getElementById("settings");
       let categories = {};
       for (let setting of [...loadedSettings, reloadSetting]) {
+        // Setting
         let settingContainer = document.createElement("div");
         settingContainer.id = setting.id;
         settingContainer.classList.add("setting");
@@ -62,6 +63,15 @@
           categories[setting.category] = categoryElem;
         }
         let categoryElem = categories[setting.category];
+
+        // Subcategory Headers
+        if (!!setting.subcategoryHeader) {
+          let subcategoryHeader = document.createElement("div");
+          subcategoryHeader.innerHTML = setting.subcategoryHeader;
+          subcategoryHeader.classList.add("setting-subcategory-header");
+          categoryElem.append(subcategoryHeader);
+        }
+
         categoryElem.appendChild(settingContainer);
       }
 

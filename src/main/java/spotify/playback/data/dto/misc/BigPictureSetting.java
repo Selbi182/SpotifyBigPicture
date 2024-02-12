@@ -4,16 +4,18 @@ public class BigPictureSetting {
   private String id;
   private String name;
   private String category;
+  private String subcategoryHeader;
   private String description;
   private Boolean state;
 
   public BigPictureSetting() {
   }
 
-  public BigPictureSetting(String id, String name, String category, String description, Boolean state) {
+  public BigPictureSetting(String id, String name, String category, String subcategoryHeader, String description, Boolean state) {
     this.id = id;
     this.name = name;
     this.category = category;
+    this.subcategoryHeader = subcategoryHeader;
     this.description = description;
     this.state = state;
   }
@@ -40,6 +42,14 @@ public class BigPictureSetting {
 
   public void setCategory(String category) {
     this.category = category;
+  }
+
+  public String getSubcategoryHeader() {
+    return subcategoryHeader;
+  }
+
+  public void setSubcategoryHeader(String subcategoryHeader) {
+    this.subcategoryHeader = subcategoryHeader;
   }
 
   public String getDescription() {

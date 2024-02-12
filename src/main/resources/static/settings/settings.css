@@ -91,6 +91,14 @@ header > div {
     display: none;
 }
 
+#settings .setting-subcategory-header {
+    font-style: italic;
+    opacity: 0.25;
+    border-bottom: 0.2vmin solid white;
+    width: fit-content;
+    margin-top: 4vmin;
+}
+
 #settings .setting {
     cursor: pointer;
     opacity: 0.25;

@@ -1768,6 +1768,7 @@ function submitVisualPreferencesToBackend() {
          id: pref.id,
          name: pref.name,
          category: pref.category,
+         subcategoryHeader: pref.subcategoryHeader,
          description: pref.description,
          state: pref.state
        }
