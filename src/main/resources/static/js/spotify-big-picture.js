@@ -325,7 +325,7 @@ function setTextData(changes) {
   let releaseDate = getChange(changes, "currentlyPlaying.releaseDate");
   if (album.wasChanged || releaseDate.wasChanged) {
     let normalizedEmoji = convertToTextEmoji(album.value);
-    let splitTitle = separateUnimportantTitleInfo(normalizedEmoji);
+    let splitTitle = separateUnimportantTitleInfo(removeFeaturedArtists(normalizedEmoji));
     let albumTitleMain = splitTitle.main;
     let albumTitleExtra = splitTitle.extra;
     "album-title-main".select().innerHTML = albumTitleMain;
@@ -1667,8 +1667,7 @@ function initVisualPreferences() {
     let categoryElemHeader = document.createElement("div");
     categoryElemHeader.classList.add("setting-category-header");
     categoryElemHeader.title = "Expand/collapse category..."
-    let totalOptionsInCategoryCount = PREFERENCES.filter(pref => pref.category === category).length;
-    categoryElemHeader.innerHTML = `${category} <span class="count">${totalOptionsInCategoryCount}</span>`;
+    categoryElemHeader.innerHTML = category;
     categoryElemHeader.onclick = () => {
       categoryElem.classList.toggle("collapse");
     }
@@ -2838,7 +2837,7 @@ const PREFERENCES = [
     category: "Tracklist",
     default: true,
     requiredFor: ["scrollable-track-list", "album-view", "always-show-track-numbers-album-view", "album-spacers", "hide-single-item-album-view", "show-timestamps-track-list",
-      "show-featured-artists-track-list", "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "xl-main-info-scrolling", "hide-tracklist-podcast-view"],
+      "show-featured-artists-track-list", "full-track-list", "increase-min-track-list-scaling", "increase-max-track-list-scaling", "hide-tracklist-podcast-view"],
     css: {
       "title": "!force-display",
       "track-list": "!hide"
@@ -2921,7 +2920,7 @@ const PREFERENCES = [
     category: "Tracklist",
     subcategoryHeader: "Album View",
     default: true,
-    requiredFor: ["always-show-track-numbers-album-view", "hide-single-item-album-view", "xl-main-info-scrolling"],
+    requiredFor: ["always-show-track-numbers-album-view", "hide-single-item-album-view"],
     callback: () => refreshTrackList()
   },
   {
@@ -3084,16 +3083,7 @@ const PREFERENCES = [
       + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
     category: "Main Content",
     default: false,
-    requiredFor: ["xl-main-info-scrolling"],
     css: {"center-info-main": "big-text"}
-  },
-  {
-    id: "xl-main-info-scrolling",
-    name: "Conditional XL Main Content",
-    description: "Limit 'XL Main Content' to only kick into effect when the title is hidden by 'Album View: Hide Duplicate Track Name'",
-    category: "Main Content",
-    default: false,
-    css: {"center-info-main": "big-text-scrolling"}
   },
 
   // Release
@@ -3187,31 +3177,6 @@ const PREFERENCES = [
     category: "Main Content",
     default: false,
     css: {"main": "artwork-above-content"}
-  },
-  {
-    id: "decreased-margins",
-    name: "Decreased Margins",
-    description: "If enabled, all margins are halved. " +
-      "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
-    category: "Main Content",
-    default: false,
-    css: {"main": "decreased-margins"},
-  },
-  {
-    id: "extra-wide-mode",
-    name: "Extra-wide Mode",
-    description: "If enabled, the top and bottom margins will be doubled, resulting in a wider and more compact view",
-    category: "Main Content",
-    default: false,
-    css: {"content": "extra-wide"},
-  },
-  {
-    id: "swap-top-bottom",
-    name: "Swap Top with Bottom Content",
-    description: "If enabled, the top content swaps position with the bottom content",
-    category: "Main Content",
-    default: false,
-    css: {"content": "swap-top-bottom"}
   },
 
   ///////////////////////////////
@@ -3595,6 +3560,31 @@ const PREFERENCES = [
   ///////////////////////////////
   // Misc
   {
+    id: "decreased-margins",
+    name: "Decreased Margins",
+    description: "If enabled, all margins are halved. " +
+      "This allows for more content to be displayed on screen, but will make everything look slightly crammed",
+    category: "Misc",
+    default: false,
+    css: {"main": "decreased-margins"},
+  },
+  {
+    id: "extra-wide-mode",
+    name: "Extra-wide Mode",
+    description: "If enabled, the top and bottom margins will be doubled, resulting in a wider and more compact view",
+    category: "Misc",
+    default: false,
+    css: {"content": "extra-wide"},
+  },
+  {
+    id: "swap-top-bottom",
+    name: "Swap Top with Bottom Content",
+    description: "If enabled, the top content swaps position with the bottom content",
+    category: "Misc",
+    default: false,
+    css: {"content": "swap-top-bottom"}
+  },
+  {
     id: "color-dodge-skin",
     name: "Color-Doge Blend",
     description: "If enabled, blends the content with the background using 'mix-blend-mode: color-dodge' " +
@@ -3666,7 +3656,6 @@ const PREFERENCES_CATEGORY_ORDER = [
   "Top Content",
   "Bottom Content",
   "Background",
-  "Layout",
   "Misc"
 ];
 
@@ -3877,6 +3866,8 @@ const PREFERENCES_PRESETS = [
 ];
 
 if (DEV_MODE) {
+  console.info(`${PREFERENCES.length} settings // ${PREFERENCES_PRESETS.length} presets // ${PREFERENCES_CATEGORY_ORDER.length} categories`)
+
   // Anomaly check for presets
   for (let preset of PREFERENCES_PRESETS) {
     preset.enabled.forEach(prefId => {

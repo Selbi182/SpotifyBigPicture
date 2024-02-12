@@ -700,8 +700,7 @@ div#context-main {
     text-align: center;
 }
 
-#content-center:not(.queue):not(.podcast).title-duplicate #center-info-main.big-text.big-text-scrolling,
-#content-center:not(.podcast) #center-info-main.big-text:not(.big-text-scrolling) {
+#content-center:not(.podcast) #center-info-main.big-text {
     --font-scale: 2vmin;
 }
 
@@ -1521,7 +1520,7 @@ div#device {
 }
 
 #settings-categories {
-    --size: 1.75vmin;
+    --size: 2vmin;
     width: 100%;
     height: 100%;
     justify-content: space-between;
@@ -1609,7 +1608,7 @@ div#device {
 #settings-categories .setting-category {
     background: #ffffff20;
     border-radius: 2vmin;
-    padding: 2vmin;
+    padding: 1vmin 2vmin;
     display: flex;
     flex-direction: column;
     gap: 0.25vmin;
@@ -1617,20 +1616,9 @@ div#device {
 
 #settings-categories .setting-category-header {
     font-family: var(--font-bold);
-    font-size: 2vmin;
+    font-size: 2.5vmin;
     opacity: 0.65;
     cursor: pointer;
-}
-
-#settings-categories .setting-category-header .count {
-    opacity: 0.5;
-}
-
-#settings-categories .setting-category-header .count::before {
-    content: "(";
-}
-#settings-categories .setting-category-header .count::after {
-    content: ")";
 }
 
 #settings-categories .setting-category-header:hover {
@@ -1638,8 +1626,7 @@ div#device {
 }
 
 #settings-categories .setting-category.collapse .setting-category-header::after {
-    content: "\2026";
-    display: block;
+    content: " \2026";
 }
 
 #settings-categories .setting-category.collapse > *:not(.setting-category-header) {
@@ -1652,9 +1639,10 @@ div#device {
 
 #settings-categories .setting-subcategory-header {
     opacity: 0.25;
-    border-bottom: 0.3vmin solid var(--color);
+    border-bottom: 0.2vmin solid var(--color);
     width: fit-content;
     margin-top: 1vmin;
+    margin-bottom: 0.5vmin;
 }
 
 #settings-right {
