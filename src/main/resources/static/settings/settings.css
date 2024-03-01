@@ -92,11 +92,13 @@ header > div {
 }
 
 #settings .setting-subcategory-header {
-    font-style: italic;
-    opacity: 0.25;
-    border-bottom: 0.2vmin solid white;
-    width: fit-content;
-    margin-top: 4vmin;
+    opacity: 0.1;
+    border-top: 0.2vh solid white;
+    width: 100%;
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+    font-size: 2vh;
+    text-transform: uppercase;
 }
 
 #settings .setting {

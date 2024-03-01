@@ -734,6 +734,10 @@ div#context-main {
     opacity: 0.65;
 }
 
+#artists.feat-new-line .feat {
+    display: block;
+}
+
 #artists.no-feat .feat {
     display: none;
 }

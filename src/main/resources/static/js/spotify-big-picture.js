@@ -2847,7 +2847,7 @@ const PREFERENCES = [
   },
   {
     id: "scrollable-track-list",
-    name: "Scrollable Tracklist",
+    name: "Scrollable",
     description: "If enabled, the tracklist can be scrolled through with the mouse wheel. Otherwise it can only scroll on its own",
     category: "Tracklist",
     default: false,
@@ -3041,6 +3041,7 @@ const PREFERENCES = [
     description: "Display any potential featured artists. Otherwise, only show the main artist",
     category: "Main Content",
     default: true,
+    requiredFor: ["featured-artists-new-line"],
     css: {"artists": "!no-feat"}
   },
   {
@@ -3051,24 +3052,7 @@ const PREFERENCES = [
     default: true,
     css: {"title": "!hide"}
   },
-  {
-    id: "swap-artist-title",
-    name: "Titles Above Artists",
-    description: "If enabled, the current track's title is displayed above the artist(s) instead of underneath " +
-      "(this mimics the layout of Spotify's own interface)",
-    category: "Main Content",
-    default: false,
-    callback: (state) => {
-      let artists = "artists".select();
-      let title = "title".select();
-      let contentInfoMainContainer = "center-info-main".select();
-      if (state) {
-        contentInfoMainContainer.insertBefore(title, artists);
-      } else {
-        contentInfoMainContainer.insertBefore(artists, title);
-      }
-    }
-  },
+
   {
     id: "show-podcast-descriptions",
     name: "Show Podcast Descriptions",
@@ -3076,15 +3060,6 @@ const PREFERENCES = [
     category: "Main Content",
     default: true,
     css: {"description": "!hide"}
-  },
-  {
-    id: "xl-text",
-    name: "XL Main Content",
-    description: "If enabled, the font size for the current track's title, artist, and release is doubled. "
-      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
-    category: "Main Content",
-    default: false,
-    css: {"center-info-main": "big-text"}
   },
 
   // Release
@@ -3136,11 +3111,46 @@ const PREFERENCES = [
 
   // Layout
   {
+    id: "swap-artist-title",
+    name: "Titles Above Artists",
+    description: "If enabled, the current track's title is displayed above the artist(s) instead of underneath " +
+      "(this mimics the layout of Spotify's own interface)",
+    category: "Main Content",
+    subcategoryHeader: "Layout",
+    default: false,
+    callback: (state) => {
+      let artists = "artists".select();
+      let title = "title".select();
+      let contentInfoMainContainer = "center-info-main".select();
+      if (state) {
+        contentInfoMainContainer.insertBefore(title, artists);
+      } else {
+        contentInfoMainContainer.insertBefore(artists, title);
+      }
+    }
+  },
+  {
+    id: "featured-artists-new-line",
+    name: "Featured Artists In New Line",
+    description: "Display any potential featured artists in a new line",
+    category: "Main Content",
+    default: false,
+    css: {"artists": "feat-new-line"}
+  },
+  {
+    id: "xl-text",
+    name: "XL Main Content",
+    description: "If enabled, the font size for the current track's title, artist, and release is doubled. "
+      + "This setting is intended to be used with disabled artwork, as there isn't a lot of space available otherwise",
+    category: "Main Content",
+    default: false,
+    css: {"center-info-main": "big-text"}
+  },
+  {
     id: "main-content-centered",
     name: "Center-Align",
     description: "Center the main content (current track information and tracklist). Otherwise, the text will be aligned to the border",
     category: "Main Content",
-    subcategoryHeader: "Layout",
     default: true,
     css: {"content-center": "centered"}
   },
@@ -3830,7 +3840,9 @@ const PREFERENCES_PRESETS = [
     description: "Just displays the background and a clock, to be used as some sort of wallpaper",
     enabled: [
       "color-dodge-skin",
-      "text-shadows"
+      "text-shadows",
+      "progress-bar-gradient",
+      "reverse-bottom"
     ],
     disabled: [
       "enable-top-content",
