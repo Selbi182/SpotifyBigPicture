@@ -1427,7 +1427,7 @@ div#device {
 }
 
 #mouse-move-buttons > #settings-menu-toggle-button {
-    --icon: url("img/symbols/cog.png");
+    --icon: url("img/symbols/gear.png");
 }
 #mouse-move-buttons > #settings-menu-toggle-button:hover {
     transform: rotate(180deg);
@@ -1849,7 +1849,7 @@ div#device {
 
 #settings-reset::before {
     content: "";
-    background-image: url("img/symbols/cog.png");
+    background-image: url("img/symbols/gear.png");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;

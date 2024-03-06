@@ -23,16 +23,15 @@ Some settings have a small (!) symbol next to them. These are all options that c
 
 ## Hotkeys
 ### Settings
-* *Space*: toggle the settings menu (same effect as clicking the cog symbol in the top right)
+* *Space*: toggle the settings menu (same effect as clicking the gears symbol in the top right)
 * *Ctrl*: toggle between the preset list or all-settings list
 * *Up/Down arrow keys*: scroll in settings menu
-* *Esc*: Close settings
+* *Esc*: Close settings menu
 
 ### Other
 * *F*: toggle fullscreen (or just double click anywhere)
 * *D*: toggle dark mode
 * *L*: toggle lyrics
-* *S*: toggle spacers between albums in tracklist
 
 ## Remote Control
 ![Remote Control](https://i.imgur.com/Es48dMs.png)

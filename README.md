@@ -17,7 +17,7 @@ These two examples only show examples of SpotifyBigPicture's default preset. For
 ![Playlist View](https://i.imgur.com/zbIkWvf.png)
 
 ### Customization
-Click the cog symbol in the top left of the interface to open the settings for Visual Preferences. Here you can customize the styling of the interface from a number of options with just a few clicks!
+Click the gear symbol in the top left of the interface to open the settings for Visual Preferences. Here you can customize the styling of the interface from a number of options with just a few clicks!
 
 Your settings are automatically stored locally, so you won't need to worry about reconfiguring everything each time you reopen the website.
 
