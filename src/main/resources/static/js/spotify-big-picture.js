@@ -1646,7 +1646,13 @@ function initVisualPreferences() {
     let newVersionHash = calculateVersionHash();
     setVersionHashInLocalStorage(newVersionHash);
     if (!storedVersionHash) {
-      showModal("Welcome to SpotifyBigPicture", "Please select a preset to proceed...")
+      showModal(
+        "Welcome to SpotifyBigPicture",
+        "Please select a preset to proceed...",
+        null,
+        null,
+        "Okay"
+      )
       resetSettings();
     } else if (storedVersionHash !== newVersionHash) {
       showModal(
@@ -1722,7 +1728,7 @@ function initVisualPreferences() {
     let presetElem = document.createElement("div");
     presetElem.id = preset.id;
     presetElem.classList.add("preset");
-    presetElem.innerHTML = `<img src="/design/img/presets/${preset.id}.png">`;
+    presetElem.innerHTML = `<img src="/design/img/presets/${preset.id}.png" alt=${preset.name}>`;
 
     presetElem.onclick = () => {
       applyPreset(preset);
@@ -2689,6 +2695,14 @@ const PREFERENCES = [
       });
     }
   },
+  {
+    id: "swap-top-bottom",
+    name: "Swap Top with Bottom Content",
+    description: "If enabled, the top content swaps position with the bottom content",
+    category: "General",
+    default: false,
+    css: {"content": "swap-top-bottom"}
+  },
 
   // Behavior
   {
@@ -2984,7 +2998,16 @@ const PREFERENCES = [
     description: "Adds a subtle shadow underneath the artwork",
     category: "Artwork",
     default: true,
+    requiredFor: ["artwork-soft-light"],
     css: {"artwork": "shadow"}
+  },
+  {
+    id: "artwork-soft-light",
+    name: "Soft-Light Blend",
+    description: "Blends the artwork using the soft-light blend mode. This generally makes it darker",
+    category: "Artwork",
+    default: false,
+    css: {"artwork": "soft-light"}
   },
   {
     id: "artwork-expand-top",
@@ -3586,14 +3609,6 @@ const PREFERENCES = [
     category: "Misc",
     default: false,
     css: {"content": "extra-wide"},
-  },
-  {
-    id: "swap-top-bottom",
-    name: "Swap Top with Bottom Content",
-    description: "If enabled, the top content swaps position with the bottom content",
-    category: "Misc",
-    default: false,
-    css: {"content": "swap-top-bottom"}
   },
   {
     id: "color-dodge-skin",
