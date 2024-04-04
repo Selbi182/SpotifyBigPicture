@@ -1,3 +1,58 @@
+/**
+ * @typedef {Object} CurrentData
+ * @property {string} type
+ * @property {number} deployTime
+ * @property {number} versionId
+ * @property {Array<{device: string, baseDb: number}>} customVolumeSettings
+ * @property {Array<string>} settingsToToggle
+ * @property {{
+ *    id: string,
+ *    artists: Array<string>,
+ *    title: string,
+ *    description: string,
+ *    album: string,
+ *    releaseDate: string,
+ *    discNumber: number,
+ *    trackNumber: number,
+ *    timeCurrent: number,
+ *    timeTotal: number,
+ *    imageData: {
+ *      imageUrl: string,
+ *      imageColors: {
+ *        averageBrightness: number,
+ *        primary: {r: number, g: number, b: number},
+ *        secondary: {r: number, g: number, b: number}
+ *      }
+ *    }
+ * }} currentlyPlaying
+ * @property {{
+ *    discNumber: number,
+ *    totalDiscCount: number,
+ *    trackCount: number,
+ *    combinedTime: number,
+ *    listTracks: Array<any>,
+ *    queue: Array<any>,
+ *    trackListView: string,
+ *    nextImageData: {
+ *      imageUrl: string,
+ *      imageColors: {
+ *        averageBrightness: number,
+ *        primary: {r: number, g: number, b: number},
+ *        secondary: {r: number, g: number, b: number}
+ *      }
+ *    }
+ * }} trackData
+ * @property {{
+ *    context: {contextName: string, contextType: string},
+ *    device: string,
+ *    paused: boolean,
+ *    repeat: string,
+ *    shuffle: boolean,
+ *    volume: number,
+ *    thumbnailUrl: string
+ * }} playbackContext
+ */
+
 const DEV_MODE = new URLSearchParams(document.location.search).has("dev");
 if (DEV_MODE) {
   console.info("Developer Mode enabled!");
@@ -834,6 +889,7 @@ const USELESS_WORDS = [
   "ost",
   "sound.?track",
   "theme",
+  "from",
   "re.?issue",
   "re.?record",
   "re.?imagine",
@@ -3084,7 +3140,7 @@ const PREFERENCES = [
   },
   {
     id: "separate-release-line",
-    name: "Release Date on New Line",
+    name: "Release Date in New Line",
     description: "Displays the release date in a new line, rather than right next to the release name",
     category: "Main Content",
     default: false,
@@ -3131,7 +3187,7 @@ const PREFERENCES = [
   },
   {
     id: "featured-artists-new-line",
-    name: "Featured Artists In New Line",
+    name: "Featured Artists in New Line",
     description: "Display any potential featured artists in a new line",
     category: "Main Content",
     default: false,
@@ -3690,7 +3746,8 @@ const PREFERENCES_PRESETS = [
       "center-lr-margins",
       "reverse-bottom",
       "split-main-panels",
-      "separate-release-line"
+      "separate-release-line",
+      "featured-artists-new-line"
     ],
     disabled: [
       "main-content-centered",
@@ -3785,7 +3842,8 @@ const PREFERENCES_PRESETS = [
       "separate-release-line",
       "spread-timestamps",
       "reverse-bottom",
-      "next-track-replacing-clock"
+      "next-track-replacing-clock",
+      "featured-artists-new-line"
     ],
     disabled: [
       "album-view",
