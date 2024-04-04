@@ -493,6 +493,10 @@ img:not([src]) {
     filter: drop-shadow(var(--shadow-light));
 }
 
+#artwork.shadow.soft-light {
+    mix-blend-mode: soft-light;
+}
+
 #artwork.top-disabled.center-disabled.bottom-disabled {
     margin: auto;
 }
