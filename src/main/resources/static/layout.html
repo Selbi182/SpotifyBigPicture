@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>SpotifyBigPicture</title>
   <script src="js/spotify-big-picture.js" type="module"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.2.0/dom-to-image-more.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.3.0/dom-to-image-more.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/balance-text/3.3.1/balancetext.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <link rel="stylesheet" href="design/style.css"/>
@@ -17,9 +17,17 @@
     <div id="toast-text"></div>
   </div>
   <div id="mouse-move-buttons">
-    <div id="settings-menu-toggle-button" title="Visual Preferences (Hotkey: Space)"></div>
-    <div id="lyrics-toggle-button" title="Toggle Lyrics (Hotkey: L)"></div>
-    <div id="nosleep-lock-button" title="Toggle No-Sleep Mode/Keep Screen Awake"></div>
+    <div id="top-buttons">
+      <div id="settings-menu-toggle-button" title="Visual Preferences (Hotkey: Space)"></div>
+      <div id="lyrics-toggle-button" title="Toggle Lyrics (Hotkey: L)"></div>
+      <div id="nosleep-lock-button" title="Toggle No-Sleep Mode/Keep Screen Awake"></div>
+      <div id="fullscreen-toggle-button" title="Toggle Fullscreen (Hotkey: F)"></div>
+    </div>
+    <div id="playback-controller">
+      <div id="button-prev"></div>
+      <div id="button-play-pause"></div>
+      <div id="button-next"></div>
+    </div>
   </div>
   <div id="settings-wrapper">
     <div id="settings-shutdown" title="Shutdown/Logout"></div>
@@ -93,13 +101,11 @@
         <div id="bottom-meta-container">
           <div id="bottom-left">
             <div id="info-symbols">
-              <div id="prev" title="Previous Track"></div>
-              <div id="play-pause" title="Play/Pause" class="show"></div>
-              <div id="next" title="Next Track"></div>
-              <div id="shuffle" title="Shuffle"></div>
-              <div id="repeat" title="Repeat"></div>
+              <div id="play-pause"></div>
+              <div id="shuffle"></div>
+              <div id="repeat"></div>
             </div>
-            <div id="volume" title="volume">
+            <div id="volume">
               <div id="volume-text"></div>
               <div id="volume-bar">
                 <div id="volume-current"></div>

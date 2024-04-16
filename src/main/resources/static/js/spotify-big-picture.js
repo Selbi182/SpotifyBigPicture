@@ -128,9 +128,9 @@ let currentData = {
       contextType: ""
     },
     device: "",
-    paused: true,
+    paused: "",
     repeat: "",
-    shuffle: false,
+    shuffle: "",
     volume: -1,
     thumbnailUrl: ""
   }
@@ -230,14 +230,14 @@ function calculateNextPollingTimeout(success) {
 
 let fakeSongTransitionCooldown = false;
 let fakeSongTransition;
-function simulateNextSongTransition() {
+function simulateNextSongTransition(force = false) {
   if (fakeSongTransitionCooldown) {
     console.debug("Simulated song transition skipped!")
     return;
   }
   if (currentData.trackData.queue.length > 0
     && !currentData.playbackContext.paused
-    && (currentData.currentlyPlaying.timeTotal - currentData.currentlyPlaying.timeCurrent) < POLLING_INTERVAL_MS
+    && (force || (currentData.currentlyPlaying.timeTotal - currentData.currentlyPlaying.timeCurrent) < POLLING_INTERVAL_MS)
     && isTabVisible()) {
     fakeSongTransitionCooldown = true;
     setTimeout(() => {
@@ -491,6 +491,9 @@ function setTextData(changes) {
     let pauseElem = "play-pause".select();
     setClass(pauseElem, "paused", paused.value);
     fadeIn(pauseElem);
+
+    let buttonPauseElem = "button-play-pause".select();
+    setClass(buttonPauseElem, "paused", paused.value);
   }
 
   let shuffle = getChange(changes, "playbackContext.shuffle");
@@ -505,10 +508,8 @@ function setTextData(changes) {
   if (repeat.wasChanged) {
     let repeatElem = "repeat".select();
     setClass(repeatElem, "show", repeat.value !== "off");
-
     setClass(repeatElem, "context", repeat.value === "context");
     setClass(repeatElem, "track", repeat.value === "track");
-
     fadeIn(repeatElem);
   }
 
@@ -860,11 +861,7 @@ async function balanceTextClamp(elem) {
 }
 
 function setClass(elem, className, state) {
-  if (state) {
-    elem.classList.add(className);
-  } else {
-    elem.classList.remove(className);
-  }
+  elem.classList.toggle(className, state);
   return elem;
 }
 
@@ -1707,6 +1704,7 @@ function initVisualPreferences() {
         "Please select a preset to proceed...",
         null,
         null,
+        "Okay",
         "Okay"
       )
       resetSettings();
@@ -2190,11 +2188,15 @@ window.onresize = () => {
 window.addEventListener('load', initPlaybackControls);
 
 function initPlaybackControls() {
-  "play-pause".select().onclick = () => fireControl("PLAY_PAUSE");
-  "shuffle".select().onclick = () => fireControl("SHUFFLE");
-  "repeat".select().onclick = () => fireControl("REPEAT");
-  "prev".select().onclick = () => fireControl("PREV");
-  "next".select().onclick = () => fireControl("NEXT");
+  "button-play-pause".select().onclick = () => {
+    setTextData({playbackContext: {paused: !currentData.playbackContext.paused}});
+    fireControl("PLAY_PAUSE");
+  }
+  "button-prev".select().onclick = () => fireControl("PREV");
+  "button-next".select().onclick = () => {
+    simulateNextSongTransition(true);
+    fireControl("NEXT");
+  }
 }
 
 const CONTROL_RESPONSE_DELAY = 100;
@@ -2213,9 +2215,8 @@ function fireControl(control, param) {
         }
         if (response.status >= 400) {
           showModal("Playback Control", "ERROR: Failed to transmit control to backend!");
-          unlockPlaybackControls();
         }
-      });
+      }).finally(() => unlockPlaybackControls());
   }
 }
 
@@ -2295,7 +2296,7 @@ function handleMouseEvent(e) {
     let mouseMoveButtons = "mouse-move-buttons".select();
     setClass(mouseMoveButtons, "show", true);
 
-    if (!settingsVisible && e.target.parentNode !== mouseMoveButtons && !isHoveringControlElem(e.target)) {
+    if (!settingsVisible && !isHoveringControlElem(e.target)) {
       cursorTimeout = setTimeout(() => {
         setMouseVisibility(false);
         setClass(mouseMoveButtons, "show", false);
@@ -2368,11 +2369,13 @@ function initSettingsMouseMove() {
     "preset-thumbnail-generator-canvas".select().remove();
   }
 
-  let nosleepButton = "nosleep-lock-button".select();
-  nosleepButton.onclick = () => {
+  "nosleep-lock-button".select().onclick = () => {
     toggleNoSleepMode();
   };
 
+  "fullscreen-toggle-button".select().onclick = () => {
+    toggleFullscreen();
+  };
 
   "settings-expert-mode-toggle".select().onclick = () => {
     toggleSettingsExpertMode();
@@ -2395,7 +2398,7 @@ function initSettingsMouseMove() {
   }
 
   document.addEventListener("dblclick", (e) => {
-    if (!settingsVisible && !isSettingControlElem(e) && !window.getSelection().toString() && !isHoveringControlElem(e.target)) {
+    if (isPrefEnabled("fullscreen-double-click") && !settingsVisible && !isSettingControlElem(e) && !window.getSelection().toString() && !isHoveringControlElem(e.target)) {
       toggleFullscreen();
     }
   });
@@ -2414,10 +2417,8 @@ function isSettingControlElem(e) {
   return !"main".select().contains(e.target);
 }
 
-const CONTROL_ELEM_IDS = ["prev", "play-pause", "next", "shuffle", "repeat"];
-
 function isHoveringControlElem(target) {
-  return target && isPrefEnabled("playback-control") && CONTROL_ELEM_IDS.includes(target.id);
+  return target && "mouse-move-buttons".select().contains(target);
 }
 
 function toggleSettingsMenu() {
@@ -2630,7 +2631,7 @@ function showModal(title, content, onConfirm = null, onReject = null, okayButton
 
     // Display modal
     setClass("modal-overlay".select(), "show", true);
-    setClass(document.body, "modal", true);
+    setClass(document.body, "dark-blur", true);
     modalActive = true;
 
     // Modal button generator
@@ -2652,7 +2653,7 @@ function showModal(title, content, onConfirm = null, onReject = null, okayButton
 function hideModal() {
   modalActive = false;
   setClass("modal-overlay".select(), "show", false);
-  setClass(document.body, "modal", false);
+  setClass(document.body, "dark-blur", false);
 }
 
 
@@ -2680,6 +2681,16 @@ function showToast(text) {
 const PREFERENCES = [
   ///////////////////////////////
   // General
+  {
+    id: "playback-control",
+    name: "Enable Playback Controls",
+    description: "If enabled, the interface can be used to directly control some basic playback functions of Spotify: "
+      + "play, pause, next track, previous track",
+    category: "General",
+    default: false,
+    protected: true,
+    css: {"playback-controller": "!hide"}
+  },
   {
     id: "colored-text",
     name: "Colored Text",
@@ -2777,6 +2788,14 @@ const PREFERENCES = [
     }
   },
   {
+    id: "fullscreen-double-click",
+    name: "Toggle Fullscreen By Double Click",
+    description: "If enabled, you can double click anywhere on the screen to toggle fullscreen mode " +
+      "(remember: you can always toggle fullscreen by pressing F)",
+    category: "General",
+    default: true
+  },
+  {
     id: "show-error-toasts",
     name: "Show Error Messages",
     description: "If enabled, display any potential error messages as a toast notification at the top",
@@ -2804,12 +2823,12 @@ const PREFERENCES = [
   },
   {
     id: "hide-top-buttons",
-    name: "Hide Top Buttons",
-    description: "Hide the buttons at the top when moving the mouse. Note: If you disable this, the settings menu can only be accessed by pressing Space!",
+    name: "Show Top Buttons",
+    description: "Show a few useful buttons at the top when moving the mouse. Note: If you disable this, the settings menu can only be accessed by pressing Space!",
     category: "General",
-    default: false,
+    default: true,
     protected: true,
-    css: {"mouse-move-buttons": "hide"}
+    css: {"top-buttons": "!hide"}
   },
   {
     id: "allow-idle-mode",
@@ -2830,6 +2849,7 @@ const PREFERENCES = [
     default: true,
     protected: true
   },
+
 
   ///////////////////////////////
   // Lyrics
@@ -3363,37 +3383,17 @@ const PREFERENCES = [
   },
   {
     id: "show-info-icons",
-    name: "Show Play/Pause/Shuffle/Repeat Icons",
+    name: "Show Playback Status Icons",
     description: "Displays the state icons for play/pause as well as shuffle and repeat. "
       + "This setting is required for the playback controls to work",
     category: "Bottom Content",
     default: true,
-    requiredFor: ["playback-control"],
+    requiredFor: ["center-info-icons"],
     css: {"info-symbols": "!hide"}
   },
   {
-    id: "playback-control",
-    name: "Enable Playback Controls",
-    description: "If enabled, the interface can be used to directly control some basic playback functions of Spotify: "
-      + "play, pause, next track, previous track, shuffle, repeat. Otherwise, the icons are purely cosmetic",
-    category: "Bottom Content",
-    default: false,
-    protected: true,
-    css: {"main": "playback-control"},
-    callback: (state) => {
-      let infoSymbolsContainer = "info-symbols".select();
-      let shuffleButton = "shuffle".select();
-      let repeatButton = "repeat".select();
-      if (state) {
-        infoSymbolsContainer.insertBefore(shuffleButton, infoSymbolsContainer.firstChild);
-      } else {
-        infoSymbolsContainer.insertBefore(shuffleButton, repeatButton);
-      }
-    }
-  },
-  {
     id: "center-info-icons",
-    name: "Center Icons",
+    name: "Center Playback Status Icons",
     description: "If enabled, the play/pause/shuffle/repeat icons are centered (like it's the case on the default Spotify player). "
       + "Enabling this will disable the clock",
     category: "Bottom Content",
@@ -3762,7 +3762,8 @@ const PREFERENCES_PRESETS = [
       "reverse-bottom",
       "split-main-panels",
       "separate-release-line",
-      "featured-artists-new-line"
+      "featured-artists-new-line",
+      "album-spacers"
     ],
     disabled: [
       "main-content-centered",
@@ -3779,7 +3780,8 @@ const PREFERENCES_PRESETS = [
     enabled: [
       "increase-min-track-list-scaling",
       "spread-timestamps",
-      "reverse-bottom"
+      "reverse-bottom",
+      "album-spacers"
     ],
     disabled: [
       "enable-center-content",
@@ -3813,7 +3815,8 @@ const PREFERENCES_PRESETS = [
     description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the tracklist, and the progress bar are displayed",
     enabled: [
       "artwork-expand-bottom",
-      "decreased-margins"
+      "decreased-margins",
+      "album-spacers"
     ],
     disabled: [
       "enable-top-content",

@@ -39,15 +39,15 @@ html, body {
     line-height: 1.3;
     user-select: none;
     word-break: keep-all;
-    transition: filter var(--transition);
 }
 
 body.idle > * {
     display: none;
 }
 
-body.modal > *:not(#modal-overlay) {
+body.dark-blur > *:not(#modal-overlay) {
     filter: blur(1vmin);
+    transition: filter var(--transition);
 }
 
 #main.hide-cursor-enabled.hide-cursor {
@@ -1080,6 +1080,7 @@ div#description {
     white-space: unset;
 }
 
+
 #info-symbols {
     display: flex;
     height: 3vmin;
@@ -1090,11 +1091,10 @@ div#description {
     display: none;
 }
 
-#info-symbols > div {
+#info-symbols div {
+    opacity: 0.65;
+    width: 3vmin;
     height: 100%;
-    width: 0;
-    opacity: 0;
-    display: none;
     -webkit-mask-size: contain;
     -webkit-mask-repeat: no-repeat;
     -webkit-mask-position: center;
@@ -1102,73 +1102,45 @@ div#description {
     mask-repeat: no-repeat;
     mask-position: center;
     background-color: var(--color);
+    -webkit-mask-image: var(--url);
+    mask-image: var(--url);
 }
 
-#main.playback-control #info-symbols > div,
-#info-symbols > div.show:not(#prev, #next) {
-    display: initial;
-    opacity: 0.65;
+#info-symbols div:not(#play-pause, .show) {
+    width: 0;
+    opacity: 0;
+    display: none;
 }
 
-#info-symbols > div.show:not(#prev, #next),
-#main.playback-control #info-symbols > #play-pause {
-    width: 3vmin;
+#info-symbols #play-pause {
+    --url: url("img/symbols/play.png");
 }
 
-#main.playback-control #info-symbols > div {
-    width: 2vmin;
-}
-
-#info-symbols > #shuffle {
-    -webkit-mask-image: url("img/symbols/shuffle-off.png");
-    mask-image: url("img/symbols/shuffle-off.png");
-}
-
-#info-symbols > #shuffle.on {
-    -webkit-mask-image: url("img/symbols/shuffle.png");
-    mask-image: url("img/symbols/shuffle.png");
-}
-
-#main.playback-control #info-symbols > #play-pause.paused,
-#main:not(.playback-control) #info-symbols > #play-pause {
-    -webkit-mask-image: url("img/symbols/play.png");
-    mask-image: url("img/symbols/play.png");
-}
-
-#main.playback-control #info-symbols > #play-pause,
-#main:not(.playback-control) #info-symbols > #play-pause.paused {
-    -webkit-mask-image: url("img/symbols/pause.png");
-    mask-image: url("img/symbols/pause.png");
-}
-
-#main:not(.playback-control) #info-symbols > #play-pause.paused {
+#info-symbols #play-pause.paused {
+    --url: url("img/symbols/pause.png");
     opacity: 1;
 }
 
-#info-symbols > #repeat {
-    -webkit-mask-image: url("img/symbols/repeat-off.png");
-    mask-image: url("img/symbols/repeat-off.png");
+#info-symbols #shuffle {
+    --url: url("img/symbols/shuffle-off.png");
 }
 
-#info-symbols > #repeat.context {
-    -webkit-mask-image: url("img/symbols/repeat.png");
-    mask-image: url("img/symbols/repeat.png");
+#info-symbols #shuffle.on {
+    --url: url("img/symbols/shuffle.png");
 }
 
-#info-symbols > #repeat.track {
-    -webkit-mask-image: url("img/symbols/repeat-once.png");
-    mask-image: url("img/symbols/repeat-once.png");
+#info-symbols #repeat {
+    --url: url("img/symbols/repeat-off.png");
 }
 
-#info-symbols > #prev {
-    -webkit-mask-image: url("img/symbols/prev.png");
-    mask-image: url("img/symbols/prev.png");
+#info-symbols #repeat.context {
+    --url: url("img/symbols/repeat.png");
 }
 
-#info-symbols > #next {
-    -webkit-mask-image: url("img/symbols/next.png");
-    mask-image: url("img/symbols/next.png");
+#info-symbols #repeat.track {
+    --url: url("img/symbols/repeat-once.png");
 }
+
 
 #volume {
     --volume: 0%;
@@ -1387,35 +1359,46 @@ div#device {
 }
 
 
+/***********/
+
 #mouse-move-buttons {
-    --offset: var(--margin-half);
+    opacity: 0;
     position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 3;
+    transition: opacity var(--transition);
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#mouse-move-buttons.show {
+    opacity: 1;
+}
+#top-buttons.hide,
+#mouse-move-buttons.settings-active > #playback-controller,
+:is(body.dark-blur, #mouse-move-buttons.settings-active) #top-buttons > div:not(#settings-menu-toggle-button) {
+    display: none;
+}
+
+#top-buttons {
+    position: absolute;
+    --offset: var(--margin-half);
     padding: 0 calc(var(--offset) / 2);
     top: calc(var(--offset) / 2);
     height: var(--offset);
     width: 100%;
     display: flex;
-    justify-content: space-between;
-    z-index: 3;
-    opacity: 0;
-    transition: opacity var(--transition);
-    pointer-events: none;
+    justify-content: right;
     gap: 2vmin;
 }
-#mouse-move-buttons > div:first-child {
+
+#top-buttons > #settings-menu-toggle-button {
     margin-right: auto;
 }
-#mouse-move-buttons.show {
-    opacity: 1;
-}
-#mouse-move-buttons.hide, body.modal #mouse-move-buttons {
-    display: none;
-}
-#mouse-move-buttons.settings-active > div:not(:first-child) {
-    display: none;
-}
 
-#mouse-move-buttons > div {
+#top-buttons  > div {
     --offset: var(--margin-half);
     width: var(--offset);
     height: var(--offset);
@@ -1426,32 +1409,81 @@ div#device {
     transition: opacity var(--transition), transform var(--transition);
     pointer-events: all;
 }
-#mouse-move-buttons > div:hover {
+#top-buttons > div:hover {
     opacity: 1;
 }
 
-#mouse-move-buttons > #settings-menu-toggle-button {
+#top-buttons > #settings-menu-toggle-button {
     --icon: url("img/symbols/gear.png");
 }
-#mouse-move-buttons > #settings-menu-toggle-button:hover {
+#top-buttons > #settings-menu-toggle-button:hover {
     transform: rotate(180deg);
     transition-duration: var(--transition);
 }
 
-#mouse-move-buttons > #lyrics-toggle-button {
+#top-buttons > #lyrics-toggle-button {
     --icon: url("img/symbols/lyrics-off.png");
 }
-#mouse-move-buttons > #lyrics-toggle-button.enabled {
+#top-buttons > #lyrics-toggle-button.enabled {
     --icon: url("img/symbols/lyrics-on.png");
 }
 
-#mouse-move-buttons > #nosleep-lock-button {
+#top-buttons > #nosleep-lock-button {
     --icon: url("img/symbols/lock-unlocked.png");
 }
-#mouse-move-buttons > #nosleep-lock-button.enabled {
+#top-buttons > #nosleep-lock-button.enabled {
     --icon: url("img/symbols/lock-locked.png");
 }
 
+#top-buttons > #fullscreen-toggle-button {
+    --icon: url("img/symbols/fullscreen.png");
+}
+
+
+#playback-controller {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vmin;
+    width: 100%;
+    height: 100%;
+    padding: var(--margin-main);
+}
+#playback-controller.hide {
+    display: none;
+}
+
+#playback-controller > div {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: all;
+    cursor: pointer;
+    transition: opacity var(--transition);
+    background: #0004 var(--url) center no-repeat;
+}
+
+#playback-controller > div:hover {
+    opacity: 1;
+}
+
+#playback-controller > #button-play-pause {
+    --url: url("img/symbols/pause.png");
+}
+
+#playback-controller > #button-play-pause.paused {
+    --url: url("img/symbols/play.png");
+}
+
+#playback-controller > #button-prev {
+    --url: url("img/symbols/prev.png");
+}
+
+#playback-controller > #button-next {
+    --url: url("img/symbols/next.png");
+}
+
+/***********/
 
 #settings-wrapper {
     color: white;
@@ -1909,19 +1941,6 @@ div#device {
     margin-right: 1vmin;
     vertical-align: -12%;
 }
-
-#main.playback-control #info-symbols > div {
-    cursor: pointer;
-}
-
-#main.playback-control.waiting-for-control #info-symbols > div {
-    cursor: wait;
-}
-
-#main.playback-control #info-symbols > div:hover {
-    opacity: 1;
-}
-
 
 #main.preset-thumbnail-generator :is(
         #thumbnail-wrapper, #context-main, #context-extra, #logo,

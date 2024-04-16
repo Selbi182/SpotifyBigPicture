@@ -42,6 +42,7 @@ import spotify.util.SpotifyUtils;
 @Component
 public class PlaybackInfoProvider {
   private static final int QUEUE_FALLBACK_THRESHOLD = 200;
+  private static final int QUEUE_EXPECTED_SIZE = 20;
 
   private final SpotifyApi spotifyApi;
   private final ContextProvider contextProvider;
@@ -123,10 +124,25 @@ public class PlaybackInfoProvider {
             // If the currently playing song in the queue doesn't match the currently playing context's song, the endpoints have gotten out of sync
             // It's a hackish solution, but the only way I can feasibly avoid this problem is to force the user to re-request until a match arrives
             return getCurrentPlaybackInfo(previousVersionId);
+          } else if (previous != null && previous.getTrackData().getQueue().size() == QUEUE_EXPECTED_SIZE && playbackQueue.getQueue() != null && playbackQueue.getQueue().size() < QUEUE_EXPECTED_SIZE) {
+            // For some bizarre reason, Spotify sometimes only returns a small chunk of the queue
+            // If that happens, pretend that no new data arrived to avoid spamming the frontend with pointless tracklist re-renders
+            List<TrackElement> previousQueue = previous.getTrackData().getQueue();
+            List<IPlaylistItem> newQueue = playbackQueue.getQueue();
+            boolean startsWith = true;
+            for (int i = 0; i < newQueue.size(); i++) {
+              if (!Objects.equals(previousQueue.get(i).getId(), newQueue.get(i).getId())) {
+                startsWith = false;
+                break;
+              }
+            }
+            if (startsWith) {
+              return PlaybackInfo.EMPTY;
+            }
           }
         }
         if (playbackQueue == null) {
-          playbackQueue = createFakePlaybackQueueForFreeUsers(currentlyPlayingContext);
+          playbackQueue = createFakePlaybackQueueWithoutQueue(currentlyPlayingContext);
         }
         if (playbackQueue.getCurrentlyPlaying() != null && currentlyPlayingContext.getItem() != null) {
           PlaybackInfo currentPlaybackInfo;
@@ -161,7 +177,7 @@ public class PlaybackInfoProvider {
     return PlaybackInfo.EMPTY;
   }
 
-  private PlaybackQueue createFakePlaybackQueueForFreeUsers(CurrentlyPlayingContext currentlyPlayingContext) {
+  private PlaybackQueue createFakePlaybackQueueWithoutQueue(CurrentlyPlayingContext currentlyPlayingContext) {
     PlaybackQueue.Builder builder = new PlaybackQueue.Builder();
     builder.setCurrentlyPlaying(currentlyPlayingContext.getItem());
     builder.setQueue(List.of());
@@ -305,6 +321,7 @@ public class PlaybackInfoProvider {
     }
 
     List<IPlaylistItem> playbackQueueQueue = playbackQueue.getQueue();
+
     List<TrackElement> queue = playbackQueueQueue.stream()
       .map(TrackElement::fromPlaylistItem)
       .collect(Collectors.toList());
