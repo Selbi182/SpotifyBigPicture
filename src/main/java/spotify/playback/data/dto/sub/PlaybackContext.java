@@ -5,6 +5,8 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import spotify.playback.data.help.BigPictureConstants;
+
 @JsonInclude(Include.NON_NULL)
 public class PlaybackContext {
   private Boolean paused;
@@ -112,14 +114,20 @@ public class PlaybackContext {
     }
     private String contextName;
     private ContextType contextType;
+    private String contextDescription;
 
-    private Context(String contextName, ContextType contextType) {
+    private Context(String contextName, ContextType contextType, String contextDescription) {
       this.contextName = contextName;
       this.contextType = contextType;
+      this.contextDescription = contextDescription;
     }
 
-    public static Context of(String context, ContextType contextType) {
-      return new Context(context, contextType);
+    public static Context of(String contextName, ContextType contextType) {
+      return new Context(contextName, contextType, BigPictureConstants.BLANK);
+    }
+
+    public static Context of(String contextName, ContextType contextType, String contextDescription) {
+      return new Context(contextName, contextType, contextDescription);
     }
 
     public String getContextName() {
@@ -138,19 +146,27 @@ public class PlaybackContext {
       this.contextType = contextType;
     }
 
+    public String getContextDescription() {
+      return contextDescription;
+    }
+
+    public void setContextDescription(String contextDescription) {
+      this.contextDescription = contextDescription;
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o)
         return true;
       if (!(o instanceof Context))
         return false;
-      Context context1 = (Context) o;
-      return Objects.equals(contextName, context1.contextName) && contextType == context1.contextType;
+      Context context = (Context) o;
+      return Objects.equals(contextName, context.contextName) && contextType == context.contextType && Objects.equals(contextDescription, context.contextDescription);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(contextName, contextType);
+      return Objects.hash(contextName, contextDescription, contextType);
     }
   }
 }

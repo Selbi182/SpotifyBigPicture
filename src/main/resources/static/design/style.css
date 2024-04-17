@@ -579,6 +579,7 @@ img:not([src]) {
     filter: grayscale(1);
 }
 
+
 #context {
     display: flex;
     flex-direction: column;
@@ -590,7 +591,8 @@ div#context-main {
     width: fit-content;
 }
 
-#context-extra {
+div#context-extra {
+    --max-lines: 1;
     opacity: 0.5;
     width: fit-content;
 }
@@ -599,9 +601,19 @@ div#context-main {
     display: none;
 }
 
+#context-description {
+    display: none;
+}
+
+#context-extra.has-description.show-description #context-description {
+    display: initial;
+}
+
+
 #content-top.swap #context {
     align-items: end;
 }
+
 
 #meta-right {
     text-align: right;
@@ -1070,7 +1082,7 @@ div#description {
 }
 
 
-#context-main, #artists, #album-title, #title, #description, #device,
+#context-main, #context-extra, #artists, #album-title, #title, #description, #device,
 #content-center:not(.queue) #track-list .track-elem.current div {
     --max-lines: 3;
     display: -webkit-box;

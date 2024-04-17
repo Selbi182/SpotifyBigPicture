@@ -215,7 +215,7 @@ public class ContextProvider {
       setTrackCount(realTrackCount);
       calculateAndSetTotalTrackDuration(realTrackCount <= this.listTracks.size() ? this.listTracks : List.of());
 
-      return PlaybackContext.Context.of(contextPlaylist.getName(), PlaybackContext.Context.ContextType.PLAYLIST);
+      return PlaybackContext.Context.of(contextPlaylist.getName(), PlaybackContext.Context.ContextType.PLAYLIST, contextPlaylist.getDescription());
     }
     return null;
   }
@@ -288,7 +288,7 @@ public class ContextProvider {
         setTrackCount(show.getEpisodes().getTotal());
         calculateAndSetTotalTrackDuration(List.of());
 
-        return PlaybackContext.Context.of(show.getName(), PlaybackContext.Context.ContextType.PODCAST);
+        return PlaybackContext.Context.of(show.getName(), PlaybackContext.Context.ContextType.PODCAST, episode.getShow().getDescription());
       }
     }
     return null;

@@ -43,7 +43,7 @@
  *    }
  * }} trackData
  * @property {{
- *    context: {contextName: string, contextType: string},
+ *    context: {contextName: string, contextType: string, contextDescription: string},
  *    device: string,
  *    paused: boolean,
  *    repeat: string,
@@ -125,7 +125,8 @@ let currentData = {
   playbackContext: {
     context: {
       contextName: "",
-      contextType: ""
+      contextType: "",
+      contextDescription: ""
     },
     device: "",
     paused: "",
@@ -431,12 +432,14 @@ function setTextData(changes) {
       contextTypePrefix = "LIKED SONGS";
     }
 
+    // Check if year needs to be displayed
     const validContextTypesForYearDisplay = ["ALBUM", "EP", "SINGLE", "COMPILATION"];
     if (validContextTypesForYearDisplay.includes(contextType.value)) {
       let year = getChange(changes, "currentlyPlaying.releaseDate").value.slice(0, 4);
       contextTypePrefix += `, ${year}`;
     }
 
+    // Format track count
     let trackCount = getChange(changes, "trackData.trackCount").value;
     if (trackCount > 0) {
       let trackCountFormatted = numberWithCommas(trackCount);
@@ -461,6 +464,12 @@ function setTextData(changes) {
     } else {
       contextExtra.innerHTML = "";
     }
+
+    // Playlist description
+    let contextDescription= getChange(changes, "playbackContext.context.contextDescription");
+    let formattedDescription = contextDescription.value !== BLANK ? convertToTextEmoji(contextDescription.value) : "";
+    contextExtra.innerHTML += `<span id="context-description"> \u2022 ${formattedDescription}</span>`;
+    setClass(contextExtra, "has-description", !!formattedDescription);
 
     // Thumbnail
     let thumbnailWrapperContainer = "thumbnail-wrapper".select();
@@ -3320,7 +3329,16 @@ const PREFERENCES = [
       + "Do note that total time cannot be displayed for playlists above 200 tracks for performance reasons",
     category: "Top Content",
     default: true,
+    requiredFor: ["show-context-description"],
     css: {"context-extra": "!hide"}
+  },
+  {
+    id: "show-context-description",
+    name: "Context Descriptions",
+    description: "Displays the context's description, if available (such as playlist description). Limited to 1 line due to space concerns",
+    category: "Top Content",
+    default: false,
+    css: {"context-extra": "show-description"}
   },
   {
     id: "show-context-thumbnail",
