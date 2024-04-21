@@ -918,10 +918,14 @@ const USELESS_WORDS_REGEX_HYPHEN = new RegExp("\\s-\\s[^-]*?(" + USELESS_WORDS.j
 const WHITELISTED_WORDS_REGEXP = new RegExp("(\\(|\\-|\\[)[^-]*?(" + WHITELISTED_WORDS.join("|") + ").*", "ig");
 
 function separateUnimportantTitleInfo(title) {
-  if (title.search(WHITELISTED_WORDS_REGEXP) < 0) {
+  let aggressive = isPrefEnabled("strip-titles-aggressive");
+  if (aggressive || title.search(WHITELISTED_WORDS_REGEXP) < 0) {
     let index = title.search(USELESS_WORDS_REGEX_BRACKETS);
     if (index < 0) {
       index = title.search(USELESS_WORDS_REGEX_HYPHEN);
+    }
+    if (aggressive && index < 0) {
+      index = title.search(WHITELISTED_WORDS_REGEXP);
     }
     if (index >= 0) {
       let mainTitle = title.substring(0, index);
@@ -2738,6 +2742,15 @@ const PREFERENCES = [
       "album-title-extra": "hide",
       "track-list": "strip"
     }
+  },
+  {
+    id: "strip-titles-aggressive",
+    name: "Aggressive Strip Titles",
+    description: "When also enabled, whitelisted words such as 'live', 'demo', 'remix' are also stripped. " +
+      "May require a page refresh",
+    category: "General",
+    default: false,
+    protected: true
   },
   {
     id: "dark-mode",
