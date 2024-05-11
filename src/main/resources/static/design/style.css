@@ -50,7 +50,7 @@ body.dark-blur > *:not(#modal-overlay) {
     transition: filter var(--transition);
 }
 
-#main.hide-cursor-enabled.hide-cursor {
+body.hide-cursor-enabled.hide-cursor {
     cursor: none !important;
 }
 
@@ -1470,13 +1470,13 @@ div#device {
     width: 100%;
     height: 100%;
     pointer-events: all;
-    cursor: pointer;
     transition: opacity var(--transition);
     background: #0004 var(--url) center no-repeat;
 }
 
-#playback-controller > div:hover {
+#mouse-move-buttons.show > #playback-controller > div:hover {
     opacity: 1;
+    cursor: pointer;
 }
 
 #playback-controller > #button-play-pause {

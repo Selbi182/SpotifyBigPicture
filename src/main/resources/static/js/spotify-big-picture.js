@@ -2298,7 +2298,7 @@ let cursorTimeout;
 const MOUSE_MOVE_HIDE_TIMEOUT_MS = 1000;
 
 function setMouseVisibility(state) {
-  setClass("main".select(), "hide-cursor", !state);
+  setClass(document.body, "hide-cursor", !state);
 }
 
 function handleMouseEvent(e) {
@@ -2431,7 +2431,7 @@ function isSettingControlElem(e) {
 }
 
 function isHoveringControlElem(target) {
-  return target && "mouse-move-buttons".select().contains(target);
+  return target && "mouse-move-buttons".select().contains(target) && !"playback-controller".select().contains(target);
 }
 
 function toggleSettingsMenu() {
@@ -2841,7 +2841,7 @@ const PREFERENCES = [
     category: "General",
     default: true,
     protected: true,
-    css: {"main": "hide-cursor-enabled"}
+    css: {"body": "hide-cursor-enabled"}
   },
   {
     id: "hide-top-buttons",
