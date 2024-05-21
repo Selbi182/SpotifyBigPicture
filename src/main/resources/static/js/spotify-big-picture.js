@@ -340,10 +340,6 @@ function getChange(changes, path) {
   }
 }
 
-function refreshCurrentTextData() {
-  setTextData(currentData);
-}
-
 const ATTR_DATA_RAW = "data-raw";
 function setTextData(changes) {
   // Main Content
@@ -534,15 +530,11 @@ function setTextData(changes) {
     handleDeviceChange(device.value);
   }
 
-  // Next track (if enabled)
-  if (isPrefEnabled("next-track-replacing-clock")) {
-    let nextTrackInQueue = changes.trackData.queue[0];
-    let nextArtist = nextTrackInQueue?.artists[0];
-    let nextTrackName = nextTrackInQueue?.title;
-    "clock".select().innerHTML = nextArtist && nextTrackName
-      ? `${nextArtist} \u2022 ${fullStrip(nextTrackName)}`
-      : "";
-  }
+  // Next track
+  let nextTrackInQueue = changes.trackData.queue[0];
+  let nextArtist = nextTrackInQueue?.artists[0];
+  let nextTrackName = nextTrackInQueue?.title;
+  "next-track-info".select().innerHTML = `${nextArtist} \u2022 ${fullStrip(nextTrackName)}`;
 
   // Color
   let textColor = getChange(changes, "currentlyPlaying.imageData.imageColors.primary")
@@ -909,7 +901,8 @@ const WHITELISTED_WORDS = [
   "classic",
   "demo",
   "session",
-  "reprise"
+  "reprise",
+  "edit"
 ];
 
 // Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
@@ -2598,7 +2591,7 @@ const clockLocale = "en-US";
 
 let prevTime;
 setInterval(() => {
-  if (isPrefEnabled("show-clock") && !isPrefEnabled("next-track-replacing-clock")) {
+  if (isPrefEnabled("show-clock")) {
     let date = new Date();
 
     let hour12 = !isPrefEnabled("clock-24");
@@ -3491,7 +3484,7 @@ const PREFERENCES = [
     callback: (state) => {
       let timeCurrent = "time-current".select();
       let bottomLeft = "bottom-left".select();
-      let bottomRight = "bottom-right".select();
+      let bottomRight = "timestamp-container".select();
       if (state) {
         bottomLeft.insertBefore(timeCurrent, bottomLeft.firstChild);
       } else {
@@ -3506,6 +3499,15 @@ const PREFERENCES = [
     category: "Bottom Content",
     default: false,
     callback: () => updateProgress(currentData)
+  },
+  {
+    id: "show-next-track",
+    name: "Show Next Track",
+    description: "If enabled, shows the upcoming track in the queue (artist and name) next to the timestamp. " +
+      "Consider disabling the clock for more space",
+    category: "Bottom Content",
+    default: false,
+    css: {"next-track-info": "show"}
   },
 
   // Progress Bar
@@ -3554,7 +3556,7 @@ const PREFERENCES = [
     category: "Bottom Content",
     subcategoryHeader: "Clock",
     default: true,
-    requiredFor: ["clock-full", "clock-24", "next-track-replacing-clock"],
+    requiredFor: ["clock-full", "clock-24"],
     css: {"clock": "!hide"}
   },
   {
@@ -3571,20 +3573,6 @@ const PREFERENCES = [
     category: "Bottom Content",
     default: true,
     protected: true
-  },
-  {
-    id: "next-track-replacing-clock",
-    name: "Replace Clock with Next Track",
-    description: "If enabled, the clock is replaced by the artist and name of the next track in the queue",
-    overrides: ["clock-full", "clock-24"],
-    category: "Bottom Content",
-    default: false,
-    css: {"clock": "next-track"},
-    callback: () => {
-      requestAnimationFrame(() => { // to avoid race conditions
-        refreshCurrentTextData();
-      })
-    }
   },
 
   ///////////////////////////////
@@ -3868,7 +3856,7 @@ const PREFERENCES_PRESETS = [
       "artwork-above-content",
       "spread-timestamps",
       "reduced-center-margins",
-      "next-track-replacing-clock"
+      "show-next-track",
     ],
     disabled: [
       "show-queue",
@@ -3877,7 +3865,8 @@ const PREFERENCES_PRESETS = [
       "show-info-icons",
       "show-device",
       "show-volume",
-      "bg-artwork"
+      "bg-artwork",
+      "show-clock"
     ]
   },
   {
@@ -3891,7 +3880,7 @@ const PREFERENCES_PRESETS = [
       "separate-release-line",
       "spread-timestamps",
       "reverse-bottom",
-      "next-track-replacing-clock",
+      "show-next-track",
       "featured-artists-new-line"
     ],
     disabled: [
@@ -3903,7 +3892,8 @@ const PREFERENCES_PRESETS = [
       "show-info-icons",
       "show-queue",
       "display-artwork",
-      "show-timestamps-track-list"
+      "show-timestamps-track-list",
+      "show-clock"
     ]
   },
   {
