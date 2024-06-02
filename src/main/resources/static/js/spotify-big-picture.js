@@ -531,10 +531,15 @@ function setTextData(changes) {
   }
 
   // Next track
-  let nextTrackInQueue = changes.trackData.queue[0];
-  let nextArtist = nextTrackInQueue?.artists[0];
-  let nextTrackName = nextTrackInQueue?.title;
-  "next-track-info".select().innerHTML = `${nextArtist} \u2022 ${fullStrip(nextTrackName)}`;
+  let trackData = getChange(changes, "changes.trackData");
+  if (trackData.wasChanged) {
+    let nextTrackInQueue = trackData.value.queue[0];
+    let nextArtist = nextTrackInQueue?.artists[0];
+    let nextTrackName = nextTrackInQueue?.title;
+    "next-track-info".select().innerHTML = nextArtist && nextTrackName
+      ? `${nextArtist} \u2022 ${fullStrip(nextTrackName)}`
+      : "";
+  }
 
   // Color
   let textColor = getChange(changes, "currentlyPlaying.imageData.imageColors.primary")
@@ -879,6 +884,7 @@ const USELESS_WORDS = [
   "expansion",
   "expanded",
   "version",
+  "ver\.",
   "cover",
   "original",
   "single",
@@ -2194,32 +2200,22 @@ window.onresize = () => {
 window.addEventListener('load', initPlaybackControls);
 
 function initPlaybackControls() {
-  "button-play-pause".select().onclick = () => {
-    setTextData({playbackContext: {paused: !currentData.playbackContext.paused}});
-    fireControl("PLAY_PAUSE");
-  }
+  "button-play-pause".select().onclick = () => fireControl("PLAY_PAUSE");
   "button-prev".select().onclick = () => fireControl("PREV");
-  "button-next".select().onclick = () => {
-    simulateNextSongTransition(true);
-    fireControl("NEXT");
-  }
+  "button-next".select().onclick = () => fireControl("NEXT");
 }
 
-const CONTROL_RESPONSE_DELAY = 100;
 let waitingForResponse = false;
 
 function fireControl(control, param) {
   if (!waitingForResponse && isPrefEnabled("playback-control")) {
     waitingForResponse = true;
-    setClass("main".select(), "waiting-for-control", true);
+    setClass(document.body, "waiting-for-control", true);
     fetch(`/modify-playback/${control}${param ? `?param=${param}` : ""}`, {method: 'POST'})
       .then(response => {
         if (response.status >= 200 && response.status < 300) {
-          setTimeout(() => {
-            singleRequest().then();
-          }, CONTROL_RESPONSE_DELAY);
-        }
-        if (response.status >= 400) {
+          response.json().then(response => processJson(response));
+        } else if (response.status >= 400) {
           showModal("Playback Control", "ERROR: Failed to transmit control to backend!");
         }
       }).finally(() => unlockPlaybackControls());
@@ -2229,7 +2225,7 @@ function fireControl(control, param) {
 function unlockPlaybackControls() {
   if (waitingForResponse) {
     waitingForResponse = false;
-    setClass("main".select(), "waiting-for-control", false);
+    setClass(document.body, "waiting-for-control", false);
   }
 }
 
