@@ -2804,7 +2804,8 @@ const PREFERENCES = [
     description: "If enabled, you can double click anywhere on the screen to toggle fullscreen mode " +
       "(remember: you can always toggle fullscreen by pressing F)",
     category: "General",
-    default: true
+    default: true,
+    protected: true
   },
   {
     id: "show-error-toasts",
@@ -3009,7 +3010,7 @@ const PREFERENCES = [
     description: "If enabled, after each album in the tracklist, some margin is added to visually separate them. " +
       "Only works for playlists that have multiple albums in chunks, not individual ones",
     category: "Tracklist",
-    default: false,
+    default: true,
     css: {"track-list": "album-spacers"}
   },
 
@@ -3404,8 +3405,7 @@ const PREFERENCES = [
   {
     id: "show-info-icons",
     name: "Show Playback Status Icons",
-    description: "Displays the state icons for play/pause as well as shuffle and repeat. "
-      + "This setting is required for the playback controls to work",
+    description: "Displays the state icons for play/pause as well as shuffle and repeat. ",
     category: "Bottom Content",
     default: true,
     requiredFor: ["center-info-icons"],
@@ -3778,7 +3778,7 @@ const PREFERENCES_PRESETS = [
       "split-main-panels",
       "separate-release-line",
       "featured-artists-new-line",
-      "album-spacers"
+      "progress-bar-gradient"
     ],
     disabled: [
       "main-content-centered",
@@ -3795,8 +3795,7 @@ const PREFERENCES_PRESETS = [
     enabled: [
       "increase-min-track-list-scaling",
       "spread-timestamps",
-      "reverse-bottom",
-      "album-spacers"
+      "reverse-bottom"
     ],
     disabled: [
       "enable-center-content",
@@ -3824,14 +3823,41 @@ const PREFERENCES_PRESETS = [
     ]
   },
   {
+    id: "preset-sandwich",
+    name: "Space Sandwich Mode",
+    category: "Presets",
+    description: "A pretty unique design that puts style over legibility",
+    enabled: [
+      "color-dodge-skin",
+      "text-shadows",
+      "slow-transitions",
+      "swap-artist-title",
+      "center-lr-margins",
+      "progress-bar-gradient",
+      "reverse-bottom",
+      "progress-bar-gradient",
+      "extra-wide-mode",
+      "color-dodge-skin"
+    ],
+    disabled: [
+      "show-featured-artists",
+      "show-featured-artists-track-list",
+      "artwork-expand-top",
+      "show-volume",
+      "show-device",
+      "bg-tint",
+      "bg-blur",
+      "bg-zoom"
+    ]
+  },
+  {
     id: "preset-xl-artwork",
     name: "XL-Artwork Mode",
     category: "Presets",
     description: "The artwork is stretched to its maximum possible size. Apart from that, only the current track, the tracklist, and the progress bar are displayed",
     enabled: [
       "artwork-expand-bottom",
-      "decreased-margins",
-      "album-spacers"
+      "decreased-margins"
     ],
     disabled: [
       "enable-top-content",
@@ -3893,6 +3919,30 @@ const PREFERENCES_PRESETS = [
     ]
   },
   {
+    id: "preset-wallpaper-mode",
+    name: "Wallpaper Mode",
+    category: "Presets",
+    description: "Just displays the background and a clock, to be used as some sort of wallpaper",
+    enabled: [
+      "color-dodge-skin",
+      "text-shadows",
+      "progress-bar-gradient",
+      "reverse-bottom"
+    ],
+    disabled: [
+      "enable-top-content",
+      "enable-center-content",
+      "display-artwork",
+      "show-progress-bar",
+      "show-info-icons",
+      "show-volume",
+      "show-device",
+      "show-timestamps",
+      "bg-tint",
+      "show-queue"
+    ]
+  },
+  {
     id: "preset-artwork-only",
     name: "Artwork-Only Mode",
     category: "Presets",
@@ -3924,30 +3974,6 @@ const PREFERENCES_PRESETS = [
       "show-progress-bar",
       "show-clock",
       "bg-artwork"
-    ]
-  },
-  {
-    id: "preset-wallpaper-mode",
-    name: "Wallpaper Mode",
-    category: "Presets",
-    description: "Just displays the background and a clock, to be used as some sort of wallpaper",
-    enabled: [
-      "color-dodge-skin",
-      "text-shadows",
-      "progress-bar-gradient",
-      "reverse-bottom"
-    ],
-    disabled: [
-      "enable-top-content",
-      "enable-center-content",
-      "display-artwork",
-      "show-progress-bar",
-      "show-info-icons",
-      "show-volume",
-      "show-device",
-      "show-timestamps",
-      "bg-tint",
-      "show-queue"
     ]
   },
   {
