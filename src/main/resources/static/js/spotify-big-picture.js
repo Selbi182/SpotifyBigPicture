@@ -3826,23 +3826,27 @@ const PREFERENCES_PRESETS = [
     id: "preset-sandwich",
     name: "Space Sandwich Mode",
     category: "Presets",
-    description: "A pretty unique design that puts style over legibility",
+    description: "A pretty unique design that puts style over legibility. Text is dynamically influenced by the background image, giving it a 'space-like' appearance. " +
+      "Additionally, the layout is more tightly arranged, like a sandwich",
     enabled: [
       "color-dodge-skin",
       "text-shadows",
       "slow-transitions",
+      "split-main-panels",
       "swap-artist-title",
       "center-lr-margins",
       "progress-bar-gradient",
       "reverse-bottom",
       "progress-bar-gradient",
-      "extra-wide-mode",
-      "color-dodge-skin"
+      "extra-wide-mode"
     ],
     disabled: [
       "show-featured-artists",
       "show-featured-artists-track-list",
       "artwork-expand-top",
+      "show-release-name",
+      "show-release-date",
+      "show-timestamps-track-list",
       "show-volume",
       "show-device",
       "bg-tint",

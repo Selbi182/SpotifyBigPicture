@@ -226,7 +226,8 @@ public class PlaybackInfoProvider {
         .map(PlaybackInfo::getCurrentlyPlaying)
         .map(CurrentlyPlaying::getImageData)
         .orElse(null);
-      ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(artworkUrl, previousImageData);
+      String spotifyArtworkUrl = artworkUrlCache.getSpotifyArtworkUrl(currentTrack);
+      ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(spotifyArtworkUrl, previousImageData);
       imageData.setImageColors(colors);
     }
 
@@ -369,7 +370,8 @@ public class PlaybackInfoProvider {
           .map(PlaybackInfo::getTrackData)
           .map(TrackData::getNextImageData)
           .orElse(null);
-        ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(nextArtworkUrl, previousNextImageData);
+        String spotifyArtworkUrl = artworkUrlCache.getSpotifyArtworkUrl(currentTrack);
+        ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(spotifyArtworkUrl, previousNextImageData);
         nextImageData.setImageColors(colors);
       }
       trackData.setNextImageData(nextImageData);
