@@ -12,10 +12,12 @@ import spotify.playback.data.help.BigPictureConstants;
 public class ImageData {
 
   private String imageUrl;
+  private String imageUrlHD;
   private ColorFetchResult imageColors;
 
   public ImageData() {
     this.imageUrl = BigPictureConstants.BLANK;
+    this.imageUrlHD = BigPictureConstants.BLANK;
     this.imageColors = ColorFetchResult.FALLBACK;
   }
 
@@ -25,6 +27,14 @@ public class ImageData {
 
   public void setImageUrl(String imageUrl) {
     this.imageUrl = imageUrl;
+  }
+
+  public String getImageUrlHD() {
+    return imageUrlHD;
+  }
+
+  public void setImageUrlHD(String imageUrlHD) {
+    this.imageUrlHD = imageUrlHD;
   }
 
   public ColorFetchResult getImageColors() {
@@ -42,11 +52,11 @@ public class ImageData {
     if (!(o instanceof ImageData))
       return false;
     ImageData imageData = (ImageData) o;
-    return Objects.equals(imageUrl, imageData.imageUrl) && Objects.equals(imageColors, imageData.imageColors);
+    return Objects.equals(imageUrl, imageData.imageUrl) && Objects.equals(imageUrlHD, imageData.imageUrlHD) && Objects.equals(imageColors, imageData.imageColors);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(imageUrl, imageColors);
+    return Objects.hash(imageUrl, imageUrlHD, imageColors);
   }
 }

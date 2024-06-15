@@ -18,6 +18,7 @@
  *    timeTotal: number,
  *    imageData: {
  *      imageUrl: string,
+ *      imageUrlHD: string,
  *      imageColors: {
  *        averageBrightness: number,
  *        primary: {r: number, g: number, b: number},
@@ -35,6 +36,7 @@
  *    trackListView: string,
  *    nextImageData: {
  *      imageUrl: string,
+ *      imageUrlHD: string,
  *      imageColors: {
  *        averageBrightness: number,
  *        primary: {r: number, g: number, b: number},
@@ -82,6 +84,7 @@ let currentData = {
     timeTotal: 0,
     imageData: {
       imageUrl: "",
+      imageUrlHD: "",
       imageColors: {
         averageBrightness: 0.0,
         primary: {
@@ -107,6 +110,7 @@ let currentData = {
     trackListView: "",
     nextImageData: {
       imageUrl: "",
+      imageUrlHD: "",
       imageColors: {
         averageBrightness: 0.0,
         primary: {
@@ -1183,7 +1187,10 @@ unsetNextImagePrerender().then();
 
 function changeImage(changes) {
   return new Promise(resolve => {
-    let imageUrl = getChange(changes, "currentlyPlaying.imageData.imageUrl");
+    let imageUrl = isPrefEnabled("hd-artwork")
+      ? getChange(changes, "currentlyPlaying.imageData.imageUrlHD")
+      : getChange(changes, "currentlyPlaying.imageData.imageUrl");
+
     if (imageUrl.wasChanged) {
       if (imageUrl.value === BLANK) {
         imageUrl.value = DEFAULT_IMAGE;
@@ -1221,6 +1228,10 @@ function prerenderNextImage(changes) {
         let nextImageUrl = getChange(changes, "trackData.nextImageData.imageUrl").value;
         if (currentImageUrl !== nextImageUrl && nextImagePrerenderCanvasData.imageUrl !== nextImageUrl) {
           setTimeout(() => {
+            nextImageUrl = isPrefEnabled("hd-artwork")
+              ? getChange(changes, "trackData.nextImageData.imageUrlHD").value
+              : nextImageUrl;
+
             let nextImageColors = getChange(changes, "trackData.nextImageData.imageColors").value;
             setArtworkAndPrerender(nextImageUrl, nextImageColors)
               .then(canvasData => {
@@ -1412,7 +1423,10 @@ function refreshBackgroundRender() {
     refreshBackgroundRenderInProgress = true;
     unsetNextImagePrerender()
       .then(() => {
-        let imageUrl = currentData.currentlyPlaying.imageData.imageUrl;
+        let imageUrl = isPrefEnabled("hd-artwork")
+          ? currentData.currentlyPlaying.imageData.imageUrlHD
+          : currentData.currentlyPlaying.imageData.imageUrl;
+
         let imageColors = currentData.currentlyPlaying.imageData.imageColors;
         if (imageUrl === BLANK) {
           imageUrl = DEFAULT_IMAGE;
@@ -2799,6 +2813,15 @@ const PREFERENCES = [
     }
   },
   {
+    id: "hd-artwork",
+    name: "HD Artwork from iTunes",
+    description: "Try to look for the artwork on iTunes instead of Spotify, which hosts uncompressed images. " +
+      "Do note that this can make the application slower",
+    category: "General",
+    default: false,
+    protected: true
+  },
+  {
     id: "fullscreen-double-click",
     name: "Toggle Fullscreen By Double Click",
     description: "If enabled, you can double click anywhere on the screen to toggle fullscreen mode " +
@@ -2973,9 +2996,17 @@ const PREFERENCES = [
     css: {"track-list": "no-clamp"}
   },
   {
+    id: "titles-right-align",
+    name: "Right-Align Titles",
+    description: "Right-aligns the titles in the tracklist",
+    category: "Tracklist",
+    default: false,
+    css: {"track-list": "right-align-titles"}
+  },
+  {
     id: "show-timestamps-track-list",
     name: "Show Time Stamps",
-    description: "Displays the timestamps for each track in the tracklist. If disabled, the track names are right-aligned",
+    description: "Displays the timestamps for each track in the tracklist.",
     category: "Tracklist",
     default: true,
     css: {"track-list": "show-timestamps"}

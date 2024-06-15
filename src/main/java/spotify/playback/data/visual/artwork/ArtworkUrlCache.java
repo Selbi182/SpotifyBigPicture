@@ -12,7 +12,6 @@ import spotify.playback.data.help.BigPictureConstants;
 import spotify.playback.data.visual.artwork.service.ArtworkUrlProvider;
 import spotify.playback.data.visual.artwork.service.DictionaryArtworkUrlProvider;
 import spotify.playback.data.visual.artwork.service.ITunesHDArtworkProvider;
-import spotify.playback.data.visual.artwork.service.LastFmArtworkUrlProvider;
 import spotify.playback.data.visual.artwork.service.SpotifyArtworkUrlProvider;
 
 @Component
@@ -21,17 +20,17 @@ public class ArtworkUrlCache {
   private final DictionaryArtworkUrlProvider dictionaryArtworkUrlProvider;
   private final ITunesHDArtworkProvider iTunesHDArtworkProvider;
   private final SpotifyArtworkUrlProvider spotifyArtworkUrlProvider;
-  private final LastFmArtworkUrlProvider lastFmArtworkUrlProvider;
 
   private final Map<IPlaylistItem, String> artworkUrlCache;
+  private final Map<IPlaylistItem, String> artworkUrlCacheHD;
 
-  public ArtworkUrlCache(DictionaryArtworkUrlProvider dictionaryArtworkUrlProvider, ITunesHDArtworkProvider iTunesHDArtworkProvider, SpotifyArtworkUrlProvider spotifyArtworkUrlProvider, LastFmArtworkUrlProvider lastFmArtworkUrlProvider) {
+  public ArtworkUrlCache(DictionaryArtworkUrlProvider dictionaryArtworkUrlProvider, ITunesHDArtworkProvider iTunesHDArtworkProvider, SpotifyArtworkUrlProvider spotifyArtworkUrlProvider) {
     this.dictionaryArtworkUrlProvider = dictionaryArtworkUrlProvider;
     this.iTunesHDArtworkProvider = iTunesHDArtworkProvider;
     this.spotifyArtworkUrlProvider = spotifyArtworkUrlProvider;
-    this.lastFmArtworkUrlProvider = lastFmArtworkUrlProvider;
 
     this.artworkUrlCache = new ConcurrentHashMap<>();
+    this.artworkUrlCacheHD = new ConcurrentHashMap<>();
   }
 
   /**
@@ -42,18 +41,22 @@ public class ArtworkUrlCache {
    * @param item the item (either track or podcast)
    * @return the URL, empty string if none was found
    */
-  public String findArtworkUrl(IPlaylistItem item) {
+  public String getSpotifyArtworkUrl(IPlaylistItem item) {
     if (!artworkUrlCache.containsKey(item)) {
-      List<ArtworkUrlProvider> urlProviders = List.of(dictionaryArtworkUrlProvider, iTunesHDArtworkProvider, spotifyArtworkUrlProvider, lastFmArtworkUrlProvider);
+      List<ArtworkUrlProvider> urlProviders = List.of(dictionaryArtworkUrlProvider, spotifyArtworkUrlProvider);
       String urlForPlaylistItem = getUrlForPlaylistItem(item, urlProviders);
       artworkUrlCache.put(item, urlForPlaylistItem);
     }
     return artworkUrlCache.get(item);
   }
 
-  public String getSpotifyArtworkUrl(IPlaylistItem item) {
-    List<ArtworkUrlProvider> urlProviders = List.of(dictionaryArtworkUrlProvider, spotifyArtworkUrlProvider);
-    return getUrlForPlaylistItem(item, urlProviders);
+  public String findITunesHDArtworkUrl(IPlaylistItem item) {
+    if (!artworkUrlCacheHD.containsKey(item)) {
+      List<ArtworkUrlProvider> urlProviders = List.of(iTunesHDArtworkProvider);
+      String urlForPlaylistItem = getUrlForPlaylistItem(item, urlProviders);
+      artworkUrlCacheHD.put(item, urlForPlaylistItem);
+    }
+    return artworkUrlCacheHD.get(item);
   }
 
   private String getUrlForPlaylistItem(IPlaylistItem item, List<ArtworkUrlProvider> urlProviders) {

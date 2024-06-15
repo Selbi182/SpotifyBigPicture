@@ -219,7 +219,7 @@ public class PlaybackInfoProvider {
     currentlyPlaying.setDiscNumber(0);
 
     ImageData imageData = currentlyPlaying.getImageData();
-    String artworkUrl = artworkUrlCache.findArtworkUrl(currentTrack);
+    String artworkUrl = artworkUrlCache.getSpotifyArtworkUrl(currentTrack);
     if (artworkUrl != null && !artworkUrl.isEmpty()) {
       imageData.setImageUrl(artworkUrl);
       ImageData previousImageData = Optional.ofNullable(previous)
@@ -229,6 +229,9 @@ public class PlaybackInfoProvider {
       String spotifyArtworkUrl = artworkUrlCache.getSpotifyArtworkUrl(currentTrack);
       ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(spotifyArtworkUrl, previousImageData);
       imageData.setImageColors(colors);
+
+      String iTunesHDArtworkUrl = artworkUrlCache.findITunesHDArtworkUrl(currentTrack);
+      imageData.setImageUrlHD(iTunesHDArtworkUrl);
     }
 
     // PlaybackContext
@@ -363,16 +366,18 @@ public class PlaybackInfoProvider {
     if (playbackQueueQueue.size() > 1) {
       IPlaylistItem nextSong = playbackQueueQueue.get(0);
       ImageData nextImageData = new ImageData();
-      String nextArtworkUrl = artworkUrlCache.findArtworkUrl(nextSong);
+      String nextArtworkUrl = artworkUrlCache.getSpotifyArtworkUrl(nextSong);
       if (nextArtworkUrl != null && !nextArtworkUrl.isEmpty()) {
         nextImageData.setImageUrl(nextArtworkUrl);
         ImageData previousNextImageData = Optional.ofNullable(previous)
           .map(PlaybackInfo::getTrackData)
           .map(TrackData::getNextImageData)
           .orElse(null);
-        String spotifyArtworkUrl = artworkUrlCache.getSpotifyArtworkUrl(currentTrack);
-        ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(spotifyArtworkUrl, previousNextImageData);
+        ColorFetchResult colors = dominantColorProvider.getDominantColorFromImageUrl(nextArtworkUrl, previousNextImageData);
         nextImageData.setImageColors(colors);
+
+        String iTunesHDArtworkUrl = artworkUrlCache.findITunesHDArtworkUrl(currentTrack);
+        nextImageData.setImageUrlHD(iTunesHDArtworkUrl);
       }
       trackData.setNextImageData(nextImageData);
     }

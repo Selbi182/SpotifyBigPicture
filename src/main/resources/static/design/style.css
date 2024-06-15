@@ -1011,7 +1011,7 @@ div#description {
     white-space: nowrap;
 }
 
-#track-list:not(.show-timestamps) .track-elem .track-name {
+#track-list.right-align-titles .track-elem .track-name {
     text-align: right;
 }
 
