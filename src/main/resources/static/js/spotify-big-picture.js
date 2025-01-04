@@ -537,7 +537,7 @@ function setTextData(changes) {
   }
 
   // Next track
-  let trackData = getChange(changes, "changes.trackData");
+  let trackData = getChange(changes, "trackData");
   if (trackData.wasChanged) {
     let nextTrackInQueue = trackData.value.queue[0];
     let nextArtist = nextTrackInQueue?.artists[0];
@@ -3940,6 +3940,7 @@ const PREFERENCES_PRESETS = [
       "spread-timestamps",
       "reverse-bottom",
       "show-next-track",
+      "show-podcast-descriptions",
       "featured-artists-new-line"
     ],
     disabled: [
@@ -3947,7 +3948,6 @@ const PREFERENCES_PRESETS = [
       "show-device",
       "show-volume",
       "show-volume-bar",
-      "show-podcast-descriptions",
       "show-info-icons",
       "show-queue",
       "display-artwork",
