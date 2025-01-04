@@ -26,16 +26,10 @@ import spotify.util.SpotifyUtils;
  */
 @Component
 public class ITunesHDArtworkProvider implements ArtworkUrlProvider {
-  private final UriComponentsBuilder uriBuilder;
+  private final UserService userService;
 
   ITunesHDArtworkProvider(UserService userService) {
-    CountryCode market = userService.getMarketOfCurrentUser();
-    this.uriBuilder = UriComponentsBuilder.newInstance()
-      .scheme("https")
-      .host("itunes.apple.com")
-      .path("/search")
-      .queryParam("country", market.toString())
-      .queryParam("entity", "album");
+    this.userService = userService;
   }
 
   @Override
@@ -56,7 +50,14 @@ public class ITunesHDArtworkProvider implements ArtworkUrlProvider {
 
   private String iTunesSearch(String artist, String album) throws IOException {
     String searchQuery = URLEncoder.encode(artist + " " + album, StandardCharsets.UTF_8);
-    String url = uriBuilder.cloneBuilder()
+
+    CountryCode market = userService.getMarketOfCurrentUser();
+    String url = UriComponentsBuilder.newInstance()
+      .scheme("https")
+      .host("itunes.apple.com")
+      .path("/search")
+      .queryParam("country", market.toString())
+      .queryParam("entity", "album")
       .queryParam("term", searchQuery)
       .build().toUriString();
 

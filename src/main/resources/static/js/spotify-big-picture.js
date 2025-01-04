@@ -421,6 +421,7 @@ function setTextData(changes) {
     // Context main
     let contextMain = "context-main".select();
     contextMain.innerHTML = convertToTextEmoji(contextName.value);
+    let trackCount = getChange(changes, "trackData.trackCount").value;
 
     // Context type / release year / track count / total duration
     let contextExtra = "context-extra".select();
@@ -430,6 +431,8 @@ function setTextData(changes) {
       contextTypePrefix = "QUEUE"
     } else if (contextType.value === "FAVORITE_TRACKS") {
       contextTypePrefix = "LIKED SONGS";
+    } else if (trackCount === 50 && contextType.value === "PLAYLIST" && contextName.value.endsWith(" Radio")) {
+      contextTypePrefix = "RADIO";
     }
 
     // Check if year needs to be displayed
@@ -440,7 +443,6 @@ function setTextData(changes) {
     }
 
     // Format track count
-    let trackCount = getChange(changes, "trackData.trackCount").value;
     if (trackCount > 0) {
       let trackCountFormatted = numberWithCommas(trackCount);
 
@@ -2814,9 +2816,9 @@ const PREFERENCES = [
   },
   {
     id: "hd-artwork",
-    name: "HD Artwork from iTunes",
-    description: "Try to look for the artwork on iTunes instead of Spotify, which hosts uncompressed images. " +
-      "Do note that this can make the application slower",
+    name: "HD-Artwork From iTunes [BETA]",
+    description: "Try to look for the artwork of the current track on iTunes instead of Spotify, which hosts high-quality, uncompressed images. " +
+      "Unfortunately, SO high-quality and uncompressed that enabling this option can make the application a lot slower, so use it with caution!",
     category: "General",
     default: false,
     protected: true

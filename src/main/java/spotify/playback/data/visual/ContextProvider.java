@@ -100,7 +100,7 @@ public class ContextProvider {
         contextDto = getFallbackContext(info);
       }
       previousType = type;
-    } catch (SpotifyApiException | MalformedURLException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     if (contextDto != null) {

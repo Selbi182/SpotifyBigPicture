@@ -1853,7 +1853,7 @@ body.waiting-for-control #mouse-move-buttons.show > #playback-controller > div:h
 #settings-top-buttons, #settings-bottom-buttons {
     display: flex;
     width: fit-content;
-    gap: 0 var(--margin-settings);
+    gap: 0 calc(var(--margin-settings)/2);
     position: absolute;
     left: var(--margin-settings);
     font-family: var(--font-bold);
@@ -1878,7 +1878,7 @@ body.waiting-for-control #mouse-move-buttons.show > #playback-controller > div:h
     opacity: 1;
 }
 
-#settings-external::before {
+:is(#settings-external, #kofi-external)::before {
     content: "";
     background-image: url("img/symbols/curved-arrow.png");
     background-size: contain;
@@ -1891,12 +1891,15 @@ body.waiting-for-control #mouse-move-buttons.show > #playback-controller > div:h
     display: inline-block;
     padding-right: 1vmin;
 }
+#kofi-external::before {
+    background-image: url("img/symbols/kofi.png") !important;
+}
 
-#settings-external {
+#settings-external, #kofi-external {
     display: none;
 }
 
-#settings-wrapper.expert #settings-external {
+#settings-wrapper.expert :is(#settings-external, #kofi-external) {
     display: initial;
 }
 
