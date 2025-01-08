@@ -1829,6 +1829,9 @@ function initVisualPreferences() {
           : false;
         refreshPreference(pref, state);
       }
+
+      let expertModeStateFromLocalStorage = getExpertModeStateFromLocalStorage();
+      setExpertMode(expertModeStateFromLocalStorage === "true");
     } else {
       // On first load, apply the default preset and enable the ignoreDefaultOn settings. Then force-open the settings menu
       applyDefaultPreset();
@@ -1925,6 +1928,15 @@ function calculateVersionHash() {
   // the generated hash is really just the total length of all setting IDs concatenated
   let pseudoHash = [...PREF_IDS_ALL].reduce((totalLength, str) => totalLength + str.length, 0);
   return pseudoHash.toString();
+}
+
+const LOCAL_STORAGE_KEY_EXPERT_MODE = "expert_mode";
+function getExpertModeStateFromLocalStorage() {
+  return localStorage.getItem(LOCAL_STORAGE_KEY_EXPERT_MODE);
+}
+
+function setExpertModeStateInLocalStorage(state) {
+  return localStorage.setItem(LOCAL_STORAGE_KEY_EXPERT_MODE, state);
 }
 
 function toggleVisualPreference(pref) {
@@ -2457,9 +2469,15 @@ function setSettingsMenuState(state) {
 }
 
 function toggleSettingsExpertMode() {
-  settingsExpertMode = !settingsExpertMode;
-  setClass("settings-wrapper".select(), "expert", settingsExpertMode);
-  setClass("settings-quick-jump".select(), "show", settingsExpertMode);
+  let newState = !settingsExpertMode;
+  setExpertMode(newState);
+}
+
+function setExpertMode(state) {
+  settingsExpertMode = state;
+  setExpertModeStateInLocalStorage(state)
+  setClass("settings-wrapper".select(), "expert", state);
+  setClass("settings-quick-jump".select(), "show", state);
 }
 
 function resetSettingsPrompt() {
@@ -3940,7 +3958,6 @@ const PREFERENCES_PRESETS = [
       "spread-timestamps",
       "reverse-bottom",
       "show-next-track",
-      "show-podcast-descriptions",
       "featured-artists-new-line"
     ],
     disabled: [

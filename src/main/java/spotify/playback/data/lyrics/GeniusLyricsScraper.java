@@ -140,7 +140,7 @@ public class GeniusLyricsScraper {
       .execute();
 
     Document document = response.parse();
-    Elements lyricsElements = document.select("div[class^=Lyrics__Container]");
+    Elements lyricsElements = document.select("div[data-lyrics-container=true]");
 
     StringJoiner lyricsBlocks = new StringJoiner("\n");
     for (Element element : lyricsElements) {
