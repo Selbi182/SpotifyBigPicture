@@ -54,7 +54,7 @@ From here on you can choose between one of two ways to continue with the install
 * **Java 11 or newer:**
   * [Download here](https://adoptium.net/de/temurin/releases/?version=11) (obviously only required if you're doing the manual java installation) 
 * **Monitor should have 16:9 aspect ratio:**
-  * [While there is a preset specifically optimized for portrait mode](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md#vertical-mode), this app has been optimized primarily for landscape mode. While any aspect ratio should theoretically work, 16:9 is the only aspect ratio that is 100% supported and tested
+  * [While there is a preset specifically optimized for portrait mode](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md#vertical-mode), this app has been optimized primarily for landscape mode. Any aspect ratio should theoretically work, but 16:9 is the only aspect ratio that is 100% supported and tested
 * **A modern browser:**
   * There are a lot of fancy bells and whistles attached to this app that simply won't work on older browsers. I primarily developed and optimized it for Mozilla Firefox, but it also works on Google Chrome. Not tested on any other browsers, so I won't guarantee full stability over there
 * **Spotify Premium:**
@@ -76,4 +76,7 @@ However, if the interface becomes completely unresponsive, try these approaches:
 ## Support
 If you got any problems, [write an issue ticket on GitHub](https://github.com/Selbi182/SpotifyBigPicture/issues) and I will gladly take a look at it :)
 
-Alternatively, message me on Discord. My username is: **selbi**
+Alternatively, I'm always happy to help over on Discord! My username is: **selbi** (Please leave a message request if you do so, as I don't accept random, unexplained invites anymore.)
+
+## Donate
+If you'd like to support my work and feel like leaving a tip, check out [my Ko-fi page](https://ko-fi.com/selbi)!
