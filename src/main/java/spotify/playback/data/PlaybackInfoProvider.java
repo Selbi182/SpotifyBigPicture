@@ -82,7 +82,7 @@ public class PlaybackInfoProvider {
 
   @EventListener(SpotifyApiLoggedInEvent.class)
   public void ready() {
-    logger.info("SpotifyBigPicture is ready! URL: http://localhost:" + port);
+    logger.info("SpotifyBigPicture is ready! URL: http://127.0.0.1:" + port);
 
     // Test if the queue is available (i.e. if the user is a free user or not)
     try {

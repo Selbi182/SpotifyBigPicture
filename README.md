@@ -1,20 +1,20 @@
 # SpotifyBigPicture
 A highly customizable interface that displays your current playback status on Spotify in a beautiful little browser page!
 
-You might want to use this over [Spotify's own (in my opinion, rather underwhelming) full-screen mode](https://i.imgur.com/dvreOAX.jpg), or you can use it for your TV to give [that outdated, low-resolution OSD](https://i.imgur.com/lNfCcrW.jpg) a fresh paint job!
+You might want to use this over [Spotify's own full-screen mode](https://i.imgur.com/eIIRnrV.png) which is (in my opinion) rather underwhelming, or you can use it for your TV to give [that outdated, low-resolution OSD of your AVR](https://i.imgur.com/lNfCcrW.jpg) a fresh coat of paint!
 
-This interface is primarily read-only. Specifically, this means that you **cannot actually control your music**, beyond a few basic commands like play, pause, and skip ([needs to be enabled in the settings first](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md#enable-playback-controls)). This is both because of limitations to the Spotify API and because the idea is to set this app up once, and then it permanently runs as a pure information display.
+This interface is primarily read-only. Specifically, this means that you **cannot actually control your music**, beyond a few basic commands like play, pause, and skip ([which needs to be enabled in the settings first](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md#enable-playback-controls)). This is both because of limitations to the Spotify API, and also because the idea of this app is to set it up once and then let it permanently run as a pure information display.
 
-An example where this is useful would be hosting a party where you want to let your guests see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
+An good example use case would be at a party, where guests can see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
 
 ## Screenshots
 These two examples only show examples of SpotifyBigPicture's default preset. For more screenshots, [see the other presets](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
 
 ### Album View
-![Deafheaven - Dream House](https://i.imgur.com/oWB5cnW.png)
+![Deafheaven - Dream House](https://i.imgur.com/h84xCiV.png)
 
 ### Playlist View
-![Playlist View](https://i.imgur.com/zbIkWvf.png)
+![Playlist View](https://i.imgur.com/mXwsDCP.png)
 
 ### Customization
 Click the gear symbol in the top left of the interface to open the settings for Visual Preferences. Here you can customize the styling of the interface from a number of options with just a few clicks!
@@ -25,7 +25,7 @@ Your settings are automatically stored locally, so you won't need to worry about
 * General information about the settings can be found here: [SETTINGS.md](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md)
 
 ## Installation
-(If you prefer a video tutorial, [click here](https://www.youtube.com/watch?v=NyJoiEh_qhQ))
+[If you prefer a (slightly outdated) video tutorial, [click here](https://www.youtube.com/watch?v=NyJoiEh_qhQ)]
 
 ### Step 1: Create Spotify App
 1. Create an app on the [Spotify Developers dashboard](https://developer.spotify.com/dashboard) (you might need to create an account first)
@@ -35,20 +35,20 @@ Your settings are automatically stored locally, so you won't need to worry about
 From here on you can choose between one of two ways to continue with the installation.
 
 ### Step 2 - Variant A: Manual Java installation
-1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app: `http://localhost:8183/login-callback` (make sure you click the little green "Add" button before saving!)
+1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app: `http://127.0.0.1:8183/callback` (make sure you click the little green "Add" button before saving!) [Note: As of April 2025, `localhost` is no longer allowed and must always be `127.0.0.1` instead](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri)
 2. Download the [current release](https://github.com/Selbi182/SpotifyBigPicture/releases)
 3. Paste the *Client ID* and *Client Secret* you've saved earlier into the respective fields in the `spotifybot.properties` file
-4. Open a terminal in the same folder as the JAR file (easily done by holding shift and right-clicking, then selecting "Open terminal here"). Then start the app with `java -jar SpotifyBigPicture.jar`
+4. Run `Launch_SpotifyBigPicture.bat` to start the app. Alternatively, open a terminal in the same folder as the JAR file (just hold Shift and right-click, then select "Open terminal here") and type in `java -jar SpotifyBigPicture.jar`
 
 ### Step 2 - Variant B: Pull Docker Image
-1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app. Depending on where you plan to run the app, you must provide a URI that's reachable from the outside. For example `http://ip-of-docker-machine:8183/login-callback`. The login callback *must* end with `/login-callback`! Also make sure you click the little green "Add" button before saving
+1. After creating the Spotify app, click on "Edit Settings" and add the redirect URI for this app. Depending on where you plan to run the app, you must provide a URI that's reachable from the outside. For example `https://ip-of-docker-machine:8183/callback`. The redirect URI *must* end with `/callback`, and [as of April 2025 it must also be `https`](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri)! Also make sure you click the little green "Add" button before saving
 2. Pull the Docker image: `docker pull ghcr.io/selbi182/spotifybigpicture`
 3. Run the Docker image. Insert the *Client ID*, *Client Secret*, and *Redirect URI* you have specified earlier into the respective fields, to pass them as environment variables: `docker run --name spotifybigpicture -d -p 8183:8183 -e client_id=CLIENTID -e client_secret=CLIENTSECRET -e redirect_uri=REDIRECTURI ghcr.io/selbi182/spotifybigpicture`
 4. Then run `docker logs -f spotifybigpicture` so you can see the URL required for the next step
 
 ### Step 3: Login
-1. You will be prompted to log in. The app will attempt to open the browser by itself, but if it fails, take a look at the console output and copy-paste the displayed URL into your browser manually. It should like this: `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`
-2. If everything worked out, you're done! If you've chosen variant A, the app will be available under http://localhost:8183/ and if you chose variant B, it's going to be whatever server you've provided
+1. You will be prompted to log in. The app will attempt to open the browser by itself, but if it fails, take a look at the console output and copy-paste the displayed URL into your browser manually. It should look like this: `https://accounts.spotify.com:443/authorize?client_id=[...]&response_type=code&redirect_uri=[...]&scope=[...]`
+2. If everything worked out, you're done! If you've chosen variant A, the app will be available under http://127.0.0.1:8183/ and if you chose variant B, it's going to be whatever server you've provided
 
 ## Requirements
 * **Java 11 or newer:**
