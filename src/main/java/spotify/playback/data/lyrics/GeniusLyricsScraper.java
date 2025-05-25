@@ -163,8 +163,13 @@ public class GeniusLyricsScraper {
         // Special case: if it's a <br> node, make sure the line breaks are preserved
         stringBuilder.append("\n");
       } else {
-        for (Node childNode : element.childNodes()) {
-          recursivelyGetDeepestLyricsNodeText(childNode, stringBuilder);
+        // Exclude redundant garbage info attributed accordingly
+        if (!element.hasAttr("data-exclude-from-selection")) {
+          // Iterate through all children until the text nodes are found
+          // (This is needed for clickable lyrics snippets)
+          for (Node childNode : element.childNodes()) {
+            recursivelyGetDeepestLyricsNodeText(childNode, stringBuilder);
+          }
         }
       }
     }
