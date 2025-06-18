@@ -2428,7 +2428,7 @@ function initSettingsMouseMove() {
   }
 
   document.addEventListener("dblclick", (e) => {
-    if (isPrefEnabled("fullscreen-double-click") && !settingsVisible && !isSettingControlElem(e) && !window.getSelection().toString() && !isHoveringControlElem(e.target)) {
+    if (isPrefEnabled("fullscreen-double-click") && !settingsVisible && !window.getSelection().toString() && !isHoveringControlElem(e.target)) {
       toggleFullscreen();
     }
   });
