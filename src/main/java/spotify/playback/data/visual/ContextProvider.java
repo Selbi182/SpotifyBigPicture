@@ -201,7 +201,6 @@ public class ContextProvider {
       if (contextTracks.getNext() != null) {
         PlaylistTrack[] secondHalf = SpotifyCall.execute(spotifyApi.getPlaylistsItems(playlistId).offset(playlistTracks.size())).getItems();
         playlistTracks.addAll(Arrays.asList(secondHalf));
-
       }
       this.listTracks = playlistTracks.stream()
         .map(PlaylistTrack::getTrack)

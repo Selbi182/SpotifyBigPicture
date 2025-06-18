@@ -319,7 +319,7 @@ public class PlaybackInfoProvider {
     }
 
     // Kill-switch for gigantic playlists, to save performance
-    if (playbackContext.getShuffle() || (trackData.getListTracks() != null && trackData.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD)) {
+    if (playbackContext.getShuffle() || (trackData.getTrackListView().equals(TrackData.ListViewType.PLAYLIST_ALBUM) && trackData.getListTracks() != null && trackData.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD)) {
       trackData.setTrackListView(TrackData.ListViewType.QUEUE);
       trackData.setListTracks(List.of());
     }
