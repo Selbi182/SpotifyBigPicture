@@ -557,9 +557,6 @@ function setTextData(changes) {
   if (isPrefEnabled("show-lyrics") && (getChange(changes, "currentlyPlaying.artists").wasChanged || getChange(changes, "currentlyPlaying.title").wasChanged)) {
     refreshLyrics(changes);
   }
-
-  // Text balance
-  refreshTextBalance();
 }
 
 
@@ -644,7 +641,6 @@ function setCorrectTracklistView(changes, forceScroll = false) {
     refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
     setTimeout(() => {
       refreshScrollPositions(queueMode, trackNumber, totalDiscCount, currentDiscNumber);
-      refreshTextBalance();
     }, getTransitionFromCss());
   }
 }
@@ -760,9 +756,6 @@ function fetchAndPrintLyrics(changes) {
       if (isPrefEnabled("lyrics-simulated-scroll")) {
         scrollLyrics(changes);
       }
-      setTimeout(() => {
-        refreshTextBalance();
-      }, getTransitionFromCss());
     } else {
       showToast("Lyrics not found for current track!");
     }
@@ -830,47 +823,6 @@ lyricsContainer.onclick = () => {
 };
 
 lyricsContainer.onkeydown = (e) => e.preventDefault();
-
-
-const idsToBalance = ["artists", "title", "album-title", "description"];
-function refreshTextBalance() {
-  refreshPortraitModeState();
-  for (let id of idsToBalance) {
-    let elem = id.select();
-    balanceTextClamp(elem).then();
-  }
-}
-
-async function balanceTextClamp(elem) {
-  if (isPrefEnabled("text-balancing")) {
-    // balanceText doesn't take line-clamping into account, unfortunately.
-    // So we got to temporarily remove it, balance the text, then add it again.
-    elem.style.setProperty("-webkit-line-clamp", "initial", "important");
-    try {
-      // balanceText sometimes gets stuck and causes freezes.
-      // Running it async with a timeout should prevent this from happening.
-      await Promise.race([
-        new Promise((resolve) => {
-          // noinspection JSUnresolvedFunction
-          balanceText(elem);
-          resolve();
-        }),
-        new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('text-balancing timed out')), 1000);
-        })
-      ]);
-    } catch (e) {
-      console.warn(`text-balancing caused a deadlock (id: ${elem.id}) and was forcibly aborted`);
-    } finally {
-      elem.style.removeProperty("-webkit-line-clamp");
-    }
-  } else {
-    let dataRaw = elem.getAttribute(ATTR_DATA_RAW);
-    if (dataRaw && dataRaw.length > 0) {
-      elem.innerHTML = dataRaw;
-    }
-  }
-}
 
 function setClass(elem, className, state) {
   elem.classList.toggle(className, state);
@@ -995,21 +947,10 @@ function finishAnimations(elem) {
 }
 
 function fadeIn(elem) {
-  if (isPrefEnabled("text-balancing") && idsToBalance.includes(elem.id)) {
-    finishAnimations(elem);
-    elem.classList.add("transparent");
-    elem.classList.remove("text-grow");
-    finishAnimations(elem);
-    balanceTextClamp(elem)
-      .then(() => elem.classList.add("text-grow"))
-      .then(() => finishAnimations(elem))
-      .then(() => elem.classList.remove("transparent", "text-grow"));
-  } else {
-    finishAnimations(elem);
-    elem.classList.add("transparent", "text-grow");
-    finishAnimations(elem);
-    elem.classList.remove("transparent", "text-grow");
-  }
+  finishAnimations(elem);
+  elem.classList.add("transparent", "text-grow");
+  finishAnimations(elem);
+  elem.classList.remove("transparent", "text-grow");
 }
 
 function printTrackList(trackList, printDiscs) {
@@ -1951,7 +1892,6 @@ function setVisualPreference(pref, newState) {
   if (pref) {
     refreshPreference(pref, newState);
     refreshPrefsLocalStorage();
-    refreshTextBalance();
   }
 }
 
@@ -2126,7 +2066,6 @@ function handleDeviceChange(device) {
 }
 
 function refreshAll() {
-  refreshTextBalance();
   refreshBackgroundRender();
   refreshProgress();
   updateScrollGradients();
@@ -2750,7 +2689,7 @@ const PREFERENCES = [
     description: "If enabled, multiline text is balanced to have roughly the same amount of width per line",
     category: "General",
     default: true,
-    callback: () => refreshTextBalance()
+    css: {"body": "text-balance"}
   },
   {
     id: "strip-titles",

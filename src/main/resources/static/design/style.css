@@ -54,6 +54,10 @@ body.hide-cursor-enabled.hide-cursor {
     cursor: none !important;
 }
 
+body.text-balance {
+    text-wrap: balance;
+}
+
 #main.allow-user-select {
     user-select: all;
 }
@@ -63,7 +67,7 @@ body.hide-cursor-enabled.hide-cursor {
 }
 
 .text-grow {
-    letter-spacing: -1vmin;
+    translate: calc(var(--font-scale) * -10);
 }
 
 * {
@@ -91,7 +95,7 @@ a:hover {
     transition: opacity var(--transition),
         color var(--transition),
         background-color var(--transition),
-        letter-spacing var(--transition),
+        translate var(--transition) ease-out,
         font-size var(--transition),
         filter var(--transition);
 }
