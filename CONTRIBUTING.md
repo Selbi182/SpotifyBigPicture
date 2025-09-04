@@ -29,11 +29,9 @@ The Java side of the app is responsible for fetching the actual song data from t
 Of course, everything else is also working in tandem with this stuff, but this should get you started.
 
 ### Frontend (JavaScript/HTML/CSS)
-You'll find the root HTML file under `resources/static/layout.html` and the main CSS class under `resources/static/design/style.css`.
+You'll find the root HTML file under `resources/static/layout.html` and the main CSS class under `resources/static/design/style.css` (haven't gotten around to splitting that one into smaller files... sorry, heh).
 
-As for JavaScript, the only file you'll need to worry about is `resources/static/js/spotify-big-picture.js`. _Everything_ is in this one file. At the time of writing, that's almost 4000 lines. I apologize, but I simply didn't get around to splitting the project into more sensible files yet, heh.
-
-The JS file is basically broken down into two huge sections: the upper half takes care of all the actual logic, the lower half is where all the settings are defined.
+As for JavaScript, which handles the flow of the app from the browser, everything is found under `resources/static/js`. The `spotify-big-picture.js` file serves as the entry point and contains the main polling logic, while the stuff in the `primary` folder is responsible for most of the display handling logic. The other folders contain less obvious (but still just as important) features and utilities.
 
 <hr>
 
@@ -43,7 +41,7 @@ SpotifyBigPicture is highly customizable through its settings (aka. Visual Prefe
 ## Guide: How to Add a New Setting
 Let's create a new setting to help you understand how things work!
 
-Settings are defined under the `Preferences & Presets Data` section in the lower half of the main JavaScript file.
+Settings are defined in the `resources/static/js/preferences/defs-preferences.js` file.
 
 ### Step 1: Create Base Setting
 Before you do anything else, you need to choose a _unique_ ID for your setting. The ID must not collide with any other one and must be Kebab Case (i.e. lower-case-and-concatenated-by-hyphens).
