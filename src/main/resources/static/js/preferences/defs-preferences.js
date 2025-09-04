@@ -129,17 +129,8 @@ const PREFERENCES = [
     }
   },
   {
-    id: "hd-artwork",
-    name: "HD-Artwork From iTunes [BETA]",
-    description: "Try to look for the artwork of the current track on iTunes instead of Spotify, which hosts high-quality, uncompressed images. " +
-      "Unfortunately, SO high-quality and uncompressed that enabling this option can make the application a lot slower, so use it with caution!",
-    category: "General",
-    default: false,
-    protected: true
-  },
-  {
     id: "fullscreen-double-click",
-    name: "Toggle Fullscreen By Double Click",
+    name: "Toggle Fullscreen With Double Click",
     description: "If enabled, you can double click anywhere on the screen to toggle fullscreen mode " +
       "(remember: you can always toggle fullscreen by pressing F)",
     category: "General",
@@ -467,6 +458,15 @@ const PREFERENCES = [
     category: "Artwork",
     default: false,
     css: {"main": "artwork-right"}
+  },
+  {
+    id: "hd-artwork",
+    name: "HD-Artwork From iTunes [BETA]",
+    description: "Try to look for the artwork of the current track on iTunes instead of Spotify, which hosts high-quality, uncompressed images. " +
+      "Unfortunately, SO high-quality and uncompressed that enabling this option can make the application a lot slower, so use it with caution!",
+    category: "Artwork",
+    default: false,
+    protected: true
   },
 
   ///////////////////////////////
@@ -873,22 +873,22 @@ const PREFERENCES = [
     css: {"progress-current": "gradient"}
   },
   {
-    id: "smooth-progress-bar",
-    name: "Smooth Progress Bar",
-    description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. "
-      + "It is STRONGLY recommended keep this setting disabled for low-power hardware to save on resources!",
-    category: "Bottom Content",
-    default: false,
-    protected: true,
-    callback: () => refreshProgress()
-  },
-  {
     id: "reverse-bottom",
     name: "Progress Bar Underneath",
     description: "If enabled, the progress bar and the timestamps/playback state info swap positions",
     category: "Bottom Content",
     default: false,
     css: {"content-bottom": "reverse"}
+  },
+  {
+    id: "smooth-progress-bar",
+    name: "Smooth Progress Bar",
+    description: "If enabled, the progress bar will get updated at the maximum possible framerate, rather than at a steady 10 FPS. "
+      + "It is STRONGLY recommended keep this setting disabled for low-power hardware to save on resources!",
+    category: "Bottom Content",
+    default: false,
+    protected: true,
+    callback: () => refreshProgress()
   },
 
   // Clock

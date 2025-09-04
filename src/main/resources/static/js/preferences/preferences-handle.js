@@ -274,6 +274,16 @@ function toggleFullscreen() {
   }
 }
 
+"fullscreen-toggle-button".select().onclick = () => {
+  toggleFullscreen();
+};
+
+document.addEventListener("dblclick", (e) => {
+  if (isPrefEnabled("fullscreen-double-click") && !settingsVisible && !window.getSelection().toString() && !isHoveringControlElem(e.target)) {
+    toggleFullscreen();
+  }
+});
+
 function toggleDarkMode() {
   toggleVisualPreference(findPreference("dark-mode"));
 }

@@ -195,14 +195,6 @@ function initSettingsMouseMove() {
     "preset-thumbnail-generator-canvas".select().remove();
   }
 
-  "nosleep-lock-button".select().onclick = () => {
-    toggleNoSleepMode();
-  };
-
-  "fullscreen-toggle-button".select().onclick = () => {
-    toggleFullscreen();
-  };
-
   "settings-expert-mode-toggle".select().onclick = () => {
     toggleSettingsExpertMode();
   };
@@ -222,12 +214,6 @@ function initSettingsMouseMove() {
       setSettingsMenuState(false);
     }
   }
-
-  document.addEventListener("dblclick", (e) => {
-    if (isPrefEnabled("fullscreen-double-click") && !settingsVisible && !window.getSelection().toString() && !isHoveringControlElem(e.target)) {
-      toggleFullscreen();
-    }
-  });
 
   settingsWrapper.onmousemove = (event) => updateSettingDescription(event);
   settingsWrapper.onmousedown = (event) => updateSettingDescription(event);
@@ -328,19 +314,19 @@ function scrollSettingsUpDown(direction) {
   });
 }
 
-// noinspection JSUnresolvedFunction
-let nosleep = new NoSleep();
-let nosleepActive = false;
-function toggleNoSleepMode() {
-  nosleepActive = !nosleepActive;
-  if (nosleepActive) {
-    nosleep.enable();
-    showToast("No-sleep mode enabled!")
-  } else {
-    nosleep.disable();
-    showToast("No-sleep mode disabled!")
+function quickJump(targetCategoryName) {
+  let settingsCategories = "settings-categories".select();
+  let allCategories = settingsCategories.querySelectorAll(".setting-category-header");
+  let jumpResult = [...allCategories].find(elem => elem.innerText.startsWith(targetCategoryName));
+  if (jumpResult) {
+    let settingsScroller = "settings-scroller".select();
+    let y = jumpResult.offsetTop - settingsScroller.offsetTop - 35;
+    settingsScroller.scroll({
+      top: y,
+      left: 0,
+      behavior: 'smooth'
+    });
   }
-  setClass("nosleep-lock-button".select(), "enabled", nosleepActive);
 }
 
 // hidden feature
@@ -384,20 +370,5 @@ function generatePresetThumbnail() {
 
         setClass(prerenderCanvas, "show", isPrefEnabled("prerender-background"));
       });
-  }
-}
-
-function quickJump(targetCategoryName) {
-  let settingsCategories = "settings-categories".select();
-  let allCategories = settingsCategories.querySelectorAll(".setting-category-header");
-  let jumpResult = [...allCategories].find(elem => elem.innerText.startsWith(targetCategoryName));
-  if (jumpResult) {
-    let settingsScroller = "settings-scroller".select();
-    let y = jumpResult.offsetTop - settingsScroller.offsetTop - 35;
-    settingsScroller.scroll({
-      top: y,
-      left: 0,
-      behavior: 'smooth'
-    });
   }
 }
