@@ -34,13 +34,11 @@ function updateProgress(changes) {
   updateWebsiteTitle(changes);
 
   // Update Progress Bar
-  if (isPrefEnabled("smooth-progress-bar") || timeCurrentUpdated || timeTotalUpdated) {
-    if (formattedCurrentTime === formattedTotalTime && !isPrefEnabled("smooth-progress-bar")) {
-      // Snap to maximum on the last second
-      current = total;
-    }
-    setProgressBarTarget(current, total, paused);
+  if (formattedCurrentTime === formattedTotalTime && !isPrefEnabled("smooth-progress-bar")) {
+    // Snap to maximum on the last second
+    current = total;
   }
+  setProgressBarTarget(current, total, paused);
 }
 
 const WEBSITE_TITLE_BRANDING = "SpotifyBigPicture";
@@ -77,7 +75,8 @@ window.addEventListener('load', recursiveProgressRefresh);
 function recursiveProgressRefresh() {
   refreshProgress();
   if (!idle) {
-    requestAnimationFrame(() => recursiveProgressRefresh());
+    const delay = isPrefEnabled("smooth-progress-bar") ? 0 : 100;
+    setTimeout(recursiveProgressRefresh, delay);
   }
 }
 
