@@ -1,0 +1,139 @@
+
+#content-top {
+    flex-direction: row;
+    width: 100%;
+    height: min-content;
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    max-height: 6vmin;
+    gap: var(--margin-half);
+}
+
+#content-top.hide {
+    display: none;
+}
+
+#content-top.swap {
+    flex-direction: row-reverse;
+}
+
+
+
+#meta-left {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    gap: 2vmin;
+}
+#meta-left.hide {
+    display: none;
+}
+
+#content-top.swap #meta-left {
+    text-align: right;
+    flex-direction: row-reverse;
+    justify-content: end;
+}
+
+#thumbnail-wrapper {
+    height: 6vmin;
+    width: 6vmin;
+    min-height: 6vmin;
+    min-width: 6vmin;
+    box-shadow: 0.2vmin 0.2vmin 0.5vmin #0004;
+}
+
+#thumbnail-wrapper.hide {
+    display: none;
+}
+
+#thumbnail-wrapper.circular {
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+#thumbnail-wrapper.colored {
+    background-color: var(--color);
+}
+
+#thumbnail {
+    width: inherit;
+    height: inherit;
+}
+
+#thumbnail[src=""] {
+    display: none;
+}
+
+#thumbnail-wrapper.colored #thumbnail {
+    mix-blend-mode: multiply;
+    filter: grayscale(1);
+}
+
+
+#context {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+div#context-main {
+    --max-lines: 1;
+    width: fit-content;
+}
+
+div#context-extra {
+    --max-lines: 1;
+    opacity: 0.5;
+    width: fit-content;
+}
+
+#context-extra.hide {
+    display: none;
+}
+
+#context-description {
+    display: none;
+}
+
+#context-extra.has-description.show-description #context-description {
+    display: initial;
+}
+
+
+#content-top.swap #context {
+    align-items: end;
+}
+
+
+#meta-right {
+    text-align: right;
+    position: relative;
+    pointer-events: none;
+}
+
+#meta-right.hide {
+    display: none;
+}
+
+#logo {
+    -webkit-mask-image: url("../img/symbols/spotify.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: url("../img/symbols/spotify.png");
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
+    height: 6vmin;
+    width: 6vmin;
+    background-color: #1DB954;
+    opacity: 1;
+}
+
+#logo.colored {
+    background-color: var(--color);
+}

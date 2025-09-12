@@ -1,0 +1,193 @@
+
+#artwork {
+    width: var(--artwork-size);
+    height: var(--artwork-size);
+    overflow: hidden;
+    position: relative;
+    margin: var(--margin-main);
+}
+
+#main.artwork-above-content #artwork {
+    margin: auto;
+}
+
+#artwork.shadow {
+    filter: drop-shadow(var(--shadow-light));
+}
+
+#artwork.shadow.soft-light {
+    mix-blend-mode: soft-light;
+}
+
+#artwork.top-disabled.center-disabled.bottom-disabled {
+    margin: auto;
+}
+
+#artwork.double-margins {
+    margin-left: var(--margin-double);
+    margin-right: var(--margin-double);
+}
+
+#artwork.hide {
+    display: none;
+}
+
+#artwork-img {
+    position: absolute;
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border: 0.2vmin solid transparent;
+    transform: scale(1.02) translateZ(0);
+    object-fit: contain;
+    object-position: center;
+}
+
+#main.artwork-above-content #artwork-img {
+    object-position: top;
+}
+
+#background-rendered, #prerender-canvas, #background-canvas, #background-canvas-overlay, #grain {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#background-rendered.hide {
+    display: none;
+}
+
+#background-rendered canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#background-rendered canvas.crossfade {
+    opacity: 0;
+    z-index: 1;
+}
+
+#prerender-canvas {
+    display: none;
+    z-index: -99;
+    background: black;
+    overflow: hidden;
+    width: 100% !important;
+    height: 100% !important;
+    justify-content: start;
+}
+
+#prerender-canvas * {
+    transition: none !important;
+}
+
+#prerender-canvas.show, #prerender-canvas.no-prerender {
+    display: flex;
+}
+
+#main.artwork-right #prerender-canvas {
+    justify-content: end;
+}
+
+#prerender-canvas.no-prerender {
+    z-index: unset;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#background-canvas {
+    --background-color: black;
+    transform: scale(1.1);
+    filter: brightness(35%);
+}
+
+#background-canvas.no-zoom {
+    transform: unset;
+}
+
+#background-canvas.hide {
+    display: none;
+}
+
+#background-canvas-overlay {
+    background: var(--background-gradients), var(--background-color);
+    --background-brightness: 0.5;
+    --background-gradients:
+            radial-gradient(circle, transparent 20%, #00000080 100%),
+            linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, var(--background-brightness)) 100%);
+    background-blend-mode: soft-light;
+    opacity: var(--background-brightness);
+}
+
+#background-canvas-overlay.no-gradient {
+    background: var(--background-color);
+}
+
+#background-canvas-overlay.no-tint {
+    --background-brightness: 1 !important;
+    background: var(--background-gradients);
+    mix-blend-mode: multiply;
+}
+
+#background-canvas-overlay.no-gradient.no-tint {
+    display: none;
+}
+
+#background-canvas.color-only #background-canvas-overlay.no-tint {
+    --background-color: white !important;
+    --background-brightness: 0.5 !important;
+    background: var(--background-gradients), var(--background-color);
+    mix-blend-mode: hard-light;
+}
+
+#background-canvas-overlay:not(.no-tint).dark-compensation.brighter {
+    opacity: calc(0.5 - var(--background-brightness));
+}
+
+#background-canvas-overlay:not(.no-tint).bright-compensation.darker {
+    background-blend-mode: hard-light;
+}
+
+#background-canvas-img {
+    --bg-blur: 1;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    filter: blur(calc(var(--bg-blur) * 1vmin)) grayscale(25%) drop-shadow(var(--shadow-light));
+    image-rendering: optimizeQuality;
+    object-fit: contain;
+    background-color: var(--background-color);
+}
+
+#background-canvas-img.fill-screen {
+    object-fit: cover;
+}
+
+#background-canvas-img.no-blur {
+    --bg-blur: 0;
+}
+
+#background-canvas.color-only #background-canvas-img {
+    opacity: 0 !important;
+}
+
+#background-canvas.color-only #background-canvas-overlay {
+    opacity: 1 !important;
+    background-blend-mode: unset !important;
+}
+
+#grain {
+    opacity: 0;
+    mix-blend-mode: screen;
+    background: url('../img/grain.jpg') repeat;
+    --intensity: 1;
+    transform: translateZ(0);
+}
+
+#grain.show {
+    opacity: max(0.06, calc(var(--intensity) * 0.30));
+}

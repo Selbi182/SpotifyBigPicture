@@ -1,0 +1,264 @@
+@font-face {
+    font-family: "Spotify Book";
+    src: url("../fonts/CircularSpotify-UI-Latin-Book.woff2");
+    font-weight: 400;
+    font-display: swap;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Spotify Bold";
+    src: url("../fonts/CircularSpotify-UI-Latin-Bold.woff2");
+    font-weight: 700;
+    font-display: swap;
+    font-style: normal;
+}
+
+:root {
+    --color: #ffffff;
+    --transition: 0.5s;
+    --font-normal: "Spotify Book", sans-serif;
+    --font-bold: "Spotify Bold", sans-serif;
+    --margin-main: 8vmin;
+    --margin-half: calc(var(--margin-main) / 2);
+    --margin-double: calc(var(--margin-main) * 2);
+    --shadow-light: 0.5vmin 0.5vmin 0.5vmin #00000044;
+    --shadow-medium: 0.5vmin 0.5vmin 0.5vmin #000000aa;
+    --shadow-full: 0.5vmin 0.5vmin 0.5vmin black;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+    width: 1vmin;
+    height: 1vmin;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--color);
+    transition: background-color var(--transition);
+    border-radius: 1vmin;
+    border: transparent;
+}
+
+a, a:visited, a:hover, a:active {
+    color: var(--color);
+}
+a:hover {
+    opacity: 1 !important;
+}
+
+html, body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #111;
+    color: white;
+    font-family: var(--font-normal), sans-serif;
+    width: 100%;
+    height: 100%;
+    font-size: 2vmin;
+    line-height: 1.3;
+    user-select: none;
+    word-break: keep-all;
+}
+
+body.idle > * {
+    display: none;
+}
+
+body.dark-blur > *:not(#modal-overlay) {
+    filter: blur(1vmin);
+    transition: filter var(--transition);
+}
+
+body.hide-cursor-enabled.hide-cursor {
+    cursor: none !important;
+}
+
+body.text-balance {
+    text-wrap: balance;
+}
+
+#main.allow-user-select {
+    user-select: all;
+}
+
+#main.transitions :is(
+    #background-rendered *,
+    #context-main, #context-extra, #thumbnail-wrapper, #logo,
+    #artists, #title, #description, #album,
+    #track-list, #track-list .track-elem div,
+    #lyrics,
+    #progress-background,
+    #info-symbols > div, #volume, #volume-text, #device,
+    #clock, #time-current, #time-total
+) {
+    transition: opacity var(--transition),
+    color var(--transition),
+    background-color var(--transition),
+    translate var(--transition) ease-out,
+    font-size var(--transition),
+    filter var(--transition);
+}
+
+#main.slow-transitions {
+    --transition: 1s;
+}
+
+.transparent {
+    opacity: 0 !important;
+}
+
+.text-grow {
+    translate: -4ch;
+}
+
+img:not([src]) {
+    visibility: hidden;
+}
+
+#toast {
+    position: absolute;
+    width: 100%;
+    height: var(--margin-main);
+    z-index: 4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2vmin;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition), margin-top var(--transition);
+    margin-top: calc(-1 * var(--margin-half));
+}
+#toast.show {
+    opacity: 1;
+    margin-top: 0;
+}
+#toast-text {
+    background: #00000060;
+    padding: 1vmin 2vmin;
+    border-radius: 1vmin;
+}
+
+#dark-overlay {
+    --dark-intensity: 0.5;
+    opacity: var(--dark-intensity);
+    background: black;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    display: none;
+}
+
+#dark-overlay.show {
+    display: initial;
+}
+
+
+#modal-overlay {
+    --modal-transition: 0.35s;
+    --modal-overlay-background: #0008;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--modal-overlay-background);
+    top: 0;
+    left: 0;
+    z-index: 4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--modal-transition);
+}
+
+#modal-overlay.show {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+#modal-overlay.show #modal {
+    scale: 1;
+}
+
+#modal {
+    --modal-background-primary: #444c;
+    --modal-background-secondary: #000c;
+    color: white;
+    scale: 0;
+    transition: scale var(--modal-transition);
+    width: 30%;
+    min-height: 30%;
+    flex-direction: column;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    gap: 3vmin;
+    border-bottom-left-radius: 3vmin;
+    border-bottom-right-radius: 3vmin;
+    border: 0.5vmin solid var(--modal-background-primary);
+    background: var(--modal-background-secondary);
+}
+
+#modal > div {
+    padding: 2vmin;
+    width: 100%;
+    text-align: center;
+}
+
+#modal-header {
+    font-size: 3vmin;
+    color: white;
+    background: var(--modal-background-primary);
+}
+
+#modal-main {
+    padding: 0 4vmin !important;
+    text-align: left !important;
+}
+
+#modal-buttons {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: end;
+    gap: 2vmin;
+    font-size: 3vmin;
+}
+
+#modal-buttons > div {
+    transition: opacity var(--transition);
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+#modal-buttons > div:hover {
+    opacity: 1;
+}
+
+#modal-buttons .close {
+    opacity: 0.25;
+}
+
+#modal-buttons .okay {
+    display: none;
+}
+
+#modal-buttons.confirm .okay {
+    display: initial;
+}
+
+:is(#time-current, #time-total, .track-number, .track-length, #volume) {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2vmin;
+}
+

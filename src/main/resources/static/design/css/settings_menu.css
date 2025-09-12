@@ -1,0 +1,416 @@
+
+
+#settings-wrapper {
+    color: white;
+    --color: white;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    padding: var(--margin-settings);
+    font-size: 3vmin;
+    display: none;
+    flex-direction: row;
+    gap: 8vmin;
+    pointer-events: none;
+    --margin-settings: 8vmin;
+}
+
+#settings-wrapper, #settings-wrapper * {
+    transition: opacity var(--transition);
+}
+
+#settings-wrapper.show {
+    display: flex;
+    pointer-events: auto;
+}
+
+#settings-wrapper::before {
+    content: "Visual Preferences";
+    position: absolute;
+    left: 2vmin;
+    top: 0;
+    bottom: 0;
+    text-align: center;
+    opacity: 0.25;
+    font-family: var(--font-bold);
+    text-orientation: upright;
+    -webkit-writing-mode: vertical-lr;
+    writing-mode: vertical-lr;
+    margin: auto 0;
+}
+
+#settings-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#settings-scroller {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    flex: 1;
+    --scroller-gradient: linear-gradient(to bottom, transparent 0%, white var(--mask-padding), white calc(100% - var(--mask-padding)), transparent 100%);
+    -webkit-mask-image: var(--scroller-gradient);
+    mask-image: var(--scroller-gradient);
+    padding: var(--mask-padding);
+    --mask-padding: 2vmin;
+}
+
+#settings-scroller > div::after {
+    content: "";
+    padding: 1px;
+}
+
+#settings-scroller > #settings-scroller-content {
+    padding: var(--margin-settings);
+}
+
+#settings-wrapper.expert #settings-categories {
+    display: flex;
+}
+
+#settings-wrapper.expert #settings-presets {
+    display: none;
+}
+
+#settings-categories {
+    --size: 2vmin;
+    width: 100%;
+    height: 100%;
+    justify-content: space-between;
+    flex-direction: column;
+    font-size: var(--size);
+    gap: var(--size);
+    display: none;
+}
+
+#settings-quick-jump {
+    display: none;
+    flex-direction: row;
+    gap: 1vmin;
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius: 1vmin;
+    padding: 1vmin 0;
+    font-size: 2vmin;
+}
+
+#settings-quick-jump.show {
+    display: flex;
+}
+
+#settings-quick-jump > div {
+    background: #ffffff20;
+    border-radius: 2vmin;
+    padding: 0 1vmin;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+#settings-quick-jump > div:hover {
+    opacity: 1;
+}
+
+#settings-categories .setting {
+    width: min-content;
+    opacity: 0.65;
+    cursor: pointer;
+    white-space: pre;
+    overflow: hidden;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+#settings-categories .setting[class*='overridden-'] {
+    opacity: 0.25 !important;
+}
+
+#settings-categories .setting:hover {
+    opacity: 1;
+}
+
+#settings-categories .setting::before {
+    content: "";
+    background-image: url("../img/symbols/checkbox-off.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 1vmin;
+    opacity: 0.5;
+    width: var(--size);
+    height: var(--size);
+}
+
+#settings-categories .setting.on::before {
+    background-image: url("../img/symbols/checkbox-on.png");
+    opacity: 1;
+}
+
+#settings-categories .setting.unaffected::after {
+    content: "";
+    background-image: url("../img/symbols/warning.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 1vmin;
+    opacity: 0.5;
+    width: var(--size);
+    height: var(--size);
+}
+
+#settings-categories .setting-category {
+    background: #ffffff20;
+    border-radius: 2vmin;
+    padding: 1vmin 2vmin;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25vmin;
+}
+
+#settings-categories .setting-category-header {
+    font-family: var(--font-bold);
+    font-size: 2.5vmin;
+    opacity: 0.65;
+    cursor: pointer;
+}
+
+#settings-categories .setting-category-header:hover {
+    opacity: 1;
+}
+
+#settings-categories .setting-category.collapse .setting-category-header::after {
+    content: " \2026";
+}
+
+#settings-categories .setting-category.collapse > *:not(.setting-category-header) {
+    display: none;
+}
+
+#settings-categories .setting-category.hide {
+    visibility: hidden;
+}
+
+#settings-categories .setting-subcategory-header {
+    opacity: 0.25;
+    border-bottom: 0.2vmin solid var(--color);
+    width: fit-content;
+    margin-top: 1vmin;
+    margin-bottom: 0.5vmin;
+}
+
+#settings-right {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    gap: var(--margin-settings);
+    position: relative;
+}
+
+#settings-presets {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--margin-settings);
+    height: 100%;
+}
+
+#settings-presets.hide {
+    display: none;
+}
+
+#settings-presets > .preset {
+    display: flex;
+    opacity: 0.5;
+    cursor: pointer;
+    width: fit-content;
+    height: fit-content;
+}
+
+#settings-presets > .preset > img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    background: #ffffff40;
+    background-size: contain;
+    border-radius: 1vmin;
+    border: 0.3vmin solid white;
+}
+
+#settings-presets > .preset:hover {
+    opacity: 1;
+}
+
+#settings-description {
+    width: 50%;
+    height: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: end;
+    font-size: 2vmin;
+    pointer-events: none;
+    position: relative;
+    flex: 2;
+    text-align: center;
+    overflow: visible;
+    opacity: 0;
+    gap: 2vmin;
+    padding: 2vmin;
+}
+
+#settings-description.show {
+    opacity: 1;
+}
+
+#settings-description > #settings-description-header {
+    font-weight: bold;
+    font-size: 4vmin;
+    font-family: var(--font-bold);
+}
+
+#settings-description > #settings-description-description {
+    white-space: pre-line;
+}
+
+#settings-description > :is(#settings-description-overridden, #settings-description-unaffected) {
+    opacity: 0.5;
+    font-size: 2vmin;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1vmin;
+}
+
+#settings-description > :is(#settings-description-overridden, #settings-description-unaffected):empty {
+    display: none;
+}
+
+#settings-description > #settings-description-overridden::before {
+    content: "Overridden by:";
+}
+
+#settings-description > #settings-description-unaffected::before {
+    content: "";
+    background-image: url("../img/symbols/warning.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.5;
+    width: 2vmin;
+    height: 2vmin;
+    display: inline-block;
+}
+
+#settings-top-buttons, #settings-bottom-buttons {
+    display: flex;
+    width: fit-content;
+    gap: 0 calc(var(--margin-settings)/2);
+    position: absolute;
+    left: var(--margin-settings);
+    font-family: var(--font-bold);
+    z-index: 1;
+}
+
+#settings-top-buttons {
+    top: 2vmin;
+}
+
+#settings-bottom-buttons {
+    bottom: 2vmin;
+}
+
+:is(#settings-top-buttons, #settings-bottom-buttons) > * {
+    opacity: 0.5;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+:is(#settings-top-buttons, #settings-bottom-buttons) > *:hover {
+    opacity: 1;
+}
+
+:is(#settings-external, #kofi-external)::before {
+    content: "";
+    background-image: url("../img/symbols/curved-arrow.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 1vmin;
+    opacity: 0.5;
+    width: 2vmin;
+    height: 2vmin;
+    display: inline-block;
+    padding-right: 1vmin;
+}
+#kofi-external::before {
+    background-image: url("../img/symbols/kofi.png") !important;
+}
+
+#settings-external, #kofi-external {
+    display: none;
+}
+
+#settings-wrapper.expert :is(#settings-external, #kofi-external) {
+    display: initial;
+}
+
+#settings-expert-mode-toggle::before {
+    content: "";
+    background-image: url("../img/symbols/checkbox-off.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 1vmin;
+    opacity: 0.5;
+    width: 2vmin;
+    height: 2vmin;
+    display: inline-block;
+}
+
+#settings-wrapper.expert #settings-expert-mode-toggle::before {
+    background-image: url("../img/symbols/checkbox-on.png");
+}
+
+#settings-shutdown {
+    -webkit-mask-image: url("../img/symbols/power.png");
+    mask-image: url("../img/symbols/power.png");
+    top: unset;
+    bottom: calc(var(--offset) / 2);
+    left: calc(var(--offset) / 2);
+    opacity: 0.5;
+    --offset: var(--margin-half);
+    width: var(--offset);
+    height: var(--offset);
+    position: absolute;
+    -webkit-mask-size: contain;
+    -webkit-mask-position: right;
+    -webkit-mask-repeat: no-repeat;
+    mask-size: contain;
+    mask-position: right;
+    mask-repeat: no-repeat;
+    background-color: white;
+    z-index: 3;
+    cursor: pointer;
+    transition: opacity var(--transition);
+}
+
+#settings-shutdown:hover {
+    opacity: 1;
+}
+
+#settings-reset::before {
+    content: "";
+    background-image: url("../img/symbols/gear.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-right: 1vmin;
+    opacity: 0.5;
+    width: 2vmin;
+    height: 2vmin;
+    display: inline-block;
+    padding-right: 1vmin;
+}

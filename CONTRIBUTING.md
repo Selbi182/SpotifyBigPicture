@@ -29,7 +29,7 @@ The Java side of the app is responsible for fetching the actual song data from t
 Of course, everything else is also working in tandem with this stuff, but this should get you started.
 
 ### Frontend (JavaScript/HTML/CSS)
-You'll find the root HTML file under `resources/static/layout.html` and the main CSS class under `resources/static/design/style.css` (haven't gotten around to splitting that one into smaller files... sorry, heh).
+You'll find the root HTML file under `resources/static/layout.html` and the main CSS classes under `resources/static/design/css/`.
 
 As for JavaScript, which handles the flow of the app from the browser, everything is found under `resources/static/js`. The `spotify-big-picture.js` file serves as the entry point and contains the main polling logic, while the stuff in the `primary` folder is responsible for most of the display handling logic. The other folders contain less obvious (but still just as important) features and utilities.
 
@@ -76,7 +76,7 @@ Each entry maps one HTML element (via IDs, like if you were using JavaScript's _
 
 Putting an exclamation mark `!` in front of the class name inverts the logic for that specific entry, so the class is added when the feature is _disabled_ and removed again when it's turned on.
 
-The actual design aspect has to be handled by the CSS stylesheet, of course, so I won't dive into that here. The stylesheet is located under: `resources/static/design/style.css`
+The actual design aspect has to be handled by the CSS stylesheet, of course, so I won't dive into that here. The stylesheets are located under: `resources/static/design/css/`
 
 #### Using `callback`:
 In cases where simply changing a bit of CSS isn't enough, _callbacks_ come in handy. These allow you to run custom JavaScript code whenever a setting is toggled:

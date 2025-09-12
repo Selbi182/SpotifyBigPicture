@@ -1,0 +1,211 @@
+#content-center {
+    display: flex;
+    align-items: end;
+    text-align: right;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    gap: var(--margin-half) var(--margin-main);
+}
+
+#main.artwork-right #content:not(.full-content) #content-center:not(.centered, .split-main-panels) {
+    align-items: start;
+    text-align: left;
+}
+
+#content.full-content #content-center, #content-center:is(.centered, .split-main-panels) {
+    align-items: center;
+}
+
+#content-center.hide {
+    visibility: hidden;
+}
+
+#content-center.split-main-panels {
+    flex-direction: row;
+}
+
+#content-center.extra-margins {
+    padding: 0 var(--margin-main);
+}
+
+#content-center.split-main-panels #center-info-main {
+    flex: 1;
+}
+
+#main.artwork-above-content #content-center {
+    padding-top: calc(var(--artwork-size) + var(--margin-main) + var(--bonus-padding));
+    --bonus-padding: 0px;
+}
+
+#main.artwork-above-content.artwork-expand-top #context {
+    max-width: calc(60vw - var(--artwork-size) - (var(--margin-main) * 2));
+}
+
+#center-info-main {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    text-align: right;
+    width: 100%;
+    gap: 1vmin;
+    --font-scale: 1vmin;
+    max-height: 100%;
+}
+
+#center-info-main.hide {
+    display: none;
+}
+
+#main.artwork-right #content-center:not(.centered) #center-info-main,
+#main #content.full-content #content-center:not(.centered) #center-info-main {
+    align-items: start;
+    text-align: left;
+}
+
+#content-center.centered #center-info-main {
+    align-items: center;
+    text-align: center;
+}
+
+#content-center:not(.podcast) #center-info-main.big-text {
+    --font-scale: 2vmin;
+}
+
+#title {
+    font-size: calc(var(--font-scale) * 6);
+    font-weight: bold;
+}
+
+#center-info-main.title-duplicate #title {
+    display: none;
+}
+
+:is(#artists, #title-main, #album-title-main):empty::before {
+    content: "\200B";
+}
+
+#title.force-display {
+    display: -webkit-box !important;
+}
+
+#artists {
+    font-family: var(--font-normal);
+    font-size: calc(var(--font-scale) * 4);
+}
+
+#artists.hide {
+    display: none;
+}
+
+#artists .feat {
+    opacity: 0.65;
+}
+
+#artists.feat-new-line .feat {
+    display: block;
+}
+
+#artists.no-feat .feat {
+    display: none;
+}
+
+#title, #artists, #time-current, #time-total {
+    font-family: var(--font-bold);
+}
+
+#content div#title.hide {
+    display: none !important;
+}
+
+#title-extra.hide {
+    display: none;
+}
+
+#album {
+    display: flex;
+    align-items: inherit;
+    font-size: calc(var(--font-scale) * 3);
+    gap: 0 1vmin;
+}
+
+#album:not(.hide-name, .hide-date).separate-date {
+    flex-direction: column;
+}
+
+#album.hide-name #album-title {
+    display: none;
+}
+#album.hide-date #album-release {
+    display: none;
+}
+#album.hide-name.hide-date {
+    display: none;
+}
+
+#album-release {
+    opacity: 0.65;
+    word-break: normal;
+}
+
+#album-release.hide {
+    display: none;
+}
+
+#album-release:not(.full) #release-year,
+#content-center:not(.podcast) #album-release.full.podcasts-only #release-year {
+    display: initial;
+}
+
+#album-release:not(.full) #release-full,
+#content-center:not(.podcast) #album-release.full.podcasts-only #release-full {
+    display: none;
+}
+
+#content-center.podcast #album-release.full #release-year,
+#content-center:not(.podcast) #album-release.full:not(.podcasts-only) #release-year {
+    display: none;
+}
+
+#content-center.podcast #album-release.full #release-full,
+#content-center:not(.podcast) #album-release.full:not(.podcasts-only) #release-full {
+    display: initial;
+}
+
+#album:not(.hide-name, .separate-date) :is(#release-year, #release-full)::before {
+    content: "(";
+}
+
+#album:not(.hide-name, .separate-date) :is(#release-year, #release-full):after {
+    content: ")";
+}
+
+#album :is(#release-year, #release-full):empty {
+    display: none !important;
+}
+
+#album-title-extra.hide {
+    display: none;
+}
+
+div#description {
+    text-align: inherit;
+    margin-bottom: 3vmin;
+    --max-lines: 10;
+}
+
+#description:empty, #description.hide, #content-center:not(.podcast) #description {
+    display: none;
+}
+
+#context-main, #context-extra, #artists, #album-title, #title, #description, #device,
+#content-center:not(.queue) #track-list .track-elem.current div {
+    --max-lines: 3;
+    display: -webkit-box;
+    -webkit-line-clamp: var(--max-lines);
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: unset;
+}

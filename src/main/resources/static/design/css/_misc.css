@@ -1,0 +1,44 @@
+
+
+#main.preset-thumbnail-generator :is(
+        #thumbnail-wrapper, #context-main, #context-extra, #logo,
+        #artists, #title, #album-title, #album-release, #album-title-main, .track-elem *,
+        #progress, #info-symbols, #volume, #device, #clock, #time-current, #time-total,
+        #fake-artwork) {
+    background: white !important;
+    color: transparent !important;
+    border-radius: 2vmin;
+    --max-lines: 1;
+    margin: 0.1vmin;
+    transition: none !important;
+    opacity: 1 !important;
+    min-height: 1vmin;
+}
+
+#main.preset-thumbnail-generator #logo {
+    border-radius: 50% !important;
+    mask-image: unset;
+}
+
+#main.preset-thumbnail-generator :is(#background-rendered,
+        #title *, #description, #release-year, #release-full,
+        #thumbnail, #progress > div, #bottom-left > div > div) {
+    visibility: hidden;
+}
+
+#main.preset-thumbnail-generator #fake-artwork {
+    position: absolute;
+}
+
+#main.preset-thumbnail-generator #content {
+    transform: scale(1.0);
+    transform-origin: top left;
+}
+
+#preset-thumbnail-generator-canvas {
+    display: none;
+}
+
+#preset-thumbnail-generator-canvas.show {
+    display: initial;
+}

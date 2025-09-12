@@ -1,0 +1,133 @@
+
+/***********/
+
+#mouse-move-buttons {
+    opacity: 0;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 3;
+    transition: opacity var(--transition);
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#mouse-move-buttons.show {
+    opacity: 1;
+}
+#top-buttons.hide,
+#mouse-move-buttons.settings-active > #playback-controller,
+:is(body.dark-blur, #mouse-move-buttons.settings-active) #top-buttons > div:not(#settings-menu-toggle-button) {
+    display: none;
+}
+
+#top-buttons {
+    position: absolute;
+    --offset: var(--margin-half);
+    padding: 0 calc(var(--offset) / 2);
+    top: calc(var(--offset) / 2);
+    height: var(--offset);
+    width: 100%;
+    display: flex;
+    justify-content: right;
+    gap: 2vmin;
+}
+
+#top-buttons > #settings-menu-toggle-button {
+    margin-right: auto;
+}
+
+#top-buttons  > div {
+    --offset: var(--margin-half);
+    width: var(--offset);
+    height: var(--offset);
+    background: var(--icon);
+    background-size: contain;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity var(--transition), transform var(--transition);
+    pointer-events: all;
+}
+#top-buttons > div:hover {
+    opacity: 1;
+}
+
+#top-buttons > #settings-menu-toggle-button {
+    --icon: url("../img/symbols/gear.png");
+}
+#top-buttons > #settings-menu-toggle-button:hover {
+    transform: rotate(180deg);
+    transition-duration: var(--transition);
+}
+
+#top-buttons > #lyrics-toggle-button {
+    --icon: url("../img/symbols/lyrics-off.png");
+}
+#top-buttons > #lyrics-toggle-button.enabled {
+    --icon: url("../img/symbols/lyrics-on.png");
+}
+
+#top-buttons > #nosleep-lock-button {
+    --icon: url("../img/symbols/lock-unlocked.png");
+}
+#top-buttons > #nosleep-lock-button.enabled {
+    --icon: url("../img/symbols/lock-locked.png");
+}
+
+#top-buttons > #fullscreen-toggle-button {
+    --icon: url("../img/symbols/fullscreen.png");
+}
+
+
+#playback-controller {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--margin-double);
+    width: 100%;
+    height: 100%;
+    padding: var(--margin-double);
+}
+#playback-controller.hide {
+    display: none;
+}
+
+#playback-controller > div {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: all;
+    transition: opacity var(--transition);
+    background: #0004 var(--url) center no-repeat;
+}
+
+body.waiting-for-control #playback-controller {
+    cursor: wait !important;
+}
+
+#mouse-move-buttons.show > #playback-controller > div:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+body.waiting-for-control #mouse-move-buttons.show > #playback-controller > div:hover {
+    cursor: wait !important;
+}
+
+#playback-controller > #button-play-pause {
+    --url: url("../img/symbols/pause.png");
+}
+
+#playback-controller > #button-play-pause.paused {
+    --url: url("../img/symbols/play.png");
+}
+
+#playback-controller > #button-prev {
+    --url: url("../img/symbols/prev.png");
+}
+
+#playback-controller > #button-next {
+    --url: url("../img/symbols/next.png");
+}
+
+/***********/

@@ -1,0 +1,40 @@
+
+@media only screen and (max-aspect-ratio: 3/2) {
+    #settings-top-buttons {
+        flex-direction: column;
+    }
+
+    #settings-wrapper {
+        padding-left: 0;
+        padding-right: 0;
+        gap: 0;
+    }
+
+    #settings-wrapper::before {
+        content: none;
+    }
+
+    #settings-external {
+        bottom: 2vmin;
+        left: var(--margin-settings);
+        top: unset;
+        right: unset;
+    }
+
+    #settings-scroller > div {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #settings-categories .setting-category {
+        width: 100%;
+    }
+
+    #settings-description > #settings-description-header {
+        font-size: 3vmin;
+    }
+
+    #settings-description > #settings-description-description {
+        font-size: 2vmin;
+    }
+}
