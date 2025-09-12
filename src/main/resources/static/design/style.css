@@ -67,7 +67,8 @@ body.text-balance {
 }
 
 .text-grow {
-    translate: calc(var(--font-scale) * -10);
+    /*translate: calc(var(--font-scale) * -10);*/
+    translate: -4ch;
 }
 
 * {

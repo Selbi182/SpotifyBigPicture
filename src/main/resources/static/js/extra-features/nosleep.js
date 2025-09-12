@@ -3,16 +3,20 @@
 };
 
 // noinspection JSUnresolvedFunction
-let nosleep = new NoSleep();
-let nosleepActive = false;
+let noSleep = new NoSleep();
+let noSleepActive = false;
 function toggleNoSleepMode() {
-  nosleepActive = !nosleepActive;
-  if (nosleepActive) {
-    nosleep.enable();
+  noSleepActive = !noSleepActive;
+  if (noSleepActive) {
+    noSleep.enable();
     showToast("No-sleep mode enabled!")
   } else {
-    nosleep.disable();
+    noSleep.disable();
     showToast("No-sleep mode disabled!")
   }
-  setClass("nosleep-lock-button".select(), "enabled", nosleepActive);
+  setClass("nosleep-lock-button".select(), "enabled", noSleepActive);
 }
+
+addEventListener("beforeunload", () => {
+  noSleep.disable();
+});

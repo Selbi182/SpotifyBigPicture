@@ -33,11 +33,15 @@ function updateProgress(changes) {
   // Website Title
   updateWebsiteTitle(changes);
 
-  // Update Progress Bar
+
+  /*
+  // Snap to maximum on the last second
   if (formattedCurrentTime === formattedTotalTime && !isPrefEnabled("smooth-progress-bar")) {
-    // Snap to maximum on the last second
     current = total;
   }
+  */
+
+  // Update Progress Bar
   setProgressBarTarget(current, total, paused);
 }
 
