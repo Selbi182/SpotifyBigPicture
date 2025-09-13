@@ -365,7 +365,7 @@ function clearLocalStoragePortraitModePresetPromptPreference() {
   localStorage.removeItem(LOCAL_STORAGE_KEY_PORTRAIT_PROMPT_ENABLED);
 }
 
-window.onresize = () => {
+window.addEventListener("resize", () => {
   clearTimeout(refreshBackgroundEvent);
   refreshBackgroundEvent = setTimeout(() => {
     if (isTabVisible()) {
@@ -373,4 +373,4 @@ window.onresize = () => {
     }
     refreshAll();
   }, getTransitionFromCss());
-};
+});

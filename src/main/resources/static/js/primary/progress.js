@@ -33,14 +33,6 @@ function updateProgress(changes) {
   // Website Title
   updateWebsiteTitle(changes);
 
-
-  /*
-  // Snap to maximum on the last second
-  if (formattedCurrentTime === formattedTotalTime && !isPrefEnabled("smooth-progress-bar")) {
-    current = total;
-  }
-  */
-
   // Update Progress Bar
   setProgressBarTarget(current, total, paused);
 }
@@ -69,18 +61,29 @@ function updateWebsiteTitle(changes) {
   }
 }
 
+let progressMaxWidth = 0;
+function fetchProgressBarClientWidth() {
+  progressMaxWidth = "progress".select().clientWidth;
+}
+window.addEventListener("resize", () => {
+  fetchProgressBarClientWidth();
+});
+fetchProgressBarClientWidth();
+
 const progressBarElem = "progress-current".select();
 function setProgressBarTarget(current, total) {
-  let percent = (current / (total || 1)) * 100;
-  progressBarElem.style.setProperty("--progress-percent", percent + "%");
+  let width = progressMaxWidth * (current / (total || 1));
+  progressBarElem.style.setProperty("--progress-width", width + "px");
 }
 
 window.addEventListener('load', recursiveProgressRefresh);
 function recursiveProgressRefresh() {
   refreshProgress();
   if (!idle) {
-    const delay = isPrefEnabled("smooth-progress-bar") ? 0 : 100;
-    setTimeout(recursiveProgressRefresh, delay);
+      const delay = isPrefEnabled("smooth-progress-bar")
+        ? Math.max(Math.round(currentData.currentlyPlaying.timeTotal / progressMaxWidth), 50)
+        : 1000;
+      setTimeout(recursiveProgressRefresh, delay);
   }
 }
 

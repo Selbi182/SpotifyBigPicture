@@ -178,15 +178,16 @@ div#device {
 }
 
 #progress-current {
-    --progress-percent: 0%;
+    --progress-width: 0;
     background: var(--color);
-    width: var(--progress-percent);
+    width: var(--progress-width);
+    min-width: 0;
+    max-width: 100%;
     height: 100%;
     position: absolute;
     z-index: 1;
     border-radius: inherit;
 }
-
 #progress-current.gradient {
     background: linear-gradient(to right, transparent 0%, var(--color) 100%);
 }

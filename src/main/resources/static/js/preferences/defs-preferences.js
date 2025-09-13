@@ -883,8 +883,8 @@ const PREFERENCES = [
   {
     id: "smooth-progress-bar",
     name: "Smooth Progress Bar",
-    description: "If enabled, the progress bar will get updated at the maximum possible framerate, rather than at a steady 10 FPS. "
-      + "It is STRONGLY recommended keep this setting disabled for low-power hardware to save on resources!",
+    description: "If enabled, the progress bar will get updated smoothly, rather than only once per second. "
+      + "It is recommended keep this setting disabled for low-power hardware to save on resources!",
     category: "Bottom Content",
     default: false,
     protected: true,
