@@ -101,6 +101,7 @@ body.text-balance {
     color var(--transition),
     background-color var(--transition),
     translate var(--transition) ease-out,
+    scale var(--transition) ease-out,
     font-size var(--transition),
     filter var(--transition);
 }
@@ -114,7 +115,8 @@ body.text-balance {
 }
 
 .text-grow {
-    translate: -4ch;
+    translate: -50%;
+    scale: 0;
 }
 
 img:not([src]) {
