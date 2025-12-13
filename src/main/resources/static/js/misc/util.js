@@ -33,7 +33,6 @@ const USELESS_WORDS = [
   "bonus",
   "deluxe",
   "special",
-  "remaster",
   "edition",
   "explicit",
   "extended",
@@ -50,9 +49,12 @@ const USELESS_WORDS = [
   "sound.?track",
   "theme",
   "from",
+  "re.?master",
   "re.?issue",
   "re.?record",
   "re.?imagine",
+  "mono",
+  "stereo",
   "\\d{4}"
 ];
 const WHITELISTED_WORDS = [
@@ -65,27 +67,33 @@ const WHITELISTED_WORDS = [
   "session",
   "reprise",
   "re.?mix",
+  "re.?visit",
+  "take",
   "edit"
 ];
 
 function buildUselessWordRegex(words) {
-  const joined = words.join("|");
+  const w = words.join("|");
   return new RegExp(
-    "\\s(?:" +
-    "\\([^)]*?(" + joined + ")[^)]*?\\)|" +
-    "\\[[^\\]]*?(" + joined + ")[^\\]]*?\\]|" +
-    "-\\s[^-]*?(" + joined + ").*" +
-    ")",
+    "\\s?(?:"
+      + "\\([^)]*?(" + w + ")[^)]*?\\)|"
+      + "\\[[^\\]]*?(" + w + ")[^\\]]*?\\]|"
+      + "-\\s[^-]*?(" + w + ").*|"
+      + ",\\s[^,]*?(" + w + ").*"
+    + ")",
     "ig"
   );
 }
 const USELESS_WORDS_REGEX = buildUselessWordRegex(USELESS_WORDS);
+const USELESS_WORDS_REGEX_JUST_WHITELIST = buildUselessWordRegex(WHITELISTED_WORDS);
 const USELESS_WORDS_REGEX_WITH_WHITELIST = buildUselessWordRegex([...USELESS_WORDS, ...WHITELISTED_WORDS]);
 
 function separateUnimportantTitleInfo(title) {
-  const uselessWordRegex = isPrefEnabled("strip-titles-aggressive") ? USELESS_WORDS_REGEX_WITH_WHITELIST : USELESS_WORDS_REGEX;
+  const aggressive = isPrefEnabled("strip-titles-aggressive");
+  const uselessWordRegex = aggressive ? USELESS_WORDS_REGEX_WITH_WHITELIST : USELESS_WORDS_REGEX;
   let index = title.search(uselessWordRegex);
-  if (index >= 0) {
+  let containsWhitelisted = title.search(USELESS_WORDS_REGEX_JUST_WHITELIST);
+  if (index >= 0 && (aggressive || containsWhitelisted < 0)) {
     let mainTitle = title.substring(0, index);
     let extraTitle = title.substring(index, title.length);
     return {
