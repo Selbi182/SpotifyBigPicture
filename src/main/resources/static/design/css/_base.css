@@ -119,6 +119,10 @@ body.text-balance {
     scale: 0;
 }
 
+.centered .text-grow {
+    translate: 0;
+}
+
 img:not([src]) {
     visibility: hidden;
 }
