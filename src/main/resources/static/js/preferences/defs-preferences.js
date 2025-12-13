@@ -292,6 +292,7 @@ const PREFERENCES = [
     description: "Display any potential featured artists in the tracklist. Otherwise, only show the song name",
     category: "Tracklist",
     default: true,
+    protected: true,
     css: {"track-list": "!no-feat"}
   },
   {
@@ -500,6 +501,7 @@ const PREFERENCES = [
     description: "Display any potential featured artists. Otherwise, only show the main artist",
     category: "Main Content",
     default: true,
+    protected: true,
     requiredFor: ["featured-artists-new-line"],
     css: {"artists": "!no-feat"}
   },

@@ -83,8 +83,6 @@ const PREFERENCES_PRESETS = [
       "extra-wide-mode"
     ],
     disabled: [
-      "show-featured-artists",
-      "show-featured-artists-track-list",
       "artwork-expand-top",
       "show-release-name",
       "show-release-date",
