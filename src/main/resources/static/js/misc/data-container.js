@@ -54,7 +54,7 @@
  *    thumbnailUrl: string
  * }} playbackContext
  */
-const currentData = {
+const DATA_CONTAINER_BASE = {
   type: "",
   deployTime: 0,
   versionId: 0,
@@ -134,6 +134,18 @@ const currentData = {
     thumbnailUrl: ""
   }
 };
+
+function createEmptyCurrentDataContainer() {
+  return cloneObject(DATA_CONTAINER_BASE);
+}
+
+function clearCurrentDataContainer() {
+  currentData = createEmptyCurrentDataContainer();
+}
+
+let currentData = createEmptyCurrentDataContainer();
+
+////////////////
 
 function updateCurrentData(changes) {
   for (let prop in changes) {

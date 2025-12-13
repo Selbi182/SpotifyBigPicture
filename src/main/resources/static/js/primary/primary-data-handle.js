@@ -227,3 +227,10 @@ function setTextData(changes) {
     refreshLyrics(changes);
   }
 }
+
+function refreshTextData() {
+  let currentDataDuplicate = cloneObject(currentData);
+  clearCurrentDataContainer();
+  setTextData(currentDataDuplicate);
+  setCorrectTracklistView(currentDataDuplicate);
+}

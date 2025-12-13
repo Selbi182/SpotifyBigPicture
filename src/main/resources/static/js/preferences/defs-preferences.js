@@ -56,6 +56,7 @@ const PREFERENCES = [
     category: "General",
     default: true,
     protected: true,
+    requiredFor: ["strip-titles-aggressive"],
     css: {
       "title-extra": "hide",
       "album-title-extra": "hide",
@@ -65,11 +66,11 @@ const PREFERENCES = [
   {
     id: "strip-titles-aggressive",
     name: "Aggressive Strip Titles",
-    description: "When also enabled, whitelisted words such as 'live', 'demo', 'remix' are also stripped. " +
-      "May require a page refresh",
+    description: "When also enabled, whitelisted words such as 'live', 'demo', 'remix' are also stripped.",
     category: "General",
     default: false,
-    protected: true
+    protected: true,
+    callback: () => refreshTextData()
   },
   {
     id: "dark-mode",

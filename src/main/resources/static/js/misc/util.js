@@ -25,6 +25,8 @@ function getTransitionFromCss(forceUpdate = false) {
   return transitionFromCss || 0;
 }
 
+///////////////
+
 const USELESS_WORDS = [
   "radio",
   "anniversary",
@@ -62,38 +64,42 @@ const WHITELISTED_WORDS = [
   "demo",
   "session",
   "reprise",
+  "re.?mix",
   "edit"
 ];
 
-// Two regexes for readability, cause otherwise it'd be a nightmare to decipher brackets from hyphens
-const USELESS_WORDS_REGEX_BRACKETS = new RegExp("\\s(\\(|\\[)[^-]*?(" + USELESS_WORDS.join("|") + ").*?(\\)|\\])", "ig");
-const USELESS_WORDS_REGEX_HYPHEN = new RegExp("\\s-\\s[^-]*?(" + USELESS_WORDS.join("|") + ").*", "ig");
-const WHITELISTED_WORDS_REGEXP = new RegExp("(\\(|\\-|\\[)[^-]*?(" + WHITELISTED_WORDS.join("|") + ").*", "ig");
+function buildUselessWordRegex(words) {
+  const joined = words.join("|");
+  return new RegExp(
+    "\\s(?:" +
+    "\\([^)]*?(" + joined + ")[^)]*?\\)|" +
+    "\\[[^\\]]*?(" + joined + ")[^\\]]*?\\]|" +
+    "-\\s[^-]*?(" + joined + ").*" +
+    ")",
+    "ig"
+  );
+}
+const USELESS_WORDS_REGEX = buildUselessWordRegex(USELESS_WORDS);
+const USELESS_WORDS_REGEX_WITH_WHITELIST = buildUselessWordRegex([...USELESS_WORDS, ...WHITELISTED_WORDS]);
 
 function separateUnimportantTitleInfo(title) {
-  let aggressive = isPrefEnabled("strip-titles-aggressive");
-  if (aggressive || title.search(WHITELISTED_WORDS_REGEXP) < 0) {
-    let index = title.search(USELESS_WORDS_REGEX_BRACKETS);
-    if (index < 0) {
-      index = title.search(USELESS_WORDS_REGEX_HYPHEN);
-    }
-    if (aggressive && index < 0) {
-      index = title.search(WHITELISTED_WORDS_REGEXP);
-    }
-    if (index >= 0) {
-      let mainTitle = title.substring(0, index);
-      let extraTitle = title.substring(index, title.length);
-      return {
-        main: mainTitle,
-        extra: extraTitle
-      };
-    }
+  const uselessWordRegex = isPrefEnabled("strip-titles-aggressive") ? USELESS_WORDS_REGEX_WITH_WHITELIST : USELESS_WORDS_REGEX;
+  let index = title.search(uselessWordRegex);
+  if (index >= 0) {
+    let mainTitle = title.substring(0, index);
+    let extraTitle = title.substring(index, title.length);
+    return {
+      main: mainTitle,
+      extra: extraTitle
+    };
   }
   return {
     main: title,
     extra: ""
   };
 }
+
+///////////////
 
 function convertToTextEmoji(text) {
   return [...text]
