@@ -29,6 +29,7 @@
     scrollbar-color: var(--color) transparent;
     transition: scrollbar-color var(--transition);
     padding-right: 2vmin;
+    scrollbar-gutter: stable;
 }
 
 #track-list.hide,
