@@ -755,20 +755,19 @@ const PREFERENCES = [
   {
     id: "show-info-icons",
     name: "Show Playback Status Icons",
-    description: "Displays the state icons for play/pause as well as shuffle and repeat. ",
+    description: "Displays the state icons for play/pause as well as shuffle and repeat",
     category: "Bottom Content",
     default: true,
-    requiredFor: ["center-info-icons"],
+    requiredFor: ["center-info-icons", "show-off-state-info-icons"],
     css: {"info-symbols": "!hide"}
   },
   {
     id: "center-info-icons",
     name: "Center Playback Status Icons",
     description: "If enabled, the play/pause/shuffle/repeat icons are centered (like it's the case on the default Spotify player). "
-      + "Enabling this will disable the clock",
+      + "Consider disabling the clock if you use this feature",
     category: "Bottom Content",
     default: false,
-    overrides: ["show-clock"],
     css: {"bottom-meta-container": "centered-controls"},
     callback: (state) => {
       let infoSymbols = "info-symbols".select();
@@ -782,6 +781,14 @@ const PREFERENCES = [
         bottomLeft.insertBefore(infoSymbols, volume);
       }
     }
+  },
+  {
+    id: "show-off-state-info-icons",
+    name: "Show Off-State Playback Status Icons",
+    description: "If enabled, don't hide the shuffle or repeat icons in their off states",
+    category: "Bottom Content",
+    default: false,
+    css: {"info-symbols": "show-off-state"}
   },
   {
     id: "show-volume",

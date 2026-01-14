@@ -25,7 +25,7 @@
     mask-image: var(--url);
 }
 
-#info-symbols div:not(#play-pause, .show) {
+#info-symbols:not(.show-off-state) div:not(#play-pause, .show) {
     width: 0;
     opacity: 0;
     display: none;
