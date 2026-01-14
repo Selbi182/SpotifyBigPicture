@@ -44,8 +44,8 @@ dependencies {
     implementation 'spotify:spotify-dependencies:1.12.2'
     implementation 'de.selbi:color-fetch:1.3.0'
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
-    implementation 'se.michaelthelin.spotify:spotify-web-api-java:9.3.0'
-    implementation 'org.jsoup:jsoup:1.21.1'
+    implementation 'se.michaelthelin.spotify:spotify-web-api-java:9.4.0'
+    implementation 'org.jsoup:jsoup:1.22.1'
     implementation 'com.github.albfernandez:juniversalchardet:2.5.0'
 
     testImplementation 'junit:junit:4.13.2'
