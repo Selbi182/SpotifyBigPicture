@@ -1,5 +1,3 @@
-
-
 #settings-wrapper {
     color: white;
     --color: white;
@@ -312,6 +310,7 @@
     left: var(--margin-settings);
     font-family: var(--font-bold);
     z-index: 1;
+    padding: 0 2vmin;
 }
 
 #settings-top-buttons {
@@ -332,9 +331,8 @@
     opacity: 1;
 }
 
-:is(#settings-external, #kofi-external)::before {
+:is(#settings-reset, #settings-external, #kofi-external)::before {
     content: "";
-    background-image: url("../img/symbols/curved-arrow.png");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -345,14 +343,19 @@
     display: inline-block;
     padding-right: 1vmin;
 }
+#settings-reset::before {
+    background-image: url("../img/symbols/reset.png");
+}
+#settings-external::before {
+    background-image: url("../img/symbols/curved-arrow.png");
+}
 #kofi-external::before {
-    background-image: url("../img/symbols/kofi.png") !important;
+    background-image: url("../img/symbols/kofi.png");
 }
 
 #settings-external, #kofi-external {
     display: none;
 }
-
 #settings-wrapper.expert :is(#settings-external, #kofi-external) {
     display: initial;
 }
@@ -396,21 +399,6 @@
     cursor: pointer;
     transition: opacity var(--transition);
 }
-
 #settings-shutdown:hover {
     opacity: 1;
-}
-
-#settings-reset::before {
-    content: "";
-    background-image: url("../img/symbols/gear.png");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    margin-right: 1vmin;
-    opacity: 0.5;
-    width: 2vmin;
-    height: 2vmin;
-    display: inline-block;
-    padding-right: 1vmin;
 }
