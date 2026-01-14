@@ -1,11 +1,15 @@
 # SpotifyBigPicture
 A highly customizable interface that displays your current playback status on Spotify in a beautiful little browser page!
 
+Proudly utilizes the [Spotify Web API Java Wrapper](https://github.com/thelinmichael/spotify-web-api-java).
+
+## What is this for?
+
 You might want to use this over [Spotify's own full-screen mode](https://i.imgur.com/eIIRnrV.png) which is (in my opinion) rather underwhelming, or you can use it for your TV to give [that outdated, low-resolution OSD of your AVR](https://i.imgur.com/lNfCcrW.jpg) a fresh coat of paint!
 
 This interface is primarily read-only. Specifically, this means that you **cannot actually control your music**, beyond a few basic commands like play, pause, and skip ([which needs to be enabled in the settings first](https://github.com/Selbi182/SpotifyBigPicture/blob/master/SETTINGS.md#enable-playback-controls)). This is both because of limitations to the Spotify API, and also because the idea of this app is to set it up once and then let it permanently run as a pure information display.
 
-An good example use case would be at a party, where guests can see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
+An example use case would be at a party, where guests can see at any time which songs are up ahead, by putting a monitor near the dance floor that you connect to a Raspberry Pi.
 
 ## Screenshots
 These two examples only show examples of SpotifyBigPicture's default preset. For more screenshots, [see the other presets](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md)!
