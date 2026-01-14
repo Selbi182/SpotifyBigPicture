@@ -177,10 +177,12 @@ function setTextData(changes) {
   }
 
   let shuffle = getChange(changes, "playbackContext.shuffle");
-  if (shuffle.wasChanged) {
+  let smartShuffle = getChange(changes, "playbackContext.smartShuffle");
+  if (shuffle.wasChanged || smartShuffle.wasChanged) {
     let shuffleElem = "shuffle".select();
-    setClass(shuffleElem, "show", shuffle.value);
+    setClass(shuffleElem, "show", shuffle.value || smartShuffle.value);
     setClass(shuffleElem, "on", shuffle.value);
+    setClass(shuffleElem, "smart", smartShuffle.value)
     fadeIn(shuffleElem);
   }
 

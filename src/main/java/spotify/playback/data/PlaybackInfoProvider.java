@@ -238,6 +238,7 @@ public class PlaybackInfoProvider {
     PlaybackContext playbackContext = playbackInfo.getPlaybackContext();
     playbackContext.setPaused(!context.getIs_playing());
     playbackContext.setShuffle(context.getShuffle_state());
+    playbackContext.setSmartShuffle(context.getSmart_shuffle());
     playbackContext.setRepeat(context.getRepeat_state());
     playbackContext.setVolume(context.getDevice().getVolume_percent());
     playbackContext.setDevice(context.getDevice().getName());
@@ -284,7 +285,7 @@ public class PlaybackInfoProvider {
           playbackContext.getContext().setContextType(PlaybackContext.Context.ContextType.PLAYLIST);
           playbackContext.setThumbnailUrl(contextProvider.getThumbnailUrl());
           currentlyPlaying.setTrackNumber(contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context));
-          if (trackData.getListTracks().size() < QUEUE_FALLBACK_THRESHOLD && !playbackContext.getShuffle()) {
+          if (trackData.getListTracks().size() < QUEUE_FALLBACK_THRESHOLD && !playbackContext.hasAnyShuffle()) {
             trackData.setTrackListView(TrackData.ListViewType.PLAYLIST_ALBUM);
           }
           break;
@@ -319,7 +320,7 @@ public class PlaybackInfoProvider {
     }
 
     // Kill-switch for gigantic playlists, to save performance
-    if (playbackContext.getShuffle() || (trackData.getTrackListView().equals(TrackData.ListViewType.PLAYLIST_ALBUM) && trackData.getListTracks() != null && trackData.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD)) {
+    if (playbackContext.hasAnyShuffle() || (trackData.getTrackListView().equals(TrackData.ListViewType.PLAYLIST_ALBUM) && trackData.getListTracks() != null && trackData.getListTracks().size() > QUEUE_FALLBACK_THRESHOLD)) {
       trackData.setTrackListView(TrackData.ListViewType.QUEUE);
       trackData.setListTracks(List.of());
     }
@@ -331,7 +332,7 @@ public class PlaybackInfoProvider {
       .collect(Collectors.toList());
 
     // Because Spotify returns the queue with repeated sessions in mind (even if the option is disabled), we need to clean up manually
-    if (!playbackContext.getShuffle() && playbackContext.getRepeat().equals("off") && !trackData.getListTracks().isEmpty())  {
+    if (!playbackContext.hasAnyShuffle() && playbackContext.getRepeat().equals("off") && !trackData.getListTracks().isEmpty())  {
       List<TrackElement> listTracks = trackData.getListTracks();
       TrackElement lastTrackOfList = listTracks.get(listTracks.size() - 1);
       Optional<TrackElement> queueCutOffTrack = queue.stream().filter(track -> track.getId().equals(lastTrackOfList.getId())).findFirst();
@@ -347,7 +348,7 @@ public class PlaybackInfoProvider {
     // If next song in queue during an album doesn't match next song in track list, we know a song has been manually queued
     boolean inAlbumView = Objects.equals(trackData.getTrackListView(), TrackData.ListViewType.ALBUM);
     boolean inPlaylistAlbumView = Objects.equals(trackData.getTrackListView(), TrackData.ListViewType.PLAYLIST_ALBUM);
-    if (!playbackContext.getShuffle() && (inAlbumView || inPlaylistAlbumView)) {
+    if (!playbackContext.hasAnyShuffle() && (inAlbumView || inPlaylistAlbumView)) {
       Optional<TrackElement> nextTrackInQueue = queue.stream().findFirst();
       if (nextTrackInQueue.isPresent()) {
         int nextAlbumTrackIndex = inAlbumView ? contextProvider.getCurrentlyPlayingAlbumTrackNumber() : contextProvider.getCurrentlyPlayingPlaylistTrackNumber(context);

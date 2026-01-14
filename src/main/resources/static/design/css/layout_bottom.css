@@ -48,6 +48,10 @@
     --url: url("../img/symbols/shuffle.png");
 }
 
+#info-symbols #shuffle.smart {
+    --url: url("../img/symbols/shuffle-smart.png") !important;
+}
+
 #info-symbols #repeat {
     --url: url("../img/symbols/repeat-off.png");
 }

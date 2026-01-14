@@ -2,6 +2,7 @@ package spotify.playback.data.dto.sub;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -11,6 +12,7 @@ import spotify.playback.data.help.BigPictureConstants;
 public class PlaybackContext {
   private Boolean paused;
   private Boolean shuffle;
+  private Boolean smartShuffle;
   private String repeat;
   private Integer volume;
   private Context context;
@@ -32,6 +34,19 @@ public class PlaybackContext {
 
   public void setShuffle(Boolean shuffle) {
     this.shuffle = shuffle;
+  }
+
+  public Boolean getSmartShuffle() {
+    return smartShuffle;
+  }
+
+  public void setSmartShuffle(Boolean smartShuffle) {
+    this.smartShuffle = smartShuffle;
+  }
+
+  @JsonIgnore
+  public Boolean hasAnyShuffle() {
+    return getShuffle() || getSmartShuffle();
   }
 
   public String getRepeat() {
@@ -89,13 +104,13 @@ public class PlaybackContext {
     if (!(o instanceof PlaybackContext))
       return false;
     PlaybackContext that = (PlaybackContext) o;
-    return Objects.equals(paused, that.paused) && Objects.equals(shuffle, that.shuffle) && Objects.equals(repeat, that.repeat) && Objects.equals(volume, that.volume) && Objects.equals(context, that.context)
+    return Objects.equals(paused, that.paused) && Objects.equals(shuffle, that.shuffle) && Objects.equals(smartShuffle, that.smartShuffle) && Objects.equals(repeat, that.repeat) && Objects.equals(volume, that.volume) && Objects.equals(context, that.context)
         && Objects.equals(contextType, that.contextType) && Objects.equals(device, that.device) && Objects.equals(thumbnailUrl, that.thumbnailUrl);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(paused, shuffle, repeat, volume, context, contextType, device, thumbnailUrl);
+    return Objects.hash(paused, shuffle, smartShuffle, repeat, volume, context, contextType, device, thumbnailUrl);
   }
 
   public static class Context {
