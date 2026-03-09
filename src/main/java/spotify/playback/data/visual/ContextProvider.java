@@ -178,7 +178,9 @@ public class ContextProvider {
 
       this.listTracks = List.of();
 
-      setTrackCount(contextArtist.getFollowers().getTotal());
+      //setTrackCount(contextArtist.getFollowers().getTotal());
+      setTrackCount(0); // Spotify removed the Follower count from the API :(
+
       calculateAndSetTotalTrackDuration(List.of());
 
       return PlaybackContext.Context.of(contextArtist.getName(), PlaybackContext.Context.ContextType.ARTIST);
@@ -196,21 +198,21 @@ public class ContextProvider {
       this.thumbnailUrl = largestImage != null ? largestImage : BigPictureConstants.BLANK;
 
       // Limit to 200 for performance reasons
-      Paging<PlaylistTrack> contextTracks = contextPlaylist.getTracks();
+      Paging<PlaylistTrack> contextTracks = contextPlaylist.getItems();
       List<PlaylistTrack> playlistTracks = new ArrayList<>(Arrays.asList(contextTracks.getItems()));
       if (contextTracks.getNext() != null) {
         PlaylistTrack[] secondHalf = SpotifyCall.execute(spotifyApi.getPlaylistsItems(playlistId).offset(playlistTracks.size())).getItems();
         playlistTracks.addAll(Arrays.asList(secondHalf));
       }
       this.listTracks = playlistTracks.stream()
-        .map(PlaylistTrack::getTrack)
+        .map(PlaylistTrack::getItem)
         .map(TrackElement::fromPlaylistItem)
         .collect(Collectors.toList());
       for (int i = 1; i <= listTracks.size(); i++) {
         this.listTracks.get(i - 1).setTrackNumber(i);
       }
 
-      Integer realTrackCount = contextPlaylist.getTracks().getTotal();
+      Integer realTrackCount = contextPlaylist.getItems().getTotal();
       setTrackCount(realTrackCount);
       calculateAndSetTotalTrackDuration(realTrackCount <= this.listTracks.size() ? this.listTracks : List.of());
 

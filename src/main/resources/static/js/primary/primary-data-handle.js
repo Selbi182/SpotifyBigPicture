@@ -112,13 +112,13 @@ function setTextData(changes) {
     }
 
     // Format track count
-    if (trackCount > 0) {
+    if (contextType.value === "ARTIST") {
+      contextExtra.innerHTML = `${contextTypePrefix ?? ""}`;
+    } else if (trackCount > 0) {
       let trackCountFormatted = numberWithCommas(trackCount);
 
       let numericDescription;
-      if (contextType.value === "ARTIST") {
-        numericDescription = "follower";
-      } else if (contextType.value === "PODCAST") {
+      if (contextType.value === "PODCAST") {
         numericDescription = "episode"
       } else {
         numericDescription = "track"

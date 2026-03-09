@@ -4,7 +4,7 @@ You want to help out? That's cool! Here's a small collection of info to help you
 ## Setup Project
 Here's a basic rundown on how to set up the development environment:
 
-1. Make sure you have Java 11 SDK or newer installed and properly configured (path variables etc.)
+1. Make sure you have Java 17 SDK or newer installed and properly configured (path variables etc.)
 2. Clone the project from master and open it with your favorite IDE
 3. Put a valid `spotifybot.properties` file in the root directory of the cloned project (if you've used the app privately before, you can simply copy-paste the one you already got)
 4. Run the project through `gradle bootRun` (or use the included Gradle Wrapper if you don't have Gradle installed yourself, e.g. `./gradlew bootRun`). For reference, the _main_ function is located under `java/spotify/SpotifyBigPicture.java`

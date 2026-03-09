@@ -55,14 +55,14 @@ From here on you can choose between one of two ways to continue with the install
 2. If everything worked out, you're done! If you've chosen variant A, the app will be available under http://127.0.0.1:8183/ and if you chose variant B, it's going to be whatever server you've provided
 
 ## Requirements
-* **Java 11 or newer:**
-  * [Download here](https://adoptium.net/de/temurin/releases/?version=11) (obviously only required if you're doing the manual java installation) 
-* **Monitor should have 16:9 aspect ratio:**
-  * [While there is a preset specifically optimized for portrait mode](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md#vertical-mode), this app has been optimized primarily for landscape mode. Any aspect ratio should theoretically work, but 16:9 is the only aspect ratio that is 100% supported and tested
+* **Java 17 or newer:**
+  * [Download here](https://adoptium.net/temurin/releases?version=17&os=any&arch=any) (only required if you are doing the manual Java installation) Java 11 is NO LONGER supported!
+* **Monitor with a 16:9 aspect ratio:**
+  * [While there is a preset specifically optimized for portrait mode](https://github.com/Selbi182/SpotifyBigPicture/blob/master/PRESETS.md#vertical-mode), this app has been optimized primarily for landscape mode. Any aspect ratio should theoretically work, but 16:9 is the only one that is fully supported and tested
 * **A modern browser:**
-  * There are a lot of fancy bells and whistles attached to this app that simply won't work on older browsers. I primarily developed and optimized it for Mozilla Firefox, but it also works on Google Chrome. Not tested on any other browsers, so I won't guarantee full stability over there
+  * This app uses several advanced features that may not work on older browsers. It was primarily developed and optimized for Mozilla Firefox, but it also works on Google Chrome. Other browsers have not been tested, so full stability cannot be guaranteed
 * **Spotify Premium:**
-  * You can still use this app as a free user, but you won't get the full functionality. For example, getting your current queue is **only** available for Spotify premium users. For free users, only the current song can be displayed. For albums, more than a good guess of whichever song comes next is unfortunately not possible
+  * [As of early 2026](https://developer.spotify.com/blog/2026-02-06-update-on-developer-access-and-platform-security), a Spotify Premium account is required to use the Spotify Web API and, by extension, any apps that rely on it
 
 ### Interface doesn't update?
 The information is fetched from Spotify's API by polling it once a second. Unfortunately, there is no "proper" way of doing it, as webhooks for song changes (like Discord uses them, for example) are unavailable for the public API.
