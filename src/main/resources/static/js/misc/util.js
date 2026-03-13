@@ -69,7 +69,10 @@ const WHITELISTED_WORDS = [
   "re.?mix",
   "re.?visit",
   "take",
-  "edit"
+  "edit",
+  "alternate",
+  "alternative",
+  "alt"
 ];
 
 function buildUselessWordRegex(words) {
