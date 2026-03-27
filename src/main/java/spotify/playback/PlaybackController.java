@@ -77,7 +77,7 @@ public class PlaybackController {
    */
   @CrossOrigin
   @GetMapping("/playback-info")
-  public ResponseEntity<? extends PlaybackInfoResponse> getCurrentPlaybackInfo(@RequestParam int v) {
+  public ResponseEntity<? extends PlaybackInfoResponse> getCurrentPlaybackInfo(@RequestParam("v") int v) {
     try {
       PlaybackInfo currentPlaybackInfo = playbackInfoProvider.getCurrentPlaybackInfo(v);
       return ResponseEntity.ok(currentPlaybackInfo);
@@ -98,7 +98,7 @@ public class PlaybackController {
    */
   @CrossOrigin
   @GetMapping("/lyrics")
-  public ResponseEntity<String> getSongLyrics(@RequestParam String artist, @RequestParam String song) {
+  public ResponseEntity<String> getSongLyrics(@RequestParam("artist") String artist, @RequestParam("song") String song) {
     String songLyrics = geniusLyrics.getSongLyrics(artist, song);
     return ResponseEntity.ok(songLyrics);
   }
@@ -117,7 +117,7 @@ public class PlaybackController {
    */
   @CrossOrigin
   @PostMapping("/modify-playback/{control}")
-  public ResponseEntity<? extends PlaybackInfoResponse> modifyPlaybackState(@PathVariable String control, @RequestParam(required = false) String param) {
+  public ResponseEntity<? extends PlaybackInfoResponse> modifyPlaybackState(@PathVariable("control") String control, @RequestParam(value = "param", required = false) String param) {
     if (checkPlaybackControlsEnabled() && playbackControl.modifyPlaybackState(control, param)) {
       return getCurrentPlaybackInfo(0);
     }
@@ -137,7 +137,7 @@ public class PlaybackController {
    */
   @CrossOrigin
   @PostMapping("/shutdown")
-  public ResponseEntity<Void> shutdown(@RequestParam String logout) throws IOException {
+  public ResponseEntity<Void> shutdown(@RequestParam("logout") String logout) throws IOException {
     if (checkPlaybackControlsEnabled()) {
       if (Boolean.parseBoolean(logout)) {
         spotifyApiConfig.logout();
@@ -165,7 +165,7 @@ public class PlaybackController {
    */
   @CrossOrigin
   @PostMapping("/settings/toggle/{settingId}")
-  public ResponseEntity<BigPictureSetting> toggleSetting(@PathVariable String settingId) {
+  public ResponseEntity<BigPictureSetting> toggleSetting(@PathVariable("settingId") String settingId) {
     checkSettingAreSet();
     if (settingId.startsWith("preset-") || settingId.equals("reload")) {
       playbackInfoProvider.addSettingToToggleForNextPoll(settingId);

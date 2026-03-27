@@ -1,7 +1,6 @@
 buildscript {
     ext {
-        // Spring has to stay at 2.x.x for now, as 3.x.x requires Java 17
-        springVersion = '4.1.0-M2'
+        springVersion = '4.1.0-M3'
     }
 
     repositories {
@@ -27,6 +26,10 @@ springBoot {
     mainClass.set('spotify.SpotifyBigPicture')
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += "-parameters"
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -38,7 +41,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'spotify:spotify-dependencies:1.13.0-pre4'
+    implementation 'spotify:spotify-dependencies:1.13.0-pre6'
     implementation 'de.selbi:color-fetch:1.4.0'
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
     implementation 'se.michaelthelin.spotify:spotify-web-api-java:10.0.0-RC2'
