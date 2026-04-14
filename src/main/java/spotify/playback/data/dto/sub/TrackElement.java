@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -16,6 +16,7 @@ import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 import spotify.util.SpotifyUtils;
 
+@SuppressWarnings("unused")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TrackElement implements Comparable<TrackElement> {
   private String id;
@@ -49,13 +50,11 @@ public class TrackElement implements Comparable<TrackElement> {
 
   public static TrackElement fromPlaylistItem(IPlaylistItem item) {
     if (ModelObjectType.TRACK.equals(item.getType())) {
-      if (item instanceof Track) {
-        Track track = (Track) item;
+      if (item instanceof Track track) {
         return new TrackElement(track.getId(), track.getTrackNumber(), track.getDiscNumber(), SpotifyUtils.toArtistNamesList(track), track.getName(), track.getAlbum().getName(), track.getAlbum().getReleaseDate(), "", track.getDurationMs());
       }
     } else if (ModelObjectType.EPISODE.equals(item.getType())) {
-      if (item instanceof Episode) {
-        Episode episode = (Episode) item;
+      if (item instanceof Episode episode) {
         if (episode.getShow() != null) {
           return new TrackElement(episode.getId(), 0, 0, List.of(episode.getShow().getName()), episode.getName(), episode.getShow().getName(), episode.getReleaseDate(), episode.getDescription(), episode.getDurationMs());
         } else {
@@ -98,6 +97,7 @@ public class TrackElement implements Comparable<TrackElement> {
     this.album = album;
   }
 
+  @SuppressWarnings("unused")
   public String getReleaseDate() {
     return releaseDate;
   }
@@ -150,9 +150,8 @@ public class TrackElement implements Comparable<TrackElement> {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (!(o instanceof TrackElement))
+    if (!(o instanceof TrackElement that))
       return false;
-    TrackElement that = (TrackElement) o;
     return Objects.equals(id, that.id) && Objects.equals(artists, that.artists) && Objects.equals(title, that.title) && Objects.equals(album, that.album) && Objects.equals(releaseDate, that.releaseDate)
         && Objects.equals(description, that.description) && Objects.equals(timeTotal, that.timeTotal) && Objects.equals(trackNumber, that.trackNumber) && Objects.equals(discNumber, that.discNumber);
   }

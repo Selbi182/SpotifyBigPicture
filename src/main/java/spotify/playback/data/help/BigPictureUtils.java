@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -13,6 +13,7 @@ import se.michaelthelin.spotify.enums.CurrentlyPlayingType;
 import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 
+@SuppressWarnings("unused")
 public class BigPictureUtils {
   /**
    * Guess the elapsed progress of the current song. Return true if it's still

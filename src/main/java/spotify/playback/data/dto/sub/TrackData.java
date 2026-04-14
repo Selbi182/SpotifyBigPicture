@@ -6,6 +6,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@SuppressWarnings("unused")
 @JsonInclude(Include.NON_NULL)
 public class TrackData {
   public enum ListViewType {
@@ -103,9 +104,8 @@ public class TrackData {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (!(o instanceof TrackData))
+    if (!(o instanceof TrackData trackData))
       return false;
-    TrackData trackData = (TrackData) o;
     return Objects.equals(trackNumber, trackData.trackNumber) && Objects.equals(discNumber, trackData.discNumber) && Objects.equals(totalDiscCount, trackData.totalDiscCount) && trackListView == trackData.trackListView
         && Objects.equals(trackCount, trackData.trackCount) && Objects.equals(combinedTime, trackData.combinedTime) && Objects.equals(listTracks, trackData.listTracks) && Objects.equals(queue, trackData.queue)
         && Objects.equals(nextImageData, trackData.nextImageData);

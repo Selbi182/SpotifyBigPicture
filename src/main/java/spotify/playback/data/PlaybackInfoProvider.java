@@ -86,7 +86,7 @@ public class PlaybackInfoProvider {
 
     // Test if the queue is available (i.e. if the user is a free user or not)
     // (As of 2026, Spotify requires a premium account to create apps, so this check is technically redundant,
-    // but I'll keep it in in case those guys ever change their minds. Which they seem to do a lot.)
+    // but I'll keep it in case those guys ever change their minds. Which they seem to do a lot.)
     try {
       SpotifyCall.execute(spotifyApi.getTheUsersQueue());
       queueEnabled = true;

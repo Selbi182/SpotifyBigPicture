@@ -32,7 +32,6 @@ import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 import se.michaelthelin.spotify.model_objects.specification.User;
 import spotify.api.SpotifyCall;
-import spotify.api.events.SpotifyApiException;
 import spotify.playback.data.dto.PlaybackInfo;
 import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackElement;
@@ -77,24 +76,14 @@ public class ContextProvider {
       if (context != null || type != null) {
         boolean force = previous == null || previous.getPlaybackContext() == null || previous.getPlaybackContext().getContext() == null || !Objects.equals(type, previousType);
         if (type != null) {
-          switch (type) {
-            case ALBUM:
-              contextDto = getAlbumContext(info, force);
-              break;
-            case PLAYLIST:
-              contextDto = getPlaylistContext(context, force);
-              break;
-            case ARTIST:
-              contextDto = getArtistContext(context, force);
-              break;
-            case SHOW:
-            case EPISODE:
-              contextDto = getPodcastContext(info, force);
-              break;
-            case USER:
-              contextDto = getUserFavoriteTracksContext(context, force);
-              break;
-          }
+          contextDto = switch (type) {
+            case ALBUM -> getAlbumContext(info, force);
+            case PLAYLIST -> getPlaylistContext(context, force);
+            case ARTIST -> getArtistContext(context, force);
+            case SHOW, EPISODE -> getPodcastContext(info, force);
+            case USER -> getUserFavoriteTracksContext(context, force);
+            default -> null;
+          };
         }
       } else {
         contextDto = getFallbackContext(info);
@@ -156,8 +145,7 @@ public class ContextProvider {
         .filter(i -> id.equals(listTracks.get(i).getId()))
         .findFirst()
         .orElse(-1);
-      if (trackIndex < 0 && context.getItem() != null && context.getItem() instanceof Episode) {
-        Episode episode = (Episode) context.getItem();
+      if (trackIndex < 0 && context.getItem() != null && context.getItem() instanceof Episode episode) {
         trackIndex = IntStream.range(0, listTracks.size())
           .filter(i -> listTracks.get(i).getTitle().contains(episode.getName()))
           .findFirst()
@@ -277,8 +265,7 @@ public class ContextProvider {
   }
 
   private PlaybackContext.Context getPodcastContext(CurrentlyPlayingContext info, boolean force) {
-    if (info.getItem() instanceof Episode) {
-      Episode episode = (Episode) info.getItem();
+    if (info.getItem() instanceof Episode episode) {
       ShowSimplified showSimplified = episode.getShow();
       if (force || didContextChange(episode.toString())) {
         Image[] artistImages = showSimplified.getImages();
@@ -316,8 +303,7 @@ public class ContextProvider {
   }
 
   private PlaybackContext.Context getFallbackContext(CurrentlyPlayingContext info) {
-    if (info.getItem() != null && info.getItem() instanceof Track) {
-      Track track = (Track) info.getItem();
+    if (info.getItem() != null && info.getItem() instanceof Track track) {
       Image[] trackImages = track.getAlbum().getImages();
       String smallestImage = SpotifyUtils.findSmallestImage(trackImages);
       this.thumbnailUrl = smallestImage != null ? smallestImage : BigPictureConstants.BLANK;

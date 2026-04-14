@@ -152,13 +152,11 @@ public class GeniusLyricsScraper {
   }
 
   private void recursivelyGetDeepestLyricsNodeText(Node node, StringBuilder stringBuilder) {
-    if (node instanceof TextNode) {
+    if (node instanceof TextNode textNode) {
       // Get the raw lyrics text for this verse
-      TextNode textNode = (TextNode) node;
       String text = textNode.text();
       stringBuilder.append(text);
-    } else if (node instanceof Element) {
-      Element element = (Element) node;
+    } else if (node instanceof Element element) {
       if ("br".equals(element.tagName())) {
         // Special case: if it's a <br> node, make sure the line breaks are preserved
         stringBuilder.append("\n");

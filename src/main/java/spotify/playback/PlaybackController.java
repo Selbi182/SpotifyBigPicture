@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import jakarta.servlet.http.HttpServletResponse;
 import spotify.config.SpotifyApiConfig;
 import spotify.playback.control.PlaybackControl;
 import spotify.playback.data.PlaybackInfoProvider;
@@ -61,10 +62,11 @@ public class PlaybackController {
   ///////////////
 
   /**
-   * Return the layout.html file (root entry endpoint)
+   * Return the layout.html file (root entry endpoint). Never cached.
    */
   @GetMapping("/")
-  public ModelAndView createSpotifyPlaybackInterfaceView() {
+  public ModelAndView createSpotifyPlaybackInterfaceView(HttpServletResponse response) {
+    response.setHeader("Cache-Control", "no-store");
     return new ModelAndView("layout.html");
   }
 

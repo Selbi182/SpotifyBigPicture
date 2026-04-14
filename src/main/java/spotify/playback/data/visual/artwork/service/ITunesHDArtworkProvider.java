@@ -22,7 +22,7 @@ import spotify.util.SpotifyUtils;
 
 /**
  * Searches for high-quality album artwork on iTunes (1000x1000 pixels) to be used instead of the low-res Spotify images.
- * Inspired by: https://bendodson.com/projects/itunes-artwork-finder/index.html
+ * Inspired by: <a href="https://bendodson.com/projects/itunes-artwork-finder/index.html">...</a>
  */
 @Component
 public class ITunesHDArtworkProvider implements ArtworkUrlProvider {
@@ -34,9 +34,8 @@ public class ITunesHDArtworkProvider implements ArtworkUrlProvider {
 
   @Override
   public Optional<String> getImageUrlFromItem(IPlaylistItem item) {
-    if (item instanceof Track) {
+    if (item instanceof Track track) {
       try {
-        Track track = (Track) item;
         String artist = SpotifyUtils.getFirstArtistName(track);
         String album = track.getAlbum().getName();
         String iTunesSearchResult = iTunesSearch(artist, album);

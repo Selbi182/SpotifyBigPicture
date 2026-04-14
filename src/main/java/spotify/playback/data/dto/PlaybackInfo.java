@@ -11,6 +11,7 @@ import spotify.playback.data.dto.sub.CurrentlyPlaying;
 import spotify.playback.data.dto.sub.PlaybackContext;
 import spotify.playback.data.dto.sub.TrackData;
 
+@SuppressWarnings("unused")
 @JsonInclude(Include.NON_EMPTY)
 public class PlaybackInfo implements PlaybackInfoResponse {
   public static final PlaybackInfo EMPTY = new PlaybackInfo(Type.EMPTY);
@@ -113,9 +114,8 @@ public class PlaybackInfo implements PlaybackInfoResponse {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (!(o instanceof PlaybackInfo))
+    if (!(o instanceof PlaybackInfo that))
       return false;
-    PlaybackInfo that = (PlaybackInfo) o;
     return type == that.type && Objects.equals(deployTime, that.deployTime) && Objects.equals(currentlyPlaying, that.currentlyPlaying) && Objects.equals(playbackContext, that.playbackContext) && Objects.equals(trackData,
         that.trackData) && Objects.equals(settingsToToggle, that.settingsToToggle) && Objects.equals(customVolumeSettings, that.customVolumeSettings);
   }
@@ -154,9 +154,8 @@ public class PlaybackInfo implements PlaybackInfoResponse {
     public boolean equals(Object o) {
       if (this == o)
         return true;
-      if (!(o instanceof CustomVolumeSettings))
+      if (!(o instanceof CustomVolumeSettings that))
         return false;
-      CustomVolumeSettings that = (CustomVolumeSettings) o;
       return baseDb == that.baseDb && Objects.equals(device, that.device);
     }
 

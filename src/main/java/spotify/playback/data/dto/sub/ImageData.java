@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import de.selbi.colorfetch.data.ColorFetchResult;
 import spotify.playback.data.help.BigPictureConstants;
 
+@SuppressWarnings("unused")
 @JsonInclude(Include.NON_NULL)
 public class ImageData {
 
@@ -49,9 +50,8 @@ public class ImageData {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (!(o instanceof ImageData))
+    if (!(o instanceof ImageData imageData))
       return false;
-    ImageData imageData = (ImageData) o;
     return Objects.equals(imageUrl, imageData.imageUrl) && Objects.equals(imageUrlHD, imageData.imageUrlHD) && Objects.equals(imageColors, imageData.imageColors);
   }
 

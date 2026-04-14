@@ -1,5 +1,6 @@
 package spotify.playback.data.dto.misc;
 
+@SuppressWarnings("unused")
 public class BigPictureSetting {
   private String id;
   private String name;

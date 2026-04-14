@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import spotify.playback.data.help.BigPictureConstants;
 
+@SuppressWarnings("unused")
 @JsonInclude(Include.NON_NULL)
 public class PlaybackContext {
   private Boolean paused;
@@ -101,9 +102,8 @@ public class PlaybackContext {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (!(o instanceof PlaybackContext))
+    if (!(o instanceof PlaybackContext that))
       return false;
-    PlaybackContext that = (PlaybackContext) o;
     return Objects.equals(paused, that.paused) && Objects.equals(shuffle, that.shuffle) && Objects.equals(smartShuffle, that.smartShuffle) && Objects.equals(repeat, that.repeat) && Objects.equals(volume, that.volume) && Objects.equals(context, that.context)
         && Objects.equals(contextType, that.contextType) && Objects.equals(device, that.device) && Objects.equals(thumbnailUrl, that.thumbnailUrl);
   }
@@ -173,9 +173,8 @@ public class PlaybackContext {
     public boolean equals(Object o) {
       if (this == o)
         return true;
-      if (!(o instanceof Context))
+      if (!(o instanceof Context context))
         return false;
-      Context context = (Context) o;
       return Objects.equals(contextName, context.contextName) && contextType == context.contextType && Objects.equals(contextDescription, context.contextDescription);
     }
 

@@ -6,6 +6,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@SuppressWarnings("unused")
 @JsonInclude(Include.NON_NULL)
 public class CurrentlyPlaying extends TrackElement {
   private Integer timeCurrent;
@@ -44,11 +45,10 @@ public class CurrentlyPlaying extends TrackElement {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (!(o instanceof CurrentlyPlaying))
+    if (!(o instanceof CurrentlyPlaying that))
       return false;
     if (!super.equals(o))
       return false;
-    CurrentlyPlaying that = (CurrentlyPlaying) o;
     return Objects.equals(imageData, that.imageData);
   }
 

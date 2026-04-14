@@ -1,5 +1,6 @@
 package spotify.playback.data.help;
 
+@SuppressWarnings("unused")
 public class BigPictureConstants {
   private BigPictureConstants() {}
 

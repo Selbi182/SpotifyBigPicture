@@ -1,5 +1,6 @@
 package spotify.playback.data.dto;
 
+@SuppressWarnings("unused")
 public class PlaybackInfoError implements PlaybackInfoResponse {
   private final String errorMessage;
 
