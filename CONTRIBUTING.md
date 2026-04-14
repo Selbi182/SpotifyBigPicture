@@ -72,7 +72,7 @@ The format is pretty straight forward:
         "some-other-elem": "!some-other-css-class"
     },
 ```
-Each entry maps one HTML element (via IDs, like if you were using JavaScript's _getElementById_) to one CSS class. If the setting is enabled, the class is added to the element's class list, and vice-versa. You can have as many entries as you'd like, but only one class can be affected per element.
+Each entry maps one HTML element (via IDs, like if you were using JavaScript's _getElementById_) to one CSS class. If the setting is enabled, the class is added to the element's class list, and vice versa. You can have as many entries as you'd like, but only one class can be affected per element.
 
 Putting an exclamation mark `!` in front of the class name inverts the logic for that specific entry, so the class is added when the feature is _disabled_ and removed again when it's turned on.
 
@@ -133,7 +133,7 @@ This will add a header above this setting in the settings menu (such as _Main Co
 ```
 
 ### Settings Summary
-Congratulations, you have learned everything there is to creating new settings! Here's the full template from this guide for your convenience and reference:
+Congratulations, you have learned everything there is to know about creating new settings! Here's the full template from this guide for your convenience and reference:
 
 ```
  {
