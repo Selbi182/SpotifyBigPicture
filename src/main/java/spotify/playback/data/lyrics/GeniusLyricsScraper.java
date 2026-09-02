@@ -6,7 +6,6 @@ import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,13 +14,13 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import spotify.util.SpotifyUtils;
 
 // TODO: redo implementation based on fmbot https://github.com/fmbot-discord/fmbot/blob/dev/src/FMBot.Bot/Services/ThirdParty/GeniusService.cs#L22
 @Service
@@ -45,7 +44,7 @@ public class GeniusLyricsScraper {
         return scrapeLyrics(url);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      SpotifyUtils.genericException(e);
     }
     return "";
   }

@@ -88,7 +88,7 @@ public class PlaybackInfoProvider {
     // (As of 2026, Spotify requires a premium account to create apps, so this check is technically redundant,
     // but I'll keep it in case those guys ever change their minds. Which they seem to do a lot.)
     try {
-      SpotifyCall.execute(spotifyApi.getTheUsersQueue());
+      SpotifyCall.execute(spotifyApi.getUsersQueue());
       queueEnabled = true;
     } catch (SpotifyApiException e) {
       if (ForbiddenException.class.equals(e.getNestedException().getClass())) {
@@ -110,11 +110,11 @@ public class PlaybackInfoProvider {
 
   public PlaybackInfo getCurrentPlaybackInfo(int previousVersionId) {
     if (ready) {
-      CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback().additionalTypes("episode"));
+      CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getPlaybackState().additionalTypes("episode"));
       if (currentlyPlayingContext != null && currentlyPlayingContext.getItem() != null) {
         PlaybackQueue playbackQueue = null;
         if (queueEnabled) {
-          playbackQueue = SpotifyCall.execute(spotifyApi.getTheUsersQueue());
+          playbackQueue = SpotifyCall.execute(spotifyApi.getUsersQueue());
 
           if (playbackQueue == null || playbackQueue.getCurrentlyPlaying() == null) {
             // Edge case for local files
@@ -152,16 +152,11 @@ public class PlaybackInfoProvider {
           if (currentlyPlayingContext.getItem() != null && !Objects.equals(playbackQueue.getCurrentlyPlaying().getId(), currentlyPlayingContext.getItem().getId())) {
             type = ModelObjectType.TRACK;
           }
-          switch (type) {
-            case TRACK:
-              currentPlaybackInfo = buildInfoTrack(playbackQueue, currentlyPlayingContext);
-              break;
-            case EPISODE:
-              currentPlaybackInfo = buildInfoEpisode(playbackQueue, currentlyPlayingContext);
-              break;
-            default:
-              throw new IllegalStateException("Unknown ModelObjectType: " + type);
-          }
+          currentPlaybackInfo = switch (type) {
+            case TRACK -> buildInfoTrack(playbackQueue, currentlyPlayingContext);
+            case EPISODE -> buildInfoEpisode(playbackQueue, currentlyPlayingContext);
+            default -> throw new IllegalStateException("Unknown ModelObjectType: " + type);
+          };
           try {
             if (previous == null || isSeekedSong(currentPlaybackInfo) || currentPlaybackInfo.hashCode() != previousVersionId || !settingsToToggle.isEmpty()) {
               if (!settingsToToggle.isEmpty()) {

@@ -42,6 +42,8 @@ import spotify.util.data.AlbumTrackPair;
 
 @Component
 public class ContextProvider {
+  private static final String BULLET = Character.toString('\u2022');
+
   private final SpotifyApi spotifyApi;
 
   private ModelObjectType previousType;
@@ -90,7 +92,7 @@ public class ContextProvider {
       }
       previousType = type;
     } catch (Exception e) {
-      e.printStackTrace();
+      SpotifyUtils.genericException(e);
     }
     if (contextDto != null) {
       return contextDto;
@@ -189,7 +191,7 @@ public class ContextProvider {
       Paging<PlaylistTrack> contextTracks = contextPlaylist.getItems();
       List<PlaylistTrack> playlistTracks = new ArrayList<>(Arrays.asList(contextTracks.getItems()));
       if (contextTracks.getNext() != null) {
-        PlaylistTrack[] secondHalf = SpotifyCall.execute(spotifyApi.getPlaylistsItems(playlistId).offset(playlistTracks.size())).getItems();
+        PlaylistTrack[] secondHalf = SpotifyCall.execute(spotifyApi.getPlaylistItems(playlistId).offset(playlistTracks.size())).getItems();
         playlistTracks.addAll(Arrays.asList(secondHalf));
       }
       this.listTracks = playlistTracks.stream()
@@ -223,7 +225,7 @@ public class ContextProvider {
       currentContextAlbumTracks = Arrays.asList(currentContextAlbum.getTracks().getItems());
 
       if (currentContextAlbum.getTracks().getNext() != null) {
-        List<TrackSimplified> c = SpotifyCall.executePaging(spotifyApi.getAlbumsTracks(albumId).offset(currentContextAlbumTracks.size()));
+        List<TrackSimplified> c = SpotifyCall.executePaging(spotifyApi.getAlbumTracks(albumId).offset(currentContextAlbumTracks.size()));
         currentContextAlbumTracks = Stream.concat(currentContextAlbumTracks.stream(), c.stream()).collect(Collectors.toList());
       }
 
@@ -242,7 +244,8 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       calculateAndSetTotalTrackDuration(this.listTracks);
     }
-    String contextString = String.format("%s \u2022 %s", SpotifyUtils.getFirstArtistName(currentContextAlbum), currentContextAlbum.getName());
+    @SuppressWarnings("UnicodeEscape")
+    String contextString = String.format("%s %s %s", SpotifyUtils.getFirstArtistName(currentContextAlbum), BULLET, currentContextAlbum.getName());
     if (currentContextAlbumTracks != null && track != null) {
       // Track number (unfortunately, can't simply use track numbers because of disc numbers)
       final String trackId = track.getId();
@@ -312,7 +315,7 @@ public class ContextProvider {
       setTrackCount(this.listTracks.size());
       calculateAndSetTotalTrackDuration(this.listTracks);
 
-      return PlaybackContext.Context.of(SpotifyUtils.getFirstArtistName(track) + " \u2022 " + track.getName(), PlaybackContext.Context.ContextType.SEARCH);
+      return PlaybackContext.Context.of(SpotifyUtils.getFirstArtistName(track) + " " + BULLET + " " + track.getName(), PlaybackContext.Context.ContextType.SEARCH);
     }
     return PlaybackContext.Context.of("Spotify", PlaybackContext.Context.ContextType.FALLBACK);
   }

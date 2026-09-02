@@ -13,7 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.neovisionaries.i18n.CountryCode;
+import se.michaelthelin.spotify.enums.CountryCode;
 
 import se.michaelthelin.spotify.model_objects.IPlaylistItem;
 import se.michaelthelin.spotify.model_objects.specification.Track;
@@ -41,7 +41,7 @@ public class ITunesHDArtworkProvider implements ArtworkUrlProvider {
         String iTunesSearchResult = iTunesSearch(artist, album);
         return Optional.ofNullable(iTunesSearchResult);
       } catch (Exception e) {
-        e.printStackTrace();
+        SpotifyUtils.genericException(e);
       }
     }
     return Optional.empty();

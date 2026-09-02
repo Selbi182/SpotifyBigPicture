@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.miscellaneous.CurrentlyPlayingContext;
 import spotify.api.SpotifyCall;
+import spotify.util.SpotifyUtils;
 
 @Component
 public class PlaybackControl {
@@ -33,19 +34,19 @@ public class PlaybackControl {
   public boolean modifyPlaybackState(String controlName, String optionalParam) {
     try {
       ControlOption controlOption = ControlOption.valueOf(controlName);
-      CurrentlyPlayingContext context = SpotifyCall.execute(spotifyApi.getInformationAboutUsersCurrentPlayback());
+      CurrentlyPlayingContext context = SpotifyCall.execute(spotifyApi.getPlaybackState());
 
       switch (controlOption) {
         case PLAY_PAUSE:
           if (context.getIs_playing()) {
-            SpotifyCall.execute(spotifyApi.pauseUsersPlayback());
+            SpotifyCall.execute(spotifyApi.pausePlayback());
           } else {
-            SpotifyCall.execute(spotifyApi.startResumeUsersPlayback());
+            SpotifyCall.execute(spotifyApi.startResumePlayback());
           }
           return true;
         case SHUFFLE:
           boolean newShuffleState = !context.getShuffle_state();
-          SpotifyCall.execute(spotifyApi.toggleShuffleForUsersPlayback(newShuffleState));
+          SpotifyCall.execute(spotifyApi.togglePlaybackShuffle(newShuffleState));
           return true;
         case REPEAT:
           String repeatState = context.getRepeat_state();
@@ -56,20 +57,20 @@ public class PlaybackControl {
           } else if ("track".equals(repeatState)) {
             repeatState = "off";
           }
-          SpotifyCall.execute(spotifyApi.setRepeatModeOnUsersPlayback(repeatState));
+          SpotifyCall.execute(spotifyApi.setRepeatMode(repeatState));
           return true;
         case NEXT:
-          SpotifyCall.execute(spotifyApi.skipUsersPlaybackToNextTrack());
+          SpotifyCall.execute(spotifyApi.skipToNext());
           return true;
         case PREV:
-          SpotifyCall.execute(spotifyApi.skipUsersPlaybackToPreviousTrack());
+          SpotifyCall.execute(spotifyApi.skipToPrevious());
           return true;
         case VOLUME:
-          SpotifyCall.execute(spotifyApi.setVolumeForUsersPlayback(Integer.parseInt(optionalParam)));
+          SpotifyCall.execute(spotifyApi.setPlaybackVolume(Integer.parseInt(optionalParam)));
           return true;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      SpotifyUtils.genericException(e);
     }
     return false;
   }
