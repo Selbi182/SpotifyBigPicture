@@ -85,8 +85,9 @@ window.addEventListener('load', recursiveProgressRefresh);
 function recursiveProgressRefresh() {
   refreshProgress();
   if (!idle) {
+      // Calculate delay per pixel, but cap it between 50ms (fastest) and 500ms (slowest)
       const delay = isPrefEnabled("smooth-progress-bar")
-        ? Math.max(Math.round(currentData.currentlyPlaying.timeTotal / progressMaxWidth), 50)
+        ? Math.min(Math.max(Math.round(currentData.currentlyPlaying.timeTotal / progressMaxWidth), 50), 500)
         : 1000;
       setTimeout(recursiveProgressRefresh, delay);
   }
