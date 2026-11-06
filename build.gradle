@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springVersion = '4.1.1'
+        springVersion = '4.1.2'
     }
 
     repositories {
@@ -41,13 +41,17 @@ repositories {
 }
 
 dependencies {
-    implementation 'spotify:spotify-dependencies:1.13.0-pre9c'
+    implementation 'se.michaelthelin.spotify:spotify-web-api-java:11.0.0-RC2'
+
+    implementation 'spotify:spotify-dependencies:1.15.0-pre1'
     implementation 'de.selbi:color-fetch:1.4.0'
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
-    implementation 'se.michaelthelin.spotify:spotify-web-api-java:10.0.0-RC7'
-    implementation 'org.jsoup:jsoup:1.22.1'
-    implementation 'com.github.albfernandez:juniversalchardet:2.5.0'
+    implementation 'org.jsoup:jsoup:1.24.1'
+    implementation 'com.github.albfernandez:juniversalchardet:2.5.2'
 
-    testImplementation 'junit:junit:4.13.2'
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springVersion"
+}
+
+test {
+    useJUnitPlatform()
 }

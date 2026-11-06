@@ -41,6 +41,7 @@ import spotify.util.SpotifyUtils;
 import spotify.util.data.AlbumTrackPair;
 
 @Component
+@SuppressWarnings("UnnecessaryUnicodeEscape")
 public class ContextProvider {
   private static final String BULLET = Character.toString('\u2022');
 

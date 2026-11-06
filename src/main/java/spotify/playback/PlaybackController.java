@@ -67,7 +67,7 @@ public class PlaybackController {
   @GetMapping("/")
   public ModelAndView createSpotifyPlaybackInterfaceView(HttpServletResponse response) {
     response.setHeader("Cache-Control", "no-store");
-    return new ModelAndView("layout.html");
+    return new ModelAndView("/layout.html");
   }
 
   /**

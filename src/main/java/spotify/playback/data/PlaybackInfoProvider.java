@@ -110,7 +110,7 @@ public class PlaybackInfoProvider {
 
   public PlaybackInfo getCurrentPlaybackInfo(int previousVersionId) {
     if (ready) {
-      CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getPlaybackState().additionalTypes("episode"));
+      CurrentlyPlayingContext currentlyPlayingContext = SpotifyCall.execute(spotifyApi.getPlaybackState().additional_types("episode"));
       if (currentlyPlayingContext != null && currentlyPlayingContext.getItem() != null) {
         PlaybackQueue playbackQueue = null;
         if (queueEnabled) {

@@ -1,14 +1,12 @@
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.specification.Track;
@@ -25,7 +23,6 @@ import spotify.util.SpotifyLogger;
 import spotify.util.SpotifyOptimizedExecutorService;
 import spotify.util.SpotifyUtils;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {
   SpotifyApiConfig.class,
   SpotifyApiManager.class,
@@ -38,7 +35,7 @@ import spotify.util.SpotifyUtils;
   SpotifyBigPicture.SpotifyBigPictureSettings.class
 })
 @EnableConfigurationProperties
-public class GeniusSearchTest {
+class GeniusSearchTest {
 
   @Autowired
   private SpotifyApiManager spotifyApiManager;
@@ -51,8 +48,8 @@ public class GeniusSearchTest {
 
   private static boolean initialized = false;
 
-  @Before
-  public void initializeTests() {
+  @BeforeEach
+  void initializeTests() {
     if (!initialized) {
       login();
       initialized = true;
@@ -75,17 +72,17 @@ public class GeniusSearchTest {
 
   private void testLyricsSearch(String id, boolean expectation) {
     Track track = SpotifyCall.execute(spotifyApi.getTrack(id));
-    assertNotNull("Track couldn't be found " + id, track);
+    assertNotNull(track, "Track couldn't be found " + id);
 
     String songLyrics = geniusLyricsScraper.getSongLyrics(SpotifyUtils.getFirstArtistName(track), track.getName());
     String message = expectation ? "Lyrics couldn't be found" : "Lyrics could be found despite not being expected to";
-    assertEquals(message, expectation, !songLyrics.isEmpty());
+    assertEquals(expectation, !songLyrics.isEmpty(), message);
   }
 
   ///////////////////////////////
 
   @Test
-  public void testLyricsSearchKnownToWork() {
+  void testLyricsSearchKnownToWork() {
     testLyricsSearch("4zdQmfTLWgGd5mAX4MUIaX");
     testLyricsSearch("4bV5sf2B4hWBBd5HQ8S7KB");
     testLyricsSearch("4bV5sf2B4hWBBd5HQ8S7KB");
@@ -98,10 +95,9 @@ public class GeniusSearchTest {
   }
 
   @Test
-  public void testLyricsSearchKnownToNotWorkYet() {
+  void testLyricsSearchKnownToNotWorkYet() {
     testLyricsSearch("23RoR84KodL5HWvUTneQ1w", false);
     testLyricsSearch("5gEEcgxnyagVvAZlQ43dfn", false);
   }
 
 }
-
